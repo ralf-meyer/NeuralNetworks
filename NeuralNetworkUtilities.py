@@ -37,8 +37,8 @@ def construct_hidden_layer(LayerBeforeUnits,HiddenUnits,InitType=None,InitData=N
         elif InitType == "random_gamma":
             Weights=tf.Variable(tf.random_gamma([LayerBeforeUnits,HiddenUnits],InitData))
         else:
-            if InitData!=None and InitData.shape==[LayerBeforeUnits,HiddenUnits]:
-                Weights=tf.Variable(InitData)
+            if InitData!=None:
+                Weights=tf.constant(InitData)
             else:
                 #Assume random weights if no InitType is given
                 Weights=tf.Variable(tf.random_uniform([LayerBeforeUnits,HiddenUnits]))
@@ -46,8 +46,8 @@ def construct_hidden_layer(LayerBeforeUnits,HiddenUnits,InitType=None,InitData=N
         #Assume random weights if no InitType is given
         Weights=tf.Variable(tf.random_uniform([LayerBeforeUnits,HiddenUnits]))
     #Construct the bias for this layer
-    if BiasData!=None and BiasData.shape==[HiddenUnits]:
-        Biases = tf.Variable(BiasData)
+    if BiasData!=None:
+        Biases = tf.constant(BiasData)
     else:
         Biases = tf.Variable(tf.zeros([HiddenUnits]))
         
@@ -128,10 +128,7 @@ def make_standard_neuralnetwork(Structure,HiddenType=None,HiddenData=None,BiasDa
     for i in range(1,len(Structure)):
         NrIn=Structure[i-1]
         NrHidden=Structure[i]
-        if i==1 and HiddenData=="fix_first":
-            HiddenLayers.append(construct_not_trainable_layer(NrIn,NrHidden))
-        else:
-            HiddenLayers.append(construct_hidden_layer(NrIn,NrHidden,HiddenType,HiddenData,BiasData))
+        HiddenLayers.append(construct_hidden_layer(NrIn,NrHidden,HiddenType,HiddenData,BiasData))
         
 
     #Make output layer
@@ -156,22 +153,28 @@ def make_standard_neuralnetwork(Structure,HiddenType=None,HiddenData=None,BiasDa
       
     return LastConnection,InputLayer,OutputLayer
 
-def make_atomic_training_networks(Structures,NumberOfSameNetworks,Types=None,HiddenType=None,HiddenData=None,BiasData=None,ActFun=None,ActFunParam=None):
+def make_atomic_networks(Structures,NumberOfSameNetworks,Types=None,HiddenType=None,HiddenData=None,BiasData=None,ActFun=None,ActFunParam=None):
     
     AtomicNN=list()
+    AllHiddenLayers=list()
     #make all the networks for the different atom types
     for i in range(0,len(Structures)):
         #Make hidden layers
         HiddenLayers=list()
         Structure=Structures[i]
-        for j in range(1,len(Structure)):
-            NrIn=Structure[j-1]
-            NrHidden=Structure[j]
-            if j==1 and HiddenData=="fix_first":
-                HiddenLayers.append(construct_not_trainable_layer(NrIn,NrHidden))
-            else:
-                HiddenLayers.append(construct_hidden_layer(NrIn,NrHidden,HiddenType,HiddenData,BiasData))
+        if HiddenData!=None:
+            for j in range(1,len(Structure)):
+                NrIn=Structure[j-1]
+                NrHidden=Structure[j]
+                HiddenLayers.append(construct_hidden_layer(NrIn,NrHidden,HiddenType,HiddenData[i][j-1],BiasData[i][j-1]))
+        else:
+            for j in range(1,len(Structure)):
+                NrIn=Structure[j-1]
+                NrHidden=Structure[j]
+                HiddenLayers.append(construct_hidden_layer(NrIn,NrHidden,HiddenType,None,None))
                 
+        AllHiddenLayers.append(HiddenLayers)
+     
         for k in range(0,NumberOfSameNetworks[i]):
             #Make input layer
             NrInputs=Structure[0]
@@ -198,8 +201,8 @@ def make_atomic_training_networks(Structures,NumberOfSameNetworks,Types=None,Hid
                 AtomicNN.append([NumberOfSameNetworks[i],Network,InputLayer,OutputLayer,Types[i]])
             else:
                 AtomicNN.append([NumberOfSameNetworks[i],Network,InputLayer,OutputLayer])
-    
-    return AtomicNN
+
+    return AtomicNN,AllHiddenLayers
     
 def cost_per_atomic_network(TotalEnergy,AllEnergies,ReferenceValue):
     
@@ -292,7 +295,7 @@ def prepare_data_environment_for_atomicNNs(AtomicNNs,InData,OutputLayer=None,Out
     return Layers,Data
     
     
-def train(Session,Optimizer,CostFun,Layers,TrainingData,Epochs,ValidationData=None):
+def train(Session,Optimizer,CostFun,Layers,TrainingData,Epochs,ValidationData=None,CostCriterium=None):
     #Train with specifications and return loss   
     TrainCost=list()
     ValidationCost=list()
@@ -303,6 +306,9 @@ def train(Session,Optimizer,CostFun,Layers,TrainingData,Epochs,ValidationData=No
         #check validation dataset error
         if ValidationData!=None:
             ValidationCost.append(validate_step(Session,Layers,ValidationData,CostFun))
+            
+        if Cost<CostCriterium:
+            break
 
                 
     return Session,TrainCost,ValidationCost
@@ -420,16 +426,9 @@ def create_single_input_vector(AllData):
         
     return [AllInputs]
 
-def train_atomic_networks(AtomicNNs,TrainingInputs,TrainingOutputs,Epochs,LearningRate,ValidationInputs=None,ValidationOutputs=None):
+def train_atomic_networks(AtomicNNs,TrainingInputs,TrainingOutputs,Epochs,LearningRate,ValidationInputs=None,ValidationOutputs=None,CostCriterium=None):
         
-    TrainCosts=list()
-    ValidationCosts=list()
-    TrainedNetworks=list()
-    #create datasets for training and validation
-    #SortedInData=get_data_for_specifc_networks(AtomicNNs,TrainingInputs)
-    #if ValidationInputs != None:
-    #    SortedValInData=get_data_for_specifc_networks(AtomicNNs,ValidationInputs)
-        
+      
     ValidationCost=0
     TrainCost=0
     #Start Session
@@ -445,26 +444,63 @@ def train_atomic_networks(AtomicNNs,TrainingInputs,TrainingOutputs,Epochs,Learni
         ValidationData=None
     #Cost function changes for every net so the optimizer has to be adjusted
     CostFun=atomic_cost_function(Session,AtomicNNs,OutputLayer)
-    Optimizer=tf.train.GradientDescentOptimizer(LearningRate).minimize(CostFun)
+    Optimizer=tf.train.AdagradOptimizer(LearningRate).minimize(CostFun)
     #Start training of the atomic network
-    Session,TrainCost,ValidationCost=train(Session,Optimizer,CostFun,Layers,Data,Epochs,ValidationData)
-    TrainedNetworks.append(tf.trainable_variables())
+    Session,TrainCost,ValidationCost=train(Session,Optimizer,CostFun,Layers,Data,Epochs,ValidationData,CostCriterium)
+    TrainedNetwork=tf.trainable_variables()
         
-    return Session,TrainedNetworks,TrainCost,ValidationCost
+    return Session,TrainedNetwork,TrainCost,ValidationCost
 
-def expand_neuralnet(Structures,TrainedNetworks,nAtoms):
+def get_weights_biases_from_data(TrainedData):
     
-    AllAtomicNNs=list()
-    InputLayers=list()
-    for i in range(0,len(Structures)):
-        InputUnits=Structures[i][0]
-        Network=TrainedNetworks[i]
-        for j in range(0,nAtoms[i]):
-            InputLayer=construct_input_layer(InputUnits)
-            AllAtomicNNs.append(connect_input_to_network(InputLayer,Network))
-            InputLayers.append(InputLayer)
+    Weights=list()
+    Biases=list()
+    for i in range(0,len(TrainedData)):
+        NetworkData=TrainedData[i]
+        ThisWeights=list()
+        ThisBiases=list()
+        for j in range(0,len(NetworkData)):
+            ThisWeights.append(NetworkData[j][0])
+            ThisBiases.append(NetworkData[j][1])
+        Weights.append(ThisWeights)
+        Biases.append(ThisBiases)
+    
+    return Weights,Biases
+
+def get_structure_from_data(TrainedData):
+    
+    Structures=list()
+    for i in range(0,len(TrainedData)):
+        ThisNetwork=TrainedData[i]
+        Structure=[]
+        for j in range(0,len(ThisNetwork)):
+            Weights=ThisNetwork[j][0]
+            Structure+=[Weights.shape[0]]
+        Structure+=[1]
+        Structures.append(Structure)
+        
+    return Structures
+
+def expand_neuralnet(TrainedData,nAtoms):
+    
+    AtomicNNs=list()
+    Structures=get_structure_from_data(TrainedData)
+    Weights,Biases=get_weights_biases_from_data(TrainedData)
+    AtomicNNs,_=make_atomic_networks(Structures,nAtoms,None,"custom",Weights,Biases,"tanh")
             
-    return AllAtomicNNs,InputLayers
+    return AtomicNNs
+
+def get_trained_variables(Session,AllHiddenLayers):
+    
+    NetworkData=list()
+    for HiddenLayers in AllHiddenLayers:
+        Layers=list()
+        for i in range(0,len(HiddenLayers)):
+            Weights=Session.run(HiddenLayers[i][0])
+            Biases=Session.run(HiddenLayers[i][1])
+            Layers.append([Weights,Biases])
+        NetworkData.append(Layers)
+    return NetworkData
 
 def evaluateAllAtomicNNs(Session,AtomicNNs,InData):
     
