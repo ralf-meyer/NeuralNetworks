@@ -161,13 +161,43 @@ def make_atomic_training_networks(Structures,NumberOfSameNetworks,Types=None,Hid
     AtomicNN=list()
     #make all the networks for the different atom types
     for i in range(0,len(Structures)):
-        Network,InputLayer,OutputLayer=make_standard_neuralnetwork(Structures[i],HiddenType=None,HiddenData=None,BiasData=None,ActFun=None,ActFunParam=None)
-        #CostFunction=cost_function(Network,OutputLayer)
-        #Optimizer = tf.train.GradientDescentOptimizer(LearningRate).minimize(CostFunction)
-        if Types!=None:
-            AtomicNN.append([NumberOfSameNetworks[i],Network,InputLayer,OutputLayer,Types[i]])
-        else:
-            AtomicNN.append([NumberOfSameNetworks[i],Network,InputLayer,OutputLayer])
+        #Make hidden layers
+        HiddenLayers=list()
+        Structure=Structures[i]
+        for j in range(1,len(Structure)):
+            NrIn=Structure[j-1]
+            NrHidden=Structure[j]
+            if j==1 and HiddenData=="fix_first":
+                HiddenLayers.append(construct_not_trainable_layer(NrIn,NrHidden))
+            else:
+                HiddenLayers.append(construct_hidden_layer(NrIn,NrHidden,HiddenType,HiddenData,BiasData))
+                
+        for k in range(0,NumberOfSameNetworks[i]):
+            #Make input layer
+            NrInputs=Structure[0]
+            InputLayer=construct_input_layer(NrInputs)
+            #Make output layer
+            OutputLayer=construct_output_layer(Structure[-1])
+            #Connect input to first hidden layer
+            FirstWeights=HiddenLayers[0][0]
+            FirstBiases=HiddenLayers[0][1]
+            InConnection=connect_layers(InputLayer,FirstWeights,FirstBiases,ActFun,ActFunParam)
+    
+            for l in range(1,len(HiddenLayers)):
+                #Connect ouput of in layer to second hidden layer
+                if l==1 :
+                    SecondWeights=HiddenLayers[l][0]
+                    SecondBiases=HiddenLayers[l][1]
+                    Network=connect_layers(InConnection,SecondWeights,SecondBiases,ActFun,ActFunParam)
+                else:
+                    Weights=HiddenLayers[l][0]
+                    Biases=HiddenLayers[l][1]
+                    Network=connect_layers(Network,Weights,Biases,ActFun,ActFunParam)
+                    
+            if Types!=None:
+                AtomicNN.append([NumberOfSameNetworks[i],Network,InputLayer,OutputLayer,Types[i]])
+            else:
+                AtomicNN.append([NumberOfSameNetworks[i],Network,InputLayer,OutputLayer])
     
     return AtomicNN
     
@@ -199,28 +229,92 @@ def cost_function(Network,Output,CostFunType=None,RegType=None,RegParam=None):
     #to be expanded
     return CostFunction
 
-def train_step(Session,Optimizer,InputLayer,OutputLayer,TrainInputs,TrainOutputs,CostFun):
-    _,Cost=Session.run([Optimizer,CostFun],feed_dict={InputLayer: np.array(TrainInputs),OutputLayer: np.array(TrainOutputs)})
+def train_step(Session,Optimizer,Layers,Data,CostFun):
+    
+    _,Cost=Session.run([Optimizer,CostFun],feed_dict={i: np.array(d) for i, d in zip(Layers,Data)})
     return Cost
-     
-def train(Session,Optimizer,CostFun,InputLayer,OutputLayer,TrainInputs,TrainOutputs,Epochs,ValidationInputs=None,ValidationOutputs=None):
+
+def validate_step(Session,Layers,Data,CostFun):
+    
+    _,Cost=Session.run(CostFun,feed_dict={i: np.array(d) for i, d in zip(Layers,Data)})
+    return Cost
+
+def make_layers(InputLayer,OutputLayer=None):
+    
+    Layers=list()
+    Layers.append(InputLayer)
+    if OutputLayer!=None:
+        Layers.append(OutputLayer)
+    return Layers
+
+def make_data(InData,OutData=None):
+    
+    Data=list()
+    Data.append(InData)
+    if OutData!=None:
+        Data.append(OutData)
+    
+    return Data
+
+def prepare_data_environment(InputLayer,InData,OutputLayer=None,OutData=None):
+    
+    Layers=make_layers(InputLayer,OutputLayer)
+    Data=make_data(InData,OutData)
+    
+    return Layers,Data
+    
+
+def make_layers_for_atomicNNs(AtomicNNs,OutputLayer=None):
+    
+    Layers=list()
+    for AtomicNetwork in AtomicNNs:
+        Layers.append(AtomicNetwork[2])
+    if OutputLayer!=None:
+        Layers.append(OutputLayer)
+    
+    return Layers
+
+def make_data_for_atomicNNs(InData,OutData=None):
+    
+    CombinedData=list()
+    for Data in InData:
+        CombinedData.append([Data])
+    if OutData!=None:
+        CombinedData.append([OutData])
+    
+    return CombinedData
+
+def prepare_data_environment_for_atomicNNs(AtomicNNs,InData,OutputLayer=None,OutData=None):
+    
+    Layers=make_layers_for_atomicNNs(AtomicNNs,OutputLayer)
+    Data=make_data_for_atomicNNs(InData,OutData)
+    
+    return Layers,Data
+    
+    
+def train(Session,Optimizer,CostFun,Layers,TrainingData,Epochs,ValidationData=None):
     #Train with specifications and return loss   
     TrainCost=list()
     ValidationCost=list()
     Session.run(tf.global_variables_initializer())
     for i in range(Epochs):
-        Cost=train_step(Session,Optimizer,InputLayer,OutputLayer,TrainInputs,TrainOutputs,CostFun)
+        Cost=train_step(Session,Optimizer,Layers,TrainingData,CostFun)
         TrainCost.append(Cost)
         #check validation dataset error
-        if ValidationInputs!=None:
-            ValidationCost.append(Session.run(CostFun, feed_dict={InputLayer:np.array(ValidationInputs),OutputLayer: np.array(ValidationOutputs)}))
+        if ValidationData!=None:
+            ValidationCost.append(validate_step(Session,Layers,ValidationData,CostFun))
 
                 
     return Session,TrainCost,ValidationCost
 
-def evaluate(Session,Network,InputLayer,Data):
+def evaluate(Session,Network,Layers,Data):
     #Evaluate model for given input data
-    return Session.run(Network, feed_dict={InputLayer:np.array(Data)})[0]
+    if len(Layers)==1:
+        Data=np.reshape(Data,(1,len(Data[0])))
+        return Session.run(Network, feed_dict={Layers[0]:Data})
+    else:
+        return Session.run(Network, feed_dict={i: np.array(d) for i, d in zip(Layers,Data)})
+        
 
 def all_perms(elements):
     #Returns  all permutations of input
@@ -242,14 +336,14 @@ def transform_permuted_data(PermutationData):
         for i in range(0,len(Permutation)-1):
             if i==0:
                 OutPermutation=Permutation[i]
-            Next=Permuation[i+1]
+            Next=Permutaion[i+1]
             OutPermutation=OutPermutation+Next
     OutPermutedData.append(OutPermutation)
     
     return OutPermutedData
     
 
-def evaluate_all_atomic_networks(Session,AtomicNNs,Data):
+def output_of_all_atomic_networks(Session,AtomicNNs):
 
     TotalEnergy=0
     AllEnergies=list()
@@ -258,8 +352,6 @@ def evaluate_all_atomic_networks(Session,AtomicNNs,Data):
         #Get network data
         AtomicNetwork=AtomicNNs[i]
         Network=AtomicNetwork[1]
-        InputLayer=AtomicNetwork[2]
-        OutputLayer=AtomicNetwork[3]
         if len(AtomicNetwork)>4:
             Type=AtomicNetwork[4]
         else:
@@ -271,15 +363,15 @@ def evaluate_all_atomic_networks(Session,AtomicNNs,Data):
             #shift index by number of networks of last tpye
             offsetIdx+=AtomicNNs[i-1][0]
         #Get input data for network              
-        AllEnergies.append(evaluate(Session,Network,InputLayer,Data))
+        AllEnergies.append(Network)
         TotalEnergy+=AllEnergies[-1]
         
     return TotalEnergy,AllEnergies
 
-def atomic_cost_function(Session,AtomicNNs,Inputs,ReferenceOutput,NetworkIdx):
+def atomic_cost_function(Session,AtomicNNs,ReferenceOutput):
     
-    TotalEnergy,AllEnergies=output_of_all_atomic_networks(Session,AtomicNNs,Inputs)
-    Cost=cost_for_atomic_network(TotalEnergy,ReferenceOutput,AllEnergies[NetworkIdx])
+    TotalEnergy,AllEnergies=output_of_all_atomic_networks(Session,AtomicNNs)
+    Cost=total_cost_for_network(TotalEnergy,ReferenceOutput)[0]
     
     return Cost
 
@@ -309,50 +401,56 @@ def get_data_for_specifc_networks(AtomicNNs,InData):
 
     return OutData
 
+def create_single_input_layer(AtomicNNs):
+    
+    for i in range(0,len(AtomicNNs)):
+        if i==0:
+            Out=AtomicNNs[i][2]
+            print(AtomicNNs[i][2])
+        else:
+            Out=tf.concat([Out,AtomicNNs[i][2]], 1)
+
+    return Out
+
+def create_single_input_vector(AllData):
+    
+    AllInputs=[]
+    for Data in AllData:
+        AllInputs+=Data
+        
+    return [AllInputs]
+
 def train_atomic_networks(AtomicNNs,TrainingInputs,TrainingOutputs,Epochs,LearningRate,ValidationInputs=None,ValidationOutputs=None):
         
     TrainCosts=list()
     ValidationCosts=list()
     TrainedNetworks=list()
     #create datasets for training and validation
-    SortedInData=get_data_for_specifc_networks(AtomicNNs,TrainingInputs)
-    SortedOutData=get_data_for_specifc_networks(AtomicNNs,TrainingOutputs)
-    if ValidationInputs != None:
-        SortedValInData=get_data_for_specifc_networks(AtomicNNs,ValidationInputs)
-        SortedValOutData=get_data_for_specifc_networks(AtomicNNs,ValidationOutputs)
+    #SortedInData=get_data_for_specifc_networks(AtomicNNs,TrainingInputs)
+    #if ValidationInputs != None:
+    #    SortedValInData=get_data_for_specifc_networks(AtomicNNs,ValidationInputs)
         
     ValidationCost=0
     TrainCost=0
     #Start Session
     Session = tf.InteractiveSession() 
-    
-    for j in range(0,len(AtomicNNs)):
-        #Get data for network
-        InDataForNetwork=SortedInData[j]
-        OutDataForNetwork=SortedOutData[j]
-        if ValidationInputs != None:
-            ValInDataForNetwork=SortedValInData[j]
-            ValOutDataForNetwork=SortedValOutData[j]
-        else:
-            ValInDataForNetwork=None
-            ValOutDataForNetwork=None
-        #Get network data
-        AtomicNetwork=AtomicNNs[j]
-        Network=AtomicNetwork[1]
-        InputLayer=AtomicNetwork[2]
-        OutputLayer=AtomicNetwork[3]
- 
-        #Cost function changes for every net so the optimizer has to be adjusted
-        CostFun=cost_function(Network,OutputLayer)
-        Optimizer=tf.train.GradientDescentOptimizer(LearningRate).minimize(CostFun)
-        #Start training of the atomic network
-        Session,TrainCost,ValidationCost=train(Session,Optimizer,CostFun,InputLayer,OutputLayer,InDataForNetwork,OutDataForNetwork,Epochs,ValInDataForNetwork,ValOutDataForNetwork)
-        TrainedNetworks.append(tf.trainable_variables())
-        #Store costs per epoche for each network
-        TrainCosts.append(TrainCost)    
-        ValidationCosts.append(ValidationCost)
+    #Make virtual output layer for feeding the data to the cost function
+    OutputLayer=construct_output_layer(1)
+    #Prepare data environment for training
+    Layers,Data=prepare_data_environment_for_atomicNNs(AtomicNNs,TrainingInputs,OutputLayer,TrainingOutputs)
+    #Make validation input vector
+    if ValidationInputs != None:
+        ValidationData=make_data_for_atomicNNs(ValidationInputs,ValidationOutputs)
+    else:
+        ValidationData=None
+    #Cost function changes for every net so the optimizer has to be adjusted
+    CostFun=atomic_cost_function(Session,AtomicNNs,OutputLayer)
+    Optimizer=tf.train.GradientDescentOptimizer(LearningRate).minimize(CostFun)
+    #Start training of the atomic network
+    Session,TrainCost,ValidationCost=train(Session,Optimizer,CostFun,Layers,Data,Epochs,ValidationData)
+    TrainedNetworks.append(tf.trainable_variables())
         
-    return Session,TrainedNetworks,TrainCosts,ValidationCosts
+    return Session,TrainedNetworks,TrainCost,ValidationCost
 
 def expand_neuralnet(Structures,TrainedNetworks,nAtoms):
     
@@ -363,18 +461,19 @@ def expand_neuralnet(Structures,TrainedNetworks,nAtoms):
         Network=TrainedNetworks[i]
         for j in range(0,nAtoms[i]):
             InputLayer=construct_input_layer(InputUnits)
-            print(InputLayer)
-            print(Network)
             AllAtomicNNs.append(connect_input_to_network(InputLayer,Network))
             InputLayers.append(InputLayer)
             
     return AllAtomicNNs,InputLayers
 
-def evaluateAllAtomicNNs(Session,AllAtomicNNs,InputLayers,Data):
+def evaluateAllAtomicNNs(Session,AtomicNNs,InData):
     
     Energy=0
-    for i in range(0,len(AllAtomicNNs)):
-        Energy+=evaluate(Session,AllAtomicNNs[i],InputLayers[i],Data[i])
+    Layers,Data=prepare_data_environment_for_atomicNNs(AtomicNNs,InData,None,None)
+
+    for i in range(0,len(AtomicNNs)):
+        AtomicNetwork=AtomicNNs[i]   
+        Energy+=evaluate(Session,AtomicNetwork[1],[Layers[i]],Data[i])
         
     return Energy
     
