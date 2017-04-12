@@ -219,7 +219,7 @@ def cost_for_atomic_network(TotalEnergy,ReferenceValue,Ei):
     return Cost
 
 def total_cost_for_network(TotalEnergy,ReferenceValue):
-    
+
     return (TotalEnergy-ReferenceValue)**2/2
 
 def cost_function(Network,Output,CostFunType=None,RegType=None,RegParam=None):
@@ -281,17 +281,17 @@ def make_data_for_atomicNNs(InData,OutData=None):
     
     CombinedData=list()
     for Data in InData:
-        CombinedData.append([Data])
+        CombinedData.append(Data)
     if OutData!=None:
-        CombinedData.append([OutData])
-    
+        CombinedData.append(OutData)
+
     return CombinedData
 
 def prepare_data_environment_for_atomicNNs(AtomicNNs,InData,OutputLayer=None,OutData=None):
     
     Layers=make_layers_for_atomicNNs(AtomicNNs,OutputLayer)
     Data=make_data_for_atomicNNs(InData,OutData)
-    
+
     return Layers,Data
     
     
@@ -302,12 +302,14 @@ def train(Session,Optimizer,CostFun,Layers,TrainingData,Epochs,ValidationData=No
     Session.run(tf.global_variables_initializer())
     for i in range(Epochs):
         Cost=train_step(Session,Optimizer,Layers,TrainingData,CostFun)
-        TrainCost.append(Cost)
+        TrainCost.append(sum(Cost))
+
         #check validation dataset error
         if ValidationData!=None:
-            ValidationCost.append(validate_step(Session,Layers,ValidationData,CostFun))
+            ValidationCost.append(sum(validate_step(Session,Layers,ValidationData,CostFun)))
             
-        if Cost<CostCriterium:
+        if TrainCost[-1]<CostCriterium and Cost!=0:
+            print(TrainCost[-1])
             break
 
                 
@@ -316,7 +318,6 @@ def train(Session,Optimizer,CostFun,Layers,TrainingData,Epochs,ValidationData=No
 def evaluate(Session,Network,Layers,Data):
     #Evaluate model for given input data
     if len(Layers)==1:
-        Data=np.reshape(Data,(1,len(Data[0])))
         return Session.run(Network, feed_dict={Layers[0]:Data})
     else:
         return Session.run(Network, feed_dict={i: np.array(d) for i, d in zip(Layers,Data)})
@@ -377,8 +378,8 @@ def output_of_all_atomic_networks(Session,AtomicNNs):
 def atomic_cost_function(Session,AtomicNNs,ReferenceOutput):
     
     TotalEnergy,AllEnergies=output_of_all_atomic_networks(Session,AtomicNNs)
-    Cost=total_cost_for_network(TotalEnergy,ReferenceOutput)[0]
-    
+    Cost=total_cost_for_network(TotalEnergy,ReferenceOutput)
+
     return Cost
 
 def get_all_input_layers_as_single_input(AtomicNNs):
@@ -426,9 +427,9 @@ def create_single_input_vector(AllData):
         
     return [AllInputs]
 
-def train_atomic_networks(AtomicNNs,TrainingInputs,TrainingOutputs,Epochs,LearningRate,ValidationInputs=None,ValidationOutputs=None,CostCriterium=None):
+def train_atomic_networks(AtomicNNs,TrainingInputs,TrainingOutputs,Epochs,LearningRate,ValidationInputs=None,ValidationOutputs=None,CostCriterium=None,OptimizerType=None,OptimizerProp=None):
         
-      
+    
     ValidationCost=0
     TrainCost=0
     #Start Session
@@ -442,9 +443,34 @@ def train_atomic_networks(AtomicNNs,TrainingInputs,TrainingOutputs,Epochs,Learni
         ValidationData=make_data_for_atomicNNs(ValidationInputs,ValidationOutputs)
     else:
         ValidationData=None
-    #Cost function changes for every net so the optimizer has to be adjusted
+    #Cost function changes for every net 
     CostFun=atomic_cost_function(Session,AtomicNNs,OutputLayer)
-    Optimizer=tf.train.AdagradOptimizer(LearningRate).minimize(CostFun)
+    #Add optimizer
+    if OptimizerType==None:
+        Optimizer=tf.train.GradientDescentOptimizer(LearningRate).minimize(CostFun)
+    else:
+        if OptimizerType=="GradientDescent":
+            Optimizer=tf.train.GradientDescentOptimizer(LearningRate).minimize(CostFun)
+        elif OptimizerType=="Adagrad":
+            Optimizer=tf.train.AdagradOptimizer(LearningRate).minimize(CostFun)
+        elif OptimizerType=="Adadelta":
+            Optimizer=tf.train.AdadeltaOptimizer(LearningRate).minimize(CostFun)
+        elif OptimizerType=="AdagradDA":
+            Optimizer=tf.train.AdagradDAOptimizer(LearningRate,OptimizerProp).minimize(CostFun)
+        elif OptimizerType=="Momentum":
+            Optimizer=tf.train.MomentumOptimizer(LearningRate,OptimizerProp).minimize(CostFun)
+        elif OptimizerType=="Adam":
+            Optimizer=tf.train.AdamOptimizer(LearningRate).minimize(CostFun)
+        elif OptimizerType=="Ftrl":
+            Optimizer=tf.train.FtrlOptimizer(LearningRate).minimize(CostFun)   
+        elif OptimizerType=="ProximalGradientDescent":
+            Optimizer=tf.train.ProximalGradientDescentOptimizer(LearningRate).minimize(CostFun)  
+        elif OptimizerType=="ProximalAdagrad":
+            Optimizer=tf.train.ProximalAdagradOptimizer(LearningRate).minimize(CostFun)   
+        elif OptimizerType=="RMSProp":
+            Optimizer=tf.train.RMSPropOptimizer(LearningRate).minimize(CostFun)  
+        else:
+            Optimizer=tf.train.GradientDescentOptimizer(LearningRate).minimize(CostFun)
     #Start training of the atomic network
     Session,TrainCost,ValidationCost=train(Session,Optimizer,CostFun,Layers,Data,Epochs,ValidationData,CostCriterium)
     TrainedNetwork=tf.trainable_variables()
