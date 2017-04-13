@@ -62,7 +62,7 @@ def construct_output_layer(OutputUnits):
 def construct_not_trainable_layer(NrInputs,NrOutputs):
     #make a not trainable layer with the weights one
     Weights=tf.Variable(tf.ones([NrInputs,NrOutputs]), trainable=False)
-    Biases=tf.Variable(tf.zeros([HiddenUnits]),trainable=False)
+    Biases=tf.Variable(tf.zeros([NrOutputs]),trainable=False)
     return Weights,Biases
     
 def connect_layers(InputsForLayer,Layer1Weights,Layer1Bias,ActFun=None,FunParam=None):
@@ -117,6 +117,14 @@ def connect_input_to_network(InputsForLayers,Layers,ActFun=None,FunParam=None):
     
     return Out
 
+def make_force_networks(Structure,HiddenData,BiasData):
+    
+    ForceNetworks=list()
+    for i in range(0,len(Structure)-1):
+        Network,InputLayer,OutputLayer=make_standard_neuralnetwork(Structure[0:i+1],None,HiddenData,BiasData)
+        ForceNetworks.append([Network,InputLayer,OutputLayer])        
+        
+
 def make_standard_neuralnetwork(Structure,HiddenType=None,HiddenData=None,BiasData=None,ActFun=None,ActFunParam=None):
     #Construct the NN
     
@@ -128,7 +136,7 @@ def make_standard_neuralnetwork(Structure,HiddenType=None,HiddenData=None,BiasDa
     for i in range(1,len(Structure)):
         NrIn=Structure[i-1]
         NrHidden=Structure[i]
-        HiddenLayers.append(construct_hidden_layer(NrIn,NrHidden,HiddenType,HiddenData,BiasData))
+        HiddenLayers.append(construct_hidden_layer(NrIn,NrHidden,HiddenType,HiddenData[i-1],BiasData[i-1]))
         
 
     #Make output layer
@@ -153,21 +161,24 @@ def make_standard_neuralnetwork(Structure,HiddenType=None,HiddenData=None,BiasDa
       
     return LastConnection,InputLayer,OutputLayer
 
-def make_atomic_networks(Structures,NumberOfSameNetworks,Types=None,HiddenType=None,HiddenData=None,BiasData=None,ActFun=None,ActFunParam=None):
+def make_atomic_networks(Structures,NumberOfSameNetworks,Gs=None,HiddenType=None,HiddenData=None,BiasData=None,ActFun=None,ActFunParam=None):
     
     AtomicNN=list()
     AllHiddenLayers=list()
+    
     #make all the networks for the different atom types
     for i in range(0,len(Structures)):
         #Make hidden layers
         HiddenLayers=list()
         Structure=Structures[i]
         if HiddenData!=None:
+            ForceNetworks=make_force_networks(Structure,HiddenData[i],BiasData[i])
             for j in range(1,len(Structure)):
                 NrIn=Structure[j-1]
                 NrHidden=Structure[j]
                 HiddenLayers.append(construct_hidden_layer(NrIn,NrHidden,HiddenType,HiddenData[i][j-1],BiasData[i][j-1]))
         else:
+            ForceNetworks=None
             for j in range(1,len(Structure)):
                 NrIn=Structure[j-1]
                 NrHidden=Structure[j]
@@ -197,10 +208,10 @@ def make_atomic_networks(Structures,NumberOfSameNetworks,Types=None,HiddenType=N
                     Biases=HiddenLayers[l][1]
                     Network=connect_layers(Network,Weights,Biases,ActFun,ActFunParam)
                     
-            if Types!=None:
-                AtomicNN.append([NumberOfSameNetworks[i],Network,InputLayer,OutputLayer,Types[i]])
+            if Gs[i]!=None:
+                AtomicNN.append([NumberOfSameNetworks[i],Network,InputLayer,OutputLayer,ForceNetworks,FirstWeights,FirstBiases,ActFun,Gs[i]])
             else:
-                AtomicNN.append([NumberOfSameNetworks[i],Network,InputLayer,OutputLayer])
+                AtomicNN.append([NumberOfSameNetworks[i],Network,InputLayer,OutputLayer,ForceNetworks,FirstWeights,FirstBiases,ActFun])
 
     return AtomicNN,AllHiddenLayers
     
@@ -343,7 +354,7 @@ def transform_permuted_data(PermutationData):
         for i in range(0,len(Permutation)-1):
             if i==0:
                 OutPermutation=Permutation[i]
-            Next=Permutaion[i+1]
+            Next=Permutation[i+1]
             OutPermutation=OutPermutation+Next
     OutPermutedData.append(OutPermutation)
     
@@ -359,10 +370,6 @@ def output_of_all_atomic_networks(Session,AtomicNNs):
         #Get network data
         AtomicNetwork=AtomicNNs[i]
         Network=AtomicNetwork[1]
-        if len(AtomicNetwork)>4:
-            Type=AtomicNetwork[4]
-        else:
-            Type=None
             
         if i==0:
             offsetIdx=0
@@ -432,8 +439,10 @@ def train_atomic_networks(AtomicNNs,TrainingInputs,TrainingOutputs,Epochs,Learni
     
     ValidationCost=0
     TrainCost=0
-    #Start Session
-    Session = tf.InteractiveSession() 
+    #Start Session 
+        
+    Session=tf.Session()
+
     #Make virtual output layer for feeding the data to the cost function
     OutputLayer=construct_output_layer(1)
     #Prepare data environment for training
@@ -507,12 +516,12 @@ def get_structure_from_data(TrainedData):
         
     return Structures
 
-def expand_neuralnet(TrainedData,nAtoms):
+def expand_neuralnet(TrainedData,nAtoms,Gs):
     
     AtomicNNs=list()
     Structures=get_structure_from_data(TrainedData)
     Weights,Biases=get_weights_biases_from_data(TrainedData)
-    AtomicNNs,_=make_atomic_networks(Structures,nAtoms,None,"custom",Weights,Biases,"tanh")
+    AtomicNNs,_=make_atomic_networks(Structures,nAtoms,Gs,"custom",Weights,Biases,"tanh")
             
     return AtomicNNs
 
@@ -528,6 +537,113 @@ def get_trained_variables(Session,AllHiddenLayers):
         NetworkData.append(Layers)
     return NetworkData
 
+def all_derivatives_of_Gij_wrt_alpha(Session,GsForAtom,Alpha,AlphaValue):
+    
+    Derivatives=list()
+    for i in range(0,len(GsForAtom)):
+        Derivatives.append(Session.run(tf.gradients(GsForAtom,Alpha),feed_dict={Alpha:AlphaValue})[0])
+
+
+    return Derivatives
+    
+
+def all_derivatives_of_Ei_wrt_Gij(Session,InputLayer,Network,G_values):
+    
+    Derivatives=tf.gradients(Network,InputLayer)
+    DerivativeValues=Session.run(Derivatives,feed_dict={InputLayer:G_values})[0]
+        
+    return DerivativeValues
+
+def get_g_values(Session,GsForAtom,Alpha,AlphaVal):
+    
+    G_values=np.empty((1,len(GsForAtom)))
+    for i in range(0,len(GsForAtom)):
+        G_values[0][i]=Session.run(GsForAtom[i],feed_dict={Alpha:AlphaVal})[0]
+    
+    return G_values
+
+def force_for_atomicnetwork_internal(Session,AtomicNetwork,Alpha,AlphaValue):
+    
+    Out=0
+    Network=AtomicNetwork[1]
+    InputLayer=AtomicNetwork[2]
+    GsForAtom=AtomicNetwork[8]
+    G_values=get_g_values(Session,GsForAtom,Alpha,AlphaValue)
+    part1=all_derivatives_of_Ei_wrt_Gij(Session,InputLayer,Network,G_values)[0]
+    part2=all_derivatives_of_Gij_wrt_alpha(Session,GsForAtom,Alpha,AlphaValue)
+    
+
+    for i in range(0,len(part2)):
+        Out+=part1[i]*part2[i][0][0]
+        
+    return Out
+
+def total_force_internal(Session,AtomicNNs,Alpha,AlphaValue):
+    
+    Force=0
+    for i in range(0,len(AtomicNNs)):
+        AtomicNetwork=AtomicNNs[i]
+        Force+=force_for_atomicnetwork(Session,AtomicNetwork,Alpha,AlphaValue)
+        
+    return Force
+
+def ActFun(ActFun,Argument):
+    
+    if ActFun=="sigmoid":
+        Out=tf.nn.sigmoid(Argument)
+    elif ActFun=="tanh":
+        Out=tf.nn.tanh(Argument)
+    elif ActFun=="relu":
+        Out=tf.nn.relu(Argument)
+    elif ActFun=="relu6":
+        Out=tf.nn.relu6(Argument) 
+    elif ActFun=="crelu":
+        Out=tf.nn.crelu(Argument) 
+    elif ActFun=="elu":
+        Out=tf.nn.elu(Argument)     
+    elif ActFun=="softplus":
+        Out=tf.nn.softplus(Argument)     
+    elif ActFun=="dropout":
+        Out=tf.nn.dropout(Argument) 
+    elif ActFun=="bias_add":
+        Out=tf.nn.bias_add(Argument)  
+    return Out
+
+def bias_plus_sum_weights_times_argument(Bias,Weights,Argument):
+    
+    return tf.matmul(Argument, Weights) + Bias
+
+def evaluate_force_networks(Session,ForceNetworks,Gs,InputBias,InputWeights,InputActFun):
+    
+    Activations=list()
+    Argument=bias_plus_sum_weights_times_argument(InputBias,InputWeights,Gs)
+    Activations.append(ActFun(InputActFun,Argument))
+    for i in range(0,len(ForceNetworks)):
+        Network=ForceNetworks[i][0]
+        InputLayer=ForceNetworks[i][1]
+        Activations.append(evaluate(Session,Network,InputLayer,Activations[-1]))
+        
+    return Activations
+    
+
+def force_for_atomicnetwork(Session,AtomicNetwork,Alpha,AlphaValue):
+    
+    ForceNetworks=AtomicNetwork[4]
+    InputWeights=AtomicNetwork[5]
+    InputBiases=AtomicNetwork[6]
+    ActFun=AtomicNetwork[7]
+    GsForAtom=AtomicNetwork[8]
+    G_Values=get_g_values(Session,GsForAtom,Alpha,AlphaValue)
+    
+    Sum=tf.reduce_sum(InputBiases,axis=0)
+    
+    
+    return 1
+
+def total_force(Session,AtomicNNs,Alpha,AlphaValue):
+    #Analytic calculation for faster evaluation
+    return 1
+    
 def evaluateAllAtomicNNs(Session,AtomicNNs,InData):
     
     Energy=0
