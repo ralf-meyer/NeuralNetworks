@@ -7,7 +7,7 @@ Created on Thu Apr  6 11:30:10 2017
 """
 import numpy as np
 import tensorflow as tf
-from matplotlib import pyplot as plt
+
 
 def construct_input_layer(InputUnits):
     #Construct inputs for the NN
@@ -120,14 +120,14 @@ def connect_input_to_network(InputsForLayers,Layers,ActFun=None,FunParam=None):
 def make_force_networks(Structure,HiddenData,BiasData):
     
     ForceNetworks=list()
-    for i in range(0,len(Structure)-1):
+    for i in range(1,len(Structure)-1):
         Network,InputLayer,OutputLayer=make_standard_neuralnetwork(Structure[0:i+1],None,HiddenData,BiasData)
         ForceNetworks.append([Network,InputLayer,OutputLayer])        
-        
+    return ForceNetworks
 
 def make_standard_neuralnetwork(Structure,HiddenType=None,HiddenData=None,BiasData=None,ActFun=None,ActFunParam=None):
     #Construct the NN
-    
+
     #Make inputs
     NrInputs=Structure[0]
     InputLayer=construct_input_layer(NrInputs)
@@ -146,7 +146,7 @@ def make_standard_neuralnetwork(Structure,HiddenType=None,HiddenData=None,BiasDa
     FirstWeights=HiddenLayers[0][0]
     FirstBiases=HiddenLayers[0][1]
     InConnection=connect_layers(InputLayer,FirstWeights,FirstBiases,ActFun,ActFunParam)
-    
+    LastConnection=InConnection
 
     for j in range(1,len(HiddenLayers)):
        #Connect ouput of in layer to second hidden layer
@@ -161,59 +161,7 @@ def make_standard_neuralnetwork(Structure,HiddenType=None,HiddenData=None,BiasDa
       
     return LastConnection,InputLayer,OutputLayer
 
-def make_atomic_networks(Structures,NumberOfSameNetworks,Gs=None,HiddenType=None,HiddenData=None,BiasData=None,ActFun=None,ActFunParam=None):
-    
-    AtomicNN=list()
-    AllHiddenLayers=list()
-    
-    #make all the networks for the different atom types
-    for i in range(0,len(Structures)):
-        #Make hidden layers
-        HiddenLayers=list()
-        Structure=Structures[i]
-        if HiddenData!=None:
-            ForceNetworks=make_force_networks(Structure,HiddenData[i],BiasData[i])
-            for j in range(1,len(Structure)):
-                NrIn=Structure[j-1]
-                NrHidden=Structure[j]
-                HiddenLayers.append(construct_hidden_layer(NrIn,NrHidden,HiddenType,HiddenData[i][j-1],BiasData[i][j-1]))
-        else:
-            ForceNetworks=None
-            for j in range(1,len(Structure)):
-                NrIn=Structure[j-1]
-                NrHidden=Structure[j]
-                HiddenLayers.append(construct_hidden_layer(NrIn,NrHidden,HiddenType,None,None))
-                
-        AllHiddenLayers.append(HiddenLayers)
-     
-        for k in range(0,NumberOfSameNetworks[i]):
-            #Make input layer
-            NrInputs=Structure[0]
-            InputLayer=construct_input_layer(NrInputs)
-            #Make output layer
-            OutputLayer=construct_output_layer(Structure[-1])
-            #Connect input to first hidden layer
-            FirstWeights=HiddenLayers[0][0]
-            FirstBiases=HiddenLayers[0][1]
-            InConnection=connect_layers(InputLayer,FirstWeights,FirstBiases,ActFun,ActFunParam)
-    
-            for l in range(1,len(HiddenLayers)):
-                #Connect ouput of in layer to second hidden layer
-                if l==1 :
-                    SecondWeights=HiddenLayers[l][0]
-                    SecondBiases=HiddenLayers[l][1]
-                    Network=connect_layers(InConnection,SecondWeights,SecondBiases,ActFun,ActFunParam)
-                else:
-                    Weights=HiddenLayers[l][0]
-                    Biases=HiddenLayers[l][1]
-                    Network=connect_layers(Network,Weights,Biases,ActFun,ActFunParam)
-                    
-            if Gs[i]!=None:
-                AtomicNN.append([NumberOfSameNetworks[i],Network,InputLayer,OutputLayer,ForceNetworks,FirstWeights,FirstBiases,ActFun,Gs[i]])
-            else:
-                AtomicNN.append([NumberOfSameNetworks[i],Network,InputLayer,OutputLayer,ForceNetworks,FirstWeights,FirstBiases,ActFun])
 
-    return AtomicNN,AllHiddenLayers
     
 def cost_per_atomic_network(TotalEnergy,AllEnergies,ReferenceValue):
     
@@ -250,7 +198,7 @@ def train_step(Session,Optimizer,Layers,Data,CostFun):
 
 def validate_step(Session,Layers,Data,CostFun):
     
-    _,Cost=Session.run(CostFun,feed_dict={i: np.array(d) for i, d in zip(Layers,Data)})
+    Cost=Session.run(CostFun,feed_dict={i: np.array(d) for i, d in zip(Layers,Data)})
     return Cost
 
 def make_layers(InputLayer,OutputLayer=None):
@@ -420,7 +368,6 @@ def create_single_input_layer(AtomicNNs):
     for i in range(0,len(AtomicNNs)):
         if i==0:
             Out=AtomicNNs[i][2]
-            print(AtomicNNs[i][2])
         else:
             Out=tf.concat([Out,AtomicNNs[i][2]], 1)
 
@@ -434,57 +381,6 @@ def create_single_input_vector(AllData):
         
     return [AllInputs]
 
-def train_atomic_networks(AtomicNNs,TrainingInputs,TrainingOutputs,Epochs,LearningRate,ValidationInputs=None,ValidationOutputs=None,CostCriterium=None,OptimizerType=None,OptimizerProp=None):
-        
-    
-    ValidationCost=0
-    TrainCost=0
-    #Start Session 
-        
-    Session=tf.Session()
-
-    #Make virtual output layer for feeding the data to the cost function
-    OutputLayer=construct_output_layer(1)
-    #Prepare data environment for training
-    Layers,Data=prepare_data_environment_for_atomicNNs(AtomicNNs,TrainingInputs,OutputLayer,TrainingOutputs)
-    #Make validation input vector
-    if ValidationInputs != None:
-        ValidationData=make_data_for_atomicNNs(ValidationInputs,ValidationOutputs)
-    else:
-        ValidationData=None
-    #Cost function changes for every net 
-    CostFun=atomic_cost_function(Session,AtomicNNs,OutputLayer)
-    #Add optimizer
-    if OptimizerType==None:
-        Optimizer=tf.train.GradientDescentOptimizer(LearningRate).minimize(CostFun)
-    else:
-        if OptimizerType=="GradientDescent":
-            Optimizer=tf.train.GradientDescentOptimizer(LearningRate).minimize(CostFun)
-        elif OptimizerType=="Adagrad":
-            Optimizer=tf.train.AdagradOptimizer(LearningRate).minimize(CostFun)
-        elif OptimizerType=="Adadelta":
-            Optimizer=tf.train.AdadeltaOptimizer(LearningRate).minimize(CostFun)
-        elif OptimizerType=="AdagradDA":
-            Optimizer=tf.train.AdagradDAOptimizer(LearningRate,OptimizerProp).minimize(CostFun)
-        elif OptimizerType=="Momentum":
-            Optimizer=tf.train.MomentumOptimizer(LearningRate,OptimizerProp).minimize(CostFun)
-        elif OptimizerType=="Adam":
-            Optimizer=tf.train.AdamOptimizer(LearningRate).minimize(CostFun)
-        elif OptimizerType=="Ftrl":
-            Optimizer=tf.train.FtrlOptimizer(LearningRate).minimize(CostFun)   
-        elif OptimizerType=="ProximalGradientDescent":
-            Optimizer=tf.train.ProximalGradientDescentOptimizer(LearningRate).minimize(CostFun)  
-        elif OptimizerType=="ProximalAdagrad":
-            Optimizer=tf.train.ProximalAdagradOptimizer(LearningRate).minimize(CostFun)   
-        elif OptimizerType=="RMSProp":
-            Optimizer=tf.train.RMSPropOptimizer(LearningRate).minimize(CostFun)  
-        else:
-            Optimizer=tf.train.GradientDescentOptimizer(LearningRate).minimize(CostFun)
-    #Start training of the atomic network
-    Session,TrainCost,ValidationCost=train(Session,Optimizer,CostFun,Layers,Data,Epochs,ValidationData,CostCriterium)
-    TrainedNetwork=tf.trainable_variables()
-        
-    return Session,TrainedNetwork,TrainCost,ValidationCost
 
 def get_weights_biases_from_data(TrainedData):
     
@@ -541,7 +437,7 @@ def all_derivatives_of_Gij_wrt_alpha(Session,GsForAtom,Alpha,AlphaValue):
     
     Derivatives=list()
     for i in range(0,len(GsForAtom)):
-        Derivatives.append(Session.run(tf.gradients(GsForAtom,Alpha),feed_dict={Alpha:AlphaValue})[0])
+        Derivatives.append(1)#not correct yet
 
 
     return Derivatives
@@ -561,6 +457,7 @@ def get_g_values(Session,GsForAtom,Alpha,AlphaVal):
         G_values[0][i]=Session.run(GsForAtom[i],feed_dict={Alpha:AlphaVal})[0]
     
     return G_values
+
 
 def force_for_atomicnetwork_internal(Session,AtomicNetwork,Alpha,AlphaValue):
     
@@ -587,8 +484,9 @@ def total_force_internal(Session,AtomicNNs,Alpha,AlphaValue):
         
     return Force
 
-def ActFun(ActFun,Argument):
+def actfun(Session,ActFun,Argument):
     
+    Out=0
     if ActFun=="sigmoid":
         Out=tf.nn.sigmoid(Argument)
     elif ActFun=="tanh":
@@ -607,42 +505,81 @@ def ActFun(ActFun,Argument):
         Out=tf.nn.dropout(Argument) 
     elif ActFun=="bias_add":
         Out=tf.nn.bias_add(Argument)  
-    return Out
+
+    return Session.run(Out)[0]
+
+def actfun_derivative(Session,ActFun,Argument):
+    
+    Out=0
+    if ActFun=="sigmoid":
+        Out=tf.nn.sigmoid(Argument)*(1-tf.nn.sigmoid(Argument))
+    elif ActFun=="tanh":
+        Out=1-tf.nn.tanh(Argument)**2
+    #to be expanded for other functions
+
+    return Session.run(Out)[0]
 
 def bias_plus_sum_weights_times_argument(Bias,Weights,Argument):
     
-    return tf.matmul(Argument, Weights) + Bias
+    return np.matmul(Argument,Weights)+Bias
 
-def evaluate_force_networks(Session,ForceNetworks,Gs,InputBias,InputWeights,InputActFun):
+def evaluate_force_networks(Session,ForceNetworks,Gs,Bias,Weights,ActFunStr):
     
     Activations=list()
-    Argument=bias_plus_sum_weights_times_argument(InputBias,InputWeights,Gs)
-    Activations.append(ActFun(InputActFun,Argument))
+    matWeights=Weights[0]
+    matBias=Bias[0]
+    Argument=bias_plus_sum_weights_times_argument(matBias,matWeights,Gs)
+    Activations.append(Argument)
     for i in range(0,len(ForceNetworks)):
         Network=ForceNetworks[i][0]
-        InputLayer=ForceNetworks[i][1]
-        Activations.append(evaluate(Session,Network,InputLayer,Activations[-1]))
+        InputLayer=[ForceNetworks[i][1]]
+        matWeights=Weights[i+1]
+        matBias=Bias[i+1]
+        #Value of force network
+        NetworkOut=evaluate(Session,Network,InputLayer,Gs)
+        Argument=bias_plus_sum_weights_times_argument(matBias,matWeights,NetworkOut)
+        Activations.append(Argument)
         
     return Activations
+
+def evaluate_derivatives(Session,ActFunStr,Arguments):
     
+    for i in range(0,len(Arguments)):
+        if i==0:
+            Derivatives=actfun_derivative(Session,ActFunStr,Arguments[i])
+        else:
+            Derivatives=Derivatives*actfun_derivative(Session,ActFunStr,Arguments[i])
+       
+    return Derivatives
 
 def force_for_atomicnetwork(Session,AtomicNetwork,Alpha,AlphaValue):
-    
+    #Get Data from network
     ForceNetworks=AtomicNetwork[4]
-    InputWeights=AtomicNetwork[5]
-    InputBiases=AtomicNetwork[6]
+    Weights=AtomicNetwork[5]
+    Bias=AtomicNetwork[6]
     ActFun=AtomicNetwork[7]
     GsForAtom=AtomicNetwork[8]
-    G_Values=get_g_values(Session,GsForAtom,Alpha,AlphaValue)
+    Gs=get_g_values(Session,GsForAtom,Alpha,AlphaValue)
+    #Calculate the dE/dG part of the force
+    Activations=evaluate_force_networks(Session,ForceNetworks,Gs,Bias,Weights,ActFun)
+    Derivatives=evaluate_derivatives(Session,ActFun,Activations)
     
-    Sum=tf.reduce_sum(InputBiases,axis=0)
+    dE_dG=np.matmul(Weights[0],Derivatives)
+
+    dG_dAlpha=all_derivatives_of_Gij_wrt_alpha(Session,GsForAtom,Alpha,AlphaValue)#not correct yet derivatives have to be implemented
+
+    F=-sum(dE_dG*dG_dAlpha)
     
-    
-    return 1
+    return F
 
 def total_force(Session,AtomicNNs,Alpha,AlphaValue):
     #Analytic calculation for faster evaluation
-    return 1
+    Force=0
+    for i in range(0,len(AtomicNNs)):
+        AtomicNetwork=AtomicNNs[i]
+        Force+=force_for_atomicnetwork(Session,AtomicNetwork,Alpha,AlphaValue)#not correct yet derivatives have to be implemented
+        
+    return Force
     
 def evaluateAllAtomicNNs(Session,AtomicNNs,InData):
     
@@ -654,5 +591,158 @@ def evaluateAllAtomicNNs(Session,AtomicNNs,InData):
         Energy+=evaluate(Session,AtomicNetwork[1],[Layers[i]],Data[i])
         
     return Energy
+
+def make_atomic_networks(Structures,NumberOfSameNetworks,Gs=None,HiddenType=None,HiddenData=None,BiasData=None,ActFun=None,ActFunParam=None):
+
+
+    AllHiddenLayers=list()
+    AtomicNNs=list()
     
+    #make all the networks for the different atom types
+    for i in range(0,len(Structures)):
+        #Make hidden layers
+        HiddenLayers=list()
+        Structure=Structures[i]
+        if HiddenData!=None:
+            RawWeights=HiddenData[i]
+            RawBias=BiasData[i]
+            ForceNetworks=make_force_networks(Structure,RawWeights,RawBias)
+            
+            for j in range(1,len(Structure)):
+                NrIn=Structure[j-1]
+                NrHidden=Structure[j]
+                HiddenLayers.append(construct_hidden_layer(NrIn,NrHidden,HiddenType,HiddenData[i][j-1],BiasData[i][j-1]))
+        else:
+            RawWeights=None
+            RawBias=None
+            ForceNetworks=None
+            for j in range(1,len(Structure)):
+                NrIn=Structure[j-1]
+                NrHidden=Structure[j]
+                HiddenLayers.append(construct_hidden_layer(NrIn,NrHidden,HiddenType,None,None))
+                
+        AllHiddenLayers.append(HiddenLayers)
+     
+        for k in range(0,NumberOfSameNetworks[i]):
+            #Make input layer
+            NrInputs=Structure[0]
+            InputLayer=construct_input_layer(NrInputs)
+            #Make output layer
+            OutputLayer=construct_output_layer(Structure[-1])
+            #Connect input to first hidden layer
+            FirstWeights=HiddenLayers[0][0]
+            FirstBiases=HiddenLayers[0][1]
+            InConnection=connect_layers(InputLayer,FirstWeights,FirstBiases,ActFun,ActFunParam)
+    
+            for l in range(1,len(HiddenLayers)):
+                #Connect ouput of in layer to second hidden layer
+                if l==1 :
+                    SecondWeights=HiddenLayers[l][0]
+                    SecondBiases=HiddenLayers[l][1]
+                    Network=connect_layers(InConnection,SecondWeights,SecondBiases,ActFun,ActFunParam)
+                else:
+                    Weights=HiddenLayers[l][0]
+                    Biases=HiddenLayers[l][1]
+                    Network=connect_layers(Network,Weights,Biases,ActFun,ActFunParam)
+
+            if Gs[i]!=None:
+                AtomicNNs.append([NumberOfSameNetworks[i],Network,InputLayer,OutputLayer,ForceNetworks,RawWeights,RawBias,ActFun,Gs[i]])
+            else:
+                AtomicNNs.append([NumberOfSameNetworks[i],Network,InputLayer,OutputLayer,ForceNetworks,RawWeights,RawBias,ActFun])
+
+    return AtomicNNs,AllHiddenLayers
+
+def train_atomic_networks(AtomicNNs,TrainingInputs,TrainingOutputs,Epochs,LearningRate,ValidationInputs=None,ValidationOutputs=None,CostCriterium=None,OptimizerType=None,OptimizerProp=None):
+        
+    
+    ValidationCost=0
+    TrainCost=0
+    #Start Session 
+        
+    Session=tf.Session()
+
+    #Make virtual output layer for feeding the data to the cost function
+    OutputLayer=construct_output_layer(1)
+    #Prepare data environment for training
+    Layers,Data=prepare_data_environment_for_atomicNNs(AtomicNNs,TrainingInputs,OutputLayer,TrainingOutputs)
+    #Make validation input vector
+    if ValidationInputs != None:
+        ValidationData=make_data_for_atomicNNs(ValidationInputs,ValidationOutputs)
+    else:
+        ValidationData=None
+    #Cost function changes for every net 
+    CostFun=atomic_cost_function(Session,AtomicNNs,OutputLayer)
+    #Add optimizer
+    if OptimizerType==None:
+        Optimizer=tf.train.GradientDescentOptimizer(LearningRate).minimize(CostFun)
+    else:
+        if OptimizerType=="GradientDescent":
+            Optimizer=tf.train.GradientDescentOptimizer(LearningRate).minimize(CostFun)
+        elif OptimizerType=="Adagrad":
+            Optimizer=tf.train.AdagradOptimizer(LearningRate).minimize(CostFun)
+        elif OptimizerType=="Adadelta":
+            Optimizer=tf.train.AdadeltaOptimizer(LearningRate).minimize(CostFun)
+        elif OptimizerType=="AdagradDA":
+            Optimizer=tf.train.AdagradDAOptimizer(LearningRate,OptimizerProp).minimize(CostFun)
+        elif OptimizerType=="Momentum":
+            Optimizer=tf.train.MomentumOptimizer(LearningRate,OptimizerProp).minimize(CostFun)
+        elif OptimizerType=="Adam":
+            Optimizer=tf.train.AdamOptimizer(LearningRate).minimize(CostFun)
+        elif OptimizerType=="Ftrl":
+            Optimizer=tf.train.FtrlOptimizer(LearningRate).minimize(CostFun)   
+        elif OptimizerType=="ProximalGradientDescent":
+            Optimizer=tf.train.ProximalGradientDescentOptimizer(LearningRate).minimize(CostFun)  
+        elif OptimizerType=="ProximalAdagrad":
+            Optimizer=tf.train.ProximalAdagradOptimizer(LearningRate).minimize(CostFun)   
+        elif OptimizerType=="RMSProp":
+            Optimizer=tf.train.RMSPropOptimizer(LearningRate).minimize(CostFun)  
+        else:
+            Optimizer=tf.train.GradientDescentOptimizer(LearningRate).minimize(CostFun)
+    #Start training of the atomic network
+    Session,TrainCost,ValidationCost=train(Session,Optimizer,CostFun,Layers,Data,Epochs,ValidationData,CostCriterium)
+    TrainedNetwork=tf.trainable_variables()
+        
+    return Session,TrainedNetwork,TrainCost,ValidationCost
+
+class AtomicNeuralNetInstance(object):
+    
+    def __init__(self):
+        self.Structures=list()
+        self.NumberOfSameNetworks=list()
+        self.AtomicNNs=list()
+        self.TrainingInputs=list()
+        self.TrainingOutputs=list()
+        self.Epochs=1000
+        self.LearningRate=0.001
+        self.ValidationInputs=list()
+        self.ValidationOutputs=list()
+        self.Gs=list()
+        self.HiddenType=list()
+        self.HiddenData=list()
+        self.BiasData=list()
+        
+        self.ActFun=None
+        self.ActFunParam=None
+        self.CostCriterium=None
+        self.OptimizerType=None
+        self.OptimizerProp=None
+        
+        self.Session=[]
+        self.TrainedNetwork=[]
+        self.TrainingCosts=[]
+        self.ValidationCosts=[]
+        self.TrainedVariables=[]
+        self.VariablesDictionary={}
+        
+    def start_training_instance(self):
+        
+        self.AtomicNNs,self.VariablesDictionary=make_atomic_networks(self.Structures,self.NumberOfSameNetworks,self.Gs,self.HiddenType,self.HiddenData,self.BiasData,self.ActFun,self.ActFunParam)
+        self.Session,self.TrainedNetwork,self.TrainingCosts,self.ValidationCosts=train_atomic_networks(self.AtomicNNs,self.TrainingInputs,self.TrainingOutputs,self.Epochs,self.LearningRate,self.ValidationInputs,self.ValidationOutputs,self.CostCriterium,self.OptimizerType,self.OptimizerProp)
+        self.TrainedVariables=get_trained_variables(self.Session,self.VariablesDictionary)
+
+
+    def start_evaluation_instance(self):
+        
+        self.AtomicNNs=expand_neuralnet(self.TrainedVariables,self.NumberOfSameNetworks,self.Gs)
+        
     
