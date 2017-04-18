@@ -103,7 +103,7 @@ with Graph.as_default():
     Energy=NN.evaluateAllAtomicNNs(ThisInstance.Session,ThisInstance.AtomicNNs,ThisInstance.TrainingInputs)
     
 
-    Session.close()
+    ThisInstance.Session.close()
     #Energy after training
     #print(Energy)
     
@@ -121,7 +121,7 @@ with Graph.as_default():
     ax2 = fig.add_subplot(212)
     r_plot=np.linspace(0,R,50)
     ax2.plot(r_plot,Energy)
-    ax2.plot(r_plot,TrainingOutputs)
+    ax2.plot(r_plot,ThisInstance.TrainingOutputs)
     ax2.grid(True)
     
     show(block=False)
