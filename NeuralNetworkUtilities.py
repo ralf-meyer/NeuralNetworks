@@ -7,6 +7,10 @@ Created on Thu Apr  6 11:30:10 2017
 """
 import numpy as np
 import tensorflow as tf
+import DataSet 
+import SymmetryFunctionSet
+import random as rand
+
 
 
 def construct_input_layer(InputUnits):
@@ -745,4 +749,50 @@ class AtomicNeuralNetInstance(object):
         
         self.AtomicNNs=expand_neuralnet(self.TrainedVariables,self.NumberOfSameNetworks,self.Gs)
         
+class InputVectorInstance(object):
     
+    def __init__(self):
+        
+        self.XYZfile=None
+        self.Logfile=None
+        self.SymmFunKeys=[]
+        self.Rs=[]
+        self.Etas=[]
+        self.Zetas=[]
+        self.Lambs=[]
+        
+        self.SymmFunSet=[]
+        self.Ds=[]
+        
+    
+    def read_files(self):
+    
+        self.Ds=DataSet.DataSet()
+        self.SymmFuns=SymmetryFunctionSet.SymmetryFunctionSet(self.SymmFunKeys)
+        self.Ds.read_lammps(self.XYZfile,self.Logfile)
+        self.SymmFunSet.add_radial_functions(self.Rs,self.Etas)
+        self.SymmFunSet.add_angluar_functions(self.Etas,self.Zetas,self.Lambs)
+        
+    def get_data(BatchSize=50):
+        
+        InputSize=len(self.SymmFunSet.symmetry_functions)
+        InputData=np.empty((BatchSize,InputSize))
+        OutputData=np.empty((BatchSize,1))
+        AllRnds=list()
+        ct=0
+        for i in range(0,BatchSize):
+            #Get a new random number
+            isNew=False
+            while isNew==False and ct<5*BatchSize:
+                ct+=1
+                rnd=rand.randint(0,len(self.Ds.geometries))
+                if rnd in AllRnds:
+                    isNew=False
+                else:
+                    isNew=True
+                    AllRnds.append(rnd)
+                
+            InputData[i]=self.SymmFunSet.eval_geometry(self.Ds.geometries[rnd])
+            OutputData[i]=self.Ds.energies[rnd]
+            
+        return InputData,OutputData
