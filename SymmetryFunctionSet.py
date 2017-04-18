@@ -50,14 +50,15 @@ class SymmetryFunctionSet(object):
                     for k in geometry:
                         k_type = k[0]
                         key2 = (i_type, j_type, k_type)
-                        if not key2 in vals:
-                            vals[key2] = _np.zeros(len(self.symmetry_functions[key2]))
-                        if not ((i is j) or (i is k) or (j is k)):
-                            rij = _np.linalg.norm(i[1]-j[1])
-                            rik = _np.linalg.norm(i[1]-k[1])
-                            costheta = _np.dot(i[1]-j[1],i[1]-k[1])/(rij*rik)
-                            vals[key2] += map(lambda f: f(rij, rik, costheta), 
-                                self.symmetry_functions[key2])
-            out.append(vals)            
-            #out.append(_np.array(vals.values()).flatten())
+                        if key2 in self.symmetry_functions:
+                            if not key2 in vals:
+                                vals[key2] = _np.zeros(len(self.symmetry_functions[key2]))
+                            if not ((i is j) or (i is k) or (j is k)):
+                                rij = _np.linalg.norm(i[1]-j[1])
+                                rik = _np.linalg.norm(i[1]-k[1])
+                                costheta = _np.dot(i[1]-j[1],i[1]-k[1])/(rij*rik)
+                                vals[key2] += map(lambda f: f(rij, rik, costheta), 
+                                    self.symmetry_functions[key2])
+            #out.append(vals)            
+            out.append(_np.array(vals.values()).flatten())
         return out        
