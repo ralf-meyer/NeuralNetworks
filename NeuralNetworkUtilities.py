@@ -425,6 +425,15 @@ def expand_neuralnet(TrainedData,nAtoms,Gs):
             
     return AtomicNNs
 
+def get_size_of_input(Data):
+    
+    Size=list()
+    NrAtoms=len(Data)
+    for i in range(0,NrAtoms):
+        Size.append(len(Data[i]))
+        
+    return Size
+
 def get_trained_variables(Session,AllHiddenLayers):
     
     NetworkData=list()
@@ -596,7 +605,8 @@ def evaluateAllAtomicNNs(Session,AtomicNNs,InData):
         
     return Energy
 
-def make_atomic_networks(Structures,NumberOfSameNetworks,Gs=None,HiddenType=None,HiddenData=None,BiasData=None,ActFun=None,ActFunParam=None):
+
+def make_atomic_networks(Structures,NumberOfSameNetworks,Gs=None,HiddenType=None,HiddenData=None,BiasData=None,ActFun=None,ActFunParam=None,MakeLastLayerConstant=False):
 
 
     AllHiddenLayers=list()
@@ -615,7 +625,12 @@ def make_atomic_networks(Structures,NumberOfSameNetworks,Gs=None,HiddenType=None
             for j in range(1,len(Structure)):
                 NrIn=Structure[j-1]
                 NrHidden=Structure[j]
-                HiddenLayers.append(construct_hidden_layer(NrIn,NrHidden,HiddenType,HiddenData[i][j-1],BiasData[i][j-1]))
+                if j==len(Structure)-1 and MakeLastLayerConstant==True:
+                    HiddenLayers.append(construct_not_trainable_layer(NrIn,NrHidden))
+                else:
+                    HiddenLayers.append(construct_hidden_layer(NrIn,NrHidden,HiddenType,HiddenData[i][j-1],BiasData[i][j-1]))
+                
+                    
         else:
             RawWeights=None
             RawBias=None
@@ -623,7 +638,10 @@ def make_atomic_networks(Structures,NumberOfSameNetworks,Gs=None,HiddenType=None
             for j in range(1,len(Structure)):
                 NrIn=Structure[j-1]
                 NrHidden=Structure[j]
-                HiddenLayers.append(construct_hidden_layer(NrIn,NrHidden,HiddenType,None,None))
+                if j==len(Structure)-1 and MakeLastLayerConstant==True:
+                    HiddenLayers.append(construct_not_trainable_layer(NrIn,NrHidden))
+                else:
+                    HiddenLayers.append(construct_hidden_layer(NrIn,NrHidden,HiddenType,None,None))
                 
         AllHiddenLayers.append(HiddenLayers)
      
@@ -708,6 +726,16 @@ def train_atomic_networks(AtomicNNs,TrainingInputs,TrainingOutputs,Epochs,Learni
         
     return Session,TrainedNetwork,TrainCost,ValidationCost
 
+
+def sort_data_to_atoms(AllData,NrAtoms,BatchSize):
+    
+    Inputs=list()
+    
+    
+    return 1
+        
+
+
 class AtomicNeuralNetInstance(object):
     
     def __init__(self):
@@ -724,6 +752,8 @@ class AtomicNeuralNetInstance(object):
         self.HiddenType=list()
         self.HiddenData=list()
         self.BiasData=list()
+        self.TrainingBatches=list()
+        self.ValidationBatches=list()
         
         self.ActFun=None
         self.ActFunParam=None
@@ -738,21 +768,74 @@ class AtomicNeuralNetInstance(object):
         self.TrainedVariables=[]
         self.VariablesDictionary={}
         
-    def start_training_instance(self):
+    def make_network(self):
         
-        self.AtomicNNs,self.VariablesDictionary=make_atomic_networks(self.Structures,self.NumberOfSameNetworks,self.Gs,self.HiddenType,self.HiddenData,self.BiasData,self.ActFun,self.ActFunParam)
-        self.Session,self.TrainedNetwork,self.TrainingCosts,self.ValidationCosts=train_atomic_networks(self.AtomicNNs,self.TrainingInputs,self.TrainingOutputs,self.Epochs,self.LearningRate,self.ValidationInputs,self.ValidationOutputs,self.CostCriterium,self.OptimizerType,self.OptimizerProp)
-        self.TrainedVariables=get_trained_variables(self.Session,self.VariablesDictionary)
+        Execute=True
+        if len(self.Structures)==0:
+            print("No structures for the specific nets specified!")
+            Execute=False
+        if len(self.NumberOfSameNetworks)==0:
+            print("No number of specific nets specified!")
+            Execute=False
+            
+        if Execute==True:
+            self.AtomicNNs,self.VariablesDictionary=make_atomic_networks(self.Structures,self.NumberOfSameNetworks,self.Gs,self.HiddenType,self.HiddenData,self.BiasData,self.ActFun,self.ActFunParam)
+        
+    def start_training(self):
+        
+        Execute=True
+        if len(self.AtomicNNs)==0:
+            print("No atomic neural nets available!")
+            Execute=False
+        if len(self.TrainingInputs)==0:
+            print("No training inputs specified!")
+            Execute=False
+        if len(self.TrainingOutputs)==0:
+            print("No training outputs specified!")
+            Execute=False
+        
+        if Execute==True:
+            self.Session,self.TrainedNetwork,self.TrainingCosts,self.ValidationCosts=train_atomic_networks(self.AtomicNNs,self.TrainingInputs,self.TrainingOutputs,self.Epochs,self.LearningRate,self.ValidationInputs,self.ValidationOutputs,self.CostCriterium,self.OptimizerType,self.OptimizerProp)
+            self.TrainedVariables=get_trained_variables(self.Session,self.VariablesDictionary)
 
 
-    def start_evaluation_instance(self):
+    def start_evaluation(self):
         
         self.AtomicNNs=expand_neuralnet(self.TrainedVariables,self.NumberOfSameNetworks,self.Gs)
         
-class InputVectorInstance(object):
+    def start_batch_training(self):
+        
+        Execute=True
+        if len(self.AtomicNNs)==0:
+            print("No atomic neural nets available!")
+            Execute=False
+        if len(self.TrainingBatches)==0:
+            print("No training batches specified!")
+            Execute=False
+        
+        if Execute==True:
+        
+            NrOfTrainingBatches=len(self.TrainingBatches)
+            if self.ValidationBatches: 
+                NrOfValidationBatches=len(self.ValidationBatches)
+            
+            for i in range(0,NrOfTrainingBatches):
+                self.TrainingInputs=self.TrainingBatches[i][0]
+                self.TrainingOutputs=self.TrainingBatches[i][1]
+                if self.ValidationBatches: 
+                    rnd=rand.randint(0,NrOfValidationBatches)
+                    self.ValidationInputs=self.ValidationBatches[rnd][0]
+                    self.ValidationOutputs=self.ValidationBatches[rnd][1]
+                AtomicNeuralNetInstance.start_training()
+            
+        
+class DataInstance(object):
     
     def __init__(self):
         
+        self.AllRandomNumbers=list()
+        self.Batches=list()
+        self.SizeOfInputs=list()
         self.XYZfile=None
         self.Logfile=None
         self.SymmFunKeys=[]
@@ -760,39 +843,104 @@ class InputVectorInstance(object):
         self.Etas=[]
         self.Zetas=[]
         self.Lambs=[]
-        
-        self.SymmFunSet=[]
-        self.Ds=[]
+        self.SymmFunSet=None
+        self.Ds=None
         
     
     def read_files(self):
-    
-        self.Ds=DataSet.DataSet()
-        self.SymmFuns=SymmetryFunctionSet.SymmetryFunctionSet(self.SymmFunKeys)
-        self.Ds.read_lammps(self.XYZfile,self.Logfile)
-        self.SymmFunSet.add_radial_functions(self.Rs,self.Etas)
-        self.SymmFunSet.add_angluar_functions(self.Etas,self.Zetas,self.Lambs)
         
-    def get_data(BatchSize=50):
-        
-        InputSize=len(self.SymmFunSet.symmetry_functions)
-        InputData=np.empty((BatchSize,InputSize))
-        OutputData=np.empty((BatchSize,1))
-        AllRnds=list()
-        ct=0
-        for i in range(0,BatchSize):
-            #Get a new random number
-            isNew=False
-            while isNew==False and ct<5*BatchSize:
-                ct+=1
-                rnd=rand.randint(0,len(self.Ds.geometries))
-                if rnd in AllRnds:
-                    isNew=False
-                else:
-                    isNew=True
-                    AllRnds.append(rnd)
-                
-            InputData[i]=self.SymmFunSet.eval_geometry(self.Ds.geometries[rnd])
-            OutputData[i]=self.Ds.energies[rnd]
+        Execute=True
+        if self.XYZfile==None:
+            print("No .xyz-file name specified!")
+            Execute=False
+        if self.Logfile==None:
+            print("No log-file name specified!")
+            Execute=False
+        if len(self.SymmFunKeys)==0:
+            print("No symmetry function keys specified!")
+            Execute=False
+        if len(self.Rs)==0:
+            print("No Rs specified!")
+            Execute=False
+        if len(self.Etas)==0:
+            print("No etas specified!")
+            Execute=False
+        if len(self.Zetas)==0:
+            print("No zetas specified!")
+            Execute=False
+        if len(self.Lambs)==0:
+            print("No lambdas specified!")
+            Execute=False
             
-        return InputData,OutputData
+        if Execute==True:
+            self.Ds=DataSet.DataSet()
+            self.SymmFunSet=SymmetryFunctionSet.SymmetryFunctionSet(self.SymmFunKeys)
+            self.Ds.read_lammps(self.XYZfile,self.Logfile)
+            self.SymmFunSet.add_radial_functions(self.Rs,self.Etas)
+            self.SymmFunSet.add_angluar_functions(self.Etas,self.Zetas,self.Lambs)
+        
+    def get_data_batch(self,BatchSize=10000):
+        
+        AllData=list()
+        Execute=True
+        if self.SymmFunSet==None:
+            print("No symmetry function set available!")
+            Execute=False
+        if self.Ds==None:
+            print("No data set available!")
+            Execute=False
+        if len(self.Ds.geometries)==0:
+            print("No geometries available!")
+            Execute=False
+        if len(self.Ds.energies)==0:
+            print("No energies available!")
+            Execute=False
+        
+        if Execute==True:
+            NrAtoms=len(self.SymmFunKeys)
+            self.SizeOfInputs=get_size_of_input(self.SymmFunSet.eval_geometry(self.Ds.geometries[0]))
+            
+            ct=0
+            for i in range(0,BatchSize):
+                #Get a new random number
+                isNew=False
+                while isNew==False and ct<5*BatchSize:
+                    ct+=1
+                    rnd=rand.randint(0,len(self.Ds.geometries))
+                    if rnd in self.AllRandomNumbers:
+                        isNew=False
+                    else:
+                        isNew=True
+                        self.AllRandomNumbers.append(rnd)
+                    
+                AllData.append(self.SymmFunSet.eval_geometry(self.Ds.geometries[rnd]))  
+                OutputData[i]=self.Ds.energies[rnd]
+                    
+                    
+            return InputData,OutputData
+    
+    def get_data(self,BatchSize=10000,CoverageOfSetInPercent=70):
+        
+        Execute=True
+        if self.SymmFunSet==None:
+            print("No symmetry function set available!")
+            Execute=False
+        if self.Ds==None:
+            print("No data set available!")
+            Execute=False
+        if len(self.Ds.geometries)==0:
+            print("No geometries available!")
+            Execute=False
+        if len(self.Ds.energies)==0:
+            print("No energies available!")
+            Execute=False
+            
+        if Execute==True:
+            AllDataSetLength=len(self.Ds.geometries)
+            SetLength=int(AllDataSetLength*CoverageOfSetInPercent/100)
+            NrOfBatches=int(round(SetLength/BatchSize,0))
+            
+            for i in range(0,NrOfBatches):
+                self.Batches.append(DataInstance.get_data_batch(self,BatchSize))
+                
+            return self.Batches
