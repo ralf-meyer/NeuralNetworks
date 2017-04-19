@@ -60,5 +60,5 @@ class SymmetryFunctionSet(object):
                                 vals[key2] += map(lambda f: f(rij, rik, costheta), 
                                     self.symmetry_functions[key2])
             #out.append(vals)            
-            out.append(_np.array(vals.values()).flatten())
+            out.append(_np.hstack(vals.values()))
         return out        
