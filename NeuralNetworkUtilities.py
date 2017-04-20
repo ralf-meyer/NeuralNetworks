@@ -262,7 +262,7 @@ def train(Session,Optimizer,CostFun,Layers,TrainingData,Epochs,ValidationData=No
     #Train with specifications and return loss   
     TrainCost=list()
     ValidationCost=list()
-    Session.run(tf.global_variables_initializer())
+    
     for i in range(Epochs):
         Cost=train_step(Session,Optimizer,Layers,TrainingData,CostFun)
         TrainCost.append(sum(Cost))
@@ -421,9 +421,9 @@ def expand_neuralnet(TrainedData,nAtoms,Gs):
     AtomicNNs=list()
     Structures=get_structure_from_data(TrainedData)
     Weights,Biases=get_weights_biases_from_data(TrainedData)
-    AtomicNNs,_=make_atomic_networks(Structures,nAtoms,Gs,"custom",Weights,Biases,"tanh")
+    Session,AtomicNNs,_=make_atomic_networks(Structures,nAtoms,Gs,"custom",Weights,Biases,"tanh")
             
-    return AtomicNNs
+    return Session,AtomicNNs
 
 def get_size_of_input(Data):
     
@@ -611,6 +611,9 @@ def make_atomic_networks(Structures,NumberOfSameNetworks,Gs=None,HiddenType=None
 
     AllHiddenLayers=list()
     AtomicNNs=list()
+    #Start Session 
+        
+    Session=tf.Session()
     
     #make all the networks for the different atom types
     for i in range(0,len(Structures)):
@@ -667,59 +670,29 @@ def make_atomic_networks(Structures,NumberOfSameNetworks,Gs=None,HiddenType=None
                     Biases=HiddenLayers[l][1]
                     Network=connect_layers(Network,Weights,Biases,ActFun,ActFunParam)
 
-            if Gs[i]!=None:
-                AtomicNNs.append([NumberOfSameNetworks[i],Network,InputLayer,OutputLayer,ForceNetworks,RawWeights,RawBias,ActFun,Gs[i]])
+            if Gs!=None:
+                if len(Gs)>0:
+                    AtomicNNs.append([NumberOfSameNetworks[i],Network,InputLayer,OutputLayer,ForceNetworks,RawWeights,RawBias,ActFun,Gs[i]])
+                else:
+                    AtomicNNs.append([NumberOfSameNetworks[i],Network,InputLayer,OutputLayer,ForceNetworks,RawWeights,RawBias,ActFun])
             else:
                 AtomicNNs.append([NumberOfSameNetworks[i],Network,InputLayer,OutputLayer,ForceNetworks,RawWeights,RawBias,ActFun])
+    
+    return Session,AtomicNNs,AllHiddenLayers
 
-    return AtomicNNs,AllHiddenLayers
-
-def train_atomic_networks(AtomicNNs,TrainingInputs,TrainingOutputs,Epochs,LearningRate,ValidationInputs=None,ValidationOutputs=None,CostCriterium=None,OptimizerType=None,OptimizerProp=None):
+def train_atomic_networks(Session,AtomicNNs,TrainingInputs,TrainingOutputs,Epochs,Optimizer,OutputLayer,CostFun,ValidationInputs=None,ValidationOutputs=None,CostCriterium=None):
         
     
     ValidationCost=0
     TrainCost=0
-    #Start Session 
-        
-    Session=tf.Session()
-
-    #Make virtual output layer for feeding the data to the cost function
-    OutputLayer=construct_output_layer(1)
     #Prepare data environment for training
     Layers,Data=prepare_data_environment_for_atomicNNs(AtomicNNs,TrainingInputs,OutputLayer,TrainingOutputs)
+
     #Make validation input vector
-    if ValidationInputs != None:
+    if len(ValidationInputs)>0:
         ValidationData=make_data_for_atomicNNs(ValidationInputs,ValidationOutputs)
     else:
         ValidationData=None
-    #Cost function changes for every net 
-    CostFun=atomic_cost_function(Session,AtomicNNs,OutputLayer)
-    #Add optimizer
-    if OptimizerType==None:
-        Optimizer=tf.train.GradientDescentOptimizer(LearningRate).minimize(CostFun)
-    else:
-        if OptimizerType=="GradientDescent":
-            Optimizer=tf.train.GradientDescentOptimizer(LearningRate).minimize(CostFun)
-        elif OptimizerType=="Adagrad":
-            Optimizer=tf.train.AdagradOptimizer(LearningRate).minimize(CostFun)
-        elif OptimizerType=="Adadelta":
-            Optimizer=tf.train.AdadeltaOptimizer(LearningRate).minimize(CostFun)
-        elif OptimizerType=="AdagradDA":
-            Optimizer=tf.train.AdagradDAOptimizer(LearningRate,OptimizerProp).minimize(CostFun)
-        elif OptimizerType=="Momentum":
-            Optimizer=tf.train.MomentumOptimizer(LearningRate,OptimizerProp).minimize(CostFun)
-        elif OptimizerType=="Adam":
-            Optimizer=tf.train.AdamOptimizer(LearningRate).minimize(CostFun)
-        elif OptimizerType=="Ftrl":
-            Optimizer=tf.train.FtrlOptimizer(LearningRate).minimize(CostFun)   
-        elif OptimizerType=="ProximalGradientDescent":
-            Optimizer=tf.train.ProximalGradientDescentOptimizer(LearningRate).minimize(CostFun)  
-        elif OptimizerType=="ProximalAdagrad":
-            Optimizer=tf.train.ProximalAdagradOptimizer(LearningRate).minimize(CostFun)   
-        elif OptimizerType=="RMSProp":
-            Optimizer=tf.train.RMSPropOptimizer(LearningRate).minimize(CostFun)  
-        else:
-            Optimizer=tf.train.GradientDescentOptimizer(LearningRate).minimize(CostFun)
     #Start training of the atomic network
     Session,TrainCost,ValidationCost=train(Session,Optimizer,CostFun,Layers,Data,Epochs,ValidationData,CostCriterium)
     TrainedNetwork=tf.trainable_variables()
@@ -727,13 +700,18 @@ def train_atomic_networks(AtomicNNs,TrainingInputs,TrainingOutputs,Epochs,Learni
     return Session,TrainedNetwork,TrainCost,ValidationCost
 
 
-def sort_data_to_atoms(AllData,NrAtoms,BatchSize):
+def sort_and_normalize_data(AllData,InputSize,BatchSize,MeansOfGs,VarianceOfGs):
     
     Inputs=list()
-    
-    
-    return 1
-        
+    for i in range(0,len(InputSize)):
+        Inputs.append(np.zeros((BatchSize,InputSize[i])))
+        for j in range(0,len(AllData)):
+            #exclude nan values
+            L=np.nonzero(VarianceOfGs[i])
+            Inputs[i][j][L]=np.divide(np.subtract(AllData[j][i][L],MeansOfGs[i][L]),np.sqrt(VarianceOfGs[i][L]))
+
+            
+    return Inputs
 
 
 class AtomicNeuralNetInstance(object):
@@ -749,9 +727,9 @@ class AtomicNeuralNetInstance(object):
         self.ValidationInputs=list()
         self.ValidationOutputs=list()
         self.Gs=list()
-        self.HiddenType=list()
-        self.HiddenData=list()
-        self.BiasData=list()
+        self.HiddenType=None
+        self.HiddenData=None
+        self.BiasData=None
         self.TrainingBatches=list()
         self.ValidationBatches=list()
         
@@ -765,8 +743,51 @@ class AtomicNeuralNetInstance(object):
         self.TrainedNetwork=[]
         self.TrainingCosts=[]
         self.ValidationCosts=[]
+        self.OverallTrainingCosts=[]
+        self.OverallValidationCosts=[]
         self.TrainedVariables=[]
         self.VariablesDictionary={}
+        
+        self.CostFun=None
+        self.Optimizer=None
+        self.OutputLayer=None
+        
+    def initialize_network(self):
+        
+        #Make virtual output layer for feeding the data to the cost function
+        self.OutputLayer=construct_output_layer(1)
+        #Cost function for whole net
+        self.CostFun=atomic_cost_function(self.Session,self.AtomicNNs,self.OutputLayer)
+            
+            #Set optimizer
+        if self.OptimizerType==None:
+           self.Optimizer=tf.train.GradientDescentOptimizer(self.LearningRate).minimize(self.CostFun)
+        else:
+            if self.OptimizerType=="GradientDescent":
+                self.Optimizer=tf.train.GradientDescentOptimizer(self.LearningRate).minimize(self.CostFun)
+            elif self.OptimizerType=="Adagrad":
+                self.Optimizer=tf.train.AdagradOptimizer(self.LearningRate).minimize(self.CostFun)
+            elif self.OptimizerType=="Adadelta":
+                self.Optimizer=tf.train.AdadeltaOptimizer(self.LearningRate).minimize(self.CostFun)
+            elif self.OptimizerType=="AdagradDA":
+                self.Optimizer=tf.train.AdagradDAOptimizer(self.LearningRate,self.OptimizerProp).minimize(self.CostFun)
+            elif self.OptimizerType=="Momentum":
+                self.Optimizer=tf.train.MomentumOptimizer(self.LearningRate,self.OptimizerProp).minimize(self.CostFun)
+            elif self.OptimizerType=="Adam":
+                self.Optimizer=tf.train.AdamOptimizer(self.LearningRate).minimize(self.CostFun)
+            elif self.OptimizerType=="Ftrl":
+               self.Optimizer=tf.train.FtrlOptimizer(self.LearningRate).minimize(self.CostFun)   
+            elif self.OptimizerType=="ProximalGradientDescent":
+                self.Optimizer=tf.train.ProximalGradientDescentOptimizer(self.LearningRate).minimize(self.CostFun)  
+            elif self.OptimizerType=="ProximalAdagrad":
+                self.Optimizer=tf.train.ProximalAdagradOptimizer(self.LearningRate).minimize(self.CostFun)   
+            elif self.OptimizerType=="RMSProp":
+                self.Optimizer=tf.train.RMSPropOptimizer(self.LearningRate).minimize(self.CostFun)  
+            else:
+                self.Optimizer=tf.train.GradientDescentOptimizer(self.LearningRate).minimize(self.CostFun)
+        
+        #Initialize session
+        self.Session.run(tf.global_variables_initializer())
         
     def make_network(self):
         
@@ -779,7 +800,12 @@ class AtomicNeuralNetInstance(object):
             Execute=False
             
         if Execute==True:
-            self.AtomicNNs,self.VariablesDictionary=make_atomic_networks(self.Structures,self.NumberOfSameNetworks,self.Gs,self.HiddenType,self.HiddenData,self.BiasData,self.ActFun,self.ActFunParam)
+           self.Session,self.AtomicNNs,self.VariablesDictionary=make_atomic_networks(self.Structures,self.NumberOfSameNetworks,self.Gs,self.HiddenType,self.HiddenData,self.BiasData,self.ActFun,self.ActFunParam)
+           
+    def make_and_initialize_network(self):
+        
+        AtomicNeuralNetInstance.make_network(self)
+        AtomicNeuralNetInstance.initialize_network(self)
         
     def start_training(self):
         
@@ -795,13 +821,14 @@ class AtomicNeuralNetInstance(object):
             Execute=False
         
         if Execute==True:
-            self.Session,self.TrainedNetwork,self.TrainingCosts,self.ValidationCosts=train_atomic_networks(self.AtomicNNs,self.TrainingInputs,self.TrainingOutputs,self.Epochs,self.LearningRate,self.ValidationInputs,self.ValidationOutputs,self.CostCriterium,self.OptimizerType,self.OptimizerProp)
+            self.Session,self.TrainedNetwork,self.TrainingCosts,self.ValidationCosts=train_atomic_networks(self.Session,self.AtomicNNs,self.TrainingInputs,self.TrainingOutputs,self.Epochs,self.Optimizer,self.OutputLayer,self.CostFun,self.ValidationInputs,self.ValidationOutputs,self.CostCriterium)
             self.TrainedVariables=get_trained_variables(self.Session,self.VariablesDictionary)
-
+        
+        return self.TrainingCosts,self.ValidationCosts
 
     def start_evaluation(self):
         
-        self.AtomicNNs=expand_neuralnet(self.TrainedVariables,self.NumberOfSameNetworks,self.Gs)
+        self.Session,self.AtomicNNs=expand_neuralnet(self.TrainedVariables,self.NumberOfSameNetworks,self.Gs)
         
     def start_batch_training(self):
         
@@ -814,7 +841,7 @@ class AtomicNeuralNetInstance(object):
             Execute=False
         
         if Execute==True:
-        
+            print("Started batch training...")
             NrOfTrainingBatches=len(self.TrainingBatches)
             if self.ValidationBatches: 
                 NrOfValidationBatches=len(self.ValidationBatches)
@@ -826,14 +853,18 @@ class AtomicNeuralNetInstance(object):
                     rnd=rand.randint(0,NrOfValidationBatches)
                     self.ValidationInputs=self.ValidationBatches[rnd][0]
                     self.ValidationOutputs=self.ValidationBatches[rnd][1]
-                AtomicNeuralNetInstance.start_training()
-            
+                TrainingCosts,ValidationCosts=AtomicNeuralNetInstance.start_training(self)
+                self.OverallTrainingCosts=self.OverallTrainingCosts+TrainingCosts
+                self.OverallValidationCosts=self.OverallValidationCosts+ValidationCosts
+                if i % int(NrOfTrainingBatches/10)==0:
+                    print(str(100*i/NrOfTrainingBatches)+" %")
         
 class DataInstance(object):
     
     def __init__(self):
         
         self.AllRandomNumbers=list()
+        self.AllGeometries=list()
         self.Batches=list()
         self.SizeOfInputs=list()
         self.XYZfile=None
@@ -845,7 +876,37 @@ class DataInstance(object):
         self.Lambs=[]
         self.SymmFunSet=None
         self.Ds=None
+        self.MeansOfDs=[]
+        self.VarianceOfDs=[]
         
+    def calculate_statistics_for_dataset(self):
+        
+        print("Converting data to neural net input format...")
+        NrGeom=len(self.Ds.geometries)
+        #calculate mean values for all Gs
+        for i in range(0,NrGeom):
+            temp=self.SymmFunSet.eval_geometry(self.Ds.geometries[i])
+            self.AllGeometries.append(temp)
+            if i % int(NrGeom/10)==0:
+                print(str(100*i/NrGeom)+" %")
+            for j in range(0,len(temp)):
+                if i==0:
+                    Mean=temp[j]
+                    self.MeansOfDs.append(Mean)
+                    self.VarianceOfDs.append(np.zeros((Mean.shape)))
+                else:
+                    self.MeansOfDs[j]=np.add(self.MeansOfDs[j],temp[j])/2
+        #calculate sigmas for all Gs
+        for k in range(0,len(self.AllGeometries)):
+            temp=self.AllGeometries[i]
+            for l in range(0,len(temp)):
+                #calulate variance of dataset
+                if k==0:
+                    self.VarianceOfDs[l]=np.square(np.subtract(temp[l],self.MeansOfDs[l]))
+                else:
+                    self.VarianceOfDs[l]=np.square(np.subtract(temp[l],self.MeansOfDs[l]))/2
+                    
+                
     
     def read_files(self):
         
@@ -878,6 +939,7 @@ class DataInstance(object):
             self.Ds.read_lammps(self.XYZfile,self.Logfile)
             self.SymmFunSet.add_radial_functions(self.Rs,self.Etas)
             self.SymmFunSet.add_angluar_functions(self.Etas,self.Zetas,self.Lambs)
+            DataInstance.calculate_statistics_for_dataset(self)
         
     def get_data_batch(self,BatchSize=10000):
         
@@ -897,24 +959,30 @@ class DataInstance(object):
             Execute=False
         
         if Execute==True:
-            NrAtoms=len(self.SymmFunKeys)
-            self.SizeOfInputs=get_size_of_input(self.SymmFunSet.eval_geometry(self.Ds.geometries[0]))
             
+            self.SizeOfInputs=get_size_of_input(self.SymmFunSet.eval_geometry(self.Ds.geometries[0]))
+            OutputData=np.empty((BatchSize,1))
+            if BatchSize>len(self.AllGeometries)/10:
+                BatchSize=int(BatchSize/10)
+                print("Shrunk batches to size:"+str(BatchSize))
             ct=0
             for i in range(0,BatchSize):
                 #Get a new random number
                 isNew=False
                 while isNew==False and ct<5*BatchSize:
                     ct+=1
-                    rnd=rand.randint(0,len(self.Ds.geometries))
+                    rnd=rand.randint(0,len(self.Ds.geometries)-1)
+                        
                     if rnd in self.AllRandomNumbers:
                         isNew=False
                     else:
                         isNew=True
                         self.AllRandomNumbers.append(rnd)
                     
-                AllData.append(self.SymmFunSet.eval_geometry(self.Ds.geometries[rnd]))  
+                AllData.append(self.AllGeometries[rnd])  
                 OutputData[i]=self.Ds.energies[rnd]
+                
+            InputData=sort_and_normalize_data(AllData,self.SizeOfInputs,BatchSize,self.MeansOfDs,self.VarianceOfDs)
                     
                     
             return InputData,OutputData
@@ -938,9 +1006,12 @@ class DataInstance(object):
         if Execute==True:
             AllDataSetLength=len(self.Ds.geometries)
             SetLength=int(AllDataSetLength*CoverageOfSetInPercent/100)
+            if BatchSize>len(self.AllGeometries)/10:
+                BatchSize=int(BatchSize/10)
+                print("Shrunk batches to size:"+str(BatchSize))
             NrOfBatches=int(round(SetLength/BatchSize,0))
-            
+                
             for i in range(0,NrOfBatches):
                 self.Batches.append(DataInstance.get_data_batch(self,BatchSize))
-                
+
             return self.Batches
