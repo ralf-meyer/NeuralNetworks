@@ -10,8 +10,9 @@ import tensorflow as tf
 import DataSet 
 import SymmetryFunctionSet
 import random as rand
+import matplotlib.pyplot as plt
 
-
+plt.ion()
 
 def construct_input_layer(InputUnits):
     #Construct inputs for the NN
@@ -240,12 +241,12 @@ def make_layers_for_atomicNNs(AtomicNNs,OutputLayer=None):
     
     return Layers
 
-def make_data_for_atomicNNs(InData,OutData=None):
+def make_data_for_atomicNNs(InData,OutData=[]):
     
     CombinedData=list()
     for Data in InData:
         CombinedData.append(Data)
-    if OutData!=None:
+    if len(OutData)!=0:
         CombinedData.append(OutData)
 
     return CombinedData
@@ -262,7 +263,7 @@ def train(Session,Optimizer,CostFun,Layers,TrainingData,Epochs,ValidationData=No
     #Train with specifications and return loss   
     TrainCost=list()
     ValidationCost=list()
-    
+    print("Started training...")
     for i in range(Epochs):
         Cost=train_step(Session,Optimizer,Layers,TrainingData,CostFun)
         TrainCost.append(sum(Cost))
@@ -270,6 +271,13 @@ def train(Session,Optimizer,CostFun,Layers,TrainingData,Epochs,ValidationData=No
         #check validation dataset error
         if ValidationData!=None:
             ValidationCost.append(sum(validate_step(Session,Layers,ValidationData,CostFun)))
+        
+        if i % int(Epochs/20)==0:
+            if i==0:
+                figure,ax,TrainPlot,ValPlot=initialize_cost_plot(TrainCost,ValidationCost)
+            else:
+                update_cost_plot(figure,ax,TrainPlot,TrainCost,ValPlot,ValidationCost)
+            print(str(100*i/Epochs)+" %")
             
         if TrainCost[-1]<CostCriterium and Cost!=0:
             print(TrainCost[-1])
@@ -699,20 +707,53 @@ def train_atomic_networks(Session,AtomicNNs,TrainingInputs,TrainingOutputs,Epoch
         
     return Session,TrainedNetwork,TrainCost,ValidationCost
 
-
-def sort_and_normalize_data(AllData,InputSize,BatchSize,MeansOfGs,VarianceOfGs):
+def train_atomic_network_batch(Session,Optimizer,Layers,TrainingData,ValidationData,CostFun):
     
-    Inputs=list()
-    for i in range(0,len(InputSize)):
-        Inputs.append(np.zeros((BatchSize,InputSize[i])))
-        for j in range(0,len(AllData)):
-            #exclude nan values
-            L=np.nonzero(VarianceOfGs[i])
-            Inputs[i][j][L]=np.divide(np.subtract(AllData[j][i][L],MeansOfGs[i][L]),np.sqrt(VarianceOfGs[i][L]))
+    TrainingCost=0
+    ValidationCost=0
+    #train batch
+    TrainingCost=sum(train_step(Session,Optimizer,Layers,TrainingData,CostFun))[0]
 
-            
-    return Inputs
+    #check validation dataset error
+    if ValidationData!=None:
+        ValidationCost=sum(validate_step(Session,Layers,ValidationData,CostFun))[0]
+        
+    return TrainingCost,ValidationCost
+        
 
+def initialize_cost_plot(TrainingData,ValidationData=[]):
+    
+    fig=plt.figure()
+    ax = fig.add_subplot(111)
+    ax.set_autoscaley_on(True)
+    TrainingCostPlot, = ax.plot(np.arange(0,len(TrainingData)),TrainingData)
+    if len(ValidationData)!=0:
+        ValidationCostPlot,=ax.plot(np.arange(0,len(ValidationData)),ValidationData)
+    else:
+        ValidationCostPlot=None
+    
+    #Need both of these in order to rescale
+    ax.relim()
+    ax.autoscale_view()
+    #We need to draw *and* flush
+    fig.canvas.draw()
+    fig.canvas.flush_events()
+    
+    return fig,ax,TrainingCostPlot,ValidationCostPlot
+
+def update_cost_plot(figure,ax,TrainingCostPlot,TrainingCost,ValidationCostPlot=None,ValidationCost=None):
+    
+    TrainingCostPlot.set_data(np.arange(0,len(TrainingCost)),TrainingCost)
+    if ValidationCostPlot!=None:
+        ValidationCostPlot.set_data(np.arange(0,len(ValidationCost)),ValidationCost)
+        
+    #Need both of these in order to rescale
+    ax.relim()
+    ax.autoscale_view()
+    #We need to draw *and* flush
+    figure.canvas.draw()
+    figure.canvas.flush_events()
+    
 
 class AtomicNeuralNetInstance(object):
     
@@ -723,7 +764,7 @@ class AtomicNeuralNetInstance(object):
         self.TrainingInputs=list()
         self.TrainingOutputs=list()
         self.Epochs=1000
-        self.LearningRate=0.001
+        self.LearningRate=0.01
         self.ValidationInputs=list()
         self.ValidationOutputs=list()
         self.Gs=list()
@@ -751,6 +792,9 @@ class AtomicNeuralNetInstance(object):
         self.CostFun=None
         self.Optimizer=None
         self.OutputLayer=None
+        self.saver=None
+        self.MakePlots=False
+
         
     def initialize_network(self):
         
@@ -788,6 +832,7 @@ class AtomicNeuralNetInstance(object):
         
         #Initialize session
         self.Session.run(tf.global_variables_initializer())
+        self.saver=tf.train.Saver()
         
     def make_network(self):
         
@@ -846,18 +891,49 @@ class AtomicNeuralNetInstance(object):
             if self.ValidationBatches: 
                 NrOfValidationBatches=len(self.ValidationBatches)
             
-            for i in range(0,NrOfTrainingBatches):
-                self.TrainingInputs=self.TrainingBatches[i][0]
-                self.TrainingOutputs=self.TrainingBatches[i][1]
-                if self.ValidationBatches: 
-                    rnd=rand.randint(0,NrOfValidationBatches)
-                    self.ValidationInputs=self.ValidationBatches[rnd][0]
-                    self.ValidationOutputs=self.ValidationBatches[rnd][1]
-                TrainingCosts,ValidationCosts=AtomicNeuralNetInstance.start_training(self)
-                self.OverallTrainingCosts=self.OverallTrainingCosts+TrainingCosts
-                self.OverallValidationCosts=self.OverallValidationCosts+ValidationCosts
-                if i % int(NrOfTrainingBatches/10)==0:
-                    print(str(100*i/NrOfTrainingBatches)+" %")
+            for i in range(0,self.Epochs):
+                for j in range(0,NrOfTrainingBatches):
+                    rnd=rand.randint(0,NrOfTrainingBatches-1)
+                    self.TrainingInputs=self.TrainingBatches[rnd][0]
+                    self.TrainingOutputs=self.TrainingBatches[rnd][1]
+                    if self.ValidationBatches: 
+                        rnd=rand.randint(0,NrOfValidationBatches-1)
+                        self.ValidationInputs=self.ValidationBatches[rnd][0]
+                        self.ValidationOutputs=self.ValidationBatches[rnd][1]
+                    #Prepare data and layers for feeding
+                    if i==0:
+                        Layers,TrainingData=prepare_data_environment_for_atomicNNs(self.AtomicNNs,self.TrainingInputs,self.OutputLayer,self.TrainingOutputs)
+                    else:
+                        TrainingData=make_data_for_atomicNNs(self.TrainingInputs,self.TrainingOutputs)
+                    #Make validation input vector
+                    if len(self.ValidationInputs)>0:
+                        ValidationData=make_data_for_atomicNNs(self.ValidationInputs,self.ValidationOutputs)
+                    else:
+                        ValidationData=None
+                    #Train one batch
+                    TrainingCosts,ValidationCosts=train_atomic_network_batch(self.Session,self.Optimizer,Layers,TrainingData,ValidationData,self.CostFun)
+                    
+                    self.OverallTrainingCosts.append(TrainingCosts)
+                    self.OverallValidationCosts.append(ValidationCosts)
+                
+                if i % int(self.Epochs/100)==0 or i==(self.Epochs-1):
+                    #Cost plot 
+                    if self.MakePlots==True:
+                        if i ==0:
+                            fig,ax,TrainingCostPlot,ValidationCostPlot=initialize_cost_plot(self.OverallTrainingCosts,self.OverallValidationCosts)
+                        else:
+                            update_cost_plot(fig,ax,TrainingCostPlot,self.OverallTrainingCosts,ValidationCostPlot,self.OverallValidationCosts)
+                    #Finished percentage output
+                    print(str(100*i/self.Epochs)+" %")
+                    #Store variables
+                    self.TrainedVariables=get_trained_variables(self.Session,self.VariablesDictionary)
+                    self.saver.save(self.Session, "model.ckpt")
+                #Abort criteria
+                if self.OverallTrainingCosts[-1]<self.CostCriterium and self.OverallTrainingCosts!=0:
+                    print(self.OverallTrainingCosts[-1])
+                    break
+        
+        
         
 class DataInstance(object):
     
@@ -883,30 +959,26 @@ class DataInstance(object):
         
         print("Converting data to neural net input format...")
         NrGeom=len(self.Ds.geometries)
+        AllTemp=list()
+
         #calculate mean values for all Gs
         for i in range(0,NrGeom):
             temp=self.SymmFunSet.eval_geometry(self.Ds.geometries[i])
             self.AllGeometries.append(temp)
-            if i % int(NrGeom/10)==0:
+            if i % int(NrGeom/25)==0:
                 print(str(100*i/NrGeom)+" %")
             for j in range(0,len(temp)):
                 if i==0:
-                    Mean=temp[j]
-                    self.MeansOfDs.append(Mean)
-                    self.VarianceOfDs.append(np.zeros((Mean.shape)))
+                    AllTemp.append(np.empty((NrGeom,temp[j].shape[0])))
+                    AllTemp[j][i]=temp[j]
                 else:
-                    self.MeansOfDs[j]=np.add(self.MeansOfDs[j],temp[j])/2
-        #calculate sigmas for all Gs
-        for k in range(0,len(self.AllGeometries)):
-            temp=self.AllGeometries[i]
-            for l in range(0,len(temp)):
-                #calulate variance of dataset
-                if k==0:
-                    self.VarianceOfDs[l]=np.square(np.subtract(temp[l],self.MeansOfDs[l]))
-                else:
-                    self.VarianceOfDs[l]=np.square(np.subtract(temp[l],self.MeansOfDs[l]))/2
-                    
-                
+                    AllTemp[j][i]=temp[j]
+        #calculate mean and sigmas for all Gs
+        print("Calculating mean values and variances...")
+        for InputsForNetX in AllTemp:
+            self.MeansOfDs.append(np.mean(InputsForNetX,axis=0))
+            self.VarianceOfDs.append(np.var(InputsForNetX,axis=0))
+        print("...finished")
     
     def read_files(self):
         
@@ -941,7 +1013,7 @@ class DataInstance(object):
             self.SymmFunSet.add_angluar_functions(self.Etas,self.Zetas,self.Lambs)
             DataInstance.calculate_statistics_for_dataset(self)
         
-    def get_data_batch(self,BatchSize=10000):
+    def get_data_batch(self,BatchSize=100,NoBatches=False):
         
         AllData=list()
         Execute=True
@@ -962,14 +1034,15 @@ class DataInstance(object):
             
             self.SizeOfInputs=get_size_of_input(self.SymmFunSet.eval_geometry(self.Ds.geometries[0]))
             OutputData=np.empty((BatchSize,1))
-            if BatchSize>len(self.AllGeometries)/10:
-                BatchSize=int(BatchSize/10)
-                print("Shrunk batches to size:"+str(BatchSize))
+            if NoBatches==False:
+                if BatchSize>len(self.AllGeometries)/10:
+                    BatchSize=int(BatchSize/10)
+                    print("Shrunk batches to size:"+str(BatchSize))
             ct=0
             for i in range(0,BatchSize):
                 #Get a new random number
                 isNew=False
-                while isNew==False and ct<5*BatchSize:
+                while isNew==False and ct<5:#try 5 times to get completly new random number
                     ct+=1
                     rnd=rand.randint(0,len(self.Ds.geometries)-1)
                         
@@ -982,12 +1055,12 @@ class DataInstance(object):
                 AllData.append(self.AllGeometries[rnd])  
                 OutputData[i]=self.Ds.energies[rnd]
                 
-            InputData=sort_and_normalize_data(AllData,self.SizeOfInputs,BatchSize,self.MeansOfDs,self.VarianceOfDs)
+            InputData=DataInstance.sort_and_normalize_data(self,BatchSize,AllData)
                     
                     
             return InputData,OutputData
     
-    def get_data(self,BatchSize=10000,CoverageOfSetInPercent=70):
+    def get_data(self,BatchSize=100,CoverageOfSetInPercent=70,NoBatches=False):
         
         Execute=True
         if self.SymmFunSet==None:
@@ -1006,12 +1079,32 @@ class DataInstance(object):
         if Execute==True:
             AllDataSetLength=len(self.Ds.geometries)
             SetLength=int(AllDataSetLength*CoverageOfSetInPercent/100)
-            if BatchSize>len(self.AllGeometries)/10:
-                BatchSize=int(BatchSize/10)
-                print("Shrunk batches to size:"+str(BatchSize))
-            NrOfBatches=int(round(SetLength/BatchSize,0))
-                
+            
+            if NoBatches==False:
+                if BatchSize>len(self.AllGeometries)/10:
+                    BatchSize=int(BatchSize/10)
+                    print("Shrunk batches to size:"+str(BatchSize))
+                NrOfBatches=int(round(SetLength/BatchSize,0))
+            else:
+                NrOfBatches=1
+                BatchSize=SetLength
+            print("Creating and normalizing batches...")
             for i in range(0,NrOfBatches):
-                self.Batches.append(DataInstance.get_data_batch(self,BatchSize))
+                self.Batches.append(DataInstance.get_data_batch(self,BatchSize,NoBatches))
+                if i % int(NrOfBatches/100)==0:
+                    print(str(100*i/NrOfBatches)+" %")
 
             return self.Batches
+        
+    def sort_and_normalize_data(self,BatchSize,AllData):
+    
+        Inputs=list()
+        for i in range(0,len(self.SizeOfInputs)):
+            Inputs.append(np.zeros((BatchSize,self.SizeOfInputs[i])))
+            #exclude nan values
+            L=np.nonzero(self.VarianceOfDs[i])
+            for j in range(0,len(AllData)):
+                Inputs[i][j][L]=np.divide(np.subtract(AllData[j][i][L],self.MeansOfDs[i][L]),np.sqrt(self.VarianceOfDs[i][L]))
+    
+    
+        return Inputs
