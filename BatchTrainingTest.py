@@ -23,13 +23,22 @@ Data.Lambs=[1.0,-1.0]
 Data.Zetas=np.arange(0.1,2,0.5).tolist()
 
 Data.read_files()
-Batches=Data.get_data()
+Batches=Data.get_data(1000)
 
 Training=NN.AtomicNeuralNetInstance()
-Training.Structures.append([Data.SizeOfInputs[0],250,1])
+Training.Structures.append([Data.SizeOfInputs[0],500,1])
 Training.NumberOfSameNetworks.append(1)
-Training.Structures.append([Data.SizeOfInputs[1],250,1])
+Training.Structures.append([Data.SizeOfInputs[1],500,1])
 Training.NumberOfSameNetworks.append(1)
 Training.make_and_initialize_network()
+Training.MakePlots=True
+#With batches
+Training.Epochs=500
 Training.TrainingBatches=Batches
 Training.start_batch_training()
+
+#Witout batches
+#Batches=Data.get_data(0,70,True)
+#Training.TrainingInputs=Batches[0][0]
+#Training.TrainingOutputs=Batches[0][1]
+#Training.start_training()
