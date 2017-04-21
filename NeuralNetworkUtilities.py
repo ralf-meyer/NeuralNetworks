@@ -259,7 +259,7 @@ def prepare_data_environment_for_atomicNNs(AtomicNNs,InData,OutputLayer=None,Out
     return Layers,Data
     
     
-def train(Session,Optimizer,CostFun,Layers,TrainingData,Epochs,ValidationData=None,CostCriterium=None):
+def train(Session,Optimizer,CostFun,Layers,TrainingData,Epochs,ValidationData=None,CostCriterium=None,MakePlot=False):
     #Train with specifications and return loss   
     TrainCost=list()
     ValidationCost=list()
@@ -273,10 +273,11 @@ def train(Session,Optimizer,CostFun,Layers,TrainingData,Epochs,ValidationData=No
             ValidationCost.append(sum(validate_step(Session,Layers,ValidationData,CostFun)))
         
         if i % int(Epochs/20)==0:
-            if i==0:
-                figure,ax,TrainPlot,ValPlot=initialize_cost_plot(TrainCost,ValidationCost)
-            else:
-                update_cost_plot(figure,ax,TrainPlot,TrainCost,ValPlot,ValidationCost)
+            if MakePlot:
+                if i==0:
+                    figure,ax,TrainPlot,ValPlot=initialize_cost_plot(TrainCost,ValidationCost)
+                else:
+                    update_cost_plot(figure,ax,TrainPlot,TrainCost,ValPlot,ValidationCost)
             print(str(100*i/Epochs)+" %")
             
         if TrainCost[-1]<CostCriterium and Cost!=0:
@@ -640,7 +641,6 @@ def make_atomic_networks(Structures,NumberOfSameNetworks,Gs=None,HiddenType=None
                     HiddenLayers.append(construct_not_trainable_layer(NrIn,NrHidden))
                 else:
                     HiddenLayers.append(construct_hidden_layer(NrIn,NrHidden,HiddenType,HiddenData[i][j-1],BiasData[i][j-1]))
-                
                     
         else:
             RawWeights=None
@@ -688,7 +688,7 @@ def make_atomic_networks(Structures,NumberOfSameNetworks,Gs=None,HiddenType=None
     
     return Session,AtomicNNs,AllHiddenLayers
 
-def train_atomic_networks(Session,AtomicNNs,TrainingInputs,TrainingOutputs,Epochs,Optimizer,OutputLayer,CostFun,ValidationInputs=None,ValidationOutputs=None,CostCriterium=None):
+def train_atomic_networks(Session,AtomicNNs,TrainingInputs,TrainingOutputs,Epochs,Optimizer,OutputLayer,CostFun,ValidationInputs=None,ValidationOutputs=None,CostCriterium=None,MakePlot=False):
         
     
     ValidationCost=0
@@ -702,7 +702,7 @@ def train_atomic_networks(Session,AtomicNNs,TrainingInputs,TrainingOutputs,Epoch
     else:
         ValidationData=None
     #Start training of the atomic network
-    Session,TrainCost,ValidationCost=train(Session,Optimizer,CostFun,Layers,Data,Epochs,ValidationData,CostCriterium)
+    Session,TrainCost,ValidationCost=train(Session,Optimizer,CostFun,Layers,Data,Epochs,ValidationData,CostCriterium,MakePlot)
     TrainedNetwork=tf.trainable_variables()
         
     return Session,TrainedNetwork,TrainCost,ValidationCost
@@ -845,7 +845,7 @@ class AtomicNeuralNetInstance(object):
             Execute=False
             
         if Execute==True:
-           self.Session,self.AtomicNNs,self.VariablesDictionary=make_atomic_networks(self.Structures,self.NumberOfSameNetworks,self.Gs,self.HiddenType,self.HiddenData,self.BiasData,self.ActFun,self.ActFunParam)
+           self.Session,self.AtomicNNs,self.VariablesDictionary=make_atomic_networks(self.Structures,self.NumberOfSameNetworks,self.Gs,self.HiddenType,self.HiddenData,self.BiasData,self.ActFun,self.ActFunParam,True)
            
     def make_and_initialize_network(self):
         
@@ -866,7 +866,7 @@ class AtomicNeuralNetInstance(object):
             Execute=False
         
         if Execute==True:
-            self.Session,self.TrainedNetwork,self.TrainingCosts,self.ValidationCosts=train_atomic_networks(self.Session,self.AtomicNNs,self.TrainingInputs,self.TrainingOutputs,self.Epochs,self.Optimizer,self.OutputLayer,self.CostFun,self.ValidationInputs,self.ValidationOutputs,self.CostCriterium)
+            self.Session,self.TrainedNetwork,self.TrainingCosts,self.ValidationCosts=train_atomic_networks(self.Session,self.AtomicNNs,self.TrainingInputs,self.TrainingOutputs,self.Epochs,self.Optimizer,self.OutputLayer,self.CostFun,self.ValidationInputs,self.ValidationOutputs,self.CostCriterium,self.MakePlots)
             self.TrainedVariables=get_trained_variables(self.Session,self.VariablesDictionary)
         
         return self.TrainingCosts,self.ValidationCosts
@@ -1091,8 +1091,9 @@ class DataInstance(object):
             print("Creating and normalizing batches...")
             for i in range(0,NrOfBatches):
                 self.Batches.append(DataInstance.get_data_batch(self,BatchSize,NoBatches))
-                if i % int(NrOfBatches/100)==0:
-                    print(str(100*i/NrOfBatches)+" %")
+                if NoBatches==False:
+                    if i % int(NrOfBatches/100)==0:
+                        print(str(100*i/NrOfBatches)+" %")
 
             return self.Batches
         
