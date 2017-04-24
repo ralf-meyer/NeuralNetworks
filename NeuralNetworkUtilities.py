@@ -266,13 +266,12 @@ def train(Session,Optimizer,CostFun,Layers,TrainingData,Epochs,ValidationData=No
     print("Started training...")
     for i in range(Epochs):
         Cost=train_step(Session,Optimizer,Layers,TrainingData,CostFun)
-        TrainCost.append(sum(Cost))
-
+        TrainCost.append(sum(Cost)/len(Cost))
         #check validation dataset error
         if ValidationData!=None:
-            ValidationCost.append(sum(validate_step(Session,Layers,ValidationData,CostFun)))
+            ValidationCost.append(sum(validate_step(Session,Layers,ValidationData,CostFun))/len(Cost))
         
-        if i % int(Epochs/20)==0:
+        if i % max(int(Epochs/100),1)==0:
             if MakePlot:
                 if i==0:
                     figure,ax,TrainPlot,ValPlot=initialize_cost_plot(TrainCost,ValidationCost)
@@ -776,7 +775,7 @@ class AtomicNeuralNetInstance(object):
         
         self.ActFun=None
         self.ActFunParam=None
-        self.CostCriterium=None
+        self.CostCriterium=0.0001
         self.OptimizerType=None
         self.OptimizerProp=None
         
@@ -818,7 +817,7 @@ class AtomicNeuralNetInstance(object):
             elif self.OptimizerType=="Momentum":
                 self.Optimizer=tf.train.MomentumOptimizer(self.LearningRate,self.OptimizerProp).minimize(self.CostFun)
             elif self.OptimizerType=="Adam":
-                self.Optimizer=tf.train.AdamOptimizer(self.LearningRate).minimize(self.CostFun)
+                self.Optimizer=tf.train.AdamOptimizer(self.LearningRate, beta1=0.9, beta2=0.999, epsilon=1e-08).minimize(self.CostFun)
             elif self.OptimizerType=="Ftrl":
                self.Optimizer=tf.train.FtrlOptimizer(self.LearningRate).minimize(self.CostFun)   
             elif self.OptimizerType=="ProximalGradientDescent":
@@ -864,10 +863,12 @@ class AtomicNeuralNetInstance(object):
         if len(self.TrainingOutputs)==0:
             print("No training outputs specified!")
             Execute=False
-        
+
         if Execute==True:
-            self.Session,self.TrainedNetwork,self.TrainingCosts,self.ValidationCosts=train_atomic_networks(self.Session,self.AtomicNNs,self.TrainingInputs,self.TrainingOutputs,self.Epochs,self.Optimizer,self.OutputLayer,self.CostFun,self.ValidationInputs,self.ValidationOutputs,self.CostCriterium,self.MakePlots)
+            self.Session,self.TrainedNetwork,TrainingCosts,ValidationCosts=train_atomic_networks(self.Session,self.AtomicNNs,self.TrainingInputs,self.TrainingOutputs,self.Epochs,self.Optimizer,self.OutputLayer,self.CostFun,self.ValidationInputs,self.ValidationOutputs,self.CostCriterium,self.MakePlots)
             self.TrainedVariables=get_trained_variables(self.Session,self.VariablesDictionary)
+            self.TrainingCosts=TrainingCosts
+            self.ValidationCosts=ValidationCosts
         
         return self.TrainingCosts,self.ValidationCosts
 
@@ -896,6 +897,7 @@ class AtomicNeuralNetInstance(object):
                     rnd=rand.randint(0,NrOfTrainingBatches-1)
                     self.TrainingInputs=self.TrainingBatches[rnd][0]
                     self.TrainingOutputs=self.TrainingBatches[rnd][1]
+                    BatchSize=self.TrainingInputs[0].shape[0]
                     if self.ValidationBatches: 
                         rnd=rand.randint(0,NrOfValidationBatches-1)
                         self.ValidationInputs=self.ValidationBatches[rnd][0]
@@ -913,10 +915,10 @@ class AtomicNeuralNetInstance(object):
                     #Train one batch
                     TrainingCosts,ValidationCosts=train_atomic_network_batch(self.Session,self.Optimizer,Layers,TrainingData,ValidationData,self.CostFun)
                     
-                    self.OverallTrainingCosts.append(TrainingCosts)
-                    self.OverallValidationCosts.append(ValidationCosts)
+                    self.OverallTrainingCosts.append(TrainingCosts/BatchSize)
+                    self.OverallValidationCosts.append(ValidationCosts/BatchSize)
                 
-                if i % int(self.Epochs/100)==0 or i==(self.Epochs-1):
+                if i % max(int(self.Epochs/100),1)==0 or i==(self.Epochs-1):
                     #Cost plot 
                     if self.MakePlots==True:
                         if i ==0:
@@ -965,7 +967,7 @@ class DataInstance(object):
         for i in range(0,NrGeom):
             temp=self.SymmFunSet.eval_geometry(self.Ds.geometries[i])
             self.AllGeometries.append(temp)
-            if i % int(NrGeom/25)==0:
+            if i % max(int(NrGeom/25),1)==0:
                 print(str(100*i/NrGeom)+" %")
             for j in range(0,len(temp)):
                 if i==0:
@@ -1092,7 +1094,7 @@ class DataInstance(object):
             for i in range(0,NrOfBatches):
                 self.Batches.append(DataInstance.get_data_batch(self,BatchSize,NoBatches))
                 if NoBatches==False:
-                    if i % int(NrOfBatches/100)==0:
+                    if i % max(int(NrOfBatches/10),1)==0:
                         print(str(100*i/NrOfBatches)+" %")
 
             return self.Batches
