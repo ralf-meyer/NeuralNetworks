@@ -20,7 +20,7 @@ def construct_input_layer(InputUnits):
     
     return Inputs
 
-def construct_hidden_layer(LayerBeforeUnits,HiddenUnits,InitType=None,InitData=None,BiasData=None):
+def construct_hidden_layer(LayerBeforeUnits,HiddenUnits,InitType=None,InitData=None,BiasData=None,MakeAllVariable=False):
     #Construct the weights for this layer
 
     if InitType!=None:
@@ -44,7 +44,10 @@ def construct_hidden_layer(LayerBeforeUnits,HiddenUnits,InitType=None,InitData=N
             Weights=tf.Variable(tf.random_gamma([LayerBeforeUnits,HiddenUnits],InitData))
         else:
             if InitData!=None:
-                Weights=tf.constant(InitData)
+                if MakeAllVariable==False:
+                    Weights=tf.constant(InitData)
+                else:
+                    Weights=tf.Variable(InitData)
             else:
                 #Assume random weights if no InitType is given
                 Weights=tf.Variable(tf.random_uniform([LayerBeforeUnits,HiddenUnits]))
@@ -634,7 +637,10 @@ def make_atomic_networks(Structures,NumberOfSameNetworks,Gs=None,HiddenType=None
                 if j==len(Structure)-1 and MakeLastLayerConstant==True:
                     HiddenLayers.append(construct_not_trainable_layer(NrIn,NrHidden))
                 else:
-                    HiddenLayers.append(construct_hidden_layer(NrIn,NrHidden,HiddenType,HiddenData[i][j-1],BiasData[i][j-1]))
+                    if (j-1) >= len(HiddenData[i]):
+                        HiddenLayers.append(construct_hidden_layer(NrIn,NrHidden,HiddenType,None,None))
+                    else:
+                        HiddenLayers.append(construct_hidden_layer(NrIn,NrHidden,HiddenType,HiddenData[i][j-1],BiasData[i][j-1],True))
                     
         else:
             RawWeights=None
@@ -748,6 +754,7 @@ def update_cost_plot(figure,ax,TrainingCostPlot,TrainingCost,ValidationCostPlot=
     figure.canvas.draw()
     figure.canvas.flush_events()
     
+    
 
 class AtomicNeuralNetInstance(object):
     
@@ -827,6 +834,15 @@ class AtomicNeuralNetInstance(object):
         #Initialize session
         self.Session.run(tf.global_variables_initializer())
         self.saver=tf.train.Saver()
+        
+    def load_model(self,NrHiddenOld,ModelName="trained_variables.npy"):
+        
+        self.TrainedVariables=np.load(ModelName+".npy")
+        
+    def expand_existing_net(self):
+        
+        AtomicNeuralNetInstance.load_model(self)
+        self.HiddenData=self.TrainedVariables
         
     def make_network(self):
         
@@ -927,6 +943,7 @@ class AtomicNeuralNetInstance(object):
                     #Store variables
                     self.TrainedVariables=get_trained_variables(self.Session,self.VariablesDictionary)
                     self.saver.save(self.Session, "model.ckpt")
+                    np.save("trained_variables",self.TrainedVariables)
                 #Abort criteria
                 if self.OverallTrainingCosts[-1]<self.CostCriterium and self.OverallTrainingCosts!=0:
                     print(self.OverallTrainingCosts[-1])
