@@ -22,6 +22,7 @@ def construct_input_layer(InputUnits):
 
 def construct_hidden_layer(LayerBeforeUnits,HiddenUnits,InitType=None,InitData=None,BiasData=None):
     #Construct the weights for this layer
+
     if InitType!=None:
         if InitType == "zeros":
             Weights=tf.Variable(tf.zeros([LayerBeforeUnits,HiddenUnits]))
@@ -251,7 +252,7 @@ def make_data_for_atomicNNs(InData,OutData=[]):
 
     return CombinedData
 
-def prepare_data_environment_for_atomicNNs(AtomicNNs,InData,OutputLayer=None,OutData=None):
+def prepare_data_environment_for_atomicNNs(AtomicNNs,InData,OutputLayer=[],OutData=[]):
     
     Layers=make_layers_for_atomicNNs(AtomicNNs,OutputLayer)
     Data=make_data_for_atomicNNs(InData,OutData)
@@ -279,7 +280,7 @@ def train(Session,Optimizer,CostFun,Layers,TrainingData,Epochs,ValidationData=No
                     update_cost_plot(figure,ax,TrainPlot,TrainCost,ValPlot,ValidationCost)
             print(str(100*i/Epochs)+" %")
             
-        if TrainCost[-1]<CostCriterium and Cost!=0:
+        if TrainCost[-1]<CostCriterium:
             print(TrainCost[-1])
             break
 
@@ -330,12 +331,6 @@ def output_of_all_atomic_networks(Session,AtomicNNs):
         #Get network data
         AtomicNetwork=AtomicNNs[i]
         Network=AtomicNetwork[1]
-            
-        if i==0:
-            offsetIdx=0
-        else:
-            #shift index by number of networks of last tpye
-            offsetIdx+=AtomicNNs[i-1][0]
         #Get input data for network              
         AllEnergies.append(Network)
         TotalEnergy+=AllEnergies[-1]
@@ -605,7 +600,7 @@ def total_force(Session,AtomicNNs,Alpha,AlphaValue):
 def evaluateAllAtomicNNs(Session,AtomicNNs,InData):
     
     Energy=0
-    Layers,Data=prepare_data_environment_for_atomicNNs(AtomicNNs,InData,None,None)
+    Layers,Data=prepare_data_environment_for_atomicNNs(AtomicNNs,InData,list(),list())
 
     for i in range(0,len(AtomicNNs)):
         AtomicNetwork=AtomicNNs[i]   
@@ -767,7 +762,7 @@ class AtomicNeuralNetInstance(object):
         self.ValidationInputs=list()
         self.ValidationOutputs=list()
         self.Gs=list()
-        self.HiddenType=None
+        self.HiddenType="tanh"
         self.HiddenData=None
         self.BiasData=None
         self.TrainingBatches=list()
@@ -869,6 +864,7 @@ class AtomicNeuralNetInstance(object):
             self.TrainedVariables=get_trained_variables(self.Session,self.VariablesDictionary)
             self.TrainingCosts=TrainingCosts
             self.ValidationCosts=ValidationCosts
+            print("Training finished")
         
         return self.TrainingCosts,self.ValidationCosts
 
@@ -891,12 +887,13 @@ class AtomicNeuralNetInstance(object):
             NrOfTrainingBatches=len(self.TrainingBatches)
             if self.ValidationBatches: 
                 NrOfValidationBatches=len(self.ValidationBatches)
-            
+                
             for i in range(0,self.Epochs):
                 for j in range(0,NrOfTrainingBatches):
                     rnd=rand.randint(0,NrOfTrainingBatches-1)
                     self.TrainingInputs=self.TrainingBatches[rnd][0]
                     self.TrainingOutputs=self.TrainingBatches[rnd][1]
+                    
                     BatchSize=self.TrainingInputs[0].shape[0]
                     if self.ValidationBatches: 
                         rnd=rand.randint(0,NrOfValidationBatches-1)
@@ -935,13 +932,12 @@ class AtomicNeuralNetInstance(object):
                     print(self.OverallTrainingCosts[-1])
                     break
         
-        
+        print("Training finished")
         
 class DataInstance(object):
     
     def __init__(self):
         
-        self.AllRandomNumbers=list()
         self.AllGeometries=list()
         self.Batches=list()
         self.SizeOfInputs=list()
@@ -980,7 +976,6 @@ class DataInstance(object):
         for InputsForNetX in AllTemp:
             self.MeansOfDs.append(np.mean(InputsForNetX,axis=0))
             self.VarianceOfDs.append(np.var(InputsForNetX,axis=0))
-        print("...finished")
     
     def read_files(self):
         
@@ -1040,22 +1035,19 @@ class DataInstance(object):
                 if BatchSize>len(self.AllGeometries)/10:
                     BatchSize=int(BatchSize/10)
                     print("Shrunk batches to size:"+str(BatchSize))
-            ct=0
+
+            #Create a list with all possible random values
+            ValuesForDrawingSamples=range(0,len(self.Ds.geometries))
             for i in range(0,BatchSize):
                 #Get a new random number
-                isNew=False
-                while isNew==False and ct<5:#try 5 times to get completly new random number
-                    ct+=1
-                    rnd=rand.randint(0,len(self.Ds.geometries)-1)
-                        
-                    if rnd in self.AllRandomNumbers:
-                        isNew=False
-                    else:
-                        isNew=True
-                        self.AllRandomNumbers.append(rnd)
+                rnd=rand.randint(0,len(ValuesForDrawingSamples)-1)
+                #Get number
+                MyNr=ValuesForDrawingSamples[rnd]
+                #remove number from possible samples
+                ValuesForDrawingSamples.pop(rnd)
                     
-                AllData.append(self.AllGeometries[rnd])  
-                OutputData[i]=self.Ds.energies[rnd]
+                AllData.append(self.AllGeometries[MyNr])  
+                OutputData[i]=self.Ds.energies[MyNr]
                 
             InputData=DataInstance.sort_and_normalize_data(self,BatchSize,AllData)
                     
