@@ -20,46 +20,69 @@ def construct_input_layer(InputUnits):
     
     return Inputs
 
-def construct_hidden_layer(LayerBeforeUnits,HiddenUnits,InitType=None,InitData=None,BiasData=None,MakeAllVariable=False):
+def construct_hidden_layer(LayerBeforeUnits,HiddenUnits,InitType=None,InitData=[],BiasType=None,BiasData=[],MakeAllVariable=False):
     #Construct the weights for this layer
 
-    if InitType!=None:
-        if InitType == "zeros":
-            Weights=tf.Variable(tf.zeros([LayerBeforeUnits,HiddenUnits]))
-        elif InitType =="ones":
-            Weights=tf.Variable(tf.ones([LayerBeforeUnits,HiddenUnits]))
-        elif InitType == "fill":
-            Weights=tf.Variable(tf.fill([LayerBeforeUnits,HiddenUnits],InitData))
-        elif InitType == "random_normal":
-            Weights=tf.Variable(tf.random_normal([LayerBeforeUnits,HiddenUnits]))
-        elif InitType == "truncated_normal":
-            Weights=tf.Variable(tf.truncated_normal([LayerBeforeUnits,HiddenUnits]))
-        elif InitType == "random_uniform":
-            Weights=tf.Variable(tf.random_uniform([LayerBeforeUnits,HiddenUnits]))
-        elif InitType == "random_shuffle":
-            Weights=tf.Variable(tf.random_shuffle([LayerBeforeUnits,HiddenUnits]))
-        elif InitType == "random_crop":
-            Weights=tf.Variable(tf.random_crop([LayerBeforeUnits,HiddenUnits],InitData))
-        elif InitType == "random_gamma":
-            Weights=tf.Variable(tf.random_gamma([LayerBeforeUnits,HiddenUnits],InitData))
-        else:
-            if InitData!=None:
-                if MakeAllVariable==False:
-                    Weights=tf.constant(InitData)
-                else:
-                    Weights=tf.Variable(InitData)
+    if len(InitData)==0:
+        if InitType!=None:
+            if InitType == "zeros":
+                Weights=tf.Variable(tf.zeros([LayerBeforeUnits,HiddenUnits]))
+            elif InitType =="ones":
+                Weights=tf.Variable(tf.ones([LayerBeforeUnits,HiddenUnits]))
+            elif InitType == "fill":
+                Weights=tf.Variable(tf.fill([LayerBeforeUnits,HiddenUnits]))
+            elif InitType == "random_normal":
+                Weights=tf.Variable(tf.random_normal([LayerBeforeUnits,HiddenUnits]))
+            elif InitType == "truncated_normal":
+                Weights=tf.Variable(tf.truncated_normal([LayerBeforeUnits,HiddenUnits]))
+            elif InitType == "random_uniform":
+                Weights=tf.Variable(tf.random_uniform([LayerBeforeUnits,HiddenUnits]))
+            elif InitType == "random_shuffle":
+                Weights=tf.Variable(tf.random_shuffle([LayerBeforeUnits,HiddenUnits]))
+            elif InitType == "random_crop":
+                Weights=tf.Variable(tf.random_crop([LayerBeforeUnits,HiddenUnits]))
+            elif InitType == "random_gamma":
+                Weights=tf.Variable(tf.random_gamma([LayerBeforeUnits,HiddenUnits]))
             else:
                 #Assume random weights if no InitType is given
                 Weights=tf.Variable(tf.random_uniform([LayerBeforeUnits,HiddenUnits]))
+        else:
+            #Assume random weights if no InitType is given
+            Weights=tf.Variable(tf.random_uniform([LayerBeforeUnits,HiddenUnits]))
     else:
-        #Assume random weights if no InitType is given
-        Weights=tf.Variable(tf.random_uniform([LayerBeforeUnits,HiddenUnits]))
+        if MakeAllVariable==False:
+            Weights=tf.constant(InitData)
+        else:
+            Weights=tf.Variable(InitData)
     #Construct the bias for this layer
-    if BiasData!=None:
-        Biases = tf.constant(BiasData)
+    if len(BiasData)!=0:
+        if MakeAllVariable==False:
+            Biases=tf.constant(BiasData)
+        else:
+            Biases=tf.Variable(BiasData)
+
     else:
-        Biases = tf.Variable(tf.zeros([HiddenUnits]))
-        
+        if InitType == "zeros":
+            Biases=tf.Variable(tf.zeros([HiddenUnits]))
+        elif InitType =="ones":
+            Biases=tf.Variable(tf.ones([HiddenUnits]))
+        elif InitType == "fill":
+            Biases=tf.Variable(tf.fill([HiddenUnits],BiasData))
+        elif InitType == "random_normal":
+            Biases=tf.Variable(tf.random_normal([HiddenUnits]))
+        elif InitType == "truncated_normal":
+            Biases=tf.Variable(tf.truncated_normal([HiddenUnits]))
+        elif InitType == "random_uniform":
+            Biases=tf.Variable(tf.random_uniform([HiddenUnits]))
+        elif InitType == "random_shuffle":
+            Biases=tf.Variable(tf.random_shuffle([HiddenUnits]))
+        elif InitType == "random_crop":
+            Biases=tf.Variable(tf.random_crop([HiddenUnits],BiasData))
+        elif InitType == "random_gamma":
+            Biases=tf.Variable(tf.random_gamma([HiddenUnits],InitData))
+        else:
+            Biases = tf.Variable(tf.random_uniform([HiddenUnits]))
+
     return Weights,Biases
 
 def construct_output_layer(OutputUnits):
@@ -130,11 +153,11 @@ def make_force_networks(Structure,HiddenData,BiasData):
     
     ForceNetworks=list()
     for i in range(1,len(Structure)-1):
-        Network,InputLayer,OutputLayer=make_standard_neuralnetwork(Structure[0:i+1],None,HiddenData,BiasData)
+        Network,InputLayer,OutputLayer=make_standard_neuralnetwork(Structure[0:i+1],None,HiddenData,None,BiasData)
         ForceNetworks.append([Network,InputLayer,OutputLayer])        
     return ForceNetworks
 
-def make_standard_neuralnetwork(Structure,HiddenType=None,HiddenData=None,BiasData=None,ActFun=None,ActFunParam=None):
+def make_standard_neuralnetwork(Structure,HiddenType=None,HiddenData=None,BiasType=None,BiasData=None,ActFun=None,ActFunParam=None):
     #Construct the NN
 
     #Make inputs
@@ -145,7 +168,7 @@ def make_standard_neuralnetwork(Structure,HiddenType=None,HiddenData=None,BiasDa
     for i in range(1,len(Structure)):
         NrIn=Structure[i-1]
         NrHidden=Structure[i]
-        HiddenLayers.append(construct_hidden_layer(NrIn,NrHidden,HiddenType,HiddenData[i-1],BiasData[i-1]))
+        HiddenLayers.append(construct_hidden_layer(NrIn,NrHidden,HiddenType,HiddenData[i-1],BiasType,BiasData[i-1]))
         
 
     #Make output layer
@@ -612,7 +635,7 @@ def evaluateAllAtomicNNs(Session,AtomicNNs,InData):
     return Energy
 
 
-def make_atomic_networks(Structures,NumberOfSameNetworks,Gs=None,HiddenType=None,HiddenData=None,BiasData=None,ActFun=None,ActFunParam=None,MakeLastLayerConstant=False):
+def make_atomic_networks(Structures,NumberOfSameNetworks,Gs=[],HiddenType=None,HiddenData=[],BiasType=None,BiasData=[],ActFun=None,ActFunParam=None,MakeLastLayerConstant=False):
 
 
     AllHiddenLayers=list()
@@ -626,10 +649,13 @@ def make_atomic_networks(Structures,NumberOfSameNetworks,Gs=None,HiddenType=None
         #Make hidden layers
         HiddenLayers=list()
         Structure=Structures[i]
-        if HiddenData!=None:
+        if len(HiddenData)!=0:
             RawWeights=HiddenData[i]
             RawBias=BiasData[i]
-            ForceNetworks=make_force_networks(Structure,RawWeights,RawBias)
+            if len(RawWeights)==len(Structure)-1:
+                ForceNetworks=make_force_networks(Structure,RawWeights,RawBias)
+            else:
+                ForceNetworks=None
             
             for j in range(1,len(Structure)):
                 NrIn=Structure[j-1]
@@ -637,11 +663,11 @@ def make_atomic_networks(Structures,NumberOfSameNetworks,Gs=None,HiddenType=None
                 if j==len(Structure)-1 and MakeLastLayerConstant==True:
                     HiddenLayers.append(construct_not_trainable_layer(NrIn,NrHidden))
                 else:
-                    if (j-1) >= len(HiddenData[i]):
-                        HiddenLayers.append(construct_hidden_layer(NrIn,NrHidden,HiddenType,None,None))
+                    if j >= len(HiddenData[i]):
+                        HiddenLayers.append(construct_hidden_layer(NrIn,NrHidden,HiddenType,[],BiasType))
                     else:
-                        HiddenLayers.append(construct_hidden_layer(NrIn,NrHidden,HiddenType,HiddenData[i][j-1],BiasData[i][j-1],True))
-                    
+                        HiddenLayers.append(construct_hidden_layer(NrIn,NrHidden,HiddenType,HiddenData[i][j-1],BiasType,BiasData[i][j-1],True))
+
         else:
             RawWeights=None
             RawBias=None
@@ -652,13 +678,17 @@ def make_atomic_networks(Structures,NumberOfSameNetworks,Gs=None,HiddenType=None
                 if j==len(Structure)-1 and MakeLastLayerConstant==True:
                     HiddenLayers.append(construct_not_trainable_layer(NrIn,NrHidden))
                 else:
-                    HiddenLayers.append(construct_hidden_layer(NrIn,NrHidden,HiddenType,None,None))
+                    HiddenLayers.append(construct_hidden_layer(NrIn,NrHidden,HiddenType,[],BiasType))
                 
         AllHiddenLayers.append(HiddenLayers)
      
         for k in range(0,NumberOfSameNetworks[i]):
             #Make input layer
-            NrInputs=Structure[0]
+            if len(HiddenData)!=0:
+                NrInputs=HiddenData[i][0].shape[0]
+            else:
+                NrInputs=Structure[0]
+                
             InputLayer=construct_input_layer(NrInputs)
             #Make output layer
             OutputLayer=construct_output_layer(Structure[-1])
@@ -678,14 +708,13 @@ def make_atomic_networks(Structures,NumberOfSameNetworks,Gs=None,HiddenType=None
                     Biases=HiddenLayers[l][1]
                     Network=connect_layers(Network,Weights,Biases,ActFun,ActFunParam)
 
-            if Gs!=None:
+            if len(Gs)!=0:
                 if len(Gs)>0:
                     AtomicNNs.append([NumberOfSameNetworks[i],Network,InputLayer,OutputLayer,ForceNetworks,RawWeights,RawBias,ActFun,Gs[i]])
                 else:
                     AtomicNNs.append([NumberOfSameNetworks[i],Network,InputLayer,OutputLayer,ForceNetworks,RawWeights,RawBias,ActFun])
             else:
                 AtomicNNs.append([NumberOfSameNetworks[i],Network,InputLayer,OutputLayer,ForceNetworks,RawWeights,RawBias,ActFun])
-    
     return Session,AtomicNNs,AllHiddenLayers
 
 def train_atomic_networks(Session,AtomicNNs,TrainingInputs,TrainingOutputs,Epochs,Optimizer,OutputLayer,CostFun,ValidationInputs=None,ValidationOutputs=None,CostCriterium=None,MakePlot=False):
@@ -719,7 +748,14 @@ def train_atomic_network_batch(Session,Optimizer,Layers,TrainingData,ValidationD
         ValidationCost=sum(validate_step(Session,Layers,ValidationData,CostFun))[0]
         
     return TrainingCost,ValidationCost
-        
+
+def guarantee_initialized_variables(session, list_of_variables = None):
+    if list_of_variables is None:
+        list_of_variables = tf.all_variables()
+    uninitialized_variables = list(tf.get_variable(name) for name in
+                                   session.run(tf.report_uninitialized_variables(list_of_variables)))
+    session.run(tf.initialize_variables(uninitialized_variables))
+    return uninitialized_variables      
 
 def initialize_cost_plot(TrainingData,ValidationData=[]):
     
@@ -769,13 +805,14 @@ class AtomicNeuralNetInstance(object):
         self.ValidationInputs=list()
         self.ValidationOutputs=list()
         self.Gs=list()
-        self.HiddenType="tanh"
-        self.HiddenData=None
-        self.BiasData=None
+        self.HiddenType="truncated_normal"
+        self.HiddenData=list()
+        self.BiasType="zeros"
+        self.BiasData=list()
         self.TrainingBatches=list()
         self.ValidationBatches=list()
         
-        self.ActFun=None
+        self.ActFun="tanh"
         self.ActFunParam=None
         self.CostCriterium=0.0001
         self.OptimizerType=None
@@ -835,14 +872,22 @@ class AtomicNeuralNetInstance(object):
         self.Session.run(tf.global_variables_initializer())
         self.saver=tf.train.Saver()
         
-    def load_model(self,NrHiddenOld,ModelName="trained_variables.npy"):
+    def load_model(self,NrHiddenOld,ModelName="trained_variables"):
         
-        self.TrainedVariables=np.load(ModelName+".npy")
+        if ".npy" not in ModelName:
+            ModelName=ModelName+".npy"
+        self.TrainedVariables=np.load(ModelName)
+        return 1
         
-    def expand_existing_net(self):
+    def expand_existing_net(self,ModelName="trained_variables"):
         
-        AtomicNeuralNetInstance.load_model(self)
-        self.HiddenData=self.TrainedVariables
+        Success=AtomicNeuralNetInstance.load_model(self,ModelName)
+        if Success==1:
+            self.HiddenData,self.BiasData=get_weights_biases_from_data(self.TrainedVariables)
+            #Set initial weights to one to not disturb information of pretrained layer(tanh~1)
+            self.HiddenType="zeros"
+            self.BiasType="zeros"
+            AtomicNeuralNetInstance.make_and_initialize_network(self)
         
     def make_network(self):
         
@@ -855,7 +900,7 @@ class AtomicNeuralNetInstance(object):
             Execute=False
             
         if Execute==True:
-           self.Session,self.AtomicNNs,self.VariablesDictionary=make_atomic_networks(self.Structures,self.NumberOfSameNetworks,self.Gs,self.HiddenType,self.HiddenData,self.BiasData,self.ActFun,self.ActFunParam,True)
+           self.Session,self.AtomicNNs,self.VariablesDictionary=make_atomic_networks(self.Structures,self.NumberOfSameNetworks,self.Gs,self.HiddenType,self.HiddenData,self.BiasType,self.BiasData,self.ActFun,self.ActFunParam,True)
            
     def make_and_initialize_network(self):
         
