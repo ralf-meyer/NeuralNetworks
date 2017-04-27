@@ -14,11 +14,11 @@ class SymmetryFunctionSet(object):
                 if not (a,b) in self.symmetry_functions:
                     self.symmetry_functions[(a,b)]= [
                         SFs.RadialSymmetryFunction(rs, eta, self.cutoff)
-                        for eta in etas for rs in rss]
+                        for rs, eta in zip(rss, etas)]
                 else:
                     self.symmetry_functions[(a,b)].extend([
                         SFs.RadialSymmetryFunction(rs, eta, self.cutoff)
-                        for eta in etas for rs in rss])
+                        for rs, eta in zip(rss, etas)])
                                                               
     def add_angluar_functions(self, etas, zetas, lambs):
         for a in self.atomtypes:
@@ -27,11 +27,16 @@ class SymmetryFunctionSet(object):
                     if not (a,b,c) in self.symmetry_functions:
                         self.symmetry_functions[(a,b,c)]= [
                             SFs.AngularSymmetryFunction(eta, zeta, lamb, self.cutoff)
-                            for eta in etas for zeta in zetas for lamb in lambs]
+                            for eta, zeta, lamb in zip(etas, zetas, lambs)]
                     else:
                         self.symmetry_functions[(a,b,c)].extend([
                             SFs.AngularSymmetryFunction(eta, zeta, lamb, self.cutoff)
-                            for eta in etas for zeta in zetas for lamb in lambs])
+                            for eta, zeta, lamb in zip(etas, zetas, lambs)])
+    
+    def add_radial_functions_evenly(self, N):
+        rss = _np.linspace(0.,self.cutoff,N)
+        etas = [2./(self.cutoff/(N-1))**2]*N
+        self.add_radial_functions(rss, etas)
     
     def eval_geometry(self, geometry):
         out = []        
