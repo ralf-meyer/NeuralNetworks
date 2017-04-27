@@ -30,10 +30,10 @@ with Graph.as_default():
     ThisInstance.ActFun="tanh"
     ThisInstance.ActFunParam=None
     ThisInstance.LearningRate=0.0005
-    ThisInstance.Epochs=1000
+    ThisInstance.Epochs=500
     NrNi=1
     NrAu=1
-    ThisInstance.CostCriterium=0.00001
+    ThisInstance.CostCriterium=0.01
     #Parameters for Morse Potential
     R=5
     De=1
@@ -99,7 +99,9 @@ with Graph.as_default():
     ThisInstance.NumberOfSameNetworks.append(NrAu)  
     ThisInstance.OptimizerType="Adagrad"
 
-    ThisInstance.start_training_instance()
+    ThisInstance.make_and_initialize_network()
+    ThisInstance.start_training()
+    ThisInstance.start_evaluation()
     Energy=NN.evaluateAllAtomicNNs(ThisInstance.Session,ThisInstance.AtomicNNs,ThisInstance.TrainingInputs)
     
 
@@ -131,7 +133,7 @@ with tf.Session(graph=Graph) as ThisInstance.Session:
     
     alphaVal=np.ones((1,1))*0.5
     #create new network with trained data
-    ThisInstance.start_evaluation_instance()
+    ThisInstance.start_evaluation()
     
     ThisInstance.Session.run(tf.global_variables_initializer())
     

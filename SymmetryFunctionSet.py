@@ -51,7 +51,7 @@ class SymmetryFunctionSet(object):
                         vals[key] = _np.zeros(len(self.symmetry_functions[key]))        
                     if not i is j:
                         rij = _np.linalg.norm(i[1]-j[1])
-                        vals[key] += map(lambda f: f(rij), self.symmetry_functions[key])
+                        vals[key] += _np.fromiter(map(lambda f: f(rij), self.symmetry_functions[key]),dtype=_np.float)
                     for k in geometry:
                         k_type = k[0]
                         key2 = (i_type, j_type, k_type)
