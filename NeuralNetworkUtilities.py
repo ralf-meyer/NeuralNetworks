@@ -20,68 +20,68 @@ def construct_input_layer(InputUnits):
     
     return Inputs
 
-def construct_hidden_layer(LayerBeforeUnits,HiddenUnits,InitType=None,InitData=[],BiasType=None,BiasData=[],MakeAllVariable=False):
+def construct_hidden_layer(LayerBeforeUnits,HiddenUnits,InitType=None,InitData=[],BiasType=None,BiasData=[],MakeAllVariable=False,Mean=0.0,Stddev=1.0):
     #Construct the weights for this layer
 
     if len(InitData)==0:
         if InitType!=None:
             if InitType == "zeros":
-                Weights=tf.Variable(tf.zeros([LayerBeforeUnits,HiddenUnits]))
+                Weights=tf.Variable(tf.zeros([LayerBeforeUnits,HiddenUnits]),dtype=tf.float32)
             elif InitType =="ones":
-                Weights=tf.Variable(tf.ones([LayerBeforeUnits,HiddenUnits]))
+                Weights=tf.Variable(tf.ones([LayerBeforeUnits,HiddenUnits]),dtype=tf.float32)
             elif InitType == "fill":
-                Weights=tf.Variable(tf.fill([LayerBeforeUnits,HiddenUnits]))
+                Weights=tf.Variable(tf.fill([LayerBeforeUnits,HiddenUnits]),dtype=tf.float32)
             elif InitType == "random_normal":
-                Weights=tf.Variable(tf.random_normal([LayerBeforeUnits,HiddenUnits]))
+                Weights=tf.Variable(tf.random_normal([LayerBeforeUnits,HiddenUnits],mean=Mean,stddev=Stddev),dtype=tf.float32)
             elif InitType == "truncated_normal":
-                Weights=tf.Variable(tf.truncated_normal([LayerBeforeUnits,HiddenUnits]))
+                Weights=tf.Variable(tf.truncated_normal([LayerBeforeUnits,HiddenUnits],mean=Mean,stddev=Stddev),dtype=tf.float32)
             elif InitType == "random_uniform":
-                Weights=tf.Variable(tf.random_uniform([LayerBeforeUnits,HiddenUnits]))
+                Weights=tf.Variable(tf.random_uniform([LayerBeforeUnits,HiddenUnits]),dtype=tf.float32)
             elif InitType == "random_shuffle":
-                Weights=tf.Variable(tf.random_shuffle([LayerBeforeUnits,HiddenUnits]))
+                Weights=tf.Variable(tf.random_shuffle([LayerBeforeUnits,HiddenUnits]),dtype=tf.float32)
             elif InitType == "random_crop":
-                Weights=tf.Variable(tf.random_crop([LayerBeforeUnits,HiddenUnits]))
+                Weights=tf.Variable(tf.random_crop([LayerBeforeUnits,HiddenUnits]),dtype=tf.float32)
             elif InitType == "random_gamma":
-                Weights=tf.Variable(tf.random_gamma([LayerBeforeUnits,HiddenUnits]))
+                Weights=tf.Variable(tf.random_gamma([LayerBeforeUnits,HiddenUnits]),dtype=tf.float32)
             else:
                 #Assume random weights if no InitType is given
-                Weights=tf.Variable(tf.random_uniform([LayerBeforeUnits,HiddenUnits]))
+                Weights=tf.Variable(tf.random_uniform([LayerBeforeUnits,HiddenUnits]),dtype=tf.float32)
         else:
             #Assume random weights if no InitType is given
-            Weights=tf.Variable(tf.random_uniform([LayerBeforeUnits,HiddenUnits]))
+            Weights=tf.Variable(tf.random_uniform([LayerBeforeUnits,HiddenUnits]),dtype=tf.float32)
     else:
         if MakeAllVariable==False:
-            Weights=tf.constant(InitData)
+            Weights=tf.constant(InitData,dtype=tf.float32)
         else:
-            Weights=tf.Variable(InitData)
+            Weights=tf.Variable(InitData,dtype=tf.float32)
     #Construct the bias for this layer
     if len(BiasData)!=0:
         if MakeAllVariable==False:
-            Biases=tf.constant(BiasData)
+            Biases=tf.constant(BiasData,dtype=tf.float32)
         else:
-            Biases=tf.Variable(BiasData)
+            Biases=tf.Variable(BiasData,dtype=tf.float32)
 
     else:
         if InitType == "zeros":
-            Biases=tf.Variable(tf.zeros([HiddenUnits]))
+            Biases=tf.Variable(tf.zeros([HiddenUnits]),dtype=tf.float32)
         elif InitType =="ones":
-            Biases=tf.Variable(tf.ones([HiddenUnits]))
+            Biases=tf.Variable(tf.ones([HiddenUnits]),dtype=tf.float32)
         elif InitType == "fill":
-            Biases=tf.Variable(tf.fill([HiddenUnits],BiasData))
+            Biases=tf.Variable(tf.fill([HiddenUnits],BiasData),dtype=tf.float32)
         elif InitType == "random_normal":
-            Biases=tf.Variable(tf.random_normal([HiddenUnits]))
+            Biases=tf.Variable(tf.random_normal([HiddenUnits],mean=Mean,stddev=Stddev),dtype=tf.float32)
         elif InitType == "truncated_normal":
-            Biases=tf.Variable(tf.truncated_normal([HiddenUnits]))
+            Biases=tf.Variable(tf.truncated_normal([HiddenUnits],mean=Mean,stddev=Stddev),dtype=tf.float32)
         elif InitType == "random_uniform":
-            Biases=tf.Variable(tf.random_uniform([HiddenUnits]))
+            Biases=tf.Variable(tf.random_uniform([HiddenUnits]),dtype=tf.float32)
         elif InitType == "random_shuffle":
-            Biases=tf.Variable(tf.random_shuffle([HiddenUnits]))
+            Biases=tf.Variable(tf.random_shuffle([HiddenUnits]),dtype=tf.float32)
         elif InitType == "random_crop":
-            Biases=tf.Variable(tf.random_crop([HiddenUnits],BiasData))
+            Biases=tf.Variable(tf.random_crop([HiddenUnits],BiasData),dtype=tf.float32)
         elif InitType == "random_gamma":
-            Biases=tf.Variable(tf.random_gamma([HiddenUnits],InitData))
+            Biases=tf.Variable(tf.random_gamma([HiddenUnits],InitData),dtype=tf.float32)
         else:
-            Biases = tf.Variable(tf.random_uniform([HiddenUnits]))
+            Biases = tf.Variable(tf.random_uniform([HiddenUnits]),dtype=tf.float32)
 
     return Weights,Biases
 
@@ -123,31 +123,6 @@ def connect_layers(InputsForLayer,Layer1Weights,Layer1Bias,ActFun=None,FunParam=
     
     return Out
 
-def connect_input_to_network(InputsForLayers,Layers,ActFun=None,FunParam=None):
-    #connect the outputs of the layer before to current layer
-    if ActFun!=None:
-        if ActFun=="sigmoid":
-            Out=tf.nn.sigmoid(tf.matmul(InputsForLayers, Layers))
-        elif ActFun=="tanh":
-            Out=tf.nn.tanh(tf.matmul(InputsForLayers, Layers))
-        elif ActFun=="relu":
-            Out=tf.nn.relu(tf.matmul(InputsForLayers, Layers))
-        elif ActFun=="relu6":
-            Out=tf.nn.relu6(tf.matmul(InputsForLayers, Layers)) 
-        elif ActFun=="crelu":
-            Out=tf.nn.crelu(tf.matmul(InputsForLayers, Layers)) 
-        elif ActFun=="elu":
-            Out=tf.nn.elu(tf.matmul(InputsForLayers, Layers))     
-        elif ActFun=="softplus":
-            Out=tf.nn.softplus(tf.matmul(InputsForLayers, Layers))     
-        elif ActFun=="dropout":
-            Out=tf.nn.dropout(tf.matmul(InputsForLayers, Layers)) 
-        elif ActFun=="bias_add":
-            Out=tf.nn.bias_add(tf.matmul(InputsForLayers, Layers))     
-    else:
-        Out=tf.nn.sigmoid(tf.matmul(InputsForLayers, Layers))
-    
-    return Out
 
 def make_force_networks(Structure,HiddenData,BiasData):
     
@@ -635,7 +610,7 @@ def evaluateAllAtomicNNs(Session,AtomicNNs,InData):
     return Energy
 
 
-def make_atomic_networks(Structures,NumberOfSameNetworks,Gs=[],HiddenType=None,HiddenData=[],BiasType=None,BiasData=[],ActFun=None,ActFunParam=None,MakeLastLayerConstant=False):
+def make_atomic_networks(Structures,NumberOfSameNetworks,Gs=[],HiddenType=None,HiddenData=[],BiasType=None,BiasData=[],ActFun=None,ActFunParam=None,MakeLastLayerConstant=False,Mean=0.0,Stddev=1.0):
 
 
     AllHiddenLayers=list()
@@ -643,7 +618,8 @@ def make_atomic_networks(Structures,NumberOfSameNetworks,Gs=[],HiddenType=None,H
     #Start Session 
         
     Session=tf.Session()
-    
+    OldBiasNr=0
+    OldShape=None
     #make all the networks for the different atom types
     for i in range(0,len(Structures)):
         #Make hidden layers
@@ -664,9 +640,33 @@ def make_atomic_networks(Structures,NumberOfSameNetworks,Gs=[],HiddenType=None,H
                     HiddenLayers.append(construct_not_trainable_layer(NrIn,NrHidden))
                 else:
                     if j >= len(HiddenData[i]):
-                        HiddenLayers.append(construct_hidden_layer(NrIn,NrHidden,HiddenType,[],BiasType))
+                        tempWeights,tempBias=construct_hidden_layer(NrIn,NrHidden,HiddenType,[],BiasType,[],False,Mean,Stddev)
+                        indices=[]
+                        values=[]
+                        thisShape=tempWeights.get_shape().as_list()
+
+                        for q in range(0,OldBiasNr):
+                            indices.append([q,q])
+                            values+=[1.0]
+                        
+                        delta=tf.SparseTensor(indices,values,thisShape)
+                        tempWeights=tempWeights+tf.sparse_tensor_to_dense(delta)
+                        
+                        HiddenLayers.append([tempWeights,tempBias])
                     else:
-                        HiddenLayers.append(construct_hidden_layer(NrIn,NrHidden,HiddenType,HiddenData[i][j-1],BiasType,BiasData[i][j-1],True))
+                        OldBiasNr=len(BiasData[i][j-1])
+                        OldShape=HiddenData[i][j-1].shape
+                        #fill old weights in new structure
+                        if OldBiasNr<NrHidden:
+                            ThisWeightData=np.random.normal(loc=0.0, scale=0.01,size=(NrIn,NrHidden))            
+                            ThisWeightData[0:OldShape[0],0:OldShape[1]]=HiddenData[i][j-1]
+                            ThisBiasData=np.zeros([NrHidden])
+                            ThisBiasData[0:OldBiasNr]=BiasData[i][j-1]
+                        else:
+                            ThisWeightData=HiddenData[i][j-1]
+                            ThisBiasData=BiasData[i][j-1]
+                        
+                        HiddenLayers.append(construct_hidden_layer(NrIn,NrHidden,HiddenType,ThisWeightData,BiasType,ThisBiasData,True))
 
         else:
             RawWeights=None
@@ -681,7 +681,7 @@ def make_atomic_networks(Structures,NumberOfSameNetworks,Gs=[],HiddenType=None,H
                     HiddenLayers.append(construct_hidden_layer(NrIn,NrHidden,HiddenType,[],BiasType))
                 
         AllHiddenLayers.append(HiddenLayers)
-     
+
         for k in range(0,NumberOfSameNetworks[i]):
             #Make input layer
             if len(HiddenData)!=0:
@@ -832,6 +832,8 @@ class AtomicNeuralNetInstance(object):
         self.OutputLayer=None
         self.saver=None
         self.MakePlots=False
+        self.InitMean=0.0
+        self.InitStddev=1.0
 
         
     def initialize_network(self):
@@ -877,6 +879,7 @@ class AtomicNeuralNetInstance(object):
         if ".npy" not in ModelName:
             ModelName=ModelName+".npy"
         self.TrainedVariables=np.load(ModelName)
+
         return 1
         
     def expand_existing_net(self,ModelName="trained_variables"):
@@ -885,7 +888,9 @@ class AtomicNeuralNetInstance(object):
         if Success==1:
             self.HiddenData,self.BiasData=get_weights_biases_from_data(self.TrainedVariables)
             #Set initial weights to one to not disturb information of pretrained layer(tanh~1)
-            self.HiddenType="zeros"
+            self.HiddenType="truncated_normal"
+            self.InitMean=0
+            self.InitStddev=0.01
             self.BiasType="zeros"
             AtomicNeuralNetInstance.make_and_initialize_network(self)
         
@@ -900,7 +905,7 @@ class AtomicNeuralNetInstance(object):
             Execute=False
             
         if Execute==True:
-           self.Session,self.AtomicNNs,self.VariablesDictionary=make_atomic_networks(self.Structures,self.NumberOfSameNetworks,self.Gs,self.HiddenType,self.HiddenData,self.BiasType,self.BiasData,self.ActFun,self.ActFunParam,True)
+           self.Session,self.AtomicNNs,self.VariablesDictionary=make_atomic_networks(self.Structures,self.NumberOfSameNetworks,self.Gs,self.HiddenType,self.HiddenData,self.BiasType,self.BiasData,self.ActFun,self.ActFunParam,True,self.InitMean,self.InitStddev)
            
     def make_and_initialize_network(self):
         
@@ -951,6 +956,8 @@ class AtomicNeuralNetInstance(object):
                 
             for i in range(0,self.Epochs):
                 for j in range(0,NrOfTrainingBatches):
+                    tempTrainingCost=[]
+                    tempValidationCost=[]
                     rnd=rand.randint(0,NrOfTrainingBatches-1)
                     self.TrainingInputs=self.TrainingBatches[rnd][0]
                     self.TrainingOutputs=self.TrainingBatches[rnd][1]
@@ -972,9 +979,18 @@ class AtomicNeuralNetInstance(object):
                         ValidationData=None
                     #Train one batch
                     TrainingCosts,ValidationCosts=train_atomic_network_batch(self.Session,self.Optimizer,Layers,TrainingData,ValidationData,self.CostFun)
-                    
+                    tempTrainingCost.append(TrainingCosts)
+                    tempValidationCost.append(ValidationCosts)
                     self.OverallTrainingCosts.append(TrainingCosts/BatchSize)
                     self.OverallValidationCosts.append(ValidationCosts/BatchSize)
+                  
+                if len(tempTrainingCost)>0:    
+                    self.TrainingCosts=sum(tempTrainingCost)/(len(tempTrainingCost)*BatchSize)
+                    self.ValidationCosts=sum(tempValidationCost)/(len(tempValidationCost)*BatchSize)
+                else:
+                    self.TrainingCosts=1e10
+                    self.ValidationCosts=1e10
+                    
                 
                 if i % max(int(self.Epochs/100),1)==0 or i==(self.Epochs-1):
                     #Cost plot 
@@ -990,8 +1006,8 @@ class AtomicNeuralNetInstance(object):
                     self.saver.save(self.Session, "model.ckpt")
                     np.save("trained_variables",self.TrainedVariables)
                 #Abort criteria
-                if self.OverallTrainingCosts[-1]<self.CostCriterium and self.OverallTrainingCosts!=0:
-                    print(self.OverallTrainingCosts[-1])
+                if self.TrainingCosts<=self.CostCriterium and self.ValidationCosts<=self.CostCriterium:
+                    print("Reached cost criterium: "+str(self.TrainingCosts))
                     break
         
         print("Training finished")
@@ -1006,6 +1022,7 @@ class DataInstance(object):
         self.XYZfile=None
         self.Logfile=None
         self.SymmFunKeys=[]
+        self.NumberOfRadialFunctions=7
         self.Rs=[]
         self.Etas=[]
         self.Zetas=[]
@@ -1051,12 +1068,6 @@ class DataInstance(object):
         if len(self.SymmFunKeys)==0:
             print("No symmetry function keys specified!")
             Execute=False
-        if len(self.Rs)==0:
-            print("No Rs specified!")
-            Execute=False
-        if len(self.Etas)==0:
-            print("No etas specified!")
-            Execute=False
         if len(self.Zetas)==0:
             print("No zetas specified!")
             Execute=False
@@ -1068,7 +1079,8 @@ class DataInstance(object):
             self.Ds=DataSet.DataSet()
             self.SymmFunSet=SymmetryFunctionSet.SymmetryFunctionSet(self.SymmFunKeys)
             self.Ds.read_lammps(self.XYZfile,self.Logfile)
-            self.SymmFunSet.add_radial_functions(self.Rs,self.Etas)
+            #self.SymmFunSet.add_radial_functions(self.Rs,self.Etas)
+            self.SymmFunSet.add_radial_functions_evenly(self.NumberOfRadialFunctions)
             self.SymmFunSet.add_angluar_functions(self.Etas,self.Zetas,self.Lambs)
             DataInstance.calculate_statistics_for_dataset(self)
         
@@ -1100,6 +1112,7 @@ class DataInstance(object):
 
             #Create a list with all possible random values
             ValuesForDrawingSamples=range(0,len(self.Ds.geometries))
+
             for i in range(0,BatchSize):
                 #Get a new random number
                 rnd=rand.randint(0,len(ValuesForDrawingSamples)-1)
