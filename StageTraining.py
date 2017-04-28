@@ -19,11 +19,12 @@ Data1=NN.DataInstance()
 Data1.XYZfile="curve.xyz"
 Data1.Logfile="md.curve"
 Data1.SymmFunKeys=["1","2"]
-Data1.NumberOfRadialFunctions=10
+Data1.NumberOfRadialFunctions=2
 Data1.Lambs=[1.0,-1.0]
 Data1.Zetas=np.arange(0.1,5,0.5).tolist()
 
 Data1.read_files()
+
 Batches1=Data1.get_data(10,70)
 ValidationBatches1=Data1.get_data(10,30)
 
@@ -34,7 +35,7 @@ Data2=NN.DataInstance()
 Data2.XYZfile="NiAu_data_2AU1Ni.xyz"
 Data2.Logfile="log.3atoms"
 Data2.SymmFunKeys=["1","2"]
-Data2.NumberOfRadialFunctions=10
+Data2.NumberOfRadialFunctions=5
 Data2.Lambs=[1.0,-1.0]
 Data2.Zetas=np.arange(0.1,5,0.5).tolist()
 
@@ -46,9 +47,9 @@ ValidationBatches2=Data2.get_data(100,30)
 NrAu=1
 NrNi=1
 Training=NN.AtomicNeuralNetInstance()
-Training.Structures.append([Data1.SizeOfInputs[0],50,50,1])
+Training.Structures.append([Data1.SizeOfInputs[0],15,1])
 Training.NumberOfSameNetworks.append(NrNi)
-Training.Structures.append([Data1.SizeOfInputs[1],50,50,1])
+Training.Structures.append([Data1.SizeOfInputs[1],15,1])
 Training.NumberOfSameNetworks.append(NrAu)
 Training.HiddenType="truncated_normal"
 Training.HiddenData=list()
@@ -56,7 +57,7 @@ Training.BiasData=list()
 Training.ActFun="tanh"
 Training.ActFunParam=None
 Training.LearningRate=0.001
-Training.CostCriterium=0.005
+Training.CostCriterium=0.00001
 Training.Epochs=500
 Training.MakePlots=True
 Training.OptimizerType="Adam"
@@ -66,10 +67,15 @@ Training.make_and_initialize_network()
 Training.TrainingBatches=Batches1
 Training.ValidationBatches=ValidationBatches1
 Training.start_batch_training()
+#Training.TrainingInputs=Batches1[0][0]
+#Training.TrainingOutputs=Batches1[0][1]
+#Training.ValidationInputs=ValidationBatches1[0][0]
+#Training.ValidationOutputs=ValidationBatches1[0][1]
+#Training.start_training()
 
 #Train with second data
 NrAu=1
-NrNi=2
+NrNi=1
 Training2=NN.AtomicNeuralNetInstance()
 
 NrHiddenOld=list()
@@ -81,7 +87,7 @@ Training2.Structures.append([Data1.SizeOfInputs[1],100,100,1])
 Training2.NumberOfSameNetworks.append(NrAu)
 Training2.LearningRate=0.00001
 Training2.CostCriterium=0.005
-Training2.Epochs=1000
+Training2.Epochs=1500
 Training2.MakePlots=True
 Training2.ActFun="tanh"
 Training2.OptimizerType="Adam"
