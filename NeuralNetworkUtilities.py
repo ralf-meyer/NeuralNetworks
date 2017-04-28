@@ -56,6 +56,7 @@ def construct_hidden_layer(LayerBeforeUnits,HiddenUnits,InitType=None,InitData=[
             Weights=tf.Variable(InitData,dtype=tf.float32)
     #Construct the bias for this layer
     if len(BiasData)!=0:
+        
         if MakeAllVariable==False:
             Biases=tf.constant(BiasData,dtype=tf.float32)
         else:
@@ -127,6 +128,7 @@ def connect_layers(InputsForLayer,Layer1Weights,Layer1Bias,ActFun=None,FunParam=
 def make_force_networks(Structure,HiddenData,BiasData):
     
     ForceNetworks=list()
+
     for i in range(1,len(Structure)-1):
         Network,InputLayer,OutputLayer=make_standard_neuralnetwork(Structure[0:i+1],None,HiddenData,None,BiasData)
         ForceNetworks.append([Network,InputLayer,OutputLayer])        
@@ -208,6 +210,7 @@ def validate_step(Session,Layers,Data,CostFun):
     Cost=Session.run(CostFun,feed_dict={i: np.array(d) for i, d in zip(Layers,Data)})
     return Cost
 
+
 def make_layers(InputLayer,OutputLayer=None):
     
     Layers=list()
@@ -280,7 +283,7 @@ def train(Session,Optimizer,CostFun,Layers,TrainingData,Epochs,ValidationData=No
                 else:
                     update_cost_plot(figure,ax,TrainPlot,TrainCost,ValPlot,ValidationCost)
             print(str(100*i/Epochs)+" %")
-            
+
         if TrainCost[-1]<CostCriterium:
             print(TrainCost[-1])
             break
@@ -425,7 +428,7 @@ def expand_neuralnet(TrainedData,nAtoms,Gs):
     AtomicNNs=list()
     Structures=get_structure_from_data(TrainedData)
     Weights,Biases=get_weights_biases_from_data(TrainedData)
-    Session,AtomicNNs,_=make_atomic_networks(Structures,nAtoms,Gs,"custom",Weights,Biases,"tanh")
+    Session,AtomicNNs,_=make_atomic_networks(Structures,nAtoms,Gs,"custom",Weights,"costom",Biases,"tanh")
             
     return Session,AtomicNNs
 
@@ -610,7 +613,7 @@ def evaluateAllAtomicNNs(Session,AtomicNNs,InData):
     return Energy
 
 
-def make_atomic_networks(Structures,NumberOfSameNetworks,Gs=[],HiddenType=None,HiddenData=[],BiasType=None,BiasData=[],ActFun=None,ActFunParam=None,MakeLastLayerConstant=False,Mean=0.0,Stddev=1.0):
+def make_atomic_networks(Structures,NumberOfSameNetworks,Gs=[],HiddenType=None,HiddenData=[],BiasType=None,BiasData=[],ActFun=None,ActFunParam=None,MakeLastLayerConstant=False,Mean=0.0,Stddev=1.0,MakeAllVariable=True):
 
 
     AllHiddenLayers=list()
@@ -620,6 +623,7 @@ def make_atomic_networks(Structures,NumberOfSameNetworks,Gs=[],HiddenType=None,H
     Session=tf.Session()
     OldBiasNr=0
     OldShape=None
+
     #make all the networks for the different atom types
     for i in range(0,len(Structures)):
         #Make hidden layers
@@ -632,25 +636,27 @@ def make_atomic_networks(Structures,NumberOfSameNetworks,Gs=[],HiddenType=None,H
                 ForceNetworks=make_force_networks(Structure,RawWeights,RawBias)
             else:
                 ForceNetworks=None
-            
+                
             for j in range(1,len(Structure)):
                 NrIn=Structure[j-1]
                 NrHidden=Structure[j]
                 if j==len(Structure)-1 and MakeLastLayerConstant==True:
                     HiddenLayers.append(construct_not_trainable_layer(NrIn,NrHidden))
                 else:
-                    if j >= len(HiddenData[i]):
-                        tempWeights,tempBias=construct_hidden_layer(NrIn,NrHidden,HiddenType,[],BiasType,[],False,Mean,Stddev)
-                        indices=[]
-                        values=[]
-                        thisShape=tempWeights.get_shape().as_list()
+                    
+                    if j >= len(HiddenData[i]) and MakeLastLayerConstant==True:
+                        tempWeights,tempBias=construct_hidden_layer(NrIn,NrHidden,HiddenType,[],BiasType,[],MakeAllVariable,Mean,Stddev)
+                        if MakeAllVariable==True:
+                            indices=[]
+                            values=[]
+                            thisShape=tempWeights.get_shape().as_list()
 
-                        for q in range(0,OldBiasNr):
-                            indices.append([q,q])
-                            values+=[1.0]
-                        
-                        delta=tf.SparseTensor(indices,values,thisShape)
-                        tempWeights=tempWeights+tf.sparse_tensor_to_dense(delta)
+                            for q in range(0,OldBiasNr):
+                                indices.append([q,q])
+                                values+=[1.0]
+                            
+                            delta=tf.SparseTensor(indices,values,thisShape)
+                            tempWeights=tempWeights+tf.sparse_tensor_to_dense(delta)
                         
                         HiddenLayers.append([tempWeights,tempBias])
                     else:
@@ -666,7 +672,7 @@ def make_atomic_networks(Structures,NumberOfSameNetworks,Gs=[],HiddenType=None,H
                             ThisWeightData=HiddenData[i][j-1]
                             ThisBiasData=BiasData[i][j-1]
                         
-                        HiddenLayers.append(construct_hidden_layer(NrIn,NrHidden,HiddenType,ThisWeightData,BiasType,ThisBiasData,True))
+                        HiddenLayers.append(construct_hidden_layer(NrIn,NrHidden,HiddenType,ThisWeightData,BiasType,ThisBiasData,MakeAllVariable))
 
         else:
             RawWeights=None
@@ -814,7 +820,7 @@ class AtomicNeuralNetInstance(object):
         
         self.ActFun="tanh"
         self.ActFunParam=None
-        self.CostCriterium=0.0001
+        self.CostCriterium=0
         self.OptimizerType=None
         self.OptimizerProp=None
         
@@ -834,6 +840,8 @@ class AtomicNeuralNetInstance(object):
         self.MakePlots=False
         self.InitMean=0.0
         self.InitStddev=1.0
+        self.MakeLastLayerConstant=True
+        self.MakeAllVariable=True
 
         
     def initialize_network(self):
@@ -882,7 +890,7 @@ class AtomicNeuralNetInstance(object):
 
         return 1
         
-    def expand_existing_net(self,ModelName="trained_variables"):
+    def expand_existing_net(self,ModelName="trained_variables",MakeAllVariable=True):
         
         Success=AtomicNeuralNetInstance.load_model(self,ModelName)
         if Success==1:
@@ -892,6 +900,7 @@ class AtomicNeuralNetInstance(object):
             self.InitMean=0
             self.InitStddev=0.01
             self.BiasType="zeros"
+            self.MakeAllVariable=MakeAllVariable
             AtomicNeuralNetInstance.make_and_initialize_network(self)
         
     def make_network(self):
@@ -905,7 +914,7 @@ class AtomicNeuralNetInstance(object):
             Execute=False
             
         if Execute==True:
-           self.Session,self.AtomicNNs,self.VariablesDictionary=make_atomic_networks(self.Structures,self.NumberOfSameNetworks,self.Gs,self.HiddenType,self.HiddenData,self.BiasType,self.BiasData,self.ActFun,self.ActFunParam,True,self.InitMean,self.InitStddev)
+           self.Session,self.AtomicNNs,self.VariablesDictionary=make_atomic_networks(self.Structures,self.NumberOfSameNetworks,self.Gs,self.HiddenType,self.HiddenData,self.BiasType,self.BiasData,self.ActFun,self.ActFunParam,self.MakeLastLayerConstant,self.InitMean,self.InitStddev,self.MakeAllVariable)
            
     def make_and_initialize_network(self):
         
@@ -928,15 +937,25 @@ class AtomicNeuralNetInstance(object):
         if Execute==True:
             self.Session,self.TrainedNetwork,TrainingCosts,ValidationCosts=train_atomic_networks(self.Session,self.AtomicNNs,self.TrainingInputs,self.TrainingOutputs,self.Epochs,self.Optimizer,self.OutputLayer,self.CostFun,self.ValidationInputs,self.ValidationOutputs,self.CostCriterium,self.MakePlots)
             self.TrainedVariables=get_trained_variables(self.Session,self.VariablesDictionary)
+            #Store variables
+            self.saver.save(self.Session, "model.ckpt")
+            np.save("trained_variables",self.TrainedVariables)
+            
             self.TrainingCosts=TrainingCosts
             self.ValidationCosts=ValidationCosts
             print("Training finished")
-        
+            #plt.figure()
+            #plt.plot(evaluateAllAtomicNNs(self.Session,self.AtomicNNs,self.TrainingInputs))
         return self.TrainingCosts,self.ValidationCosts
 
     def start_evaluation(self):
         
         self.Session,self.AtomicNNs=expand_neuralnet(self.TrainedVariables,self.NumberOfSameNetworks,self.Gs)
+        AtomicNeuralNetInstance.initialize_network(self)
+        
+    def eval_step(self):
+    
+        return evaluateAllAtomicNNs(self.Session,self.AtomicNNs,self.TrainingInputs)
         
     def start_batch_training(self):
         
@@ -1005,6 +1024,7 @@ class AtomicNeuralNetInstance(object):
                     self.TrainedVariables=get_trained_variables(self.Session,self.VariablesDictionary)
                     self.saver.save(self.Session, "model.ckpt")
                     np.save("trained_variables",self.TrainedVariables)
+                    
                 #Abort criteria
                 if self.TrainingCosts<=self.CostCriterium and self.ValidationCosts<=self.CostCriterium:
                     print("Reached cost criterium: "+str(self.TrainingCosts))
@@ -1041,6 +1061,7 @@ class DataInstance(object):
         #calculate mean values for all Gs
         for i in range(0,NrGeom):
             temp=self.SymmFunSet.eval_geometry(self.Ds.geometries[i])
+            
             self.AllGeometries.append(temp)
             if i % max(int(NrGeom/25),1)==0:
                 print(str(100*i/NrGeom)+" %")
@@ -1174,7 +1195,7 @@ class DataInstance(object):
             #exclude nan values
             L=np.nonzero(self.VarianceOfDs[i])
             for j in range(0,len(AllData)):
-                Inputs[i][j][L]=np.divide(np.subtract(AllData[j][i][L],self.MeansOfDs[i][L]),np.sqrt(self.VarianceOfDs[i][L]))
+                Inputs[i][j][L]=AllData[j][i][L]#np.divide(np.subtract(AllData[j][i][L],self.MeansOfDs[i][L]),np.sqrt(self.VarianceOfDs[i][L]))
     
     
         return Inputs

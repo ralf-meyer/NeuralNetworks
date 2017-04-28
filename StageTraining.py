@@ -16,17 +16,16 @@ plt.close("all")
 #Load first trainings data 
 Data1=NN.DataInstance()
 
-Data1.XYZfile="NiAu_data.xyz"
-Data1.Logfile="log.2atoms"
+Data1.XYZfile="curve.xyz"
+Data1.Logfile="md.curve"
 Data1.SymmFunKeys=["1","2"]
-Data1.Rs=np.arange(0.1,7,1).tolist()
-Data1.Etas=np.arange(0.1,1.1,1).tolist()
+Data1.NumberOfRadialFunctions=10
 Data1.Lambs=[1.0,-1.0]
-Data1.Zetas=np.arange(0.1,2,0.5).tolist()
+Data1.Zetas=np.arange(0.1,5,0.5).tolist()
 
 Data1.read_files()
-Batches1=Data1.get_data(100,70)
-ValidationBatches1=Data1.get_data(100,30)
+Batches1=Data1.get_data(10,70)
+ValidationBatches1=Data1.get_data(10,30)
 
 
 #Load second trainings data
@@ -35,10 +34,9 @@ Data2=NN.DataInstance()
 Data2.XYZfile="NiAu_data_2AU1Ni.xyz"
 Data2.Logfile="log.3atoms"
 Data2.SymmFunKeys=["1","2"]
-Data2.Rs=np.arange(0.1,7,1).tolist()
-Data2.Etas=np.arange(0.1,1.1,1).tolist()
+Data2.NumberOfRadialFunctions=10
 Data2.Lambs=[1.0,-1.0]
-Data2.Zetas=np.arange(0.1,2,0.5).tolist()
+Data2.Zetas=np.arange(0.1,5,0.5).tolist()
 
 Data2.read_files()
 Batches2=Data2.get_data(100,70)
@@ -48,16 +46,17 @@ ValidationBatches2=Data2.get_data(100,30)
 NrAu=1
 NrNi=1
 Training=NN.AtomicNeuralNetInstance()
-Training.Structures.append([Data1.SizeOfInputs[0],15,1])
+Training.Structures.append([Data1.SizeOfInputs[0],50,50,1])
 Training.NumberOfSameNetworks.append(NrNi)
-Training.Structures.append([Data1.SizeOfInputs[1],15,1])
+Training.Structures.append([Data1.SizeOfInputs[1],50,50,1])
 Training.NumberOfSameNetworks.append(NrAu)
 Training.HiddenType="truncated_normal"
 Training.HiddenData=list()
 Training.BiasData=list()
 Training.ActFun="tanh"
 Training.ActFunParam=None
-Training.LearningRate=0.000001
+Training.LearningRate=0.001
+Training.CostCriterium=0.005
 Training.Epochs=500
 Training.MakePlots=True
 Training.OptimizerType="Adam"
@@ -76,15 +75,16 @@ Training2=NN.AtomicNeuralNetInstance()
 NrHiddenOld=list()
 NrHiddenOld.append(1)
 NrHiddenOld.append(1)
-Training2.Structures.append([1,15,15,1])#the first to parameters can be anything
+Training2.Structures.append([Data1.SizeOfInputs[0],100,100,1])#the first to parameters can be anything
 Training2.NumberOfSameNetworks.append(NrNi)
-Training2.Structures.append([1,15,15,1])
+Training2.Structures.append([Data1.SizeOfInputs[1],100,100,1])
 Training2.NumberOfSameNetworks.append(NrAu)
-Training.LearningRate=0.000001
-Training.Epochs=1000
-Training.MakePlots=True
-Training.ActFun="tanh"
-Training.OptimizerType="Adam"
+Training2.LearningRate=0.00001
+Training2.CostCriterium=0.005
+Training2.Epochs=1000
+Training2.MakePlots=True
+Training2.ActFun="tanh"
+Training2.OptimizerType="Adam"
 Training2.expand_existing_net()
 Training2.TrainingBatches=Batches2
 Training2.ValidationBatches=ValidationBatches2
