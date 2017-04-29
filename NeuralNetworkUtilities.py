@@ -1022,7 +1022,7 @@ class AtomicNeuralNetInstance(object):
                     print(str(100*i/self.Epochs)+" %")
                     #Store variables
                     self.TrainedVariables=get_trained_variables(self.Session,self.VariablesDictionary)
-                    self.saver.save(self.Session, "model.ckpt")
+                    #self.saver.save(self.Session, "model.ckpt")
                     np.save("trained_variables",self.TrainedVariables)
                     
                 #Abort criteria
@@ -1057,7 +1057,6 @@ class DataInstance(object):
         print("Converting data to neural net input format...")
         NrGeom=len(self.Ds.geometries)
         AllTemp=list()
-
         #calculate mean values for all Gs
         for i in range(0,NrGeom):
             temp=self.SymmFunSet.eval_geometry(self.Ds.geometries[i])
@@ -1132,7 +1131,7 @@ class DataInstance(object):
                     print("Shrunk batches to size:"+str(BatchSize))
 
             #Create a list with all possible random values
-            ValuesForDrawingSamples=range(0,len(self.Ds.geometries))
+            ValuesForDrawingSamples=list(range(0,len(self.Ds.geometries)))
 
             for i in range(0,BatchSize):
                 #Get a new random number
