@@ -19,14 +19,14 @@ Data1=NN.DataInstance()
 Data1.XYZfile="curve.xyz"
 Data1.Logfile="md.curve"
 Data1.SymmFunKeys=["1","2"]
-Data1.NumberOfRadialFunctions=2
+Data1.NumberOfRadialFunctions=5
 Data1.Lambs=[1.0,-1.0]
 Data1.Zetas=np.arange(0.1,5,0.5).tolist()
 
 Data1.read_files()
 
-Batches1=Data1.get_data(10,70)
-ValidationBatches1=Data1.get_data(10,30)
+Batches1=Data1.get_data(100,70)
+ValidationBatches1=Data1.get_data(100,30)
 
 
 #Load second trainings data
@@ -56,9 +56,9 @@ Training.HiddenData=list()
 Training.BiasData=list()
 Training.ActFun="tanh"
 Training.ActFunParam=None
-Training.LearningRate=0.001
+Training.LearningRate=0.01
 Training.CostCriterium=0.00001
-Training.Epochs=500
+Training.Epochs=1000
 Training.MakePlots=True
 Training.OptimizerType="Adam"
 Training.make_and_initialize_network()
@@ -75,12 +75,13 @@ Training.start_batch_training()
 
 #Train with second data
 NrAu=1
-NrNi=1
+NrNi=2
 Training2=NN.AtomicNeuralNetInstance()
 
 NrHiddenOld=list()
 NrHiddenOld.append(1)
 NrHiddenOld.append(1)
+
 Training2.Structures.append([Data1.SizeOfInputs[0],100,100,1])#the first to parameters can be anything
 Training2.NumberOfSameNetworks.append(NrNi)
 Training2.Structures.append([Data1.SizeOfInputs[1],100,100,1])
