@@ -62,8 +62,8 @@ class SymmetryFunctionSet(object):
                                 rij = _np.linalg.norm(i[1]-j[1])
                                 rik = _np.linalg.norm(i[1]-k[1])
                                 costheta = _np.dot(i[1]-j[1],i[1]-k[1])/(rij*rik)
-                                vals[key2] += map(lambda f: f(rij, rik, costheta), 
-                                    self.symmetry_functions[key2])
+                                vals[key2] += _np.fromiter(map(lambda f: f(rij, rik, costheta),
+                                    self.symmetry_functions[key2]),dtype=_np.float)
             #out.append(vals)            
             out.append(_np.hstack(vals.values()))
         return out        
