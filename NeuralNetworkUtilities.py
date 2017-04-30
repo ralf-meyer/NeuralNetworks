@@ -1183,7 +1183,7 @@ class AtomicNeuralNetInstance(object):
                             OldShape = self.HiddenData[i][j - 1].shape
                             # fill old weights in new structure
                             if OldBiasNr < NrHidden:
-                                ThisWeightData = np.random.normal(loc=0.0, scale=0.01, size=(NrIn, NrHidden))
+                                ThisWeightData = np.random.normal(loc=0.0, scale=0.001, size=(NrIn, NrHidden))
                                 ThisWeightData[0:OldShape[0], 0:OldShape[1]] = self.HiddenData[i][j - 1]
                                 ThisBiasData = np.zeros([NrHidden])
                                 ThisBiasData[0:OldBiasNr] = self.BiasData[i][j - 1]
