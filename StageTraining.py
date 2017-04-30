@@ -46,20 +46,22 @@ Training2.make_training_and_validation_data(100,70,30)
 NrAu=1
 NrNi=1
 
-Training.Structures.append([Training.SizeOfInputs[0],15,1])
+Training.Structures.append([Training.SizeOfInputs[0],10,1])
 Training.NumberOfSameNetworks.append(NrNi)
-Training.Structures.append([Training.SizeOfInputs[1],15,1])
+Training.Structures.append([Training.SizeOfInputs[1],10,1])
 Training.NumberOfSameNetworks.append(NrAu)
 Training.HiddenType="truncated_normal"
 Training.HiddenData=list()
 Training.BiasData=list()
-Training.ActFun="tanh"
+Training.ActFun="relu"
 Training.ActFunParam=None
-Training.LearningRate=0.0001
-Training.CostCriterium=0.0001
+Training.LearningRate=0.001
+Training.CostCriterium=0.001
 Training.Epochs=1000
 Training.MakePlots=True
 Training.OptimizerType="Adam"
+Training.Regularization="L2"
+Training.RegularizationParam=0.0001
 Training.make_and_initialize_network()
 
 #Start first training
@@ -73,10 +75,10 @@ Training2.Structures.append([Training.SizeOfInputs[0],100,100,1])#the first to p
 Training2.Structures.append([Training.SizeOfInputs[1],100,100,1])
 
 Training2.LearningRate=0.00001
-Training2.CostCriterium=0.005
+Training2.CostCriterium=0.001
 Training2.Epochs=1500
 Training2.MakePlots=True
-Training2.ActFun="tanh"
+Training2.ActFun="relu"
 Training2.OptimizerType="Adam"
 
 #Evaluate quality of learning transfer
