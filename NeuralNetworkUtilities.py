@@ -92,11 +92,11 @@ def construct_output_layer(OutputUnits):
 
     return Outputs
 
-def construct_not_trainable_layer(NrInputs,NrOutputs,Mean,Sigma,NrNodes):
+def construct_not_trainable_layer(NrInputs,NrOutputs,Mean,Scale,NrNodes):
     #make a not trainable layer with the weights one
 
     Weights=tf.constant(np.ones([NrInputs,NrOutputs]),dtype=tf.float32)#, trainable=False)
-    Weights=tf.multiply(Weights,4*Sigma/NrNodes)
+    Weights=tf.multiply(Weights,Scale/NrNodes)
     Biases=tf.constant(np.zeros([NrOutputs]),dtype=tf.float32)#,trainable=False)
     Biases=tf.add(Biases,Mean/NrOutputs)
     return Weights,Biases
@@ -727,6 +727,7 @@ class AtomicNeuralNetInstance(object):
         self.InitStddev=1.0
         self.MakeLastLayerConstant=True
         self.MakeAllVariable=True
+
         #Data variables
         self.AllGeometries=list()
         self.Batches=list()
@@ -743,7 +744,7 @@ class AtomicNeuralNetInstance(object):
         self.Ds=None
         self.MeansOfDs=[]
         self.MeanOfOut=None
-        self.VarianceOfOut=None
+        self.ScaleOfOut=None
         self.VarianceOfDs=[]
 
 
@@ -794,7 +795,7 @@ class AtomicNeuralNetInstance(object):
             NormalizationName=NormalizationName+".npy"
         temp=np.load(NormalizationName)
         self.MeanOfOut=temp[0]
-        self.VarianceOfOut=temp[1]
+        self.ScaleOfOut=temp[1]
 
         return 1
 
@@ -806,7 +807,7 @@ class AtomicNeuralNetInstance(object):
             #Set initial weights to one to not disturb information of pretrained layer(tanh~1)
             self.HiddenType="truncated_normal"
             self.InitMean=0
-            self.InitStddev=0.01
+            self.InitStddev=0.001
             self.BiasType="zeros"
             self.MakeAllVariable=MakeAllVariable
             AtomicNeuralNetInstance.make_and_initialize_network(self)
@@ -882,6 +883,11 @@ class AtomicNeuralNetInstance(object):
             Execute=False
         if len(self.TrainingBatches)==0:
             print("No training batches specified!")
+            Execute=False
+
+        if sum(self.NumberOfSameNetworks)!= len(self.TrainingBatches[0][0]):
+            print([self.NumberOfSameNetworks,len(self.TrainingBatches[0][0])])
+            print("Input does not match number of specified networks!")
             Execute=False
 
         if Execute==True:
@@ -977,7 +983,7 @@ class AtomicNeuralNetInstance(object):
         #Output statistics
         if TakeAsReference==True or self.MeanOfOut==None:
             self.MeanOfOut=np.mean(self.Ds.energies)
-            self.VarianceOfOut=np.var(self.Ds.energies)
+            self.ScaleOfOut=np.max(self.Ds.energies)-np.min(self.Ds.energies)#better then np.variance(self.Ds.energies) because large values are included
 
     def read_files(self,TakeAsReference=False):
 
@@ -1008,7 +1014,7 @@ class AtomicNeuralNetInstance(object):
             self.SymmFunSet.add_angluar_functions(self.Etas,self.Zetas,self.Lambs)
             AtomicNeuralNetInstance.calculate_statistics_for_dataset(self,TakeAsReference)
             if TakeAsReference==True:
-                np.save("output_normalization",[self.MeanOfOut,self.VarianceOfOut])
+                np.save("output_normalization",[self.MeanOfOut,self.ScaleOfOut])
 
     def get_data_batch(self,BatchSize=100,NoBatches=False):
 
@@ -1054,7 +1060,6 @@ class AtomicNeuralNetInstance(object):
                 OutputData[i]=self.Ds.energies[MyNr]
 
             Inputs=AtomicNeuralNetInstance.sort_and_normalize_data(self,BatchSize,AllData)
-
 
             return Inputs,OutputData
 
@@ -1105,11 +1110,11 @@ class AtomicNeuralNetInstance(object):
             self.ValidationBatches=AtomicNeuralNetInstance.get_data(self,BatchSize,ValidationSetInPercent,NoBatches)
         else:
             #Get training data
-            temp=AtomicNeuralNetInstance.get_data(self,TrainingSetInPercent,NoBatches)
+            temp=AtomicNeuralNetInstance.get_data(self,BatchSize,TrainingSetInPercent,NoBatches)
             self.TrainingInputs=temp[0][0]
             self.TrainingOutputs=temp[0][1]
             #Get validation data
-            temp=AtomicNeuralNetInstance.get_data(self,ValidationSetInPercent,NoBatches)
+            temp=AtomicNeuralNetInstance.get_data(self,BatchSize,ValidationSetInPercent,NoBatches)
             self.ValidationInputs=temp[0][0]
             self.ValidationOutputs=temp[0][0]
 
@@ -1155,7 +1160,7 @@ class AtomicNeuralNetInstance(object):
                     NrHidden = Structure[j]
 
                     if j == len(Structure) - 1 and self.MakeLastLayerConstant == True:
-                        HiddenLayers.append(construct_not_trainable_layer(NrIn, NrHidden, self.MeanOfOut, np.sqrt(self.VarianceOfOut),OldShape[1]))
+                        HiddenLayers.append(construct_not_trainable_layer(NrIn, NrHidden, self.MeanOfOut, self.ScaleOfOut,OldShape[1]))
                     else:
                         if j >= len(self.HiddenData[i]) and self.MakeLastLayerConstant == True:
                             tempWeights, tempBias = construct_hidden_layer(NrIn, NrHidden, self.HiddenType, [], self.BiasType, [],
@@ -1198,7 +1203,7 @@ class AtomicNeuralNetInstance(object):
                     NrIn = Structure[j - 1]
                     NrHidden = Structure[j]
                     if j == len(Structure) - 1 and self.MakeLastLayerConstant == True:
-                        HiddenLayers.append(construct_not_trainable_layer(NrIn, NrHidden, self.MeanOfOut, np.sqrt(self.VarianceOfOut),NrIn))
+                        HiddenLayers.append(construct_not_trainable_layer(NrIn, NrHidden, self.MeanOfOut, self.ScaleOfOut,NrIn))
                     else:
                         HiddenLayers.append(construct_hidden_layer(NrIn, NrHidden, self.HiddenType, [], self.BiasType))
 
