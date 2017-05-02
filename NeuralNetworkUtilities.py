@@ -713,7 +713,7 @@ class AtomicNeuralNetInstance(object):
         self.BiasData=list()
         self.TrainingBatches=list()
         self.ValidationBatches=list()
-        self.ActFun="tanh"
+        self.ActFun="relu"
         self.ActFunParam=None
         self.CostCriterium=0
         self.OptimizerType=None
@@ -729,7 +729,6 @@ class AtomicNeuralNetInstance(object):
         self.CostFun=None
         self.Optimizer=None
         self.OutputLayer=None
-        self.saver=None
         self.MakePlots=False
         self.InitMean=0.0
         self.InitStddev=1.0
@@ -754,8 +753,10 @@ class AtomicNeuralNetInstance(object):
         self.Ds=None
         self.MeansOfDs=[]
         self.MinOfOut=None
-        self.ScaleOfOut=None
         self.VarianceOfDs=[]
+        
+        #Other
+        self.Multiple=False
 
 
     def initialize_network(self):
@@ -794,24 +795,26 @@ class AtomicNeuralNetInstance(object):
 
         #Initialize session
         self.Session.run(tf.global_variables_initializer())
-        self.saver=tf.train.Saver()
 
-    def load_model(self,NrHiddenOld,ModelName="trained_variables",NormalizationName="output_normalization"):
+    def load_model(self,NrHiddenOld,ModelName="trained_variables"):
 
         if ".npy" not in ModelName:
             ModelName=ModelName+".npy"
-        self.TrainedVariables=np.load(ModelName)
-        if ".npy" not in NormalizationName:
-            NormalizationName=NormalizationName+".npy"
-        temp=np.load(NormalizationName)
-        self.MinOfOut=temp[0]
-        self.ScaleOfOut=temp[1]
+            temp=np.load(ModelName)
+        self.TrainedVariables=temp[0]
+        self.MinOfOut=temp[1]
+
 
         return 1
 
-    def expand_existing_net(self,ModelName="trained_variables",MakeAllVariable=True):
-
-        Success=AtomicNeuralNetInstance.load_model(self,ModelName)
+    def expand_existing_net(self,ModelName="trained_variables",MakeAllVariable=True,ModelData=None):
+        
+        if ModelData==None:
+            Success=AtomicNeuralNetInstance.load_model(self,ModelName)
+        else:
+            self.TrainedVariables=ModelData[0]
+            self.MinOfOut=ModelData[1]
+            Success=1
         if Success==1:
             self.HiddenData,self.BiasData=get_weights_biases_from_data(self.TrainedVariables)
 
@@ -857,7 +860,6 @@ class AtomicNeuralNetInstance(object):
             self.Session,self.TrainedNetwork,TrainingCosts,ValidationCosts=train_atomic_networks(self.Session,self.AtomicNNs,self.TrainingInputs,self.TrainingOutputs,self.Epochs,self.Optimizer,self.OutputLayer,self.CostFun,self.ValidationInputs,self.ValidationOutputs,self.CostCriterium,self.MakePlots)
             self.TrainedVariables=get_trained_variables(self.Session,self.VariablesDictionary)
             #Store variables
-            self.saver.save(self.Session, "model.ckpt")
             np.save("trained_variables",self.TrainedVariables)
 
             self.TrainingCosts=TrainingCosts
@@ -886,7 +888,10 @@ class AtomicNeuralNetInstance(object):
         return evaluateAllAtomicNNs(self.Session,self.AtomicNNs,self.TrainingInputs)
 
     def start_batch_training(self):
-
+        #Clear cost array for multi instance training
+        self.OverallTrainingCosts=list()
+        self.OverallValidationCosts=list()
+        
         Execute=True
         if len(self.AtomicNNs)==0:
             print("No atomic neural nets available!")
@@ -901,7 +906,8 @@ class AtomicNeuralNetInstance(object):
             Execute=False
 
         if Execute==True:
-            print("Started batch training...")
+            if self.Multiple==False:
+                print("Started batch training...")
             NrOfTrainingBatches=len(self.TrainingBatches)
             if self.ValidationBatches:
                 NrOfValidationBatches=len(self.ValidationBatches)
@@ -933,6 +939,7 @@ class AtomicNeuralNetInstance(object):
                     TrainingCosts,ValidationCosts=train_atomic_network_batch(self.Session,self.Optimizer,Layers,TrainingData,ValidationData,self.CostFun)
                     tempTrainingCost.append(TrainingCosts)
                     tempValidationCost.append(ValidationCosts)
+                    
                     self.OverallTrainingCosts.append(TrainingCosts/BatchSize)
                     self.OverallValidationCosts.append(ValidationCosts/BatchSize)
 
@@ -943,28 +950,34 @@ class AtomicNeuralNetInstance(object):
                     self.TrainingCosts=1e10
                     self.ValidationCosts=1e10
 
+                if self.Multiple==False:
+                    if i % max(int(self.Epochs/20),1)==0 or i==(self.Epochs-1):
+                        #Cost plot
+                        #print([evaluateAllAtomicNNs(self.Session,self.AtomicNNs,self.TrainingInputs),self.TrainingOutputs])
+                        if self.MakePlots==True:
+                            if i ==0:
+                                fig,ax,TrainingCostPlot,ValidationCostPlot=initialize_cost_plot(self.OverallTrainingCosts,self.OverallValidationCosts)
+                            else:
+                                update_cost_plot(fig,ax,TrainingCostPlot,self.OverallTrainingCosts,ValidationCostPlot,self.OverallValidationCosts)
+                        #Finished percentage output
+                        print(str(100*i/self.Epochs)+" %")
+                        #Store variables
+                        self.TrainedVariables=get_trained_variables(self.Session,self.VariablesDictionary)
 
-                if i % max(int(self.Epochs/20),1)==0 or i==(self.Epochs-1):
-                    #Cost plot
-                    #print([evaluateAllAtomicNNs(self.Session,self.AtomicNNs,self.TrainingInputs),self.TrainingOutputs])
-                    if self.MakePlots==True:
-                        if i ==0:
-                            fig,ax,TrainingCostPlot,ValidationCostPlot=initialize_cost_plot(self.OverallTrainingCosts,self.OverallValidationCosts)
-                        else:
-                            update_cost_plot(fig,ax,TrainingCostPlot,self.OverallTrainingCosts,ValidationCostPlot,self.OverallValidationCosts)
-                    #Finished percentage output
-                    print(str(100*i/self.Epochs)+" %")
-                    #Store variables
-                    self.TrainedVariables=get_trained_variables(self.Session,self.VariablesDictionary)
-                    #self.saver.save(self.Session, "model.ckpt")
-                    np.save("trained_variables",self.TrainedVariables)
-
-                #Abort criteria
-                if self.TrainingCosts<=self.CostCriterium and self.ValidationCosts<=self.CostCriterium:
-                    print("Reached cost criterium: "+str(self.TrainingCosts))
-                    break
-
-        print("Training finished")
+                        np.save("trained_variables",self.TrainedVariables)
+    
+                    #Abort criteria
+                    if self.TrainingCosts<=self.CostCriterium and self.ValidationCosts<=self.CostCriterium:
+                        print("Reached cost criterium: "+str(self.TrainingCosts))
+                        break
+                    if i==(self.Epochs-1):
+                        self.Session.close()
+                        print("Training finished")
+                    
+                else:
+                    self.Session.close()
+                    return [self.TrainedVariables,self.MinOfOut]
+                    
 
     def calculate_statistics_for_dataset(self,TakeAsReference):
 
@@ -974,7 +987,7 @@ class AtomicNeuralNetInstance(object):
         #calculate mean values for all Gs
         for i in range(0,NrGeom):
             temp=self.SymmFunSet.eval_geometry(self.Ds.geometries[i])
-
+            NrAtoms=len(temp)
             self.AllGeometries.append(temp)
             if i % max(int(NrGeom/25),1)==0:
                 print(str(100*i/NrGeom)+" %")
@@ -991,16 +1004,17 @@ class AtomicNeuralNetInstance(object):
             self.MeansOfDs.append(np.mean(InputsForNetX,axis=0))
             self.VarianceOfDs.append(np.var(InputsForNetX,axis=0))
         #Output statistics
+        NormalizedEnergy=np.divide(self.Ds.energies,NrAtoms)
         if self.MinOfOut== None:
             TakeAsReference=True
         else:
-            if self.MinOfOut>np.min(self.Ds.energies):
+            if self.MinOfOut>np.min(NormalizedEnergy):
                 TakeAsReference=True
         if TakeAsReference==True:
-            self.MinOfOut=np.min(self.Ds.energies)*2 #factor of two is to make sure that there is room for lower energies
-            self.ScaleOfOut=np.max(self.Ds.energies)-np.min(self.Ds.energies)
+            self.MinOfOut=np.min(NormalizedEnergy)*2 #factor of two is to make sure that there is room for lower energies
 
-    def read_files(self,TakeAsReference=False):
+
+    def read_files(self,TakeAsReference=True):
 
         Execute=True
         if self.XYZfile==None:
@@ -1028,8 +1042,7 @@ class AtomicNeuralNetInstance(object):
             self.SymmFunSet.add_radial_functions_evenly(self.NumberOfRadialFunctions)
             self.SymmFunSet.add_angluar_functions(self.Etas,self.Zetas,self.Lambs)
             AtomicNeuralNetInstance.calculate_statistics_for_dataset(self,TakeAsReference)
-            if TakeAsReference==True:
-                np.save("output_normalization",[self.MinOfOut,self.ScaleOfOut])
+
 
     def get_data_batch(self,BatchSize=100,NoBatches=False):
 
@@ -1180,17 +1193,17 @@ class AtomicNeuralNetInstance(object):
                         if j >= len(self.HiddenData[i]) and self.MakeLastLayerConstant == True:
                             tempWeights, tempBias = construct_hidden_layer(NrIn, NrHidden, self.HiddenType, [], self.BiasType, [],
                                                                            self.MakeAllVariable, self.InitMean, self.InitStddev)
-                            if self.MakeAllVariable == True:
-                                indices = []
-                                values = []
-                                thisShape = tempWeights.get_shape().as_list()
 
-                                for q in range(0, OldBiasNr):
-                                    indices.append([q, q])
-                                    values += [1.0]
+                            indices = []
+                            values = []
+                            thisShape = tempWeights.get_shape().as_list()
 
-                                delta = tf.SparseTensor(indices, values, thisShape)
-                                tempWeights = tempWeights + tf.sparse_tensor_to_dense(delta)
+                            for q in range(0, OldBiasNr):
+                                indices.append([q, q])
+                                values += [1.0]
+
+                            delta = tf.SparseTensor(indices, values, thisShape)
+                            tempWeights = tempWeights + tf.sparse_tensor_to_dense(delta)
 
                             HiddenLayers.append([tempWeights, tempBias])
                         else:
@@ -1277,3 +1290,96 @@ class AtomicNeuralNetInstance(object):
         self.Session=Session
         self.AtomicNNs=AtomicNNs
         self.VariablesDictionary=AllHiddenLayers
+        
+class MultipleInstanceTraining(object):
+    
+    def __init__(self):
+        #Training variables
+        self.TrainingInstances=list()
+        self.EpochsPerCycle=1
+        self.GlobalEpochs=100
+        self.GlobalStructures=list()
+        self.GlobalLearningRate=0.001
+        self.GlobalCostCriterium=0.0001
+        self.GlobalRegularization="L2"
+        self.GlobalRegularizationParam=0.0001
+        self.GlobalOptimizer="Adam"
+        self.GlobalTrainingCosts=list()
+        self.GlobalValidationCosts=list()
+        self.GlobalMinOfOut=0
+        self.MakePlots=False
+        
+    def initialize_multiple_instances(self):
+        
+        Execute=True
+        if len(self.TrainingInstances)==0:
+            Execute=False
+            print("No training instances available!")
+            
+        if Execute==True:
+            #Initialize all instances with same settings
+            for Instance in self.TrainingInstances:
+                Instance.Multiple=True
+                Instance.Epochs=self.EpochsPerCycle
+                Instance.MakeAllVariable=True
+                Instance.Structures=self.GlobalStructures
+                Instance.MakePlots=False
+                Instance.ActFun="relu"
+                Instance.CostCriterium=0
+                Instance.HiddenType="truncated_normal"
+                Instance.LearningRate=self.GlobalLearningRate
+                Instance.OptimizerType=self.GlobalOptimizer
+                Instance.Regularization=self.GlobalRegularization
+                Instance.RegularizationParam=self.GlobalRegularizationParam
+                if Instance.MinOfOut <self.GlobalMinOfOut:
+                    self.GlobalMinOfOut=Instance.MinOfOut
+                    
+                #Clear unnecessary data
+                Instance.Ds.geometries=list()
+                Instance.Ds.Energies=list()
+                Instance.Batches=list()
+                Instance.AllGeometries=list()
+            #Write global minimum to all instances
+            for Instance in self.TrainingInstances:
+                Instance.MinOfOut=self.GlobalMinOfOut
+                
+        
+    def train_multiple_instances(self):
+        print("Startet multiple instance training!")
+        ct=0
+        LastStepsModelData=list()
+        for i in range(0,self.GlobalEpochs):
+            AllConverged=True
+            for Instance in self.TrainingInstances:
+                if ct==0:
+                    Instance.make_and_initialize_network()
+                else:
+                    Instance.expand_existing_net(ModelData=LastStepsModelData)
+                
+                LastStepsModelData=Instance.start_batch_training()
+                self.GlobalTrainingCosts.append(Instance.OverallTrainingCosts)
+                self.GlobalValidationCosts.append(Instance.OverallValidationCosts)
+                if i % max(int(self.GlobalEpochs/50),1)==0 or i==(self.GlobalEpochs-1):
+                    if self.MakePlots==True:
+                        if ct ==1:
+                            fig,ax,TrainingCostPlot,ValidationCostPlot=initialize_cost_plot(self.GlobalTrainingCosts,self.GlobalValidationCosts)
+                        elif ct>1:
+                            update_cost_plot(fig,ax,TrainingCostPlot,self.GlobalTrainingCosts,ValidationCostPlot,self.GlobalValidationCosts)
+                    
+                    #Finished percentage output
+                    print(str(100*i/self.GlobalEpochs)+" %")
+                    np.save("trained_variables",LastStepsModelData)
+                ct=ct+1
+                #Abort criteria
+                if Instance.TrainingCosts<=self.GlobalCostCriterium and Instance.ValidationCosts<=self.GlobalCostCriterium and AllConverged==True:
+                    AllConverged=True
+                else:
+                    AllConverged=False
+                
+            if AllConverged==True:
+                print("Reached cost criterium: "+str(self.GlobalTrainingCosts))
+                break     
+                    
+                
+                
+                
