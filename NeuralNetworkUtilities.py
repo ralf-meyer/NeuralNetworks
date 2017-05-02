@@ -1357,17 +1357,17 @@ class MultipleInstanceTraining(object):
                     Instance.expand_existing_net(ModelData=LastStepsModelData)
                 
                 LastStepsModelData=Instance.start_batch_training()
-                self.GlobalTrainingCosts.append(Instance.OverallTrainingCosts)
-                self.GlobalValidationCosts.append(Instance.OverallValidationCosts)
-                if i % max(int(self.GlobalEpochs/50),1)==0 or i==(self.GlobalEpochs-1):
+                self.GlobalTrainingCosts+=Instance.OverallTrainingCosts
+                self.GlobalValidationCosts+=Instance.OverallValidationCosts
+                if ct % max(int((self.GlobalEpochs*len(self.TrainingInstances))/50),1)==0 or i==(self.GlobalEpochs-1):
                     if self.MakePlots==True:
-                        if ct ==1:
+                        if ct ==0:
                             fig,ax,TrainingCostPlot,ValidationCostPlot=initialize_cost_plot(self.GlobalTrainingCosts,self.GlobalValidationCosts)
-                        elif ct>1:
+                        else:
                             update_cost_plot(fig,ax,TrainingCostPlot,self.GlobalTrainingCosts,ValidationCostPlot,self.GlobalValidationCosts)
                     
                     #Finished percentage output
-                    print(str(100*i/self.GlobalEpochs)+" %")
+                    print(str(100*ct/(self.GlobalEpochs*len(self.TrainingInstances)))+" %")
                     np.save("trained_variables",LastStepsModelData)
                 ct=ct+1
                 #Abort criteria
