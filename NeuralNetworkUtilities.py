@@ -964,18 +964,16 @@ class AtomicNeuralNetInstance(object):
                         #Store variables
                         self.TrainedVariables=get_trained_variables(self.Session,self.VariablesDictionary)
 
-                        np.save("trained_variables",self.TrainedVariables)
+                        np.save("trained_variables",[self.TrainedVariables,self.MinOfOut])
     
                     #Abort criteria
                     if self.TrainingCosts<=self.CostCriterium and self.ValidationCosts<=self.CostCriterium:
                         print("Reached cost criterium: "+str(self.TrainingCosts))
                         break
                     if i==(self.Epochs-1):
-                        self.Session.close()
                         print("Training finished")
                     
                 else:
-                    self.Session.close()
                     return [self.TrainedVariables,self.MinOfOut]
                     
 
@@ -1165,8 +1163,9 @@ class AtomicNeuralNetInstance(object):
         AllHiddenLayers = list()
         AtomicNNs = list()
         # Start Session
-
-        Session = tf.Session()
+        if self.Multiple==False:
+            self.Session=tf.Session()
+            
         OldBiasNr = 0
         OldShape = None
 
@@ -1287,7 +1286,7 @@ class AtomicNeuralNetInstance(object):
                         [self.NumberOfSameNetworks[i], Network, InputLayer, OutputLayer, ForceNetworks, RawWeights, RawBias,
                          self.ActFun])
 
-        self.Session=Session
+        
         self.AtomicNNs=AtomicNNs
         self.VariablesDictionary=AllHiddenLayers
         
@@ -1308,6 +1307,7 @@ class MultipleInstanceTraining(object):
         self.GlobalValidationCosts=list()
         self.GlobalMinOfOut=0
         self.MakePlots=False
+        self.GlobalSession=tf.Session()
         
     def initialize_multiple_instances(self):
         
@@ -1331,6 +1331,7 @@ class MultipleInstanceTraining(object):
                 Instance.OptimizerType=self.GlobalOptimizer
                 Instance.Regularization=self.GlobalRegularization
                 Instance.RegularizationParam=self.GlobalRegularizationParam
+                Instance.Session=self.GlobalSession
                 if Instance.MinOfOut <self.GlobalMinOfOut:
                     self.GlobalMinOfOut=Instance.MinOfOut
                     
@@ -1344,7 +1345,7 @@ class MultipleInstanceTraining(object):
                 Instance.MinOfOut=self.GlobalMinOfOut
                 
         
-    def train_multiple_instances(self):
+    def train_multiple_instances(self,StartModelName=None):
         print("Startet multiple instance training!")
         ct=0
         LastStepsModelData=list()
@@ -1352,7 +1353,10 @@ class MultipleInstanceTraining(object):
             AllConverged=True
             for Instance in self.TrainingInstances:
                 if ct==0:
-                    Instance.make_and_initialize_network()
+                    if StartModelName!=None:
+                        Instance.expand_existing_net(ModelName=StartModelName)
+                    else:
+                        Instance.make_and_initialize_network()
                 else:
                     Instance.expand_existing_net(ModelData=LastStepsModelData)
                 
