@@ -1,6 +1,6 @@
 import SymmetryFunctions as SFs
 import numpy as _np
-from scipy.spatial.distance import _pdist, _squareform
+from scipy.spatial.distance import pdist, squareform
 
 class SymmetryFunctionSet(object):
     
@@ -72,4 +72,4 @@ class SymmetryFunctionSet(object):
     def eval_geometry_new(self, geometry):
         # Calculate distance matrix. Should be solvable without using 
         # squareform! TODO: rewrite even more efficient
-        dist_mat = _squareform(_pdist([g[1] for g in geometry]))
+        dist_mat = squareform(pdist([g[1] for g in geometry]))
