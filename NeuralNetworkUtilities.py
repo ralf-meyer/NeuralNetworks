@@ -820,7 +820,7 @@ class AtomicNeuralNetInstance(object):
 
             self.HiddenType="truncated_normal"
             self.InitMean=0
-            self.InitStddev=0.001
+            self.InitStddev=0.01
             self.BiasType="zeros"
             self.MakeAllVariable=MakeAllVariable
             AtomicNeuralNetInstance.make_and_initialize_network(self)
@@ -1210,7 +1210,7 @@ class AtomicNeuralNetInstance(object):
                             OldShape = self.HiddenData[i][j - 1].shape
                             # fill old weights in new structure
                             if OldBiasNr < NrHidden:
-                                ThisWeightData = np.random.normal(loc=0.0, scale=0.001, size=(NrIn, NrHidden))
+                                ThisWeightData = np.random.normal(loc=0.0, scale=0.01, size=(NrIn, NrHidden))
                                 ThisWeightData[0:OldShape[0], 0:OldShape[1]] = self.HiddenData[i][j - 1]
                                 ThisBiasData = np.zeros([NrHidden])
                                 ThisBiasData[0:OldBiasNr] = self.BiasData[i][j - 1]
@@ -1323,6 +1323,7 @@ class MultipleInstanceTraining(object):
                 Instance.Epochs=self.EpochsPerCycle
                 Instance.MakeAllVariable=True
                 Instance.Structures=self.GlobalStructures
+                Instance.Session = self.GlobalSession
                 Instance.MakePlots=False
                 Instance.ActFun="relu"
                 Instance.CostCriterium=0
@@ -1331,7 +1332,6 @@ class MultipleInstanceTraining(object):
                 Instance.OptimizerType=self.GlobalOptimizer
                 Instance.Regularization=self.GlobalRegularization
                 Instance.RegularizationParam=self.GlobalRegularizationParam
-                Instance.Session=self.GlobalSession
                 if Instance.MinOfOut <self.GlobalMinOfOut:
                     self.GlobalMinOfOut=Instance.MinOfOut
                     
@@ -1344,7 +1344,10 @@ class MultipleInstanceTraining(object):
             for Instance in self.TrainingInstances:
                 Instance.MinOfOut=self.GlobalMinOfOut
                 
-        
+    def set_session(self):
+        for Instance in self.TrainingInstances:
+            Instance.Session = self.GlobalSession
+
     def train_multiple_instances(self,StartModelName=None):
         print("Startet multiple instance training!")
         ct=0
@@ -1361,6 +1364,9 @@ class MultipleInstanceTraining(object):
                     Instance.expand_existing_net(ModelData=LastStepsModelData)
                 
                 LastStepsModelData=Instance.start_batch_training()
+                tf.reset_default_graph()
+                self.GlobalSession=tf.Session()
+                MultipleInstanceTraining.set_session(self)
                 self.GlobalTrainingCosts+=Instance.OverallTrainingCosts
                 self.GlobalValidationCosts+=Instance.OverallValidationCosts
                 if ct % max(int((self.GlobalEpochs*len(self.TrainingInstances))/50),1)==0 or i==(self.GlobalEpochs-1):

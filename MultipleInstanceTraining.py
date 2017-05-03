@@ -40,20 +40,20 @@ Training2.NumberOfRadialFunctions=5
 Training2.Lambs=[1.0,-1.0]
 Training2.Zetas=np.arange(0.1,5,0.5).tolist()
 Training2.read_files()
-Training2.make_training_and_validation_data(100,70,30)
+Training2.make_training_and_validation_data(100,7,3)
 Training2.NumberOfSameNetworks.append(2)
 Training2.NumberOfSameNetworks.append(1)
 
 Multi=NN.MultipleInstanceTraining()
-Multi.EpochsPerCycle=5
+Multi.EpochsPerCycle=1
 Multi.GlobalEpochs=100
 Multi.GlobalLearningRate=0.001
 Multi.GlobalOptimizer="Adam"
 Multi.GlobalRegularization="L2"
 Multi.GlobalRegularizationParam=0.0001
 Multi.MakePlots=True
-Multi.GlobalStructures.append([Training.SizeOfInputs[0],50,50,1])
-Multi.GlobalStructures.append([Training.SizeOfInputs[0],50,50,1])
+Multi.GlobalStructures.append([Training.SizeOfInputs[0],15,15,1])
+Multi.GlobalStructures.append([Training.SizeOfInputs[0],15,15,1])
 Multi.TrainingInstances.append(Training)
 Multi.TrainingInstances.append(Training2)
 Multi.initialize_multiple_instances()
