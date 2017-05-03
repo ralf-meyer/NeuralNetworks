@@ -38,4 +38,4 @@ class DataSet(object):
                 elif switch and line.startswith("Loop time"):
                     switch = False
                 elif switch:
-                    self.energies.append(line.split()[ind])
+                    self.energies.append(float(line.split()[ind]))
