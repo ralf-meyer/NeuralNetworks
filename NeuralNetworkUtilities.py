@@ -736,7 +736,7 @@ class AtomicNeuralNetInstance(object):
         self.MakeAllVariable=True
         self.Regularization="none"
         self.RegularizationParam=0.001
-
+        self.DeltaE=0
         #Data variables
         self.AllGeometries=list()
         self.Batches=list()
@@ -911,9 +911,10 @@ class AtomicNeuralNetInstance(object):
             NrOfTrainingBatches=len(self.TrainingBatches)
             if self.ValidationBatches:
                 NrOfValidationBatches=len(self.ValidationBatches)
-
+            
             for i in range(0,self.Epochs):
                 for j in range(0,NrOfTrainingBatches):
+
                     tempTrainingCost=[]
                     tempValidationCost=[]
                     rnd=rand.randint(0,NrOfTrainingBatches-1)
@@ -936,6 +937,7 @@ class AtomicNeuralNetInstance(object):
                     else:
                         ValidationData=None
                     #Train one batch
+                    
                     TrainingCosts,ValidationCosts=train_atomic_network_batch(self.Session,self.Optimizer,Layers,TrainingData,ValidationData,self.CostFun)
                     tempTrainingCost.append(TrainingCosts)
                     tempValidationCost.append(ValidationCosts)
@@ -949,6 +951,11 @@ class AtomicNeuralNetInstance(object):
                 else:
                     self.TrainingCosts=1e10
                     self.ValidationCosts=1e10
+                    
+                if self.ValidationCosts!=0:
+                    self.DeltaE=np.sqrt((self.TrainingCosts+self.ValidationCosts)/2)
+                else:
+                    self.DeltaE=np.sqrt(self.TrainingCosts)
 
                 if self.Multiple==False:
                     if i % max(int(self.Epochs/20),1)==0 or i==(self.Epochs-1):
@@ -965,16 +972,24 @@ class AtomicNeuralNetInstance(object):
                         self.TrainedVariables=get_trained_variables(self.Session,self.VariablesDictionary)
 
                         np.save("trained_variables",[self.TrainedVariables,self.MinOfOut])
-    
+                    
+
                     #Abort criteria
                     if self.TrainingCosts<=self.CostCriterium and self.ValidationCosts<=self.CostCriterium:
-                        print("Reached cost criterium: "+str(self.TrainingCosts))
-                        break
+                        if self.ValidationCosts!=0:
+                            print("Reached cost criterium: "+str((self.TrainingCosts+self.ValidationCosts)/2))
+                            print("delta E = "+str(self.DeltaE))
+                            break
+                        else:
+                            print("Reached cost criterium: "+str(self.TrainingCosts))
+                            print("delta E = "+str(self.DeltaE))
+                            break
                     if i==(self.Epochs-1):
                         print("Training finished")
+                        print("delta E = "+str(self.DeltaE))
                     
-                else:
-                    return [self.TrainedVariables,self.MinOfOut]
+            if self.Multiple==True:
+                return [self.TrainedVariables,self.MinOfOut]
                     
 
     def calculate_statistics_for_dataset(self,TakeAsReference):
