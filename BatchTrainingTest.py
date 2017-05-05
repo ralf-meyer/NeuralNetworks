@@ -15,33 +15,33 @@ plt.close("all")
 NrAu=2
 NrNi=1
 
-Data=NN.DataInstance()
+Training=NN.AtomicNeuralNetInstance()
 
-Data.XYZfile="NiAu_data_2AU1Ni.xyz"
-Data.Logfile="log.3atoms"
-Data.SymmFunKeys=["1","2"]
-Data.Rs=np.arange(0.1,7,1).tolist()
-Data.Etas=np.arange(0.1,1.1,1).tolist()
-Data.Lambs=[1.0,-1.0]
-Data.Zetas=np.arange(0.1,2,0.5).tolist()
+Training.XYZfile="NiAu_data_2AU1Ni.xyz"
+Training.Logfile="log.3atoms"
+Training.SymmFunKeys=["1","2"]
+Training.Rs=np.arange(0.1,7,1).tolist()
+Training.Etas=np.arange(0.1,1.1,1).tolist()
+Training.Lambs=[1.0,-1.0]
+Training.Zetas=np.arange(0.1,2,0.5).tolist()
 
-Data.read_files()
-Batches=Data.get_data(100,70)
-ValidationBatches=Data.get_data(100,30)
+Training.read_files()
+Batches=Training.get_data(100,70)
+ValidationBatches=Training.get_data(100,30)
 #Batches=Data.get_data(0,1,True)
 
-Training=NN.AtomicNeuralNetInstance()
-Training.Structures.append([Data.SizeOfInputs[0],10,1])
+
+Training.Structures.append([Training.SizeOfInputs[0],10,10,1])
 Training.NumberOfSameNetworks.append(NrNi)
-Training.Structures.append([Data.SizeOfInputs[1],10,1])
+Training.Structures.append([Training.SizeOfInputs[1],10,10,1])
 Training.NumberOfSameNetworks.append(NrAu)
 Training.HiddenType="truncated_normal"
-Training.HiddenData=None
-Training.BiasData=None
-Training.ActFun="tanh"
+Training.HiddenData=list()
+Training.BiasData=list()
+Training.ActFun="relu"
 Training.ActFunParam=None
-Training.LearningRate=0.000001
-Training.Epochs=1000
+Training.LearningRate=0.0001
+Training.Epochs=1500
 Training.MakePlots=True
 Training.OptimizerType="Adam"
 Training.make_and_initialize_network()
