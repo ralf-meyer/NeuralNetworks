@@ -690,6 +690,39 @@ def update_cost_plot(figure,ax,TrainingCostPlot,TrainingCost,ValidationCostPlot=
     #We need to draw *and* flush
     figure.canvas.draw()
     figure.canvas.flush_events()
+    
+def conjugate_grad(A, b, x=None):
+    """
+    Description
+    -----------
+    Solve a linear equation Ax = b with conjugate gradient method.
+    Parameters
+    ----------
+    A: 2d numpy.array of positive semi-definite (symmetric) matrix
+    b: 1d numpy.array
+    x: 1d numpy.array of initial point
+    Returns
+    -------
+    1d numpy.array x such that Ax = b
+    """
+    n = len(b)
+    if not x:
+        x = np.ones(n)
+    r = np.dot(A, x) - b
+    p = - r
+    r_k_norm = np.dot(r, r)
+    for i in xrange(2*n):
+        Ap = np.dot(A, p)
+        alpha = r_k_norm / np.dot(p, Ap)
+        x += alpha * p
+        r += alpha * Ap
+        r_kplus1_norm = np.dot(r, r)
+        beta = r_kplus1_norm / r_k_norm
+        r_k_norm = r_kplus1_norm
+        if r_kplus1_norm < 1e-5:
+            break
+        p = beta * p - r
+    return x
 
 
 
@@ -737,6 +770,7 @@ class AtomicNeuralNetInstance(object):
         self.Regularization="none"
         self.RegularizationParam=0.001
         self.DeltaE=0
+        self.CurrentEpochNr=0
         #Data variables
         self.AllGeometries=list()
         self.Batches=list()
@@ -913,6 +947,7 @@ class AtomicNeuralNetInstance(object):
                 NrOfValidationBatches=len(self.ValidationBatches)
             
             for i in range(0,self.Epochs):
+                self.CurrentEpochNr=i
                 for j in range(0,NrOfTrainingBatches):
 
                     tempTrainingCost=[]
@@ -1304,6 +1339,7 @@ class AtomicNeuralNetInstance(object):
         
         self.AtomicNNs=AtomicNNs
         self.VariablesDictionary=AllHiddenLayers
+        
         
 class MultipleInstanceTraining(object):
     
