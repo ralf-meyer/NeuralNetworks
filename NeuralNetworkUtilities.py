@@ -354,6 +354,25 @@ def transform_permuted_data(PermutationData):
 
     return OutPermutedData
 
+def output_of_all_partitioned_atomic_networks(Session,AtomicNNs):
+
+    TotalEnergy=0
+    AllEnergies=list()
+
+    for i in range(0,len(AtomicNNs)):
+        #Get network data
+        AtomicNetwork=AtomicNNs[i]
+        Networks=AtomicNetwork[1]
+        for j in range(0,3):
+            SubNet=Networks[j]
+            SubEnergy=0
+            if SubNet!=None:
+                #Get input data for network
+                SubEnergy+=SubNet
+        TotalEnergy+=SubEnergy
+        AllEnergies.append(SubEnergy)
+
+    return TotalEnergy,AllEnergies
 
 def output_of_all_atomic_networks(Session,AtomicNNs):
 
@@ -371,9 +390,12 @@ def output_of_all_atomic_networks(Session,AtomicNNs):
     return TotalEnergy,AllEnergies
 
 
-def atomic_cost_function(Session,AtomicNNs,ReferenceOutput,Regularization="none",RegularizationParam=0.001):
-
-    TotalEnergy,AllEnergies=output_of_all_atomic_networks(Session,AtomicNNs)
+def atomic_cost_function(Session,AtomicNNs,ReferenceOutput,Regularization="none",RegularizationParam=0.001,IsPartitioned=False):
+    
+    if IsPartitioned==True:
+        TotalEnergy,AllEnergies=output_of_all_partitioned_atomic_networks(Session,AtomicNNs)
+    else:
+        TotalEnergy,AllEnergies=output_of_all_atomic_networks(Session,AtomicNNs)
     Cost=total_cost_for_network(TotalEnergy,ReferenceOutput)
     if Regularization=="L1":
         trainableVars=tf.trainable_variables()
@@ -645,26 +667,35 @@ def evaluate_all_atomicnns(Session,AtomicNNs,InData):
 def evaluate_all_partitioned_atomicnns(Session,AtomicNNs,InData):
 
     Energy=0
-    Layers,Data=prepare_data_environment_for_atomicNNs(AtomicNNs,InData,list(),list())
-
+    Layers,Data=prepare_data_environment_for_partitioned_atomicNNs(AtomicNNs,InData,list(),list())
+    ct=0
     for i in range(0,len(AtomicNNs)):
-        AtomicNetwork=AtomicNNs[i]
-        Energy+=evaluate(Session,AtomicNetwork[1],[Layers[i]],Data[i])
+        AllAtomicNetworks=AtomicNNs[i][1]
+        for j in range(0,3):
+            SubNet=AllAtomicNetworks[j]
+            if SubNet!=None:
+                Energy+=evaluate(Session,SubNet,[Layers[ct]],Data[ct])
+                ct=ct+1
 
     return Energy
 
 
-def train_atomic_networks(Session,AtomicNNs,TrainingInputs,TrainingOutputs,Epochs,Optimizer,OutputLayer,CostFun,ValidationInputs=None,ValidationOutputs=None,CostCriterium=None,MakePlot=False):
+def train_atomic_networks(Session,AtomicNNs,TrainingInputs,TrainingOutputs,Epochs,Optimizer,OutputLayer,CostFun,ValidationInputs=None,ValidationOutputs=None,CostCriterium=None,MakePlot=False,IsPartitioned=False):
 
 
     ValidationCost=0
     TrainCost=0
     #Prepare data environment for training
-    Layers,Data=prepare_data_environment_for_atomicNNs(AtomicNNs,TrainingInputs,OutputLayer,TrainingOutputs)
-
+    if IsPartitioned==False:
+        Layers,Data=prepare_data_environment_for_atomicNNs(AtomicNNs,TrainingInputs,OutputLayer,TrainingOutputs)
+    else:
+        Layers,Data=prepare_data_environment_for_partitioned_atomicNNs(AtomicNNs,TrainingInputs,OutputLayer,TrainingOutputs)
     #Make validation input vector
     if len(ValidationInputs)>0:
-        ValidationData=make_data_for_atomicNNs(ValidationInputs,ValidationOutputs)
+        if IsPartitioned==False:
+            ValidationData=make_data_for_atomicNNs(ValidationInputs,ValidationOutputs)
+        else:
+            _,ValidationData=prepare_data_environment_for_partitioned_atomicNNs(AtomicNNs,TrainingInputs,OutputLayer,TrainingOutputs)
     else:
         ValidationData=None
     #Start training of the atomic network
@@ -806,6 +837,7 @@ class AtomicNeuralNetInstance(object):
         self.RegularizationParam=0.001
         self.DeltaE=0
         self.CurrentEpochNr=0
+        self.IsPartitioned=False
         #Data variables
         self.AllGeometries=list()
         self.Batches=list()
@@ -833,7 +865,7 @@ class AtomicNeuralNetInstance(object):
         #Make virtual output layer for feeding the data to the cost function
         self.OutputLayer=construct_output_layer(1)
         #Cost function for whole net
-        self.CostFun=atomic_cost_function(self.Session,self.AtomicNNs,self.OutputLayer,self.Regularization,self.RegularizationParam)
+        self.CostFun=atomic_cost_function(self.Session,self.AtomicNNs,self.OutputLayer,self.Regularization,self.RegularizationParam,self.IsPartitioned)
 
             #Set optimizer
         if self.OptimizerType==None:
@@ -905,7 +937,10 @@ class AtomicNeuralNetInstance(object):
             Execute=False
 
         if Execute==True:
-           AtomicNeuralNetInstance.make_atomic_networks(self)
+            if self.IsPartitioned==False:
+                AtomicNeuralNetInstance.make_atomic_networks(self)
+            else:
+                AtomicNeuralNetInstance.make_partitioned_atomic_networks(self)
 
     def make_and_initialize_network(self):
 
@@ -937,15 +972,15 @@ class AtomicNeuralNetInstance(object):
 
         return self.TrainingCosts,self.ValidationCosts
 
-    def expand_neuralnet(self,TrainedData, nAtoms, Gs):
+    #def expand_neuralnet(self,TrainedData, nAtoms, Gs):
 
-        AtomicNNs = list()
-        self.TrainedVariables=TrainedData
-        self.NumberOfSameNetworks=nAtoms
-        self.Gs=Gs
-        Structures = get_structure_from_data(self.TrainedVariables)
-        Weights, Biases = get_weights_biases_from_data(self.TrainedVariables)
-        AtomicNeuralNetInstance.make_atomic_networks(self)
+        #AtomicNNs = list()
+        #self.TrainedVariables=TrainedData
+        #self.NumberOfSameNetworks=nAtoms
+        #self.Gs=Gs
+        #Structures = get_structure_from_data(self.TrainedVariables)
+        #Weights, Biases = get_weights_biases_from_data(self.TrainedVariables)
+        #AtomicNeuralNetInstance.make_atomic_networks(self)
 
     def start_evaluation(self):
 
@@ -998,12 +1033,21 @@ class AtomicNeuralNetInstance(object):
                         self.ValidationOutputs=self.ValidationBatches[rnd][1]
                     #Prepare data and layers for feeding
                     if i==0:
-                        Layers,TrainingData=prepare_data_environment_for_atomicNNs(self.AtomicNNs,self.TrainingInputs,self.OutputLayer,self.TrainingOutputs)
+                        if self.IsPartitioned==False:
+                            Layers,TrainingData=prepare_data_environment_for_atomicNNs(self.AtomicNNs,self.TrainingInputs,self.OutputLayer,self.TrainingOutputs)
+                        else:
+                            Layers,TrainingData=prepare_data_environment_for_partitioned_atomicNNs(self.AtomicNNs,self.TrainingInputs,self.OutputLayer,self.TrainingOutputs)
                     else:
-                        TrainingData=make_data_for_atomicNNs(self.TrainingInputs,self.TrainingOutputs)
+                        if self.IsPartitioned==False:
+                            TrainingData=make_data_for_atomicNNs(self.TrainingInputs,self.TrainingOutputs)
+                        else:
+                            _,TrainingData=prepare_data_environment_for_partitioned_atomicNNs(self.AtomicNNs,self.TrainingInputs,self.OutputLayer,self.TrainingOutputs)
                     #Make validation input vector
                     if len(self.ValidationInputs)>0:
-                        ValidationData=make_data_for_atomicNNs(self.ValidationInputs,self.ValidationOutputs)
+                        if self.IsPartitioned==False:
+                            ValidationData=make_data_for_atomicNNs(self.ValidationInputs,self.ValidationOutputs)
+                        else:
+                            _,ValidationData=prepare_data_environment_for_partitioned_atomicNNs(self.AtomicNNs,self.TrainingInputs,self.OutputLayer,self.TrainingOutputs)
                     else:
                         ValidationData=None
                     #Train one batch
