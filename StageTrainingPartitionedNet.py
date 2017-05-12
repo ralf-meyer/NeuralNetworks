@@ -46,7 +46,7 @@ Training2.make_training_and_validation_data(100,70,30)
 NrAu=1
 NrNi=1
 MyStructure=NN.PartitionedStructure()
-MyStructure.RadialNetworkStructure=[Training.NumberOfRadialFunctions,10,10,1]
+MyStructure.RadialNetworkStructure=[Training.TotalNrOfRadialFuns,10,10,1]
 Training.Structures.append(MyStructure)
 Training.NumberOfSameNetworks.append(NrNi)
 Training.Structures.append(MyStructure)
@@ -58,7 +58,7 @@ Training.ActFun="relu"
 Training.ActFunParam=None
 Training.LearningRate=0.001
 Training.CostCriterium=0.001
-Training.Epochs=10
+Training.Epochs=1
 Training.MakePlots=True
 Training.IsPartitioned=True
 Training.OptimizerType="Adam"
@@ -73,8 +73,8 @@ Training.start_batch_training()
 
 #Train with second data
 MyStructure2=NN.PartitionedStructure()
-MyStructure2.RadialNetworkStructure=[Training.NumberOfRadialFunctions,10,10,1]
-MyStructure2.AngularNetworkStructure=[Training.SizeOfInputs[0]-Training.NumberOfRadialFunctions,10,10,1]
+MyStructure2.RadialNetworkStructure=[Training.TotalNrOfRadialFuns,10,10,1]
+MyStructure2.AngularNetworkStructure=[Training.SizeOfInputs[0]-Training.TotalNrOfRadialFuns,10,10,1]
 Training2.Structures.append(MyStructure2)
 Training2.Structures.append(MyStructure2)
 Training2.IsPartitioned=True
