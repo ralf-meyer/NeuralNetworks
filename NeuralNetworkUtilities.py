@@ -205,7 +205,6 @@ def cost_function(Network,Output,CostFunType=None,RegType=None,RegParam=None):
     return CostFunction
 
 def train_step(Session,Optimizer,Layers,Data,CostFun):
-
     _,Cost=Session.run([Optimizer,CostFun],feed_dict={i: np.array(d) for i, d in zip(Layers,Data)})
     return Cost
 
@@ -365,13 +364,11 @@ def output_of_all_partitioned_atomic_networks(Session,AtomicNNs):
         Networks=AtomicNetwork[1]
         for j in range(0,3):
             SubNet=Networks[j]
-            SubEnergy=0
             if SubNet!=j:
                 #Get input data for network
-                SubEnergy+=SubNet
-        TotalEnergy+=SubEnergy
-        AllEnergies.append(SubEnergy)
-
+                AllEnergies.append(SubNet)
+                TotalEnergy+=SubNet
+        
     return TotalEnergy,AllEnergies
 
 def output_of_all_atomic_networks(Session,AtomicNNs):
@@ -896,6 +893,7 @@ class AtomicNeuralNetInstance(object):
         self.XYZfile=None
         self.Logfile=None
         self.SymmFunKeys=[]
+        self.TotalNrOfRadialFunsFuns=None
         self.NumberOfRadialFunctions=7
         self.Rs=[]
         self.Etas=[]
@@ -1015,7 +1013,7 @@ class AtomicNeuralNetInstance(object):
             Execute=False
 
         if Execute==True:
-            self.Session,self.TrainedNetwork,TrainingCosts,ValidationCosts=train_atomic_networks(self.Session,self.AtomicNNs,self.TrainingInputs,self.TrainingOutputs,self.Epochs,self.Optimizer,self.OutputLayer,self.CostFun,self.ValidationInputs,self.ValidationOutputs,self.CostCriterium,self.MakePlots,self.NumberOfRadialFunctions)
+            self.Session,self.TrainedNetwork,TrainingCosts,ValidationCosts=train_atomic_networks(self.Session,self.AtomicNNs,self.TrainingInputs,self.TrainingOutputs,self.Epochs,self.Optimizer,self.OutputLayer,self.CostFun,self.ValidationInputs,self.ValidationOutputs,self.CostCriterium,self.MakePlots,self.TotalNrOfRadialFunsFuns)
             self.TrainedVariables=get_trained_variables(self.Session,self.VariablesDictionary)
             #Store variables
             np.save("trained_variables",self.TrainedVariables)
@@ -1046,7 +1044,7 @@ class AtomicNeuralNetInstance(object):
         if self.IsPartitioned==False:
             Out=evaluate_all_atomicnns(self.Session,self.AtomicNNs,self.TrainingInputs)
         else:
-            Out=evaluate_all_partitioned_atomicnns(self.Session,self.AtomicNNs,self.TrainingInputs,self.NumberOfRadialFunctions)
+            Out=evaluate_all_partitioned_atomicnns(self.Session,self.AtomicNNs,self.TrainingInputs,self.TotalNrOfRadialFunsFuns)
         return Out
 
     def start_batch_training(self):
@@ -1094,18 +1092,18 @@ class AtomicNeuralNetInstance(object):
                         if self.IsPartitioned==False:
                             Layers,TrainingData=prepare_data_environment_for_atomicNNs(self.AtomicNNs,self.TrainingInputs,self.OutputLayer,self.TrainingOutputs)
                         else:
-                            Layers,TrainingData=prepare_data_environment_for_partitioned_atomicNNs(self.AtomicNNs,self.TrainingInputs,self.NumberOfRadialFunctions,self.OutputLayer,self.TrainingOutputs)
+                            Layers,TrainingData=prepare_data_environment_for_partitioned_atomicNNs(self.AtomicNNs,self.TrainingInputs,self.TotalNrOfRadialFunsFuns,self.OutputLayer,self.TrainingOutputs)
                     else:
                         if self.IsPartitioned==False:
                             TrainingData=make_data_for_atomicNNs(self.TrainingInputs,self.TrainingOutputs)
                         else:
-                            _,TrainingData=prepare_data_environment_for_partitioned_atomicNNs(self.AtomicNNs,self.TrainingInputs,self.NumberOfRadialFunctions,self.OutputLayer,self.TrainingOutputs)
+                            _,TrainingData=prepare_data_environment_for_partitioned_atomicNNs(self.AtomicNNs,self.TrainingInputs,self.TotalNrOfRadialFuns,self.OutputLayer,self.TrainingOutputs)
                     #Make validation input vector
                     if len(self.ValidationInputs)>0:
                         if self.IsPartitioned==False:
                             ValidationData=make_data_for_atomicNNs(self.ValidationInputs,self.ValidationOutputs)
                         else:
-                            _,ValidationData=prepare_data_environment_for_partitioned_atomicNNs(self.AtomicNNs,self.TrainingInputs,self.NumberOfRadialFunctions,self.OutputLayer,self.TrainingOutputs)
+                            _,ValidationData=prepare_data_environment_for_partitioned_atomicNNs(self.AtomicNNs,self.TrainingInputs,self.TotalNrOfRadialFuns,self.OutputLayer,self.TrainingOutputs)
                     else:
                         ValidationData=None
                     #Train one batch
@@ -1296,6 +1294,7 @@ class AtomicNeuralNetInstance(object):
             Execute=False
 
         if Execute==True:
+            self.TotalNrOfRadialFuns=self.NumberOfRadialFunctions*len(self.SymmFunKeys)
             AllDataSetLength=len(self.Ds.geometries)
             SetLength=int(AllDataSetLength*CoverageOfSetInPercent/100)
 
@@ -1421,7 +1420,7 @@ class AtomicNeuralNetInstance(object):
                             RadialHiddenLayers.append(construct_not_trainable_layer(RadialNrIn, RadialNrHidden, self.MinOfOut))
                         else:
                             RadialHiddenLayers.append(construct_hidden_layer(RadialNrIn, RadialNrHidden, self.HiddenType, ThisWeightData, self.BiasType,ThisBiasData,WeightData.RadialVariable))
-                    
+                    print(RadialHiddenLayers)
                     NetworkHiddenLayers[0]=RadialHiddenLayers
                     NetworkWeights[0]=RadialWeights
                     NetworkBias[0]=RadialBias
