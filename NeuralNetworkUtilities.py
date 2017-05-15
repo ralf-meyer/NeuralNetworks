@@ -83,7 +83,7 @@ def construct_hidden_layer(LayerBeforeUnits,HiddenUnits,InitType=None,InitData=[
             Biases=tf.Variable(tf.random_gamma([HiddenUnits],InitData),dtype=tf.float32,name="bias")
         else:
             Biases = tf.Variable(tf.random_uniform([HiddenUnits]),dtype=tf.float32,name="bias")
-
+    
     return Weights,Biases
 
 def construct_output_layer(OutputUnits):
@@ -97,7 +97,9 @@ def construct_not_trainable_layer(NrInputs,NrOutputs,Min):
 
     Weights=tf.constant(np.ones([NrInputs,NrOutputs]),dtype=tf.float32)#, trainable=False)
     Biases=tf.constant(np.zeros([NrOutputs]),dtype=tf.float32)#,trainable=False)
-    Biases=tf.add(Biases,Min/NrOutputs)
+    if Min!=0:
+        Biases=tf.add(Biases,Min/NrOutputs)
+
     return Weights,Biases
 
 def connect_layers(InputsForLayer,Layer1Weights,Layer1Bias,ActFun=None,FunParam=None):
@@ -174,7 +176,21 @@ def make_standard_neuralnetwork(Structure,HiddenType=None,HiddenData=None,BiasTy
 
     return LastConnection,InputLayer,OutputLayer
 
-
+def get_my_variables(partial_dict):
+    OutVars=[]
+    for AtomicNet in partial_dict:
+        for SubNet in AtomicNet:
+            if len(SubNet)>0:
+                for Var in SubNet:
+                    OutVars.append(Var[0])
+                    
+    train_vars=tf.trainable_variables()
+    for var in train_vars:
+        if var not in OutVars:
+            OutVars.append(var)
+            
+    return OutVars
+            
 
 def cost_per_atomic_network(TotalEnergy,AllEnergies,ReferenceValue):
 
@@ -721,7 +737,7 @@ def evaluate_all_partitioned_atomicnns(Session,AtomicNNs,InData,NumberOfRadial):
         AllAtomicNetworks=AtomicNNs[i][1]
         for j in range(0,3):
             SubNet=AllAtomicNetworks[j]
-            if SubNet!=None:
+            if SubNet!=j:
                 Energy+=evaluate(Session,SubNet,[Layers[ct]],Data[ct])
                 ct=ct+1
 
@@ -915,33 +931,40 @@ class AtomicNeuralNetInstance(object):
         self.OutputLayer=construct_output_layer(1)
         #Cost function for whole net
         self.CostFun=atomic_cost_function(self.Session,self.AtomicNNs,self.OutputLayer,self.Regularization,self.RegularizationParam,self.IsPartitioned)
-
+        
+        if self.IsPartitioned==True:
+            All_Vars=tf.trainable_variables()#get_my_variables(self.VariablesDictionary)
+            
             #Set optimizer
         if self.OptimizerType==None:
-           self.Optimizer=tf.train.GradientDescentOptimizer(self.LearningRate).minimize(self.CostFun)
+           self.Optimizer=tf.train.GradientDescentOptimizer(self.LearningRate).minimize(self.CostFun,var_list=All_Vars)
         else:
             if self.OptimizerType=="GradientDescent":
-                self.Optimizer=tf.train.GradientDescentOptimizer(self.LearningRate).minimize(self.CostFun)
+                self.Optimizer=tf.train.GradientDescentOptimizer(self.LearningRate).minimize(self.CostFun,var_list=All_Vars)
             elif self.OptimizerType=="Adagrad":
-                self.Optimizer=tf.train.AdagradOptimizer(self.LearningRate).minimize(self.CostFun)
+                self.Optimizer=tf.train.AdagradOptimizer(self.LearningRate).minimize(self.CostFun,var_list=All_Vars)
             elif self.OptimizerType=="Adadelta":
-                self.Optimizer=tf.train.AdadeltaOptimizer(self.LearningRate).minimize(self.CostFun)
+                self.Optimizer=tf.train.AdadeltaOptimizer(self.LearningRate).minimize(self.CostFun,var_list=All_Vars)
             elif self.OptimizerType=="AdagradDA":
-                self.Optimizer=tf.train.AdagradDAOptimizer(self.LearningRate,self.OptimizerProp).minimize(self.CostFun)
+                self.Optimizer=tf.train.AdagradDAOptimizer(self.LearningRate,self.OptimizerProp).minimize(self.CostFun,var_list=All_Vars)
             elif self.OptimizerType=="Momentum":
-                self.Optimizer=tf.train.MomentumOptimizer(self.LearningRate,self.OptimizerProp).minimize(self.CostFun)
+                self.Optimizer=tf.train.MomentumOptimizer(self.LearningRate,self.OptimizerProp).minimize(self.CostFun,var_list=All_Vars)
             elif self.OptimizerType=="Adam":
-                self.Optimizer=tf.train.AdamOptimizer(self.LearningRate, beta1=0.9, beta2=0.999, epsilon=1e-08).minimize(self.CostFun)
+                opt=tf.train.AdamOptimizer(self.LearningRate, beta1=0.9, beta2=0.999, epsilon=1e-08)#.minimize(self.CostFun,var_list=All_Vars)
+                grads_and_vars = opt.compute_gradients(self.CostFun,grad_loss=1)
+                print(grads_and_vars)
+                self.Optimizer=opt.apply_gradients(grads_and_vars)
+
             elif self.OptimizerType=="Ftrl":
-               self.Optimizer=tf.train.FtrlOptimizer(self.LearningRate).minimize(self.CostFun)
+               self.Optimizer=tf.train.FtrlOptimizer(self.LearningRate).minimize(self.CostFun,var_list=All_Vars)
             elif self.OptimizerType=="ProximalGradientDescent":
-                self.Optimizer=tf.train.ProximalGradientDescentOptimizer(self.LearningRate).minimize(self.CostFun)
+                self.Optimizer=tf.train.ProximalGradientDescentOptimizer(self.LearningRate).minimize(self.CostFun,var_list=All_Vars)
             elif self.OptimizerType=="ProximalAdagrad":
-                self.Optimizer=tf.train.ProximalAdagradOptimizer(self.LearningRate).minimize(self.CostFun)
+                self.Optimizer=tf.train.ProximalAdagradOptimizer(self.LearningRate).minimize(self.CostFun,var_list=All_Vars)
             elif self.OptimizerType=="RMSProp":
-                self.Optimizer=tf.train.RMSPropOptimizer(self.LearningRate).minimize(self.CostFun)
+                self.Optimizer=tf.train.RMSPropOptimizer(self.LearningRate).minimize(self.CostFun,var_list=All_Vars)
             else:
-                self.Optimizer=tf.train.GradientDescentOptimizer(self.LearningRate).minimize(self.CostFun)
+                self.Optimizer=tf.train.GradientDescentOptimizer(self.LearningRate).minimize(self.CostFun,var_list=All_Vars)
 
         #Initialize session
         self.Session.run(tf.global_variables_initializer())
@@ -1417,10 +1440,10 @@ class AtomicNeuralNetInstance(object):
                         RadialNrHidden = ThisWeightData.shape[1]
     
                         if j == len(RadialStructure) - 1 and self.MakeLastLayerConstant == True:
-                            RadialHiddenLayers.append(construct_not_trainable_layer(RadialNrIn, RadialNrHidden, self.MinOfOut))
+                            RadialHiddenLayers.append(construct_not_trainable_layer(RadialNrIn, RadialNrHidden, 0))
                         else:
                             RadialHiddenLayers.append(construct_hidden_layer(RadialNrIn, RadialNrHidden, self.HiddenType, ThisWeightData, self.BiasType,ThisBiasData,WeightData.RadialVariable))
-                    print(RadialHiddenLayers)
+
                     NetworkHiddenLayers[0]=RadialHiddenLayers
                     NetworkWeights[0]=RadialWeights
                     NetworkBias[0]=RadialBias
@@ -1444,7 +1467,7 @@ class AtomicNeuralNetInstance(object):
                         AngularNrHidden = ThisWeightData.shape[1]
     
                         if j == len(AngularStructure) - 1 and self.MakeLastLayerConstant == True:
-                            AngularHiddenLayers.append(construct_not_trainable_layer(AngularNrIn, AngularNrHidden, self.MinOfOut))
+                            AngularHiddenLayers.append(construct_not_trainable_layer(RadialNrIn, RadialNrHidden, 0))
                         else:
                             AngularHiddenLayers.append(construct_hidden_layer(AngularNrIn, AngularNrHidden, self.HiddenType, ThisWeightData, self.BiasType,ThisBiasData,WeightData.AngularVariable))
                     
@@ -1470,7 +1493,7 @@ class AtomicNeuralNetInstance(object):
                         CorrectionNrHidden = ThisWeightData.shape[1]
     
                         if j == len(CorrectionStructure) - 1 and self.MakeLastLayerConstant == True:
-                            CorrectionHiddenLayers.append(construct_not_trainable_layer(CorrectionNrIn, CorrectionNrHidden, self.MinOfOut))
+                            CorrectionHiddenLayers.append(construct_not_trainable_layer(RadialNrIn, RadialNrHidden, 0))
                         else:
                             CorrectionHiddenLayers.append(construct_hidden_layer(CorrectionNrIn, CorrectionNrHidden, self.HiddenType, ThisWeightData, self.BiasType,ThisBiasData,WeightData.CorrectionVariable))
                      
@@ -1483,11 +1506,11 @@ class AtomicNeuralNetInstance(object):
                 for j in range(1, len(RadialStructure)):
                     RadialNrIn = RadialStructure[j - 1]
                     RadialNrHidden = RadialStructure[j]
-                    if j == len(RadialStructure) - 1 and self.MakeLastLayerConstant == True:
-                        RadialHiddenLayers.append(construct_not_trainable_layer(RadialNrIn, RadialNrHidden, self.MinOfOut))
+                    if j == len(RadialStructure) - 1 :
+                        RadialHiddenLayers.append(construct_not_trainable_layer(RadialNrIn, RadialNrHidden, 0))
                     else:
                         RadialHiddenLayers.append(construct_hidden_layer(RadialNrIn, RadialNrHidden, self.HiddenType, [], self.BiasType))
-                
+
                 NetworkHiddenLayers[0]=RadialHiddenLayers
                 
             if CreateNewAngular==True:
@@ -1495,8 +1518,8 @@ class AtomicNeuralNetInstance(object):
                 for j in range(1, len(AngularStructure)):
                     AngularNrIn = AngularStructure[j - 1]
                     AngularNrHidden = AngularStructure[j]
-                    if j == len(AngularStructure) - 1 and self.MakeLastLayerConstant == True:
-                        AngularHiddenLayers.append(construct_not_trainable_layer(AngularNrIn, AngularNrHidden, self.MinOfOut))
+                    if j == len(AngularStructure) - 1 :
+                        AngularHiddenLayers.append(construct_not_trainable_layer(AngularNrIn, AngularNrHidden, 0))
                     else:
                         AngularHiddenLayers.append(construct_hidden_layer(AngularNrIn, AngularNrHidden, self.HiddenType, [], self.BiasType))
                 
@@ -1507,8 +1530,8 @@ class AtomicNeuralNetInstance(object):
                 for j in range(1, len(CorrectionStructure)):
                     CorrectionNrIn = CorrectionStructure[j - 1]
                     CorrectionNrHidden = CorrectionStructure[j]
-                    if j == len(CorrectionStructure) - 1 and self.MakeLastLayerConstant == True:
-                        CorrectionHiddenLayers.append(construct_not_trainable_layer(CorrectionNrIn, CorrectionNrHidden, self.MinOfOut))
+                    if j == len(CorrectionStructure) - 1 :
+                        CorrectionHiddenLayers.append(construct_not_trainable_layer(CorrectionNrIn, CorrectionNrHidden, 0))
                     else:
                         CorrectionHiddenLayers.append(construct_hidden_layer(CorrectionNrIn, CorrectionNrHidden, self.HiddenType, [], self.BiasType))
                 
@@ -1543,7 +1566,7 @@ class AtomicNeuralNetInstance(object):
                             RadialTempWeights = RadialHiddenLayers[l][0]
                             RadialTempBiases = RadialHiddenLayers[l][1]
                             RadialNetwork = connect_layers(RadialNetwork, RadialTempWeights, RadialTempBiases, self.ActFun, self.ActFunParam)
-    
+                    
                 if len(AngularHiddenLayers)>0:
                     # Make angular input layer
                     if CreateNewAngular==False:
