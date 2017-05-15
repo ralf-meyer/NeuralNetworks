@@ -21,8 +21,8 @@ Training.XYZfile="curve.xyz"
 Training.Logfile="md.curve"
 Training.SymmFunKeys=["1","2"]
 Training.NumberOfRadialFunctions=5
-#Training.Lambs=[1.0,-1.0]
-#Training.Zetas=np.arange(0.1,5,0.5).tolist()
+Training.Lambs=[1.0,-1.0]
+Training.Zetas=np.arange(0.1,5,0.5).tolist()
 
 Training.read_files(True)
 Training.make_training_and_validation_data(100,70,30)
@@ -35,8 +35,8 @@ Training2.XYZfile="NiAu_data_2AU1Ni.xyz"
 Training2.Logfile="log.3atoms"
 Training2.SymmFunKeys=["1","2"]
 Training2.NumberOfRadialFunctions=5
-#Training2.Lambs=[1.0,-1.0]
-#Training2.Zetas=np.arange(0.1,5,0.5).tolist()
+Training2.Lambs=[1.0,-1.0]
+Training2.Zetas=np.arange(0.1,5,0.5).tolist()
 
 Training2.read_files()
 Training2.make_training_and_validation_data(100,70,30)
@@ -46,20 +46,16 @@ Training2.make_training_and_validation_data(100,70,30)
 NrAu=1
 NrNi=1
 MyStructure=NN.PartitionedStructure()
-MyStructure.RadialNetworkStructure=[Training.TotalNrOfRadialFuns,10,10,1]
+MyStructure.RadialNetworkStructure=[Training.TotalNrOfRadialFuns,5,5,1]
 Training.Structures.append(MyStructure)
 Training.NumberOfSameNetworks.append(NrNi)
 Training.Structures.append(MyStructure)
 Training.NumberOfSameNetworks.append(NrAu)
-Training.HiddenType="truncated_normal"
-Training.HiddenData=list()
-Training.BiasData=list()
-Training.ActFun="relu"
-Training.ActFunParam=None
 Training.LearningRate=0.001
-Training.CostCriterium=0.001
-Training.Epochs=1
+Training.CostCriterium=0.0001
+Training.Epochs=500
 Training.MakePlots=True
+Training.ActFun="elu"
 Training.IsPartitioned=True
 Training.OptimizerType="Adam"
 Training.Regularization="L2"
@@ -73,17 +69,17 @@ Training.start_batch_training()
 
 #Train with second data
 MyStructure2=NN.PartitionedStructure()
-MyStructure2.RadialNetworkStructure=[Training.TotalNrOfRadialFuns,10,10,1]
-MyStructure2.AngularNetworkStructure=[Training.SizeOfInputs[0]-Training.TotalNrOfRadialFuns,10,10,1]
+MyStructure2.RadialNetworkStructure=[Training.TotalNrOfRadialFuns,5,5,1]
+MyStructure2.AngularNetworkStructure=[Training.SizeOfInputs[0]-Training.TotalNrOfRadialFuns,15,15,1]
 Training2.Structures.append(MyStructure2)
 Training2.Structures.append(MyStructure2)
 Training2.IsPartitioned=True
-Training2.LearningRate=0.00001
+Training2.LearningRate=0.0001
 Training2.CostCriterium=0.00001
-Training2.Epochs=15
+Training2.Epochs=150
 Training2.MakePlots=True
-Training2.ActFun="relu"
 Training2.OptimizerType="Adam"
+Training2.ActFun="elu"
 
 #Evaluate quality of learning transfer
 NrAu=1
@@ -123,3 +119,12 @@ plt.plot(Training.eval_step())
 plt.plot(Training2.eval_step())
 plt.show(block=False)
 plt.ion()
+
+#Train with second data
+NrAu=1
+NrNi=2
+Training2.NumberOfSameNetworks[0]=NrNi
+Training2.NumberOfSameNetworks[1]=NrAu
+Training2.expand_existing_net()
+
+Training2.start_batch_training()
