@@ -11,8 +11,12 @@ import DataSet
 import SymmetryFunctionSet
 import random as rand
 import matplotlib.pyplot as plt
+import multiprocessing
+
+
 
 plt.ion()
+tf.reset_default_graph()
 
 def construct_input_layer(InputUnits):
     #Construct inputs for the NN
@@ -91,6 +95,17 @@ def construct_output_layer(OutputUnits):
     Outputs = tf.placeholder(tf.float32, shape=[None, OutputUnits])
 
     return Outputs
+
+
+def construct_trainable_layer(NrInputs,NrOutputs,Min):
+    #make a not trainable layer with the weights one
+
+    Weights=tf.Variable(np.ones([NrInputs,NrOutputs]),dtype=tf.float32)#, trainable=False)
+    Biases=tf.Variable(np.zeros([NrOutputs]),dtype=tf.float32)#,trainable=False)
+    if Min!=0:
+        Biases=tf.add(Biases,Min/NrOutputs)
+
+    return Weights,Biases
 
 def construct_not_trainable_layer(NrInputs,NrOutputs,Min):
     #make a not trainable layer with the weights one
@@ -373,7 +388,6 @@ def output_of_all_partitioned_atomic_networks(Session,AtomicNNs):
 
     TotalEnergy=0
     AllEnergies=list()
-
     for i in range(0,len(AtomicNNs)):
         #Get network data
         AtomicNetwork=AtomicNNs[i]
@@ -383,8 +397,10 @@ def output_of_all_partitioned_atomic_networks(Session,AtomicNNs):
             if SubNet!=j:
                 #Get input data for network
                 AllEnergies.append(SubNet)
-                TotalEnergy+=SubNet
-        
+
+    TotalEnergy=tf.add_n(AllEnergies)
+
+
     return TotalEnergy,AllEnergies
 
 def output_of_all_atomic_networks(Session,AtomicNNs):
@@ -398,7 +414,8 @@ def output_of_all_atomic_networks(Session,AtomicNNs):
         Network=AtomicNetwork[1]
         #Get input data for network
         AllEnergies.append(Network)
-        TotalEnergy+=AllEnergies[-1]
+    
+    TotalEnergy=tf.add_n(AllEnergies)
 
     return TotalEnergy,AllEnergies
 
@@ -876,7 +893,7 @@ class AtomicNeuralNetInstance(object):
         self.BiasData=list()
         self.TrainingBatches=list()
         self.ValidationBatches=list()
-        self.ActFun="relu"
+        self.ActFun="elu"
         self.ActFunParam=None
         self.CostCriterium=0
         self.OptimizerType=None
@@ -950,11 +967,7 @@ class AtomicNeuralNetInstance(object):
             elif self.OptimizerType=="Momentum":
                 self.Optimizer=tf.train.MomentumOptimizer(self.LearningRate,self.OptimizerProp).minimize(self.CostFun,var_list=All_Vars)
             elif self.OptimizerType=="Adam":
-                opt=tf.train.AdamOptimizer(self.LearningRate, beta1=0.9, beta2=0.999, epsilon=1e-08)#.minimize(self.CostFun,var_list=All_Vars)
-                grads_and_vars = opt.compute_gradients(self.CostFun,grad_loss=1)
-                print(grads_and_vars)
-                self.Optimizer=opt.apply_gradients(grads_and_vars)
-
+                self.Optimizer=tf.train.AdamOptimizer(self.LearningRate, beta1=0.9, beta2=0.999, epsilon=1e-08).minimize(self.CostFun,var_list=All_Vars)
             elif self.OptimizerType=="Ftrl":
                self.Optimizer=tf.train.FtrlOptimizer(self.LearningRate).minimize(self.CostFun,var_list=All_Vars)
             elif self.OptimizerType=="ProximalGradientDescent":
@@ -1132,6 +1145,7 @@ class AtomicNeuralNetInstance(object):
                     #Train one batch
                     
                     TrainingCosts,ValidationCosts=train_atomic_network_batch(self.Session,self.Optimizer,Layers,TrainingData,ValidationData,self.CostFun)
+                                        
                     tempTrainingCost.append(TrainingCosts)
                     tempValidationCost.append(ValidationCosts)
                     
@@ -1375,7 +1389,8 @@ class AtomicNeuralNetInstance(object):
         AllHiddenLayers=list()
         # Start Session
         if self.Multiple==False:
-            self.Session=tf.Session()
+            self.Session=tf.Session(config=tf.ConfigProto(
+  intra_op_parallelism_threads=multiprocessing.cpu_count()))
             
 
         # make all the networks for the different atom types
@@ -1440,7 +1455,7 @@ class AtomicNeuralNetInstance(object):
                         RadialNrHidden = ThisWeightData.shape[1]
     
                         if j == len(RadialStructure) - 1 and self.MakeLastLayerConstant == True:
-                            RadialHiddenLayers.append(construct_not_trainable_layer(RadialNrIn, RadialNrHidden, 0))
+                            RadialHiddenLayers.append(construct_not_trainable_layer(RadialNrIn, RadialNrHidden, self.MinOfOut))
                         else:
                             RadialHiddenLayers.append(construct_hidden_layer(RadialNrIn, RadialNrHidden, self.HiddenType, ThisWeightData, self.BiasType,ThisBiasData,WeightData.RadialVariable))
 
@@ -1467,7 +1482,7 @@ class AtomicNeuralNetInstance(object):
                         AngularNrHidden = ThisWeightData.shape[1]
     
                         if j == len(AngularStructure) - 1 and self.MakeLastLayerConstant == True:
-                            AngularHiddenLayers.append(construct_not_trainable_layer(RadialNrIn, RadialNrHidden, 0))
+                            AngularHiddenLayers.append(construct_not_trainable_layer(AngularNrIn, AngularNrHidden, self.MinOfOut))
                         else:
                             AngularHiddenLayers.append(construct_hidden_layer(AngularNrIn, AngularNrHidden, self.HiddenType, ThisWeightData, self.BiasType,ThisBiasData,WeightData.AngularVariable))
                     
@@ -1493,7 +1508,7 @@ class AtomicNeuralNetInstance(object):
                         CorrectionNrHidden = ThisWeightData.shape[1]
     
                         if j == len(CorrectionStructure) - 1 and self.MakeLastLayerConstant == True:
-                            CorrectionHiddenLayers.append(construct_not_trainable_layer(RadialNrIn, RadialNrHidden, 0))
+                            CorrectionHiddenLayers.append(construct_not_trainable_layer(CorrectionNrIn, CorrectionNrHidden, self.MinOfOut))
                         else:
                             CorrectionHiddenLayers.append(construct_hidden_layer(CorrectionNrIn, CorrectionNrHidden, self.HiddenType, ThisWeightData, self.BiasType,ThisBiasData,WeightData.CorrectionVariable))
                      
@@ -1507,7 +1522,7 @@ class AtomicNeuralNetInstance(object):
                     RadialNrIn = RadialStructure[j - 1]
                     RadialNrHidden = RadialStructure[j]
                     if j == len(RadialStructure) - 1 :
-                        RadialHiddenLayers.append(construct_not_trainable_layer(RadialNrIn, RadialNrHidden, 0))
+                        RadialHiddenLayers.append(construct_not_trainable_layer(RadialNrIn, RadialNrHidden, self.MinOfOut))
                     else:
                         RadialHiddenLayers.append(construct_hidden_layer(RadialNrIn, RadialNrHidden, self.HiddenType, [], self.BiasType))
 
@@ -1519,7 +1534,7 @@ class AtomicNeuralNetInstance(object):
                     AngularNrIn = AngularStructure[j - 1]
                     AngularNrHidden = AngularStructure[j]
                     if j == len(AngularStructure) - 1 :
-                        AngularHiddenLayers.append(construct_not_trainable_layer(AngularNrIn, AngularNrHidden, 0))
+                        AngularHiddenLayers.append(construct_not_trainable_layer(AngularNrIn, AngularNrHidden, self.MinOfOut))
                     else:
                         AngularHiddenLayers.append(construct_hidden_layer(AngularNrIn, AngularNrHidden, self.HiddenType, [], self.BiasType))
                 
@@ -1531,7 +1546,7 @@ class AtomicNeuralNetInstance(object):
                     CorrectionNrIn = CorrectionStructure[j - 1]
                     CorrectionNrHidden = CorrectionStructure[j]
                     if j == len(CorrectionStructure) - 1 :
-                        CorrectionHiddenLayers.append(construct_not_trainable_layer(CorrectionNrIn, CorrectionNrHidden, 0))
+                        CorrectionHiddenLayers.append(construct_not_trainable_layer(CorrectionNrIn, CorrectionNrHidden,self.MinOfOut))
                     else:
                         CorrectionHiddenLayers.append(construct_hidden_layer(CorrectionNrIn, CorrectionNrHidden, self.HiddenType, [], self.BiasType))
                 
@@ -1557,14 +1572,11 @@ class AtomicNeuralNetInstance(object):
                     RadialNetwork = connect_layers(RadialInputLayer, RadialFirstWeights, RadialFirstBiases, self.ActFun, self.ActFunParam)
                     #Connect radial hidden layers
                     for l in range(1, len(RadialHiddenLayers)):
-    
+                        RadialTempWeights = RadialHiddenLayers[l][0]
+                        RadialTempBiases = RadialHiddenLayers[l][1]
                         if l == len(RadialHiddenLayers) - 1:
-                            RadialTempWeights = RadialHiddenLayers[l][0]
-                            RadialTempBiases = RadialHiddenLayers[l][1]
                             RadialNetwork = connect_layers(RadialNetwork, RadialTempWeights, RadialTempBiases, "none", self.ActFunParam)
                         else:
-                            RadialTempWeights = RadialHiddenLayers[l][0]
-                            RadialTempBiases = RadialHiddenLayers[l][1]
                             RadialNetwork = connect_layers(RadialNetwork, RadialTempWeights, RadialTempBiases, self.ActFun, self.ActFunParam)
                     
                 if len(AngularHiddenLayers)>0:
@@ -1582,14 +1594,11 @@ class AtomicNeuralNetInstance(object):
                     AngularNetwork = connect_layers(AngularInputLayer, AngularFirstWeights, AngularFirstBiases, self.ActFun, self.ActFunParam)
                     #Connect angular hidden layers
                     for l in range(1, len(AngularHiddenLayers)):
-    
+                        AngularTempWeights = AngularHiddenLayers[l][0]
+                        AngularTempBiases = AngularHiddenLayers[l][1]
                         if l == len(AngularHiddenLayers) - 1:
-                            AngularTempWeights = AngularHiddenLayers[l][0]
-                            AngularTempBiases = AngularHiddenLayers[l][1]
                             AngularNetwork = connect_layers(AngularNetwork, AngularTempWeights, AngularTempBiases, "none", self.ActFunParam)
                         else:
-                            AngularTempWeights = AngularHiddenLayers[l][0]
-                            AngularTempBiases = AngularHiddenLayers[l][1]
                             AngularNetwork = connect_layers(AngularNetwork, AngularTempWeights, AngularTempBiases, self.ActFun, self.ActFunParam)
                
                 if len(CorrectionHiddenLayers)>0:
@@ -1607,14 +1616,11 @@ class AtomicNeuralNetInstance(object):
                     CorrectionNetwork = connect_layers(CorrectionInputLayer, CorrectionFirstWeights, CorrectionFirstBiases, self.ActFun, self.ActFunParam)
                     #Connect Correction hidden layers
                     for l in range(1, len(CorrectionHiddenLayers)):
-    
+                        CorrectionTempWeights = CorrectionHiddenLayers[l][0]
+                        CorrectionTempBiases = CorrectionHiddenLayers[l][1]
                         if l == len(CorrectionHiddenLayers) - 1:
-                            CorrectionTempWeights = CorrectionHiddenLayers[l][0]
-                            CorrectionTempBiases = CorrectionHiddenLayers[l][1]
                             CorrectionNetwork = connect_layers(CorrectionNetwork, CorrectionTempWeights, CorrectionTempBiases, "none", self.ActFunParam)
                         else:
-                            CorrectionTempWeights = CorrectionHiddenLayers[l][0]
-                            CorrectionTempBiases = CorrectionHiddenLayers[l][1]
                             CorrectionNetwork = connect_layers(CorrectionNetwork, CorrectionTempWeights, CorrectionTempBiases, self.ActFun, self.ActFunParam)
      
                 
@@ -1627,7 +1633,6 @@ class AtomicNeuralNetInstance(object):
                 elif CorrectionNetwork!=None:
                     Network[2]=CorrectionNetwork
 
-                    
                 #Store all force networks
                 ForceNetworks=list()
                 if RadialForceNetworks!=None :
@@ -1691,7 +1696,8 @@ class AtomicNeuralNetInstance(object):
         AtomicNNs = list()
         # Start Session
         if self.Multiple==False:
-            self.Session=tf.Session()
+            self.Session=tf.Session(config=tf.ConfigProto(
+  intra_op_parallelism_threads=multiprocessing.cpu_count()))
             
         OldBiasNr = 0
         OldShape = None
