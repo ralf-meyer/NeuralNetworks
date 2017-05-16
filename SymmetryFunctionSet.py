@@ -16,7 +16,7 @@ class SymmetryFunctionSet(object):
             self.radial_sym_funs.append(
                 SFs.RadialSymmetryFunction(rs, eta, self.cutoff))
                                                               
-    def add_angluar_functions(self, etas, zetas, lambs):
+    def add_angular_functions(self, etas, zetas, lambs):
         for eta, zeta, lamb in zip(etas, zetas, lambs):
             self.angular_sym_funs.append(
                 SFs.AngularSymmetryFunction(eta, zeta, lamb, self.cutoff))
