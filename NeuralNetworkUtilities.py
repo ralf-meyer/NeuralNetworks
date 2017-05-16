@@ -821,6 +821,9 @@ def initialize_cost_plot(TrainingData,ValidationData=[]):
     #Need both of these in order to rescale
     ax.relim()
     ax.autoscale_view()
+    ax.set_xlabel("batches")
+    ax.set_ylabel("cost")
+    ax.set_title("Normalized cost per batch")
     #We need to draw *and* flush
     fig.canvas.draw()
     fig.canvas.flush_events()
