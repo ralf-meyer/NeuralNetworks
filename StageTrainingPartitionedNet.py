@@ -23,6 +23,7 @@ Training.SymmFunKeys=["1","2"]
 Training.NumberOfRadialFunctions=5
 Training.Lambs=[1.0,-1.0]
 Training.Zetas=np.arange(0.1,5,0.5).tolist()
+Training.Etas=np.arange(0.1,7,1).tolist()
 
 Training.read_files(True)
 Training.make_training_and_validation_data(100,70,30)
@@ -37,6 +38,7 @@ Training2.SymmFunKeys=["1","2"]
 Training2.NumberOfRadialFunctions=5
 Training2.Lambs=[1.0,-1.0]
 Training2.Zetas=np.arange(0.1,5,0.5).tolist()
+Training2.Etas=np.arange(0.1,7,1).tolist()
 
 Training2.read_files()
 Training2.make_training_and_validation_data(100,70,30)
@@ -69,8 +71,9 @@ Training.start_batch_training()
 
 #Train with second data
 MyStructure2=NN.PartitionedStructure()
-MyStructure2.RadialNetworkStructure=[Training.TotalNrOfRadialFuns,5,5,1]
-MyStructure2.AngularNetworkStructure=[Training.SizeOfInputs[0]-Training.TotalNrOfRadialFuns,15,15,1]
+MyStructure2.RadialNetworkStructure=[Training2.TotalNrOfRadialFuns,5,5,1]
+MyStructure2.AngularNetworkStructure=[Training2.SizeOfInputs[0]-Training2.TotalNrOfRadialFuns,15,15,1]
+#MyStructure2.CorrectionNetworkStructure=[Training2.SizeOfInputs[0],15,15,1]
 Training2.Structures.append(MyStructure2)
 Training2.Structures.append(MyStructure2)
 Training2.IsPartitioned=True
