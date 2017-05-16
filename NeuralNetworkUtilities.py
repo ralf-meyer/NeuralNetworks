@@ -1266,7 +1266,7 @@ class AtomicNeuralNetInstance(object):
             self.Ds.read_lammps(self.XYZfile,self.Logfile)
             #self.SymmFunSet.add_radial_functions(self.Rs,self.Etas)
             self.SymmFunSet.add_radial_functions_evenly(self.NumberOfRadialFunctions)
-            self.SymmFunSet.add_angluar_functions(self.Etas,self.Zetas,self.Lambs)
+            self.SymmFunSet.add_angular_functions(self.Etas,self.Zetas,self.Lambs)
             AtomicNeuralNetInstance.calculate_statistics_for_dataset(self,TakeAsReference)
 
 
