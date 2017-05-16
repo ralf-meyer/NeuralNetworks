@@ -62,10 +62,10 @@ class AngularSymmetryFunction(object):
             _np.exp(-self.eta*(rij**2+rik**2)) * self.cut_fun(rij)*self.cut_fun(rik))
             
     def derivative(self, rij, rik, costheta):
-        # TODO
-        return 0.0
-
-
+        sintheta = _np.sqrt(1-costheta**2)
+        return 2**(1-self.zeta)*(-self.lamb * self.zeta * sintheta *
+            (1 + self.lamb*costheta)**(self.zeta-1) * 
+            _np.exp(-self.eta*(rij**2+rik**2)) * self.cut_fun(rij)*self.cut_fun(rik))
 
 def radial_function(rij, rs, eta, cut):
     return _np.exp(-eta*(rij-rs)**2)*cutoff_function(rij,cut)

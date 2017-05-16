@@ -16,7 +16,7 @@ class SymmetryFunctionSet(object):
             self.radial_sym_funs.append(
                 SFs.RadialSymmetryFunction(rs, eta, self.cutoff))
                                                               
-    def add_angluar_functions(self, etas, zetas, lambs):
+    def add_angular_functions(self, etas, zetas, lambs):
         for eta, zeta, lamb in zip(etas, zetas, lambs):
             self.angular_sym_funs.append(
                 SFs.AngularSymmetryFunction(eta, zeta, lamb, self.cutoff))
@@ -27,6 +27,8 @@ class SymmetryFunctionSet(object):
         self.add_radial_functions(rss, etas)
         
     def eval_geometry(self, geometry, derivative = False):
+        # Returns a (Number of atoms) x (Size of G vector) matrix
+        # The G vector doubles in size if derivatives are also requested
         # Calculate distance matrix. Should be solvable without using 
         # squareform! 
         # TODO: rewrite even more efficient
@@ -51,19 +53,43 @@ class SymmetryFunctionSet(object):
         djk = _np.tile(_np.eye(N).reshape((1,N,N)),(N,1,1))
         kron_ijk = 1. - _np.sign(dij+dik+djk)
         
-        out = _np.zeros((N, Nr*Nt + comb(Nt, 2, exact = True, repetition = True)*Na))
-        
-        ind = 0 # Counter for the combinations of angle types
-        for t, atype in enumerate(self.atomtypes):
-            # Mask for the different atom types
-            mask = [a[0] == atype for a in geometry]
-            for i, rad_fun in enumerate(self.radial_sym_funs):                
-                out[:,t*Nr+i] = (kron_ij * rad_fun(dist_mat)).dot(mask)
-            for atype2 in self.atomtypes[t:]:
-                # Second mask because two atom types are involved
-                mask2 = [a[0] == atype2 for a in geometry]
-                for j, ang_fun in enumerate(self.angular_sym_funs):
-                    out[:,Nt*Nr+ind*Na+j] = (kron_ijk * 
-                        ang_fun(rij, rik, costheta)).dot(mask).dot(mask2)
-                ind += 1
+        if derivative == False:
+            out = _np.zeros((N, Nr*Nt + comb(Nt, 2, exact = True, 
+                                             repetition = True)*Na))
+            
+            ind = 0 # Counter for the combinations of angle types
+            for t, atype in enumerate(self.atomtypes):
+                # Mask for the different atom types
+                mask = [a[0] == atype for a in geometry]
+                for i, rad_fun in enumerate(self.radial_sym_funs):                
+                    out[:,t*Nr+i] = (kron_ij * rad_fun(dist_mat)).dot(mask)
+                for atype2 in self.atomtypes[t:]:
+                    # Second mask because two atom types are involved
+                    mask2 = [a[0] == atype2 for a in geometry]
+                    for j, ang_fun in enumerate(self.angular_sym_funs):
+                        out[:,Nt*Nr+ind*Na+j] = (kron_ijk * 
+                            ang_fun(rij, rik, costheta)).dot(mask).dot(mask2)
+                    ind += 1
+                    
+        else: # derivative = True: doubles the size of the output matrix
+            out = _np.zeros((N, 2*(Nr*Nt + comb(Nt, 2, exact = True, 
+                                             repetition = True)*Na)))
+            
+            ind = 0 # Counter for the combinations of angle types
+            for t, atype in enumerate(self.atomtypes):
+                # Mask for the different atom types
+                mask = [a[0] == atype for a in geometry]
+                for i, rad_fun in enumerate(self.radial_sym_funs):                
+                    out[:,t*2*Nr+2*i] = (kron_ij * rad_fun(dist_mat)).dot(mask)
+                    out[:,t*2*Nr+2*i+1] = (kron_ij * 
+                                        rad_fun.derivative(dist_mat)).dot(mask)
+                for atype2 in self.atomtypes[t:]:
+                    # Second mask because two atom types are involved
+                    mask2 = [a[0] == atype2 for a in geometry]
+                    for j, ang_fun in enumerate(self.angular_sym_funs):
+                        out[:,Nt*2*Nr+ind*2*Na+2*j] = (kron_ijk * 
+                            ang_fun(rij, rik, costheta)).dot(mask).dot(mask2)
+                        out[:,Nt*2*Nr+ind*2*Na+2*j+1] = (kron_ijk * 
+                            ang_fun.derivative(rij, rik, costheta)).dot(mask).dot(mask2)
+                    ind += 1
         return out
