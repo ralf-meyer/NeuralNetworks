@@ -12,19 +12,24 @@ class SymmetryFunctionSet(object):
         self.angular_sym_funs = []
         
     def add_radial_functions(self, rss, etas):
-        for rs, eta in zip(rss, etas):
-            self.radial_sym_funs.append(
-                SFs.RadialSymmetryFunction(rs, eta, self.cutoff))
+        for rs in rss:
+            for eta in etas:
+                self.radial_sym_funs.append(
+                        SFs.RadialSymmetryFunction(rs, eta, self.cutoff))
                                                               
     def add_angular_functions(self, etas, zetas, lambs):
-        for eta, zeta, lamb in zip(etas, zetas, lambs):
-            self.angular_sym_funs.append(
-                SFs.AngularSymmetryFunction(eta, zeta, lamb, self.cutoff))
+        for eta in etas:
+            for zeta in zetas:
+                for lamb in lambs:
+                    self.angular_sym_funs.append(
+                            SFs.AngularSymmetryFunction(eta, zeta, lamb, self.cutoff))
     
     def add_radial_functions_evenly(self, N):
         rss = _np.linspace(0.,self.cutoff,N)
         etas = [2./(self.cutoff/(N-1))**2]*N
-        self.add_radial_functions(rss, etas)
+        for rs, eta in zip(rss, etas):
+            self.radial_sym_funs.append(
+                        SFs.RadialSymmetryFunction(rs, eta, self.cutoff))
         
     def eval_geometry(self, geometry, derivative = False):
         # Returns a (Number of atoms) x (Size of G vector) matrix
