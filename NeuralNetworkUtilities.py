@@ -26,7 +26,6 @@ def construct_input_layer(InputUnits):
 
 def construct_hidden_layer(LayerBeforeUnits,HiddenUnits,InitType=None,InitData=[],BiasType=None,BiasData=[],MakeAllVariable=False,Mean=0.0,Stddev=1.0):
     #Construct the weights for this layer
-
     if len(InitData)==0:
         if InitType!=None:
             if InitType == "zeros":
@@ -307,7 +306,7 @@ def prepare_data_environment_for_partitioned_atomicNNs(AtomicNNs,InData,NumberOf
                 elif j==1: #Angular data
                     CombinedData.append(Data[:,NumberOfRadial:])
                 else:
-                    CombinedData.append(Data[:])
+                    CombinedData.append(Data)
                 
     if OutputLayer!=None:
         Layers.append(OutputLayer)
@@ -916,7 +915,7 @@ class AtomicNeuralNetInstance(object):
         self.MakePlots=False
         self.InitMean=0.0
         self.InitStddev=1.0
-        self.MakeLastLayerConstant=True
+        self.MakeLastLayerConstant=False
         self.MakeAllVariable=True
         self.Regularization="none"
         self.RegularizationParam=0.001
@@ -984,7 +983,7 @@ class AtomicNeuralNetInstance(object):
                 else:
                     self.Optimizer=tf.train.GradientDescentOptimizer(self.LearningRate).minimize(self.CostFun,var_list=All_Vars)
         except:
-            print("Evaluation only no training supported!")
+            print("Evaluation only no training supported if all networks are constant!")
         #Initialize session
         self.Session.run(tf.global_variables_initializer())
 
@@ -1460,7 +1459,7 @@ class AtomicNeuralNetInstance(object):
                         ThisBiasData = RadialBias[j - 1]
                         RadialNrIn = ThisWeightData.shape[0]
                         RadialNrHidden = ThisWeightData.shape[1]
-                        RadialHiddenLayers.append(construct_hidden_layer(RadialNrIn, RadialNrHidden, self.HiddenType, ThisWeightData, self.BiasType,ThisBiasData,WeightData.RadialVariable))
+                        RadialHiddenLayers.append(construct_hidden_layer(RadialNrIn, RadialNrHidden, self.HiddenType, ThisWeightData, self.BiasType,ThisBiasData,WeightData.RadialVariable,self.InitMean,self.InitStddev))
 
                     NetworkHiddenLayers[0]=RadialHiddenLayers
                     NetworkWeights[0]=RadialWeights
@@ -1483,7 +1482,7 @@ class AtomicNeuralNetInstance(object):
                         ThisBiasData = AngularBias[j - 1]
                         AngularNrIn = ThisWeightData.shape[0]
                         AngularNrHidden = ThisWeightData.shape[1]
-                        AngularHiddenLayers.append(construct_hidden_layer(AngularNrIn, AngularNrHidden, self.HiddenType, ThisWeightData, self.BiasType,ThisBiasData,WeightData.AngularVariable))
+                        AngularHiddenLayers.append(construct_hidden_layer(AngularNrIn, AngularNrHidden, self.HiddenType, ThisWeightData, self.BiasType,ThisBiasData,WeightData.AngularVariable,self.InitMean,self.InitStddev))
                     
                     NetworkHiddenLayers[1]=AngularHiddenLayers   
                     NetworkWeights[1]=AngularWeights
@@ -1505,7 +1504,7 @@ class AtomicNeuralNetInstance(object):
                         ThisBiasData = CorrectionBias[j - 1]
                         CorrectionNrIn = ThisWeightData.shape[0]
                         CorrectionNrHidden = ThisWeightData.shape[1]
-                        CorrectionHiddenLayers.append(construct_hidden_layer(CorrectionNrIn, CorrectionNrHidden, self.HiddenType, ThisWeightData, self.BiasType,ThisBiasData,WeightData.CorrectionVariable))
+                        CorrectionHiddenLayers.append(construct_hidden_layer(CorrectionNrIn, CorrectionNrHidden, self.HiddenType, ThisWeightData, self.BiasType,ThisBiasData,WeightData.CorrectionVariable,self.InitMean,self.InitStddev))
                      
                     NetworkHiddenLayers[2]=CorrectionHiddenLayers
                     NetworkWeights[2]=CorrectionWeights
@@ -1516,7 +1515,7 @@ class AtomicNeuralNetInstance(object):
                 for j in range(1, len(RadialStructure)):
                     RadialNrIn = RadialStructure[j - 1]
                     RadialNrHidden = RadialStructure[j]
-                    RadialHiddenLayers.append(construct_hidden_layer(RadialNrIn, RadialNrHidden, self.HiddenType, [], self.BiasType))
+                    RadialHiddenLayers.append(construct_hidden_layer(RadialNrIn, RadialNrHidden, self.HiddenType, [], self.BiasType,[],True,self.InitMean,self.InitStddev))
 
                 NetworkHiddenLayers[0]=RadialHiddenLayers
                 
@@ -1525,8 +1524,7 @@ class AtomicNeuralNetInstance(object):
                 for j in range(1, len(AngularStructure)):
                     AngularNrIn = AngularStructure[j - 1]
                     AngularNrHidden = AngularStructure[j]
-                    AngularHiddenLayers.append(construct_hidden_layer(AngularNrIn, AngularNrHidden, self.HiddenType, [], self.BiasType))
-                
+                    AngularHiddenLayers.append(construct_hidden_layer(AngularNrIn, AngularNrHidden, self.HiddenType, [], self.BiasType,[],True,self.InitMean,self.InitStddev))
                 NetworkHiddenLayers[1]=AngularHiddenLayers
                 
             if CreateNewCorrection==True:
@@ -1534,7 +1532,7 @@ class AtomicNeuralNetInstance(object):
                 for j in range(1, len(CorrectionStructure)):
                     CorrectionNrIn = CorrectionStructure[j - 1]
                     CorrectionNrHidden = CorrectionStructure[j]
-                    CorrectionHiddenLayers.append(construct_hidden_layer(CorrectionNrIn, CorrectionNrHidden, self.HiddenType, [], self.BiasType))
+                    CorrectionHiddenLayers.append(construct_hidden_layer(CorrectionNrIn, CorrectionNrHidden, self.HiddenType, [], self.BiasType,[],True,self.InitMean,self.InitStddev))
                 
                 NetworkHiddenLayers[2]=CorrectionHiddenLayers
                 
@@ -1725,26 +1723,30 @@ class AtomicNeuralNetInstance(object):
 
                             HiddenLayers.append([tempWeights, tempBias])
                         else:
-                            OldBiasNr = len(self.BiasData[i][j - 1])
-                            OldShape = self.HiddenData[i][j - 1].shape
-                            # fill old weights in new structure
-                            if OldBiasNr < NrHidden:
-                                ThisWeightData = np.random.normal(loc=0.0, scale=0.01, size=(NrIn, NrHidden))
-                                ThisWeightData[0:OldShape[0], 0:OldShape[1]] = self.HiddenData[i][j - 1]
-                                ThisBiasData = np.zeros([NrHidden])
-                                ThisBiasData[0:OldBiasNr] = self.BiasData[i][j - 1]
-                            elif OldBiasNr>NrHidden:
-                                ThisWeightData = np.zeros((NrIn, NrHidden))
-                                ThisWeightData[0:, 0:] = self.HiddenData[i][j - 1][0:NrIn,0:NrHidden]
-                                ThisBiasData = np.zeros([NrHidden])
-                                ThisBiasData[0:OldBiasNr] = self.BiasData[i][j - 1][0:NrIn,0:NrHidden]
+                            if len(RawBias) >= j:
+                                OldBiasNr = len(self.BiasData[i][j - 1])
+                                OldShape = self.HiddenData[i][j - 1].shape
+                                # fill old weights in new structure
+                                if OldBiasNr < NrHidden:
+                                    ThisWeightData = np.random.normal(loc=0.0, scale=0.01, size=(NrIn, NrHidden))
+                                    ThisWeightData[0:OldShape[0], 0:OldShape[1]] = self.HiddenData[i][j - 1]
+                                    ThisBiasData = np.zeros([NrHidden])
+                                    ThisBiasData[0:OldBiasNr] = self.BiasData[i][j - 1]
+                                elif OldBiasNr>NrHidden:
+                                    ThisWeightData = np.zeros((NrIn, NrHidden))
+                                    ThisWeightData[0:, 0:] = self.HiddenData[i][j - 1][0:NrIn,0:NrHidden]
+                                    ThisBiasData = np.zeros([NrHidden])
+                                    ThisBiasData[0:OldBiasNr] = self.BiasData[i][j - 1][0:NrIn,0:NrHidden]
+                                else:
+                                    ThisWeightData = self.HiddenData[i][j - 1]
+                                    ThisBiasData = self.BiasData[i][j - 1]
+    
+                                HiddenLayers.append(
+                                    construct_hidden_layer(NrIn, NrHidden, self.HiddenType, ThisWeightData, self.BiasType,
+                                                           ThisBiasData, self.MakeAllVariable))
                             else:
-                                ThisWeightData = self.HiddenData[i][j - 1]
-                                ThisBiasData = self.BiasData[i][j - 1]
+                                raise ValueError("Number of layers doesn't match, MakeLastLayerConstant has to be set to True!")
 
-                            HiddenLayers.append(
-                                construct_hidden_layer(NrIn, NrHidden, self.HiddenType, ThisWeightData, self.BiasType,
-                                                       ThisBiasData, self.MakeAllVariable))
 
             else:
                 RawWeights = None
