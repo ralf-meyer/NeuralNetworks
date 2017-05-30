@@ -26,7 +26,6 @@ def construct_input_layer(InputUnits):
 
 def construct_hidden_layer(LayerBeforeUnits,HiddenUnits,InitType=None,InitData=[],BiasType=None,BiasData=[],MakeAllVariable=False,Mean=0.0,Stddev=1.0):
     #Construct the weights for this layer
-
     if len(InitData)==0:
         if InitType!=None:
             if InitType == "zeros":
@@ -307,7 +306,7 @@ def prepare_data_environment_for_partitioned_atomicNNs(AtomicNNs,InData,NumberOf
                 elif j==1: #Angular data
                     CombinedData.append(Data[:,NumberOfRadial:])
                 else:
-                    CombinedData.append(Data[:])
+                    CombinedData.append(Data)
                 
     if OutputLayer!=None:
         Layers.append(OutputLayer)
@@ -604,136 +603,7 @@ def all_derivatives_of_Ei_wrt_Gij(Session,InputLayer,Network,G_values):
 
     return DerivativeValues
 
-def get_g_values(Session,GsForAtom,Alpha,AlphaVal):
 
-    G_values=np.empty((1,len(GsForAtom)))
-    for i in range(0,len(GsForAtom)):
-        G_values[0][i]=Session.run(GsForAtom[i],feed_dict={Alpha:AlphaVal})[0]
-
-    return G_values
-
-
-def force_for_atomicnetwork_internal(Session,AtomicNetwork,Alpha,AlphaValue):
-
-    Out=0
-    Network=AtomicNetwork[1]
-    InputLayer=AtomicNetwork[2]
-    GsForAtom=AtomicNetwork[8]
-    G_values=get_g_values(Session,GsForAtom,Alpha,AlphaValue)
-    part1=all_derivatives_of_Ei_wrt_Gij(Session,InputLayer,Network,G_values)[0]
-    part2=all_derivatives_of_Gij_wrt_alpha(Session,GsForAtom,Alpha,AlphaValue)
-
-
-    for i in range(0,len(part2)):
-        Out+=part1[i]*part2[i][0][0]
-
-    return Out
-
-def total_force_internal(Session,AtomicNNs,Alpha,AlphaValue):
-
-    Force=0
-    for i in range(0,len(AtomicNNs)):
-        AtomicNetwork=AtomicNNs[i]
-        Force+=force_for_atomicnetwork(Session,AtomicNetwork,Alpha,AlphaValue)
-
-    return Force
-
-def actfun(Session,ActFun,Argument):
-
-    Out=0
-    if ActFun=="sigmoid":
-        Out=tf.nn.sigmoid(Argument)
-    elif ActFun=="tanh":
-        Out=tf.nn.tanh(Argument)
-    elif ActFun=="relu":
-        Out=tf.nn.relu(Argument)
-    elif ActFun=="relu6":
-        Out=tf.nn.relu6(Argument)
-    elif ActFun=="crelu":
-        Out=tf.nn.crelu(Argument)
-    elif ActFun=="elu":
-        Out=tf.nn.elu(Argument)
-    elif ActFun=="softplus":
-        Out=tf.nn.softplus(Argument)
-    elif ActFun=="dropout":
-        Out=tf.nn.dropout(Argument)
-    elif ActFun=="bias_add":
-        Out=tf.nn.bias_add(Argument)
-
-    return Session.run(Out)[0]
-
-def actfun_derivative(Session,ActFun,Argument):
-
-    Out=0
-    if ActFun=="sigmoid":
-        Out=tf.nn.sigmoid(Argument)*(1-tf.nn.sigmoid(Argument))
-    elif ActFun=="tanh":
-        Out=1-tf.nn.tanh(Argument)**2
-    #to be expanded for other functions
-
-    return Session.run(Out)[0]
-
-def bias_plus_sum_weights_times_argument(Bias,Weights,Argument):
-
-    return np.matmul(Argument,Weights)+Bias
-
-def evaluate_force_networks(Session,ForceNetworks,Gs,Bias,Weights,ActFunStr):
-
-    Activations=list()
-    matWeights=Weights[0]
-    matBias=Bias[0]
-    Argument=bias_plus_sum_weights_times_argument(matBias,matWeights,Gs)
-    Activations.append(Argument)
-    for i in range(0,len(ForceNetworks)):
-        Network=ForceNetworks[i][0]
-        InputLayer=[ForceNetworks[i][1]]
-        matWeights=Weights[i+1]
-        matBias=Bias[i+1]
-        #Value of force network
-        NetworkOut=evaluate(Session,Network,InputLayer,Gs)
-        Argument=bias_plus_sum_weights_times_argument(matBias,matWeights,NetworkOut)
-        Activations.append(Argument)
-
-    return Activations
-
-def evaluate_derivatives(Session,ActFunStr,Arguments):
-
-    for i in range(0,len(Arguments)):
-        if i==0:
-            Derivatives=actfun_derivative(Session,ActFunStr,Arguments[i])
-        else:
-            Derivatives=Derivatives*actfun_derivative(Session,ActFunStr,Arguments[i])
-
-    return Derivatives
-
-def force_for_atomicnetwork(Session,AtomicNetwork,Alpha,AlphaValue):
-    #Get Data from network
-    ForceNetworks=AtomicNetwork[4]
-    Weights=AtomicNetwork[5]
-    Bias=AtomicNetwork[6]
-    ActFun=AtomicNetwork[7]
-    GsForAtom=AtomicNetwork[8]
-    Gs=get_g_values(Session,GsForAtom,Alpha,AlphaValue)
-    #Calculate the dE/dG part of the force
-    Activations=evaluate_force_networks(Session,ForceNetworks,Gs,Bias,Weights,ActFun)
-    Derivatives=evaluate_derivatives(Session,ActFun,Activations)
-
-    dE_dG=np.matmul(Weights[0],Derivatives)
-
-    dG_dAlpha=all_derivatives_of_Gij_wrt_alpha(Session,GsForAtom,Alpha,AlphaValue)#not correct yet derivatives have to be implemented
-
-    F=-sum(dE_dG*dG_dAlpha)
-
-    return F
-
-def total_force(Session,AtomicNNs,Alpha,AlphaValue):
-    #Analytic calculation for faster evaluation
-    Force=0
-    for i in range(0,len(AtomicNNs)):
-        AtomicNetwork=AtomicNNs[i]
-        Force+=force_for_atomicnetwork(Session,AtomicNetwork,Alpha,AlphaValue)#not correct yet derivatives have to be implemented
-
-    return Force
 
 def evaluate_all_atomicnns(Session,AtomicNNs,InData):
 
@@ -843,38 +713,6 @@ def update_cost_plot(figure,ax,TrainingCostPlot,TrainingCost,ValidationCostPlot=
     figure.canvas.draw()
     figure.canvas.flush_events()
     
-def conjugate_grad(A, b, x=None):
-    """
-    Description
-    -----------
-    Solve a linear equation Ax = b with conjugate gradient method.
-    Parameters
-    ----------
-    A: 2d numpy.array of positive semi-definite (symmetric) matrix
-    b: 1d numpy.array
-    x: 1d numpy.array of initial point
-    Returns
-    -------
-    1d numpy.array x such that Ax = b
-    """
-    n = len(b)
-    if not x:
-        x = np.ones(n)
-    r = np.dot(A, x) - b
-    p = - r
-    r_k_norm = np.dot(r, r)
-    for i in xrange(2*n):
-        Ap = np.dot(A, p)
-        alpha = r_k_norm / np.dot(p, Ap)
-        x += alpha * p
-        r += alpha * Ap
-        r_kplus1_norm = np.dot(r, r)
-        beta = r_kplus1_norm / r_k_norm
-        r_k_norm = r_kplus1_norm
-        if r_kplus1_norm < 1e-5:
-            break
-        p = beta * p - r
-    return x
 
 
 class AtomicNeuralNetInstance(object):
@@ -891,6 +729,7 @@ class AtomicNeuralNetInstance(object):
         self.ValidationInputs=list()
         self.ValidationOutputs=list()
         self.Gs=list()
+        self.d_Gs=list()
         self.HiddenType="truncated_normal"
         self.HiddenData=list()
         self.BiasType="zeros"
@@ -916,7 +755,7 @@ class AtomicNeuralNetInstance(object):
         self.MakePlots=False
         self.InitMean=0.0
         self.InitStddev=1.0
-        self.MakeLastLayerConstant=True
+        self.MakeLastLayerConstant=False
         self.MakeAllVariable=True
         self.Regularization="none"
         self.RegularizationParam=0.001
@@ -941,6 +780,7 @@ class AtomicNeuralNetInstance(object):
         self.MeansOfDs=[]
         self.MinOfOut=None
         self.VarianceOfDs=[]
+        self.InputDerivatives=False
         
         #Other
         self.Multiple=False
@@ -984,11 +824,11 @@ class AtomicNeuralNetInstance(object):
                 else:
                     self.Optimizer=tf.train.GradientDescentOptimizer(self.LearningRate).minimize(self.CostFun,var_list=All_Vars)
         except:
-            print("Evaluation only no training supported!")
+            print("Evaluation only no training supported if all networks are constant!")
         #Initialize session
         self.Session.run(tf.global_variables_initializer())
 
-    def load_model(self,NrHiddenOld,ModelName="trained_variables"):
+    def load_model(self,ModelName="trained_variables"):
 
         if ".npy" not in ModelName:
             ModelName=ModelName+".npy"
@@ -1018,7 +858,10 @@ class AtomicNeuralNetInstance(object):
             self.InitStddev=0.01
             self.BiasType="zeros"
             self.MakeAllVariable=MakeAllVariable
-            AtomicNeuralNetInstance.make_and_initialize_network(self)
+            try:
+                AtomicNeuralNetInstance.make_and_initialize_network(self)
+            except:
+                print("Partitioned network loaded, please set IsPartitioned=True")
 
     def make_network(self):
 
@@ -1066,15 +909,32 @@ class AtomicNeuralNetInstance(object):
 
         return self.TrainingCosts,self.ValidationCosts
 
-    #def expand_neuralnet(self,TrainedData, nAtoms, Gs):
+    def expand_trained_net(self, nAtoms,ModelName=None):
 
-        #AtomicNNs = list()
-        #self.TrainedVariables=TrainedData
-        #self.NumberOfSameNetworks=nAtoms
-        #self.Gs=Gs
-        #Structures = get_structure_from_data(self.TrainedVariables)
-        #Weights, Biases = get_weights_biases_from_data(self.TrainedVariables)
-        #AtomicNeuralNetInstance.make_atomic_networks(self)
+        self.NumberOfSameNetworks=nAtoms
+        AtomicNeuralNetInstance.expand_existing_net(self,ModelName)
+        
+        
+    def calculate_force(self,r):
+        
+        F=list()
+        
+        if self.IsPartitioned==True:
+            TotalEnergy,AllEnergies=output_of_all_partitioned_atomic_networks(self.Session,self.AtomicNNs)
+        else:
+            TotalEnergy,AllEnergies=output_of_all_atomic_networks(self.Session,self.AtomicNNs)
+        
+        dE_dG=list()
+        
+        Gs,dGs=SymmetryFunctionSet.get_gs_and_derivatives(r)#get G and dG for geometry
+        for i in range(0,len(self.AtomicNNs)):
+            AtomicNet=self.AtomicNNs[i]
+            Input=AtomicNet[2]
+            ThisGs=Gs[i]
+            dE_dG.append(self.Session.run(tf.gradients(TotalEnergy,Input),ThisGs))
+            F.append(np.multiply(dE_dG,dGs))
+        
+        return F
 
     def start_evaluation(self):
 
@@ -1215,7 +1075,7 @@ class AtomicNeuralNetInstance(object):
         AllTemp=list()
         #Get G vectors
         for i in range(0,NrGeom):
-            temp=self.SymmFunSet.eval_geometry(self.Ds.geometries[i])
+            temp=self.SymmFunSet.eval_geometry(self.Ds.geometries[i],self.InputDerivatives)
             NrAtoms=len(temp)
             self.AllGeometries.append(temp)
             if i % max(int(NrGeom/25),1)==0:
@@ -1336,7 +1196,7 @@ class AtomicNeuralNetInstance(object):
             Execute=False
 
         if Execute==True:
-            self.SizeOfInputs=get_size_of_input(self.SymmFunSet.eval_geometry(self.Ds.geometries[0]))
+            self.SizeOfInputs=get_size_of_input(self.SymmFunSet.eval_geometry(self.Ds.geometries[0],self.InputDerivatives))
             self.TotalNrOfRadialFuns=self.NumberOfRadialFunctions*len(self.SymmFunKeys)
             AllDataSetLength=len(self.Ds.geometries)
             SetLength=int(AllDataSetLength*CoverageOfSetInPercent/100)
@@ -1460,7 +1320,7 @@ class AtomicNeuralNetInstance(object):
                         ThisBiasData = RadialBias[j - 1]
                         RadialNrIn = ThisWeightData.shape[0]
                         RadialNrHidden = ThisWeightData.shape[1]
-                        RadialHiddenLayers.append(construct_hidden_layer(RadialNrIn, RadialNrHidden, self.HiddenType, ThisWeightData, self.BiasType,ThisBiasData,WeightData.RadialVariable))
+                        RadialHiddenLayers.append(construct_hidden_layer(RadialNrIn, RadialNrHidden, self.HiddenType, ThisWeightData, self.BiasType,ThisBiasData,WeightData.RadialVariable,self.InitMean,self.InitStddev))
 
                     NetworkHiddenLayers[0]=RadialHiddenLayers
                     NetworkWeights[0]=RadialWeights
@@ -1483,7 +1343,7 @@ class AtomicNeuralNetInstance(object):
                         ThisBiasData = AngularBias[j - 1]
                         AngularNrIn = ThisWeightData.shape[0]
                         AngularNrHidden = ThisWeightData.shape[1]
-                        AngularHiddenLayers.append(construct_hidden_layer(AngularNrIn, AngularNrHidden, self.HiddenType, ThisWeightData, self.BiasType,ThisBiasData,WeightData.AngularVariable))
+                        AngularHiddenLayers.append(construct_hidden_layer(AngularNrIn, AngularNrHidden, self.HiddenType, ThisWeightData, self.BiasType,ThisBiasData,WeightData.AngularVariable,self.InitMean,self.InitStddev))
                     
                     NetworkHiddenLayers[1]=AngularHiddenLayers   
                     NetworkWeights[1]=AngularWeights
@@ -1505,7 +1365,7 @@ class AtomicNeuralNetInstance(object):
                         ThisBiasData = CorrectionBias[j - 1]
                         CorrectionNrIn = ThisWeightData.shape[0]
                         CorrectionNrHidden = ThisWeightData.shape[1]
-                        CorrectionHiddenLayers.append(construct_hidden_layer(CorrectionNrIn, CorrectionNrHidden, self.HiddenType, ThisWeightData, self.BiasType,ThisBiasData,WeightData.CorrectionVariable))
+                        CorrectionHiddenLayers.append(construct_hidden_layer(CorrectionNrIn, CorrectionNrHidden, self.HiddenType, ThisWeightData, self.BiasType,ThisBiasData,WeightData.CorrectionVariable,self.InitMean,self.InitStddev))
                      
                     NetworkHiddenLayers[2]=CorrectionHiddenLayers
                     NetworkWeights[2]=CorrectionWeights
@@ -1516,7 +1376,7 @@ class AtomicNeuralNetInstance(object):
                 for j in range(1, len(RadialStructure)):
                     RadialNrIn = RadialStructure[j - 1]
                     RadialNrHidden = RadialStructure[j]
-                    RadialHiddenLayers.append(construct_hidden_layer(RadialNrIn, RadialNrHidden, self.HiddenType, [], self.BiasType))
+                    RadialHiddenLayers.append(construct_hidden_layer(RadialNrIn, RadialNrHidden, self.HiddenType, [], self.BiasType,[],True,self.InitMean,self.InitStddev))
 
                 NetworkHiddenLayers[0]=RadialHiddenLayers
                 
@@ -1525,8 +1385,7 @@ class AtomicNeuralNetInstance(object):
                 for j in range(1, len(AngularStructure)):
                     AngularNrIn = AngularStructure[j - 1]
                     AngularNrHidden = AngularStructure[j]
-                    AngularHiddenLayers.append(construct_hidden_layer(AngularNrIn, AngularNrHidden, self.HiddenType, [], self.BiasType))
-                
+                    AngularHiddenLayers.append(construct_hidden_layer(AngularNrIn, AngularNrHidden, self.HiddenType, [], self.BiasType,[],True,self.InitMean,self.InitStddev))
                 NetworkHiddenLayers[1]=AngularHiddenLayers
                 
             if CreateNewCorrection==True:
@@ -1534,7 +1393,7 @@ class AtomicNeuralNetInstance(object):
                 for j in range(1, len(CorrectionStructure)):
                     CorrectionNrIn = CorrectionStructure[j - 1]
                     CorrectionNrHidden = CorrectionStructure[j]
-                    CorrectionHiddenLayers.append(construct_hidden_layer(CorrectionNrIn, CorrectionNrHidden, self.HiddenType, [], self.BiasType))
+                    CorrectionHiddenLayers.append(construct_hidden_layer(CorrectionNrIn, CorrectionNrHidden, self.HiddenType, [], self.BiasType,[],True,self.InitMean,self.InitStddev))
                 
                 NetworkHiddenLayers[2]=CorrectionHiddenLayers
                 
@@ -1725,26 +1584,30 @@ class AtomicNeuralNetInstance(object):
 
                             HiddenLayers.append([tempWeights, tempBias])
                         else:
-                            OldBiasNr = len(self.BiasData[i][j - 1])
-                            OldShape = self.HiddenData[i][j - 1].shape
-                            # fill old weights in new structure
-                            if OldBiasNr < NrHidden:
-                                ThisWeightData = np.random.normal(loc=0.0, scale=0.01, size=(NrIn, NrHidden))
-                                ThisWeightData[0:OldShape[0], 0:OldShape[1]] = self.HiddenData[i][j - 1]
-                                ThisBiasData = np.zeros([NrHidden])
-                                ThisBiasData[0:OldBiasNr] = self.BiasData[i][j - 1]
-                            elif OldBiasNr>NrHidden:
-                                ThisWeightData = np.zeros((NrIn, NrHidden))
-                                ThisWeightData[0:, 0:] = self.HiddenData[i][j - 1][0:NrIn,0:NrHidden]
-                                ThisBiasData = np.zeros([NrHidden])
-                                ThisBiasData[0:OldBiasNr] = self.BiasData[i][j - 1][0:NrIn,0:NrHidden]
+                            if len(RawBias) >= j:
+                                OldBiasNr = len(self.BiasData[i][j - 1])
+                                OldShape = self.HiddenData[i][j - 1].shape
+                                # fill old weights in new structure
+                                if OldBiasNr < NrHidden:
+                                    ThisWeightData = np.random.normal(loc=0.0, scale=0.01, size=(NrIn, NrHidden))
+                                    ThisWeightData[0:OldShape[0], 0:OldShape[1]] = self.HiddenData[i][j - 1]
+                                    ThisBiasData = np.zeros([NrHidden])
+                                    ThisBiasData[0:OldBiasNr] = self.BiasData[i][j - 1]
+                                elif OldBiasNr>NrHidden:
+                                    ThisWeightData = np.zeros((NrIn, NrHidden))
+                                    ThisWeightData[0:, 0:] = self.HiddenData[i][j - 1][0:NrIn,0:NrHidden]
+                                    ThisBiasData = np.zeros([NrHidden])
+                                    ThisBiasData[0:OldBiasNr] = self.BiasData[i][j - 1][0:NrIn,0:NrHidden]
+                                else:
+                                    ThisWeightData = self.HiddenData[i][j - 1]
+                                    ThisBiasData = self.BiasData[i][j - 1]
+    
+                                HiddenLayers.append(
+                                    construct_hidden_layer(NrIn, NrHidden, self.HiddenType, ThisWeightData, self.BiasType,
+                                                           ThisBiasData, self.MakeAllVariable))
                             else:
-                                ThisWeightData = self.HiddenData[i][j - 1]
-                                ThisBiasData = self.BiasData[i][j - 1]
+                                raise ValueError("Number of layers doesn't match, MakeLastLayerConstant has to be set to True!")
 
-                            HiddenLayers.append(
-                                construct_hidden_layer(NrIn, NrHidden, self.HiddenType, ThisWeightData, self.BiasType,
-                                                       ThisBiasData, self.MakeAllVariable))
 
             else:
                 RawWeights = None
