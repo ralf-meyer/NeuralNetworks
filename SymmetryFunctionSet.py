@@ -23,6 +23,14 @@ class SymmetryFunctionSet(object):
                 for lamb in lambs:
                     self.angular_sym_funs.append(
                             SFs.AngularSymmetryFunction(eta, zeta, lamb, self.cutoff))
+                    
+    def add_angular_functions_new(self, etas, zetas, lambs, rss):
+        for eta in etas:
+            for zeta in zetas:
+                for lamb in lambs:
+                    for rs in rss:
+                        self.angular_sym_funs.append(
+                            SFs.AngularSymmetryFunction(eta, zeta, lamb, rs, self.cutoff))
     
     def add_radial_functions_evenly(self, N):
         rss = _np.linspace(0.,self.cutoff,N)
