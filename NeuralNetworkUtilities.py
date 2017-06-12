@@ -12,6 +12,7 @@ import SymmetryFunctionSet
 import random as rand
 import matplotlib.pyplot as plt
 import multiprocessing
+import time 
 
 
 
@@ -951,7 +952,7 @@ class AtomicNeuralNetInstance(object):
         #Clear cost array for multi instance training
         self.OverallTrainingCosts=list()
         self.OverallValidationCosts=list()
-        
+        start=time.time()
         Execute=True
         if len(self.AtomicNNs)==0:
             print("No atomic neural nets available!")
@@ -1038,7 +1039,7 @@ class AtomicNeuralNetInstance(object):
                             else:
                                 update_cost_plot(fig,ax,TrainingCostPlot,self.OverallTrainingCosts,ValidationCostPlot,self.OverallValidationCosts)
                         #Finished percentage output
-                        print([str(100*i/self.Epochs)+" %","deltaE = "+str(self.DeltaE)+" ev"])
+                        print([str(100*i/self.Epochs)+" %","deltaE = "+str(self.DeltaE)+" ev","t = "+str(time.time()-start)+" s"])
                         #Store variables
                         if self.IsPartitioned==False:
                             self.TrainedVariables=get_trained_variables(self.Session,self.VariablesDictionary)
@@ -1057,6 +1058,8 @@ class AtomicNeuralNetInstance(object):
                         else:
                             print("Reached cost criterium: "+str(self.TrainingCosts))
                             print("delta E = "+str(self.DeltaE)+" ev")
+                            print("t = "+str(time.time()-start)+" s")
+                            print("Epoch = "+str(i))
                             break
                     if i==(self.Epochs-1):
                         print("Training finished")
