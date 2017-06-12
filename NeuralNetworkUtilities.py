@@ -1054,6 +1054,8 @@ class AtomicNeuralNetInstance(object):
                         if self.ValidationCosts!=0:
                             print("Reached cost criterium: "+str((self.TrainingCosts+self.ValidationCosts)/2))
                             print("delta E = "+str(self.DeltaE)+" ev")
+                            print("t = "+str(time.time()-start)+" s")
+                            print("Epoch = "+str(i))
                             break
                         else:
                             print("Reached cost criterium: "+str(self.TrainingCosts))
