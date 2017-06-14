@@ -757,7 +757,7 @@ class AtomicNeuralNetInstance(object):
         self.MakeLastLayerConstant=False
         self.MakeAllVariable=True
         self.Regularization="none"
-        self.RegularizationParam=0.001
+        self.RegularizationParam=0.0
         self.DeltaE=0
         self.CurrentEpochNr=0
         self.IsPartitioned=False
@@ -1025,9 +1025,9 @@ class AtomicNeuralNetInstance(object):
                     self.ValidationCosts=1e10
                     
                 if self.ValidationCosts!=0:
-                    self.DeltaE=np.sqrt((self.TrainingCosts+self.ValidationCosts)/2)
+                    self.DeltaE=np.sqrt((self.TrainingCosts+self.ValidationCosts)/2-self.RegularizationParam)
                 else:
-                    self.DeltaE=np.sqrt(self.TrainingCosts)
+                    self.DeltaE=np.sqrt(self.TrainingCosts-self.RegularizationParam)
 
                 if self.Multiple==False:
                     if i % max(int(self.Epochs/20),1)==0 or i==(self.Epochs-1):
