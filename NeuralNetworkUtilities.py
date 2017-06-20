@@ -1097,8 +1097,8 @@ class AtomicNeuralNetInstance(object):
                             print("Epoch = "+str(i))
                             print("")
                             train_stat,val_stat=cost_stat(self.Session,self.AtomicNNs,Layers,self.TrainingBatches,self.ValidationBatches,self.CostFun,self.IsPartitioned,self.TotalNrOfRadialFuns)
-                            print("Training dataset error= "+str(np.sqrt(train_stat[0]))+"+-"+str(np.sqrt(train_stat[1])))
-                            print("Validation dataset error= "+str(np.sqrt(val_stat[0]))+"+-"+str(np.sqrt(val_stat[1])))
+                            print("Training dataset error= "+str(np.sqrt(train_stat[0]))+"+-"+str(np.power(train_stat[1],0.25)))
+                            print("Validation dataset error= "+str(np.sqrt(val_stat[0]))+"+-"+str(np.power(val_stat[1],0.25)))
                             break
                         else:
                             print("Reached cost criterium: "+str(self.TrainingCosts))
@@ -1107,16 +1107,16 @@ class AtomicNeuralNetInstance(object):
                             print("Epoch = "+str(i))
                             print("")
                             train_stat,val_stat=cost_stat(self.Session,self.AtomicNNs,Layers,self.TrainingBatches,self.ValidationBatches,self.CostFun,self.IsPartitioned,self.TotalNrOfRadialFuns)
-                            print("Training dataset error= "+str(np.sqrt(train_stat[0]))+"+-"+str(np.sqrt(train_stat[1])))
-                            print("Validation dataset error= "+str(np.sqrt(val_stat[0]))+"+-"+str(np.sqrt(val_stat[1])))
+                            print("Training dataset error= "+str(np.sqrt(train_stat[0]))+"+-"+str(np.power(train_stat[1],0.25)))
+                            print("Validation dataset error= "+str(np.sqrt(val_stat[0]))+"+-"+str(np.power(val_stat[1],0.25)))
                             break
                     if i==(self.Epochs-1):
                         print("Training finished")
                         print("delta E = "+str(self.DeltaE)+" ev")
                         print("")
                         train_stat,val_stat=cost_stat(self.Session,self.AtomicNNs,Layers,self.TrainingBatches,self.ValidationBatches,self.CostFun,self.IsPartitioned,self.TotalNrOfRadialFuns)
-                        print("Training dataset error= "+str(np.sqrt(train_stat[0]))+"+-"+str(np.sqrt(train_stat[1])))
-                        print("Validation dataset error= "+str(np.sqrt(val_stat[0]))+"+-"+str(np.sqrt(val_stat[1])))
+                        print("Training dataset error= "+str(np.sqrt(train_stat[0]))+"+-"+str(np.power(train_stat[1],0.25)))
+                        print("Validation dataset error= "+str(np.sqrt(val_stat[0]))+"+-"+str(np.power(val_stat[1],0.25)))
                         
                         
             if self.Multiple==True:
