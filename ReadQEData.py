@@ -222,7 +222,6 @@ class QE_MD_Reader(object):
             self.geometries+=read_geometries(this)
             
         self.e_pot=np.subtract(self.e_tot,self.e_kin)
-        print(self.geometries)
         
     def calibrate_energy(self):
         reader=QE_SCF_Reader()
