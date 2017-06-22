@@ -459,7 +459,7 @@ def create_single_input_vector(AllData):
 
     return [AllInputs]
 
-def get_weights_biases_from_partitioned_data(TrainedData):
+def get_weights_biases_from_partitioned_data(TrainedData,Multi):
 
     Weights=list()
     Biases=list()
@@ -472,16 +472,19 @@ def get_weights_biases_from_partitioned_data(TrainedData):
             for k in range(0,len(SubNetData)):
                 if j==0:
                     ThisWeights.ForceFieldNetworkData.append(SubNetData[k][0])
-                    ThisWeights.ForceFieldVariable=False
+                    if Multi==False:
+                        ThisWeights.ForceFieldVariable=False
+                    else:
+                        ThisWeights.ForceFieldVariable=True
+                        
                     ThisBiases.ForceFieldNetworkData.append(SubNetData[k][1])
-                    
                 elif j==1:
-                    ThisWeights.AngularNetworkData.append(SubNetData[k][0])
-                    ThisWeights.AngularVariable=False
-                    ThisBiases.AngularNetworkData.append(SubNetData[k][1])
-                elif j==2:
                     ThisWeights.CorrectionNetworkData.append(SubNetData[k][0])
-                    ThisWeights.CorretionVariable=False
+                    if Multi==False:
+                        ThisWeights.CorretionVariable=False
+                    else:
+                        ThisWeights.CorretionVariable=True
+                    
                     ThisBiases.CorrectionNetworkData.append(SubNetData[k][1])
         Weights.append(ThisWeights)
         Biases.append(ThisBiases)
@@ -829,7 +832,7 @@ class AtomicNeuralNetInstance(object):
             if self.IsPartitioned==False:
                 self.HiddenData,self.BiasData=get_weights_biases_from_data(self.TrainedVariables)
             else:
-                self.HiddenData,self.BiasData=get_weights_biases_from_partitioned_data(self.TrainedVariables)
+                self.HiddenData,self.BiasData=get_weights_biases_from_partitioned_data(self.TrainedVariables,self.Multiple)
 
             self.HiddenType="truncated_normal"
             self.InitMean=0
@@ -1817,6 +1820,7 @@ class MultipleInstanceTraining(object):
         self.GlobalValidationCosts=list()
         self.GlobalMinOfOut=0
         self.MakePlots=False
+        self.IsPartitioned=False
         self.GlobalSession=tf.Session()
         
     def initialize_multiple_instances(self):
@@ -1837,6 +1841,7 @@ class MultipleInstanceTraining(object):
                 Instance.MakePlots=False
                 Instance.ActFun="relu"
                 Instance.CostCriterium=0
+                Instance.IsPartitioned=self.IsPartitioned
                 Instance.HiddenType="truncated_normal"
                 Instance.LearningRate=self.GlobalLearningRate
                 Instance.OptimizerType=self.GlobalOptimizer
