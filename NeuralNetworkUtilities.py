@@ -218,7 +218,7 @@ def total_cost_for_network(TotalEnergy,ReferenceValue,Type):
         Cost=(TotalEnergy-ReferenceValue)**2
     else:
         epsilon=10e-9
-        Cost=(TotalEnergy-ReferenceValue)**2*(tf.sigmoid(tf.abs(TotalEnergy-ReferenceValue+epsilon))-0.5)+(0.5+tf.sigmoid(tf.abs(TotalEnergy-ReferenceValue+epsilon)))*tf.sqrt(tf.abs(TotalEnergy-ReferenceValue+epsilon))
+        Cost=(TotalEnergy-ReferenceValue)**2*(tf.sigmoid(tf.abs(TotalEnergy-ReferenceValue+epsilon))-0.5)+(0.5+tf.sigmoid(tf.abs(TotalEnergy-ReferenceValue+epsilon)))*tf.pow(tf.abs(TotalEnergy-ReferenceValue+epsilon,1.25))
     return Cost
 
 def cost_function(Network,Output,CostFunType=None,RegType=None,RegParam=None):
@@ -1110,7 +1110,13 @@ class AtomicNeuralNetInstance(object):
                         train_stat,val_stat=AtomicNeuralNetInstance.dE_stat(self,Layers)
                         print("Training dataset error= "+str(train_stat[0])+"+-"+str(np.sqrt(train_stat[1]))+" ev")
                         print("Validation dataset error= "+str(val_stat[0])+"+-"+str(np.sqrt(val_stat[1]))+" ev")
-                        break
+                        
+                        #Reassure that the error is below the criterium
+                        if self.dE_Criterium>0:
+                            if train_stat[0]<self.dE_Criterium and val_stat[0]<self.dE_Criterium: 
+                                break
+                        else:
+                            break
                             
                     if i==(self.Epochs-1):
                         print("Training finished")
