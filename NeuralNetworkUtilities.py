@@ -1079,7 +1079,7 @@ class AtomicNeuralNetInstance(object):
                             else:
                                 update_cost_plot(fig,ax,TrainingCostPlot,self.OverallTrainingCosts,ValidationCostPlot,self.OverallValidationCosts)
                         #Finished percentage output
-                        print([str(100*i/self.Epochs)+" %","deltaE = "+str(self.DeltaE)+" ev","t = "+str(time.time()-start)+" s"])
+                        print([str(100*i/self.Epochs)+" %","deltaE = "+str(self.DeltaE)+" ev","Cost = "+str(self.TrainingCosts),"t = "+str(time.time()-start)+" s"])
                         #Store variables
                         if self.IsPartitioned==False:
                             self.TrainedVariables=get_trained_variables(self.Session,self.VariablesDictionary)
