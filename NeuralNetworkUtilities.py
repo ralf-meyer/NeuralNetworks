@@ -1098,7 +1098,7 @@ class AtomicNeuralNetInstance(object):
                             print("t = "+str(time.time()-start)+" s")
                             print("Epoch = "+str(i))
                             print("")
-                            break
+
                         else:
                             print("Reached criterium!")
                             print("Cost= "+str(self.TrainingCosts))
@@ -1106,11 +1106,11 @@ class AtomicNeuralNetInstance(object):
                             print("t = "+str(time.time()-start)+" s")
                             print("Epoch = "+str(i))
                             print("")
-                            break
                         
                         train_stat,val_stat=AtomicNeuralNetInstance.dE_stat(self,Layers)
                         print("Training dataset error= "+str(train_stat[0])+"+-"+str(np.sqrt(train_stat[1]))+" ev")
                         print("Validation dataset error= "+str(val_stat[0])+"+-"+str(np.sqrt(val_stat[1]))+" ev")
+                        break
                             
                     if i==(self.Epochs-1):
                         print("Training finished")
