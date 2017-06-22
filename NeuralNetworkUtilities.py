@@ -214,7 +214,7 @@ def cost_for_atomic_network(TotalEnergy,ReferenceValue,Ei):
 
 def total_cost_for_network(TotalEnergy,ReferenceValue):
 
-    return (TotalEnergy-ReferenceValue)**2/2
+    return (TotalEnergy-ReferenceValue)**2
 
 def cost_function(Network,Output,CostFunType=None,RegType=None,RegParam=None):
     #define a cost function for the NN
