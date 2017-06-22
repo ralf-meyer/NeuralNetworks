@@ -1124,6 +1124,7 @@ class AtomicNeuralNetInstance(object):
                         
                         
             if self.Multiple==True:
+                
                 return [self.TrainedVariables,self.MinOfOut]
                     
 
