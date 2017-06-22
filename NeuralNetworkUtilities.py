@@ -212,9 +212,14 @@ def cost_for_atomic_network(TotalEnergy,ReferenceValue,Ei):
 
     return Cost
 
-def total_cost_for_network(TotalEnergy,ReferenceValue):
-
-    return (TotalEnergy-ReferenceValue)**2
+def total_cost_for_network(TotalEnergy,ReferenceValue,Type):
+   
+    if Type=="squared-difference":
+        Cost=(TotalEnergy-ReferenceValue)**2
+    else:
+        epsilon=10e-9
+        Cost=(TotalEnergy-ReferenceValue)**2*(tf.sigmoid(tf.abs(TotalEnergy-ReferenceValue+epsilon))-0.5)+(0.5+tf.sigmoid(tf.abs(TotalEnergy-ReferenceValue+epsilon)))*tf.sqrt(tf.abs(TotalEnergy-ReferenceValue+epsilon))
+    return Cost
 
 def cost_function(Network,Output,CostFunType=None,RegType=None,RegParam=None):
     #define a cost function for the NN
@@ -226,10 +231,6 @@ def cost_function(Network,Output,CostFunType=None,RegType=None,RegParam=None):
     #to be expanded
     return CostFunction
 
-def calc_cost(Session,Layers,Data,CostFun):
-    Cost=Session.run(CostFun,feed_dict={i: np.array(d) for i, d in zip(Layers,Data)})
-
-    return Cost
 
 def train_step(Session,Optimizer,Layers,Data,CostFun):
     _,Cost=Session.run([Optimizer,CostFun],feed_dict={i: np.array(d) for i, d in zip(Layers,Data)})
@@ -658,6 +659,9 @@ def guarantee_initialized_variables(session, list_of_variables = None):
     session.run(tf.initialize_variables(uninitialized_variables))
     return uninitialized_variables
 
+def calc_dE(Session,dE_Fun,Layers,Data):
+    return np.nan_to_num(np.mean(evaluate(Session,dE_Fun,Layers,Data)))
+
 def initialize_cost_plot(TrainingData,ValidationData=[]):
 
     fig=plt.figure()
@@ -720,6 +724,7 @@ class AtomicNeuralNetInstance(object):
         self.ActFun="elu"
         self.ActFunParam=None
         self.CostCriterium=0
+        self.dE_Criterium=0
         self.OptimizerType=None
         self.OptimizerProp=None
         self.Session=[]
@@ -742,8 +747,10 @@ class AtomicNeuralNetInstance(object):
         self.Regularization="none"
         self.RegularizationParam=0.0
         self.DeltaE=0
+        self.dE_Fun=None
         self.CurrentEpochNr=0
         self.IsPartitioned=False
+        self.CostFunType="squared-difference"
         #Data variables
         self.AllGeometries=list()
         self.SizeOfInputs=list()
@@ -918,7 +925,14 @@ class AtomicNeuralNetInstance(object):
         return F
     
     def dE_stat(self,Layers):
-    
+        
+        train_stat=[]
+        train_dE=0
+        train_var=0
+        val_stat=[]
+        val_dE=0
+        val_var=0
+        
         for i in range(0,len(self.TrainingBatches)):
             TrainingInputs=self.TrainingBatches[i][0]
             TrainingOutputs=self.TrainingBatches[i][1]
@@ -927,10 +941,10 @@ class AtomicNeuralNetInstance(object):
             else:
                 _,TrainingData=prepare_data_environment_for_partitioned_atomicNNs(self.AtomicNNs,TrainingInputs,self.TotalNrOfRadialFuns,[],TrainingOutputs)
             if i==0:
-                train_cost=calc_cost(self.Session,Layers,TrainingData,self.CostFun)
+                train_dE=evaluate(self.Session,self.dE_Fun,Layers,TrainingData)
             else:
-                temp=calc_cost(self.Session,Layers,TrainingData,self.CostFun)
-                train_cost=tf.concat([train_cost,temp],0)
+                temp=evaluate(self.Session,self.dE_Fun,Layers,TrainingData)
+                train_dE=tf.concat([train_dE,temp],0)
     
         for i in range(0,len(self.ValidationBatches)):
             ValidationInputs=self.ValidationBatches[i][0]
@@ -940,19 +954,19 @@ class AtomicNeuralNetInstance(object):
             else:
                 _,ValidationData=prepare_data_environment_for_partitioned_atomicNNs(self.AtomicNNs,ValidationInputs,self.TotalNrOfRadialFuns,[],ValidationOutputs)
             if i==0:
-                val_cost=calc_cost(self.Session,Layers,ValidationData,self.CostFun)
+                val_dE=evaluate(self.Session,self.dE_Fun,Layers,TrainingData)
             else:
-                temp=calc_cost(self.Session,Layers,ValidationData,self.CostFun)
-                val_cost=tf.concat([val_cost,temp],0)
+                temp=evaluate(self.Session,self.dE_Fun,Layers,TrainingData)
+                val_dE=tf.concat([val_dE,temp],0)
         
         with self.Session.as_default():
-            train_cost=train_cost.eval().tolist()
-            val_cost=val_cost.eval().tolist()
+            train_dE=train_dE.eval().tolist()
+            val_dE=val_dE.eval().tolist()
         
-        train_mean=np.mean(train_cost)-self.RegLoss
-        train_var=np.var(np.subtract(train_cost,self.RegLoss))
-        val_mean=np.mean(val_cost)-self.RegLoss
-        val_var=np.var(np.subtract(val_cost,self.RegLoss))
+        train_mean=np.mean(train_dE)
+        train_var=np.var(train_dE)
+        val_mean=np.mean(val_dE)
+        val_var=np.var(val_dE)
         
         train_stat=[train_mean,train_var]
         val_stat=[val_mean,val_var]
@@ -972,6 +986,7 @@ class AtomicNeuralNetInstance(object):
             Out=evaluate_all_partitioned_atomicnns(self.Session,self.AtomicNNs,self.TrainingInputs,self.TotalNrOfRadialFuns)
         return Out
 
+    
     def start_batch_training(self):
         #Clear cost array for multi instance training
         self.OverallTrainingCosts=list()
@@ -1050,10 +1065,10 @@ class AtomicNeuralNetInstance(object):
                     self.ValidationCosts=1e10
                     
                 if self.ValidationCosts!=0:
-                    self.DeltaE=np.sqrt((self.TrainingCosts+self.ValidationCosts)/2-self.RegLoss)
+                    self.DeltaE=(calc_dE(self.Session,self.dE_Fun,Layers,TrainingData)+calc_dE(self.Session,self.dE_Fun,Layers,TrainingData))/2
                 else:
-                    self.DeltaE=np.sqrt(self.TrainingCosts-self.RegLoss)
-
+                    self.DeltaE=calc_dE(self.Session,self.dE_Fun,Layers,TrainingData)
+                    
                 if self.Multiple==False:
                     if i % max(int(self.Epochs/20),1)==0 or i==(self.Epochs-1):
                         #Cost plot
@@ -1075,34 +1090,37 @@ class AtomicNeuralNetInstance(object):
                     
 
                     #Abort criteria
-                    if self.TrainingCosts<=self.CostCriterium and self.ValidationCosts<=self.CostCriterium:
+                    if self.TrainingCosts<=self.CostCriterium and self.ValidationCosts<=self.CostCriterium or self.DeltaE<self.dE_Criterium:
                         if self.ValidationCosts!=0:
-                            print("Reached cost criterium: "+str((self.TrainingCosts+self.ValidationCosts)/2))
+                            print("Reached criterium!")
+                            print("Cost= "+str((self.TrainingCosts+self.ValidationCosts)/2))
                             print("delta E = "+str(self.DeltaE)+" ev")
                             print("t = "+str(time.time()-start)+" s")
                             print("Epoch = "+str(i))
                             print("")
-                            train_stat,val_stat=AtomicNeuralNetInstance.dE_stat(self,Layers)
-                            print("Training dataset error= "+str(np.sqrt(train_stat[0]))+"+-"+str(np.power(train_stat[1],0.25))+" ev")
-                            print("Validation dataset error= "+str(np.sqrt(val_stat[0]))+"+-"+str(np.power(val_stat[1],0.25))+" ev")
                             break
                         else:
-                            print("Reached cost criterium: "+str(self.TrainingCosts))
+                            print("Reached criterium!")
+                            print("Cost= "+str(self.TrainingCosts))
                             print("delta E = "+str(self.DeltaE)+" ev")
                             print("t = "+str(time.time()-start)+" s")
                             print("Epoch = "+str(i))
                             print("")
-                            train_stat,val_stat=AtomicNeuralNetInstance.dE_stat(self,Layers)
-                            print("Training dataset error= "+str(np.sqrt(train_stat[0]))+"+-"+str(np.power(train_stat[1],0.25)))
-                            print("Validation dataset error= "+str(np.sqrt(val_stat[0]))+"+-"+str(np.power(val_stat[1],0.25)))
                             break
+                        
+                        train_stat,val_stat=AtomicNeuralNetInstance.dE_stat(self,Layers)
+                        print("Training dataset error= "+str(train_stat[0])+"+-"+str(np.sqrt(train_stat[1]))+" ev")
+                        print("Validation dataset error= "+str(val_stat[0])+"+-"+str(np.sqrt(val_stat[1]))+" ev")
+                            
                     if i==(self.Epochs-1):
                         print("Training finished")
                         print("delta E = "+str(self.DeltaE)+" ev")
+                        print("t = "+str(time.time()-start)+" s")
                         print("")
+                        
                         train_stat,val_stat=AtomicNeuralNetInstance.dE_stat(self,Layers)
-                        print("Training dataset error= "+str(np.sqrt(train_stat[0]))+"+-"+str(np.power(train_stat[1],0.25)))
-                        print("Validation dataset error= "+str(np.sqrt(val_stat[0]))+"+-"+str(np.power(val_stat[1],0.25)))
+                        print("Training dataset error= "+str(train_stat[0])+"+-"+str(np.sqrt(train_stat[1]))+" ev")
+                        print("Validation dataset error= "+str(val_stat[0])+"+-"+str(np.sqrt(val_stat[1]))+" ev")
                         
                         
             if self.Multiple==True:
@@ -1282,7 +1300,11 @@ class AtomicNeuralNetInstance(object):
             TotalEnergy,AllEnergies=output_of_all_partitioned_atomic_networks(self.Session,self.AtomicNNs)
         else:
             TotalEnergy,AllEnergies=output_of_all_atomic_networks(self.Session,self.AtomicNNs)
-        Cost=total_cost_for_network(TotalEnergy,self.OutputLayer)
+            
+        Cost=total_cost_for_network(TotalEnergy,self.OutputLayer,self.CostFunType)
+        
+        self.dE_Fun=tf.abs(TotalEnergy-self.OutputLayer)
+        
         if self.Regularization=="L1":
             trainableVars=tf.trainable_variables()
             l1_regularizer = tf.contrib.layers.l1_regularizer(scale=0.005, scope=None)
