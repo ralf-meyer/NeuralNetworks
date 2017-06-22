@@ -218,7 +218,7 @@ def total_cost_for_network(TotalEnergy,ReferenceValue,Type):
         Cost=(TotalEnergy-ReferenceValue)**2
     else:
         epsilon=10e-9
-        Cost=(TotalEnergy-ReferenceValue)**2*(tf.sigmoid(tf.abs(TotalEnergy-ReferenceValue+epsilon))-0.5)+(0.5+tf.sigmoid(tf.abs(TotalEnergy-ReferenceValue+epsilon)))*tf.pow(tf.abs(TotalEnergy-ReferenceValue+epsilon,1.25))
+        Cost=(TotalEnergy-ReferenceValue)**2*(tf.sigmoid(tf.abs(TotalEnergy-ReferenceValue+epsilon))-0.5)+(0.5+tf.sigmoid(tf.abs(TotalEnergy-ReferenceValue+epsilon)))*tf.pow(tf.abs(TotalEnergy-ReferenceValue+epsilon),1.25)
     return Cost
 
 def cost_function(Network,Output,CostFunType=None,RegType=None,RegParam=None):
