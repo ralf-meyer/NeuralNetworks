@@ -301,17 +301,16 @@ def prepare_data_environment_for_partitioned_atomicNNs(AtomicNNs,InData,NumberOf
         for j in range(0,2):
             if Layer_parts[j]!=j: #Layer_parts is range(2) if empty
                 Layers.append(Layer_parts[j])
-
                 if j==0: #force field data
-                    CombinedData.append(Data[:,0:NumberOfRadial])
+                    CombinedData.append(Data)
                 else:
                     CombinedData.append(Data)
                 
-    if len(OutputLayer)!=0:
+    if not(isinstance(OutputLayer,(list, tuple))):
         Layers.append(OutputLayer)
     if len(OutData)!=0:
         CombinedData.append(OutData)
-
+        
     return Layers,CombinedData
 
 def prepare_data_environment_for_atomicNNs(AtomicNNs,InData,OutputLayer=[],OutData=[]):
@@ -1094,7 +1093,7 @@ class AtomicNeuralNetInstance(object):
 
                     #Abort criteria
                     if self.TrainingCosts<=self.CostCriterium and self.ValidationCosts<=self.CostCriterium or self.DeltaE<self.dE_Criterium:
-                        reached_ct=reached_ct+1
+                        
                         if self.ValidationCosts!=0:
                             print("Reached criterium!")
                             print("Cost= "+str((self.TrainingCosts+self.ValidationCosts)/2))
@@ -1115,7 +1114,8 @@ class AtomicNeuralNetInstance(object):
                             train_stat,val_stat=AtomicNeuralNetInstance.dE_stat(self,Layers)
                             print("Training dataset error= "+str(train_stat[0])+"+-"+str(np.sqrt(train_stat[1]))+" ev")
                             print("Validation dataset error= "+str(val_stat[0])+"+-"+str(np.sqrt(val_stat[1]))+" ev")
-                        
+                            
+                        reached_ct=reached_ct+1
                         #Reassure that the error is below the criterium
                         if self.dE_Criterium>0:
                             if train_stat[0]<self.dE_Criterium and val_stat[0]<self.dE_Criterium: 
@@ -1548,7 +1548,7 @@ class AtomicNeuralNetInstance(object):
                         CorrectionNrHidden = ThisWeightData.shape[1]
                         CorrectionHiddenLayers.append(construct_hidden_layer(CorrectionNrIn, CorrectionNrHidden, self.HiddenType, ThisWeightData, self.BiasType,ThisBiasData,WeightData.CorrectionVariable,self.InitMean,self.InitStddev))
                      
-                    NetworkHiddenLayers[2]=CorrectionHiddenLayers
+                    NetworkHiddenLayers[1]=CorrectionHiddenLayers
             
             if CreateNewForceField==True:
                 #Create force field network
@@ -1566,7 +1566,7 @@ class AtomicNeuralNetInstance(object):
                     CorrectionNrHidden = CorrectionStructure[j]
                     CorrectionHiddenLayers.append(construct_hidden_layer(CorrectionNrIn, CorrectionNrHidden, self.HiddenType, [], self.BiasType,[],True,self.InitMean,self.InitStddev))
                 
-                NetworkHiddenLayers[2]=CorrectionHiddenLayers
+                NetworkHiddenLayers[1]=CorrectionHiddenLayers
                 
             AllHiddenLayers.append(NetworkHiddenLayers)
 
