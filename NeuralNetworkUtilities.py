@@ -1111,6 +1111,7 @@ class AtomicNeuralNetInstance(object):
                             print("")
                         
                         if reached_ct % 10 == 0:
+                            print("Calculation whole dataset energy difference!")
                             train_stat,val_stat=AtomicNeuralNetInstance.dE_stat(self,Layers)
                             print("Training dataset error= "+str(train_stat[0])+"+-"+str(np.sqrt(train_stat[1]))+" ev")
                             print("Validation dataset error= "+str(val_stat[0])+"+-"+str(np.sqrt(val_stat[1]))+" ev")
