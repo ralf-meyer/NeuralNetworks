@@ -1119,6 +1119,7 @@ class AtomicNeuralNetInstance(object):
                         #Reassure that the error is below the criterium
                         if self.dE_Criterium>0:
                             if train_stat[0]<self.dE_Criterium and val_stat[0]<self.dE_Criterium: 
+                                print("Training finished")
                                 break
                         else:
                             break
@@ -1951,7 +1952,8 @@ class MultipleInstanceTraining(object):
                         print("delta E = "+str(Instance.DeltaE)+" ev")
                         print("Epoch = "+str(i))
                         print("")
-                    
+                        
+                    print("Training finished")
                     break
                         
                 if i==(self.GlobalEpochs-1):
