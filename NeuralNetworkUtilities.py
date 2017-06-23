@@ -216,9 +216,12 @@ def total_cost_for_network(TotalEnergy,ReferenceValue,Type):
    
     if Type=="squared-difference":
         Cost=(TotalEnergy-ReferenceValue)**2
-    else:
+    elif Type=="Adaptive_1":
         epsilon=10e-9
         Cost=(TotalEnergy-ReferenceValue)**2*(tf.sigmoid(tf.abs(TotalEnergy-ReferenceValue+epsilon))-0.5)+(0.5+tf.sigmoid(tf.abs(TotalEnergy-ReferenceValue+epsilon)))*tf.pow(tf.abs(TotalEnergy-ReferenceValue+epsilon),1.25)
+    elif Type=="Adaptive_2":
+        epsilon=10e-9
+        Cost=(TotalEnergy-ReferenceValue)**2*(tf.sigmoid(tf.abs(TotalEnergy-ReferenceValue+epsilon))-0.5)+(0.5+tf.sigmoid(tf.abs(TotalEnergy-ReferenceValue+epsilon)))*tf.abs(TotalEnergy-ReferenceValue+epsilon)
     return Cost
 
 def cost_function(Network,Output,CostFunType=None,RegType=None,RegParam=None):
@@ -991,7 +994,7 @@ class AtomicNeuralNetInstance(object):
         #Clear cost array for multi instance training
         self.OverallTrainingCosts=list()
         self.OverallValidationCosts=list()
-
+        reached_ct=0
         start=time.time()
         Execute=True
         if len(self.AtomicNNs)==0:
@@ -1091,6 +1094,7 @@ class AtomicNeuralNetInstance(object):
 
                     #Abort criteria
                     if self.TrainingCosts<=self.CostCriterium and self.ValidationCosts<=self.CostCriterium or self.DeltaE<self.dE_Criterium:
+                        reached_ct=reached_ct+1
                         if self.ValidationCosts!=0:
                             print("Reached criterium!")
                             print("Cost= "+str((self.TrainingCosts+self.ValidationCosts)/2))
@@ -1107,9 +1111,10 @@ class AtomicNeuralNetInstance(object):
                             print("Epoch = "+str(i))
                             print("")
                         
-                        train_stat,val_stat=AtomicNeuralNetInstance.dE_stat(self,Layers)
-                        print("Training dataset error= "+str(train_stat[0])+"+-"+str(np.sqrt(train_stat[1]))+" ev")
-                        print("Validation dataset error= "+str(val_stat[0])+"+-"+str(np.sqrt(val_stat[1]))+" ev")
+                        if reached_ct % 10 == 0:
+                            train_stat,val_stat=AtomicNeuralNetInstance.dE_stat(self,Layers)
+                            print("Training dataset error= "+str(train_stat[0])+"+-"+str(np.sqrt(train_stat[1]))+" ev")
+                            print("Validation dataset error= "+str(val_stat[0])+"+-"+str(np.sqrt(val_stat[1]))+" ev")
                         
                         #Reassure that the error is below the criterium
                         if self.dE_Criterium>0:
