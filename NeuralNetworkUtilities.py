@@ -993,7 +993,7 @@ class AtomicNeuralNetInstance(object):
         #Clear cost array for multi instance training
         self.OverallTrainingCosts=list()
         self.OverallValidationCosts=list()
-        reached_ct=0
+
         start=time.time()
         Execute=True
         if len(self.AtomicNNs)==0:
@@ -1110,13 +1110,13 @@ class AtomicNeuralNetInstance(object):
                             print("Epoch = "+str(i))
                             print("")
                         
-                        if reached_ct % 10 == 0:
-                            print("Calculation whole dataset energy difference!")
-                            train_stat,val_stat=AtomicNeuralNetInstance.dE_stat(self,Layers)
-                            print("Training dataset error= "+str(train_stat[0])+"+-"+str(np.sqrt(train_stat[1]))+" ev")
-                            print("Validation dataset error= "+str(val_stat[0])+"+-"+str(np.sqrt(val_stat[1]))+" ev")
+
+                        print("Calculation of whole dataset energy difference ...")
+                        train_stat,val_stat=AtomicNeuralNetInstance.dE_stat(self,Layers)
+                        print("Training dataset error= "+str(train_stat[0])+"+-"+str(np.sqrt(train_stat[1]))+" ev")
+                        print("Validation dataset error= "+str(val_stat[0])+"+-"+str(np.sqrt(val_stat[1]))+" ev")
                             
-                        reached_ct=reached_ct+1
+
                         #Reassure that the error is below the criterium
                         if self.dE_Criterium>0:
                             if train_stat[0]<self.dE_Criterium and val_stat[0]<self.dE_Criterium: 
