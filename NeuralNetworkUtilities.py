@@ -1115,15 +1115,8 @@ class AtomicNeuralNetInstance(object):
                         train_stat,val_stat=AtomicNeuralNetInstance.dE_stat(self,Layers)
                         print("Training dataset error= "+str(train_stat[0])+"+-"+str(np.sqrt(train_stat[1]))+" ev")
                         print("Validation dataset error= "+str(val_stat[0])+"+-"+str(np.sqrt(val_stat[1]))+" ev")
-                            
-
-                        #Reassure that the error is below the criterium
-                        if self.dE_Criterium>0:
-                            if train_stat[0]<self.dE_Criterium and val_stat[0]<self.dE_Criterium: 
-                                print("Training finished")
-                                break
-                        else:
-                            break
+                        print("Training finished")
+                        break   
                             
                     if i==(self.Epochs-1):
                         print("Training finished")
