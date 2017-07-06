@@ -2,7 +2,6 @@
 #cython: boundscheck=False, wraparound=False, cdivision=True 
 from SymmetryFunctionsC cimport RadialSymmetryFunction, AngularSymmetryFunction
 import numpy as _np 
-from scipy.spatial.distance import pdist, squareform
 from scipy.misc import comb
 
 cdef extern from "math.h":

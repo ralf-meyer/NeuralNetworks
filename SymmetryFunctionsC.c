@@ -668,8 +668,8 @@ struct __pyx_obj_14NeuralNetworks_18SymmetryFunctionsC_CosCutoffFunction {
 };
 
 
-/* "NeuralNetworks/SymmetryFunctionsC.pxd":10
- * 
+/* "NeuralNetworks/SymmetryFunctionsC.pxd":9
+ *     cdef public double derivative(self, double r)
  * 
  * cdef class TanhCutoffFunction(CutoffFunction):             # <<<<<<<<<<<<<<
  * 
@@ -681,7 +681,7 @@ struct __pyx_obj_14NeuralNetworks_18SymmetryFunctionsC_TanhCutoffFunction {
 };
 
 
-/* "NeuralNetworks/SymmetryFunctionsC.pxd":15
+/* "NeuralNetworks/SymmetryFunctionsC.pxd":14
  *     cdef public double derivative(self, double r)
  * 
  * cdef class RadialSymmetryFunction(object):             # <<<<<<<<<<<<<<
@@ -697,7 +697,7 @@ struct __pyx_obj_14NeuralNetworks_18SymmetryFunctionsC_RadialSymmetryFunction {
 };
 
 
-/* "NeuralNetworks/SymmetryFunctionsC.pxd":23
+/* "NeuralNetworks/SymmetryFunctionsC.pxd":22
  *     cdef public double derivative(self, double r)
  * 
  * cdef class AngularSymmetryFunction(object):             # <<<<<<<<<<<<<<
