@@ -12,6 +12,7 @@ import SymmetryFunctionSet
 import random as rand
 import matplotlib.pyplot as plt
 import multiprocessing
+import time 
 
 
 
@@ -145,15 +146,6 @@ def connect_layers(InputsForLayer,Layer1Weights,Layer1Bias,ActFun=None,FunParam=
     return Out
 
 
-def make_force_networks(Structure,HiddenData,BiasData):
-
-    ForceNetworks=list()
-
-    for i in range(1,len(Structure)-1):
-        Network,InputLayer,OutputLayer=make_standard_neuralnetwork(Structure[0:i+1],None,HiddenData,None,BiasData)
-        ForceNetworks.append([Network,InputLayer,OutputLayer])
-    return ForceNetworks
-
 def make_standard_neuralnetwork(Structure,HiddenType=None,HiddenData=None,BiasType=None,BiasData=None,ActFun=None,ActFunParam=None):
     #Construct the NN
 
@@ -220,9 +212,17 @@ def cost_for_atomic_network(TotalEnergy,ReferenceValue,Ei):
 
     return Cost
 
-def total_cost_for_network(TotalEnergy,ReferenceValue):
-
-    return (TotalEnergy-ReferenceValue)**2/2
+def total_cost_for_network(TotalEnergy,ReferenceValue,Type):
+   
+    if Type=="squared-difference":
+        Cost=(TotalEnergy-ReferenceValue)**2
+    elif Type=="Adaptive_1":
+        epsilon=10e-9
+        Cost=(TotalEnergy-ReferenceValue)**2*(tf.sigmoid(tf.abs(TotalEnergy-ReferenceValue+epsilon))-0.5)+(0.5+tf.sigmoid(tf.abs(TotalEnergy-ReferenceValue+epsilon)))*tf.pow(tf.abs(TotalEnergy-ReferenceValue+epsilon),1.25)
+    elif Type=="Adaptive_2":
+        epsilon=10e-9
+        Cost=(TotalEnergy-ReferenceValue)**2*(tf.sigmoid(tf.abs(TotalEnergy-ReferenceValue+epsilon))-0.5)+(0.5+tf.sigmoid(tf.abs(TotalEnergy-ReferenceValue+epsilon)))*tf.abs(TotalEnergy-ReferenceValue+epsilon)
+    return Cost
 
 def cost_function(Network,Output,CostFunType=None,RegType=None,RegParam=None):
     #define a cost function for the NN
@@ -233,6 +233,7 @@ def cost_function(Network,Output,CostFunType=None,RegType=None,RegParam=None):
         CostFunction = 0.5 * tf.reduce_sum(tf.subtract(Network, Output) * tf.subtract(Network, Output))
     #to be expanded
     return CostFunction
+
 
 def train_step(Session,Optimizer,Layers,Data,CostFun):
     _,Cost=Session.run([Optimizer,CostFun],feed_dict={i: np.array(d) for i, d in zip(Layers,Data)})
@@ -297,22 +298,19 @@ def prepare_data_environment_for_partitioned_atomicNNs(AtomicNNs,InData,NumberOf
         Layer_parts=AtomicNNs[i][2]
         Data=InData[i]
         #Append layers for each part
-        for j in range(0,3):
-            if Layer_parts[j]!=j: #Layer_parts is range(3) if empty
+        for j in range(0,2):
+            if Layer_parts[j]!=j: #Layer_parts is range(2) if empty
                 Layers.append(Layer_parts[j])
-
-                if j==0: #Radial data
-                    CombinedData.append(Data[:,0:NumberOfRadial])
-                elif j==1: #Angular data
-                    CombinedData.append(Data[:,NumberOfRadial:])
+                if j==0: #force field data
+                    CombinedData.append(Data)
                 else:
                     CombinedData.append(Data)
                 
-    if OutputLayer!=None:
+    if not(isinstance(OutputLayer,(list, tuple))):
         Layers.append(OutputLayer)
     if len(OutData)!=0:
         CombinedData.append(OutData)
-
+        
     return Layers,CombinedData
 
 def prepare_data_environment_for_atomicNNs(AtomicNNs,InData,OutputLayer=[],OutData=[]):
@@ -392,7 +390,7 @@ def output_of_all_partitioned_atomic_networks(Session,AtomicNNs):
         #Get network data
         AtomicNetwork=AtomicNNs[i]
         Networks=AtomicNetwork[1]
-        for j in range(0,3):
+        for j in range(0,2):
             SubNet=Networks[j]
             if SubNet!=j:
                 #Get input data for network
@@ -419,24 +417,6 @@ def output_of_all_atomic_networks(Session,AtomicNNs):
 
     return TotalEnergy,AllEnergies
 
-
-def atomic_cost_function(Session,AtomicNNs,ReferenceOutput,Regularization="none",RegularizationParam=0.001,IsPartitioned=False):
-    
-    if IsPartitioned==True:
-        TotalEnergy,AllEnergies=output_of_all_partitioned_atomic_networks(Session,AtomicNNs)
-    else:
-        TotalEnergy,AllEnergies=output_of_all_atomic_networks(Session,AtomicNNs)
-    Cost=total_cost_for_network(TotalEnergy,ReferenceOutput)
-    if Regularization=="L1":
-        trainableVars=tf.trainable_variables()
-        l1_regularizer = tf.contrib.layers.l1_regularizer(scale=0.005, scope=None)
-        Cost += tf.contrib.layers.apply_regularization(l1_regularizer, trainableVars)
-    elif Regularization=="L2":
-        trainableVars=tf.trainable_variables()
-        Cost += tf.add_n([tf.nn.l2_loss(v) for v in trainableVars
-                           if 'bias' not in v.name]) * RegularizationParam
-
-    return Cost
 
 def get_all_input_layers_as_single_input(AtomicNNs):
     for i in range(0,len(AtomicNNs)-1):
@@ -482,7 +462,7 @@ def create_single_input_vector(AllData):
 
     return [AllInputs]
 
-def get_weights_biases_from_partitioned_data(TrainedData):
+def get_weights_biases_from_partitioned_data(TrainedData,Multi):
 
     Weights=list()
     Biases=list()
@@ -494,17 +474,20 @@ def get_weights_biases_from_partitioned_data(TrainedData):
             SubNetData=NetworkData[j]
             for k in range(0,len(SubNetData)):
                 if j==0:
-                    ThisWeights.RadialNetworkData.append(SubNetData[k][0])
-                    ThisWeights.RadialVariable=False
-                    ThisBiases.RadialNetworkData.append(SubNetData[k][1])
-                    
+                    ThisWeights.ForceFieldNetworkData.append(SubNetData[k][0])
+                    if Multi==False:
+                        ThisWeights.ForceFieldVariable=False
+                    else:
+                        ThisWeights.ForceFieldVariable=True
+                        
+                    ThisBiases.ForceFieldNetworkData.append(SubNetData[k][1])
                 elif j==1:
-                    ThisWeights.AngularNetworkData.append(SubNetData[k][0])
-                    ThisWeights.AngularVariable=False
-                    ThisBiases.AngularNetworkData.append(SubNetData[k][1])
-                elif j==2:
                     ThisWeights.CorrectionNetworkData.append(SubNetData[k][0])
-                    ThisWeights.CorretionVariable=False
+                    if Multi==False:
+                        ThisWeights.CorretionVariable=False
+                    else:
+                        ThisWeights.CorretionVariable=True
+                    
                     ThisBiases.CorrectionNetworkData.append(SubNetData[k][1])
         Weights.append(ThisWeights)
         Biases.append(ThisBiases)
@@ -623,7 +606,7 @@ def evaluate_all_partitioned_atomicnns(Session,AtomicNNs,InData,NumberOfRadial):
     ct=0
     for i in range(0,len(AtomicNNs)):
         AllAtomicNetworks=AtomicNNs[i][1]
-        for j in range(0,3):
+        for j in range(0,2):
             SubNet=AllAtomicNetworks[j]
             if SubNet!=j:
                 Energy+=evaluate(Session,SubNet,[Layers[ct]],Data[ct])
@@ -656,6 +639,7 @@ def train_atomic_networks(Session,AtomicNNs,TrainingInputs,TrainingOutputs,Epoch
 
     return Session,TrainedNetwork,TrainCost,ValidationCost
 
+
 def train_atomic_network_batch(Session,Optimizer,Layers,TrainingData,ValidationData,CostFun):
 
     TrainingCost=0
@@ -676,6 +660,9 @@ def guarantee_initialized_variables(session, list_of_variables = None):
                                    session.run(tf.report_uninitialized_variables(list_of_variables)))
     session.run(tf.initialize_variables(uninitialized_variables))
     return uninitialized_variables
+
+def calc_dE(Session,dE_Fun,Layers,Data):
+    return np.nan_to_num(np.mean(evaluate(Session,dE_Fun,Layers,Data)))
 
 def initialize_cost_plot(TrainingData,ValidationData=[]):
 
@@ -739,6 +726,7 @@ class AtomicNeuralNetInstance(object):
         self.ActFun="elu"
         self.ActFunParam=None
         self.CostCriterium=0
+        self.dE_Criterium=0
         self.OptimizerType=None
         self.OptimizerProp=None
         self.Session=[]
@@ -748,6 +736,7 @@ class AtomicNeuralNetInstance(object):
         self.OverallTrainingCosts=[]
         self.OverallValidationCosts=[]
         self.TrainedVariables=[]
+        self.RegLoss=0
         self.VariablesDictionary={}
         self.CostFun=None
         self.Optimizer=None
@@ -758,13 +747,14 @@ class AtomicNeuralNetInstance(object):
         self.MakeLastLayerConstant=False
         self.MakeAllVariable=True
         self.Regularization="none"
-        self.RegularizationParam=0.001
+        self.RegularizationParam=0.0
         self.DeltaE=0
+        self.dE_Fun=None
         self.CurrentEpochNr=0
         self.IsPartitioned=False
+        self.CostFunType="squared-difference"
         #Data variables
         self.AllGeometries=list()
-        self.Batches=list()
         self.SizeOfInputs=list()
         self.XYZfile=None
         self.Logfile=None
@@ -792,7 +782,7 @@ class AtomicNeuralNetInstance(object):
             #Make virtual output layer for feeding the data to the cost function
             self.OutputLayer=construct_output_layer(1)
             #Cost function for whole net
-            self.CostFun=atomic_cost_function(self.Session,self.AtomicNNs,self.OutputLayer,self.Regularization,self.RegularizationParam,self.IsPartitioned)
+            self.CostFun=AtomicNeuralNetInstance.atomic_cost_function(self)
             
             #if self.IsPartitioned==True:
             All_Vars=tf.trainable_variables()#get_my_variables(self.VariablesDictionary)
@@ -851,7 +841,7 @@ class AtomicNeuralNetInstance(object):
             if self.IsPartitioned==False:
                 self.HiddenData,self.BiasData=get_weights_biases_from_data(self.TrainedVariables)
             else:
-                self.HiddenData,self.BiasData=get_weights_biases_from_partitioned_data(self.TrainedVariables)
+                self.HiddenData,self.BiasData=get_weights_biases_from_partitioned_data(self.TrainedVariables,self.Multiple)
 
             self.HiddenType="truncated_normal"
             self.InitMean=0
@@ -935,6 +925,55 @@ class AtomicNeuralNetInstance(object):
             F.append(np.multiply(dE_dG,dGs))
         
         return F
+    
+    def dE_stat(self,Layers):
+        
+        train_stat=[]
+        train_dE=0
+        train_var=0
+        val_stat=[]
+        val_dE=0
+        val_var=0
+        
+        for i in range(0,len(self.TrainingBatches)):
+            TrainingInputs=self.TrainingBatches[i][0]
+            TrainingOutputs=self.TrainingBatches[i][1]
+            if self.IsPartitioned==False:
+                TrainingData=make_data_for_atomicNNs(TrainingInputs,TrainingOutputs)
+            else:
+                _,TrainingData=prepare_data_environment_for_partitioned_atomicNNs(self.AtomicNNs,TrainingInputs,self.TotalNrOfRadialFuns,[],TrainingOutputs)
+            if i==0:
+                train_dE=evaluate(self.Session,self.dE_Fun,Layers,TrainingData)
+            else:
+                temp=evaluate(self.Session,self.dE_Fun,Layers,TrainingData)
+                train_dE=tf.concat([train_dE,temp],0)
+    
+        for i in range(0,len(self.ValidationBatches)):
+            ValidationInputs=self.ValidationBatches[i][0]
+            ValidationOutputs=self.ValidationBatches[i][1]
+            if self.IsPartitioned==False:
+                ValidationData=make_data_for_atomicNNs(ValidationInputs,ValidationOutputs)
+            else:
+                _,ValidationData=prepare_data_environment_for_partitioned_atomicNNs(self.AtomicNNs,ValidationInputs,self.TotalNrOfRadialFuns,[],ValidationOutputs)
+            if i==0:
+                val_dE=evaluate(self.Session,self.dE_Fun,Layers,TrainingData)
+            else:
+                temp=evaluate(self.Session,self.dE_Fun,Layers,TrainingData)
+                val_dE=tf.concat([val_dE,temp],0)
+        
+        with self.Session.as_default():
+            train_dE=train_dE.eval().tolist()
+            val_dE=val_dE.eval().tolist()
+        
+        train_mean=np.mean(train_dE)
+        train_var=np.var(train_dE)
+        val_mean=np.mean(val_dE)
+        val_var=np.var(val_dE)
+        
+        train_stat=[train_mean,train_var]
+        val_stat=[val_mean,val_var]
+        
+        return train_stat,val_stat
 
     def start_evaluation(self):
 
@@ -949,11 +988,13 @@ class AtomicNeuralNetInstance(object):
             Out=evaluate_all_partitioned_atomicnns(self.Session,self.AtomicNNs,self.TrainingInputs,self.TotalNrOfRadialFuns)
         return Out
 
+    
     def start_batch_training(self):
         #Clear cost array for multi instance training
         self.OverallTrainingCosts=list()
         self.OverallValidationCosts=list()
-        
+
+        start=time.time()
         Execute=True
         if len(self.AtomicNNs)==0:
             print("No atomic neural nets available!")
@@ -1026,10 +1067,10 @@ class AtomicNeuralNetInstance(object):
                     self.ValidationCosts=1e10
                     
                 if self.ValidationCosts!=0:
-                    self.DeltaE=np.sqrt((self.TrainingCosts+self.ValidationCosts)/2)
+                    self.DeltaE=(calc_dE(self.Session,self.dE_Fun,Layers,TrainingData)+calc_dE(self.Session,self.dE_Fun,Layers,TrainingData))/2
                 else:
-                    self.DeltaE=np.sqrt(self.TrainingCosts)
-
+                    self.DeltaE=calc_dE(self.Session,self.dE_Fun,Layers,TrainingData)
+                    
                 if self.Multiple==False:
                     if i % max(int(self.Epochs/20),1)==0 or i==(self.Epochs-1):
                         #Cost plot
@@ -1040,7 +1081,7 @@ class AtomicNeuralNetInstance(object):
                             else:
                                 update_cost_plot(fig,ax,TrainingCostPlot,self.OverallTrainingCosts,ValidationCostPlot,self.OverallValidationCosts)
                         #Finished percentage output
-                        print(str(100*i/self.Epochs)+" %")
+                        print([str(100*i/self.Epochs)+" %","deltaE = "+str(self.DeltaE)+" ev","Cost = "+str(self.TrainingCosts),"t = "+str(time.time()-start)+" s"])
                         #Store variables
                         if self.IsPartitioned==False:
                             self.TrainedVariables=get_trained_variables(self.Session,self.VariablesDictionary)
@@ -1051,20 +1092,45 @@ class AtomicNeuralNetInstance(object):
                     
 
                     #Abort criteria
-                    if self.TrainingCosts<=self.CostCriterium and self.ValidationCosts<=self.CostCriterium:
+                    if self.TrainingCosts<=self.CostCriterium and self.ValidationCosts<=self.CostCriterium or self.DeltaE<self.dE_Criterium:
+                        
                         if self.ValidationCosts!=0:
-                            print("Reached cost criterium: "+str((self.TrainingCosts+self.ValidationCosts)/2))
-                            print("delta E = "+str(self.DeltaE))
-                            break
+                            print("Reached criterium!")
+                            print("Cost= "+str((self.TrainingCosts+self.ValidationCosts)/2))
+                            print("delta E = "+str(self.DeltaE)+" ev")
+                            print("t = "+str(time.time()-start)+" s")
+                            print("Epoch = "+str(i))
+                            print("")
+
                         else:
-                            print("Reached cost criterium: "+str(self.TrainingCosts))
-                            print("delta E = "+str(self.DeltaE))
-                            break
+                            print("Reached criterium!")
+                            print("Cost= "+str(self.TrainingCosts))
+                            print("delta E = "+str(self.DeltaE)+" ev")
+                            print("t = "+str(time.time()-start)+" s")
+                            print("Epoch = "+str(i))
+                            print("")
+                        
+
+                        print("Calculation of whole dataset energy difference ...")
+                        train_stat,val_stat=AtomicNeuralNetInstance.dE_stat(self,Layers)
+                        print("Training dataset error= "+str(train_stat[0])+"+-"+str(np.sqrt(train_stat[1]))+" ev")
+                        print("Validation dataset error= "+str(val_stat[0])+"+-"+str(np.sqrt(val_stat[1]))+" ev")
+                        print("Training finished")
+                        break   
+                            
                     if i==(self.Epochs-1):
                         print("Training finished")
-                        print("delta E = "+str(self.DeltaE))
-                    
+                        print("delta E = "+str(self.DeltaE)+" ev")
+                        print("t = "+str(time.time()-start)+" s")
+                        print("")
+                        
+                        train_stat,val_stat=AtomicNeuralNetInstance.dE_stat(self,Layers)
+                        print("Training dataset error= "+str(train_stat[0])+"+-"+str(np.sqrt(train_stat[1]))+" ev")
+                        print("Validation dataset error= "+str(val_stat[0])+"+-"+str(np.sqrt(val_stat[1]))+" ev")
+                        
+                        
             if self.Multiple==True:
+                
                 return [self.TrainedVariables,self.MinOfOut]
                     
 
@@ -1180,7 +1246,8 @@ class AtomicNeuralNetInstance(object):
             return Inputs,OutputData
 
     def get_data(self,BatchSize=100,CoverageOfSetInPercent=70,NoBatches=False):
-
+        
+        Batches=[]
         Execute=True
         if self.SymmFunSet==None:
             print("No symmetry function set available!")
@@ -1208,16 +1275,14 @@ class AtomicNeuralNetInstance(object):
                 NrOfBatches=max(1,int(round(SetLength/BatchSize,0)))
             else:
                 NrOfBatches=1
-                BatchSize=SetLength
-
-            print("Creating and normalizing batches...")
+            print("Creating and normalizing "+str(NrOfBatches)+" batches...")
             for i in range(0,NrOfBatches):
-                self.Batches.append(AtomicNeuralNetInstance.get_data_batch(self,BatchSize,NoBatches))
+                Batches.append(AtomicNeuralNetInstance.get_data_batch(self,BatchSize,NoBatches))
                 if NoBatches==False:
                     if i % max(int(NrOfBatches/10),1)==0:
                         print(str(100*i/NrOfBatches)+" %")
 
-            return self.Batches
+            return Batches
 
     def make_training_and_validation_data(self,BatchSize=100,TrainingSetInPercent=70,ValidationSetInPercent=30,NoBatches=False):
 
@@ -1235,7 +1300,29 @@ class AtomicNeuralNetInstance(object):
             temp=AtomicNeuralNetInstance.get_data(self,BatchSize,ValidationSetInPercent,NoBatches)
             self.ValidationInputs=temp[0][0]
             self.ValidationOutputs=temp[0][0]
-
+            
+    def atomic_cost_function(self):
+        
+        if self.IsPartitioned==True:
+            TotalEnergy,AllEnergies=output_of_all_partitioned_atomic_networks(self.Session,self.AtomicNNs)
+        else:
+            TotalEnergy,AllEnergies=output_of_all_atomic_networks(self.Session,self.AtomicNNs)
+            
+        Cost=total_cost_for_network(TotalEnergy,self.OutputLayer,self.CostFunType)
+        
+        self.dE_Fun=tf.abs(TotalEnergy-self.OutputLayer)
+        
+        if self.Regularization=="L1":
+            trainableVars=tf.trainable_variables()
+            l1_regularizer = tf.contrib.layers.l1_regularizer(scale=0.005, scope=None)
+            Cost += tf.contrib.layers.apply_regularization(l1_regularizer, trainableVars)
+        elif self.Regularization=="L2":
+            trainableVars=tf.trainable_variables()
+            self.RegLoss=tf.add_n([tf.nn.l2_loss(v) for v in trainableVars
+                               if 'bias' not in v.name]) * self.RegularizationParam
+            Cost += self.RegLoss
+    
+        return Cost
 
     def sort_and_normalize_data(self,BatchSize,AllData):
 
@@ -1249,6 +1336,139 @@ class AtomicNeuralNetInstance(object):
                 Inputs[i][j][L]=np.divide(np.subtract(AllData[j][i][L],self.MeansOfDs[i][L]),np.sqrt(self.VarianceOfDs[i][L]))
 
         return Inputs
+    
+    def make_parallel_partitioned_atomic_networks(self):
+
+        AtomicNNs = list()
+        # Start Session
+        self.Session=tf.Session()
+        
+        if len(self.HiddenData) != 0:    
+            # make all the networks for the different atom types
+            for i in range(0, len(self.Structures)):
+                for k in range(0, self.NumberOfSameNetworks[i]):
+                    
+                    ForceFieldHiddenLayers=list()
+                    CorrectionHiddenLayers=list()
+                    
+                    ForceFieldWeights=list()
+                    CorrectionWeights=list()
+                    
+                    ForceFieldBias=list()
+                    CorrectionBias=list()
+                    
+                    ForceFieldNetwork=None
+                    CorrectionNetwork=None
+                    
+                    ForceFieldInputLayer=None
+                    CorrectionInputLayer=None
+                    
+                    # Read structures for specific network parts
+                    StructureForAtom=self.Structures[i]
+                    ForceFieldStructure=StructureForAtom.ForceFieldNetworkStructure
+                    CorrectionStructure=StructureForAtom.CorrectionNetworkStructure
+                    #Construct networks out of loaded data
+                    
+                    #Load data for atom
+                    WeightData=self.HiddenData[i]
+                    BiasData=self.BiasData[i]
+                    if len(WeightData.ForceFieldNetworkData)>0:
+                        
+                        #Recreate force field network             
+                        ForceFieldWeights = WeightData.ForceFieldNetworkData
+                        ForceFieldBias = BiasData.ForceFieldNetworkData
+        
+                        for j in range(1, len(ForceFieldStructure)):
+                            
+                            ThisWeightData = ForceFieldWeights[j - 1]
+                            ThisBiasData = ForceFieldBias[j - 1]
+                            ForceFieldNrIn = ThisWeightData.shape[0]
+                            ForceFieldNrHidden = ThisWeightData.shape[1]
+                            ForceFieldHiddenLayers.append(construct_hidden_layer(ForceFieldNrIn, ForceFieldNrHidden, self.HiddenType, ThisWeightData, self.BiasType,ThisBiasData,WeightData.ForceFieldVariable,self.InitMean,self.InitStddev))
+    
+        
+                    if len(WeightData.CorrectionNetworkData)>0:   
+                        #Recreate correction network             
+                        CorrectionWeights = WeightData.CorrectionNetworkData
+                        CorrectionBias = BiasData.CorrectionNetworkData
+        
+                        for j in range(1, len(CorrectionStructure)):
+                            
+                            ThisWeightData = CorrectionWeights[j - 1]
+                            ThisBiasData = CorrectionBias[j - 1]
+                            CorrectionNrIn = ThisWeightData.shape[0]
+                            CorrectionNrHidden = ThisWeightData.shape[1]
+                            CorrectionHiddenLayers.append(construct_hidden_layer(CorrectionNrIn, CorrectionNrHidden, self.HiddenType, ThisWeightData, self.BiasType,ThisBiasData,WeightData.CorrectionVariable,self.InitMean,self.InitStddev))
+    
+                        
+                    if len(ForceFieldHiddenLayers)>0:
+                        # Make force field input layer
+                        ForceFieldHiddenData=self.HiddenData[i].ForceFieldNetworkData
+                        ForceFieldNrInputs = ForceFieldHiddenData[0].shape[0]
+        
+                        ForceFieldInputLayer = construct_input_layer(ForceFieldNrInputs)
+                        # Connect force field input to first hidden layer
+                        ForceFieldFirstWeights = ForceFieldHiddenLayers[0][0]
+                        ForceFieldFirstBiases = ForceFieldHiddenLayers[0][1]
+                        ForceFieldNetwork = connect_layers(ForceFieldInputLayer, ForceFieldFirstWeights, ForceFieldFirstBiases, self.ActFun, self.ActFunParam)
+                        #Connect force field hidden layers
+                        for l in range(1, len(ForceFieldHiddenLayers)):
+                            ForceFieldTempWeights = ForceFieldHiddenLayers[l][0]
+                            ForceFieldTempBiases = ForceFieldHiddenLayers[l][1]
+                            if l == len(ForceFieldHiddenLayers) - 1:
+                                ForceFieldNetwork = connect_layers(ForceFieldNetwork, ForceFieldTempWeights, ForceFieldTempBiases, "none", self.ActFunParam)
+                            else:
+                                ForceFieldNetwork = connect_layers(ForceFieldNetwork, ForceFieldTempWeights, ForceFieldTempBiases, self.ActFun, self.ActFunParam)
+                        
+        
+                    if len(CorrectionHiddenLayers)>0:
+                        # Make correction input layer
+                        CorrectionHiddenData=self.HiddenData[i].CorrectionNetworkData
+                        CorrectionNrInputs = CorrectionHiddenData[0].shape[0]
+        
+                        CorrectionInputLayer = construct_input_layer(CorrectionNrInputs)
+                        # Connect Correction input to first hidden layer
+                        CorrectionFirstWeights = CorrectionHiddenLayers[0][0]
+                        CorrectionFirstBiases = CorrectionHiddenLayers[0][1]
+                        CorrectionNetwork = connect_layers(CorrectionInputLayer, CorrectionFirstWeights, CorrectionFirstBiases, self.ActFun, self.ActFunParam)
+                        #Connect Correction hidden layers
+                        for l in range(1, len(CorrectionHiddenLayers)):
+                            CorrectionTempWeights = CorrectionHiddenLayers[l][0]
+                            CorrectionTempBiases = CorrectionHiddenLayers[l][1]
+                            if l == len(CorrectionHiddenLayers) - 1:
+                                CorrectionNetwork = connect_layers(CorrectionNetwork, CorrectionTempWeights, CorrectionTempBiases, "none", self.ActFunParam)
+                            else:
+                                CorrectionNetwork = connect_layers(CorrectionNetwork, CorrectionTempWeights, CorrectionTempBiases, self.ActFun, self.ActFunParam)
+         
+                        
+                    #Store all networks
+                    Network=range(2)
+                    if ForceFieldNetwork!=None :
+                        Network[0]=ForceFieldNetwork
+                    if CorrectionNetwork!=None:
+                        Network[1]=CorrectionNetwork
+                                      
+                    #Store all input layers
+                    InputLayer=range(2)
+                    if ForceFieldInputLayer!=None :
+                        InputLayer[0]=ForceFieldInputLayer
+                    if CorrectionInputLayer!=None:
+                        InputLayer[1]=CorrectionInputLayer
+
+                    if len(self.Gs) != 0:
+                        if len(self.Gs) > 0:
+                            AtomicNNs.append(
+                                [self.NumberOfSameNetworks[i], Network, InputLayer,self.Gs[i]])
+                        else:
+                            AtomicNNs.append(
+                                [self.NumberOfSameNetworks[i], Network, InputLayer])
+                    else:
+                        AtomicNNs.append(
+                            [self.NumberOfSameNetworks[i], Network, InputLayer])
+        else:
+            print("No network data found!")
+        
+        self.AtomicNNs=AtomicNNs
 
     def make_partitioned_atomic_networks(self):
 
@@ -1259,281 +1479,240 @@ class AtomicNeuralNetInstance(object):
             self.Session=tf.Session(config=tf.ConfigProto(
   intra_op_parallelism_threads=multiprocessing.cpu_count()))
             
-
-        # make all the networks for the different atom types
-        for i in range(0, len(self.Structures)):
-            NetworkHiddenLayers=range(3)
-            NetworkWeights=range(3)
-            NetworkBias=range(3)
+        if not(isinstance(self.Structures[0],PartitionedStructure)):
+            raise ValueError("Please set IsPartitioned = False !")
             
-            RadialHiddenLayers=list()
-            AngularHiddenLayers=list()
-            CorrectionHiddenLayers=list()
-            
-            RadialWeights=list()
-            AngularWeights=list()
-            CorrectionWeights=list()
-            
-            RadialBias=list()
-            AngularBias=list()
-            CorrectionBias=list()
-            
-            RadialNetwork=None
-            AngularNetwork=None
-            CorrectionNetwork=None
-            
-            RadialInputLayer=None
-            AngularInputLayer=None
-            CorrectionInputLayer=None
-            
-            CreateNewRadial=True
-            CreateNewAngular=True
-            CreateNewCorrection=True
-            
-            RadialForceNetworks=None
-            AngularForceNetworks=None
-            CorrectionForceNetworks=None
-            # Read structures for specific network parts
-            StructureForAtom=self.Structures[i]
-            RadialStructure=StructureForAtom.RadialNetworkStructure
-            AngularStructure=StructureForAtom.AngularNetworkStructure
-            CorrectionStructure=StructureForAtom.CorrectionNetworkStructure
-            #Construct networks out of loaded data
-            if len(self.HiddenData) != 0:
-                #Load data for atom
-                WeightData=self.HiddenData[i]
-                BiasData=self.BiasData[i]
-                if len(WeightData.RadialNetworkData)>0:
-                    
-                    CreateNewRadial=False
-                    #Recreate radial network             
-                    RadialWeights = WeightData.RadialNetworkData
-                    RadialBias = BiasData.RadialNetworkData
-                    if len(RadialWeights) == len(RadialStructure) - 1:
-                        RadialForceNetworks = make_force_networks(RadialStructure, RadialWeights, RadialBias)
-                    else:
-                        RadialForceNetworks = None
-    
-                    for j in range(1, len(RadialStructure)):
+        else:
+            # make all the networks for the different atom types
+            for i in range(0, len(self.Structures)):
+                
+                NetworkHiddenLayers=range(2)
+                
+                ForceFieldHiddenLayers=list()
+                CorrectionHiddenLayers=list()
+                
+                ForceFieldWeights=list()
+                CorrectionWeights=list()
+                
+                ForceFieldBias=list()
+                CorrectionBias=list()
+                
+                ForceFieldNetwork=None
+                CorrectionNetwork=None
+                
+                ForceFieldInputLayer=None
+                CorrectionInputLayer=None
+                
+                CreateNewForceField=True
+                CreateNewCorrection=True
+                
+                # Read structures for specific network parts
+                StructureForAtom=self.Structures[i]
+                ForceFieldStructure=StructureForAtom.ForceFieldNetworkStructure
+                CorrectionStructure=StructureForAtom.CorrectionNetworkStructure
+                #Construct networks out of loaded data
+                if len(self.HiddenData) != 0:
+                    #Load data for atom
+                    WeightData=self.HiddenData[i]
+                    BiasData=self.BiasData[i]
+                    if len(WeightData.ForceFieldNetworkData)>0:
                         
-                        ThisWeightData = RadialWeights[j - 1]
-                        ThisBiasData = RadialBias[j - 1]
-                        RadialNrIn = ThisWeightData.shape[0]
-                        RadialNrHidden = ThisWeightData.shape[1]
-                        RadialHiddenLayers.append(construct_hidden_layer(RadialNrIn, RadialNrHidden, self.HiddenType, ThisWeightData, self.BiasType,ThisBiasData,WeightData.RadialVariable,self.InitMean,self.InitStddev))
-
-                    NetworkHiddenLayers[0]=RadialHiddenLayers
-                    NetworkWeights[0]=RadialWeights
-                    NetworkBias[0]=RadialBias
-                    
-                if len(WeightData.AngularNetworkData)>0:   
-                    
-                    CreateNewAngular=False
-                    #Recreate angular network             
-                    AngularWeights = WeightData.AngularNetworkData
-                    AngularBias = BiasData.AngularNetworkData
-                    if len(AngularWeights) == len(AngularStructure) - 1:
-                        AngularForceNetworks = make_force_networks(AngularStructure, AngularWeights, AngularBias)
-                    else:
-                        AngularForceNetworks = None
-    
-                    for j in range(1, len(AngularStructure)):
-                        
-                        ThisWeightData = AngularWeights[j - 1]
-                        ThisBiasData = AngularBias[j - 1]
-                        AngularNrIn = ThisWeightData.shape[0]
-                        AngularNrHidden = ThisWeightData.shape[1]
-                        AngularHiddenLayers.append(construct_hidden_layer(AngularNrIn, AngularNrHidden, self.HiddenType, ThisWeightData, self.BiasType,ThisBiasData,WeightData.AngularVariable,self.InitMean,self.InitStddev))
-                    
-                    NetworkHiddenLayers[1]=AngularHiddenLayers   
-                    NetworkWeights[1]=AngularWeights
-                    NetworkBias[1]=AngularBias
-                    
-                if len(WeightData.CorrectionNetworkData)>0:   
-                    CreateNewCorrection=False
-                    #Recreate correction network             
-                    CorrectionWeights = WeightData.CorrectionNetworkData
-                    CorrectionBias = BiasData.CorrectionNetworkData
-                    if len(CorrectionWeights) == len(CorrectionStructure) - 1:
-                        CorrectionForceNetworks = make_force_networks(CorrectionStructure, CorrectionWeights, CorrectionBias)
-                    else:
-                        CorrectionForceNetworks = None
-    
-                    for j in range(1, len(CorrectionStructure)):
-                        
-                        ThisWeightData = CorrectionWeights[j - 1]
-                        ThisBiasData = CorrectionBias[j - 1]
-                        CorrectionNrIn = ThisWeightData.shape[0]
-                        CorrectionNrHidden = ThisWeightData.shape[1]
-                        CorrectionHiddenLayers.append(construct_hidden_layer(CorrectionNrIn, CorrectionNrHidden, self.HiddenType, ThisWeightData, self.BiasType,ThisBiasData,WeightData.CorrectionVariable,self.InitMean,self.InitStddev))
-                     
-                    NetworkHiddenLayers[2]=CorrectionHiddenLayers
-                    NetworkWeights[2]=CorrectionWeights
-                    NetworkBias[2]=CorrectionBias
-            
-            if CreateNewRadial==True:
-                #Create radial network
-                for j in range(1, len(RadialStructure)):
-                    RadialNrIn = RadialStructure[j - 1]
-                    RadialNrHidden = RadialStructure[j]
-                    RadialHiddenLayers.append(construct_hidden_layer(RadialNrIn, RadialNrHidden, self.HiddenType, [], self.BiasType,[],True,self.InitMean,self.InitStddev))
-
-                NetworkHiddenLayers[0]=RadialHiddenLayers
-                
-            if CreateNewAngular==True:
-                #Create angular network
-                for j in range(1, len(AngularStructure)):
-                    AngularNrIn = AngularStructure[j - 1]
-                    AngularNrHidden = AngularStructure[j]
-                    AngularHiddenLayers.append(construct_hidden_layer(AngularNrIn, AngularNrHidden, self.HiddenType, [], self.BiasType,[],True,self.InitMean,self.InitStddev))
-                NetworkHiddenLayers[1]=AngularHiddenLayers
-                
-            if CreateNewCorrection==True:
-                #Create correction network
-                for j in range(1, len(CorrectionStructure)):
-                    CorrectionNrIn = CorrectionStructure[j - 1]
-                    CorrectionNrHidden = CorrectionStructure[j]
-                    CorrectionHiddenLayers.append(construct_hidden_layer(CorrectionNrIn, CorrectionNrHidden, self.HiddenType, [], self.BiasType,[],True,self.InitMean,self.InitStddev))
-                
-                NetworkHiddenLayers[2]=CorrectionHiddenLayers
-                
-            AllHiddenLayers.append(NetworkHiddenLayers)
-
-            for k in range(0, self.NumberOfSameNetworks[i]):
-                
-                
-                if len(RadialHiddenLayers)>0:
-                    # Make radial input layer
-                    if CreateNewRadial==False:
-                        RadialHiddenData=self.HiddenData[i].RadialNetworkData
-                        RadialNrInputs = RadialHiddenData[0].shape[0]
-                    else:
-                        RadialNrInputs = RadialStructure[0]
-    
-                    RadialInputLayer = construct_input_layer(RadialNrInputs)
-                    # Connect radial input to first hidden layer
-                    RadialFirstWeights = RadialHiddenLayers[0][0]
-                    RadialFirstBiases = RadialHiddenLayers[0][1]
-                    RadialNetwork = connect_layers(RadialInputLayer, RadialFirstWeights, RadialFirstBiases, self.ActFun, self.ActFunParam)
-                    #Connect radial hidden layers
-                    for l in range(1, len(RadialHiddenLayers)):
-                        RadialTempWeights = RadialHiddenLayers[l][0]
-                        RadialTempBiases = RadialHiddenLayers[l][1]
-                        if l == len(RadialHiddenLayers) - 1:
-                            RadialNetwork = connect_layers(RadialNetwork, RadialTempWeights, RadialTempBiases, "none", self.ActFunParam)
-                        else:
-                            RadialNetwork = connect_layers(RadialNetwork, RadialTempWeights, RadialTempBiases, self.ActFun, self.ActFunParam)
-                    
-                if len(AngularHiddenLayers)>0:
-                    # Make angular input layer
-                    if CreateNewAngular==False:
-                        AngularHiddenData=self.HiddenData[i].AngularNetworkData
-                        AngularNrInputs = AngularHiddenData[0].shape[0]
-                    else:
-                        AngularNrInputs = AngularStructure[0]
-    
-                    AngularInputLayer = construct_input_layer(AngularNrInputs)
-                    # Connect angular input to first hidden layer
-                    AngularFirstWeights = AngularHiddenLayers[0][0]
-                    AngularFirstBiases = AngularHiddenLayers[0][1]
-                    AngularNetwork = connect_layers(AngularInputLayer, AngularFirstWeights, AngularFirstBiases, self.ActFun, self.ActFunParam)
-                    #Connect angular hidden layers
-                    for l in range(1, len(AngularHiddenLayers)):
-                        AngularTempWeights = AngularHiddenLayers[l][0]
-                        AngularTempBiases = AngularHiddenLayers[l][1]
-                        if l == len(AngularHiddenLayers) - 1:
-                            AngularNetwork = connect_layers(AngularNetwork, AngularTempWeights, AngularTempBiases, "none", self.ActFunParam)
-                        else:
-                            AngularNetwork = connect_layers(AngularNetwork, AngularTempWeights, AngularTempBiases, self.ActFun, self.ActFunParam)
-               
-                if len(CorrectionHiddenLayers)>0:
-                    # Make correction input layer
-                    if CreateNewCorrection==False:
-                        CorrectionHiddenData=self.HiddenData[i].CorrectionNetworkData
-                        CorrectionNrInputs = CorrectionHiddenData[0].shape[0]
-                    else:
-                        CorrectionNrInputs = CorrectionStructure[0]
-    
-                    CorrectionInputLayer = construct_input_layer(CorrectionNrInputs)
-                    # Connect Correction input to first hidden layer
-                    CorrectionFirstWeights = CorrectionHiddenLayers[0][0]
-                    CorrectionFirstBiases = CorrectionHiddenLayers[0][1]
-                    CorrectionNetwork = connect_layers(CorrectionInputLayer, CorrectionFirstWeights, CorrectionFirstBiases, self.ActFun, self.ActFunParam)
-                    #Connect Correction hidden layers
-                    for l in range(1, len(CorrectionHiddenLayers)):
-                        CorrectionTempWeights = CorrectionHiddenLayers[l][0]
-                        CorrectionTempBiases = CorrectionHiddenLayers[l][1]
-                        if l == len(CorrectionHiddenLayers) - 1:
-                            CorrectionNetwork = connect_layers(CorrectionNetwork, CorrectionTempWeights, CorrectionTempBiases, "none", self.ActFunParam)
-                        else:
-                            CorrectionNetwork = connect_layers(CorrectionNetwork, CorrectionTempWeights, CorrectionTempBiases, self.ActFun, self.ActFunParam)
-     
-                
-                #Store all networks
-                Network=range(3)
-                if RadialNetwork!=None :
-                    Network[0]=RadialNetwork
-                if AngularNetwork!=None:
-                    Network[1]=AngularNetwork
-                if CorrectionNetwork!=None:
-                    Network[2]=CorrectionNetwork
-
-                #Store all force networks
-                ForceNetworks=list()
-                if RadialForceNetworks!=None :
-                    ForceNetworks.append(RadialForceNetworks)
-                if AngularForceNetworks!=None:
-                    ForceNetworks.append(AngularForceNetworks)
-                if CorrectionForceNetworks!=None:
-                    ForceNetworks.append(CorrectionForceNetworks)
-                    
-                #Store all weights
-                RawWeights=list()
-                if len(RadialWeights)>0:
-                    RawWeights.append(RadialWeights)
-                if len(AngularWeights)>0:
-                    RawWeights.append(AngularWeights)
-                if len(CorrectionWeights)>0:
-                    RawWeights.append(CorrectionWeights)
-                    
-                #Store all bias
-                RawBias=list()
-                if len(RadialBias)>0:
-                    RawBias.append(RadialBias)
-                if len(AngularBias)>0:
-                    RawBias.append(AngularBias)
-                if len(CorrectionBias)>0:
-                    RawBias.append(CorrectionBias)
-                    
-                #Store all input layers
-                InputLayer=range(3)
-                if RadialInputLayer!=None :
-                    InputLayer[0]=RadialInputLayer
-                if AngularInputLayer!=None:
-                    InputLayer[1]=AngularInputLayer
-                if CorrectionInputLayer!=None:
-                    InputLayer[2]=CorrectionInputLayer
-                
-                #Always none AtomicNNs dont need a specific output layer (removal would cause indexing problems)
-                OutputLayer=None
-                
-                if len(self.Gs) != 0:
-                    if len(self.Gs) > 0:
-                        AtomicNNs.append(
-                            [self.NumberOfSameNetworks[i], Network, InputLayer, OutputLayer, ForceNetworks, RawWeights,
-                             RawBias, self.ActFun, self.Gs[i]])
-                    else:
-                        AtomicNNs.append(
-                            [self.NumberOfSameNetworks[i], Network, InputLayer, OutputLayer, ForceNetworks, RawWeights,
-                             RawBias, self.ActFun])
-                else:
-                    AtomicNNs.append(
-                        [self.NumberOfSameNetworks[i], Network, InputLayer, OutputLayer, ForceNetworks, RawWeights, RawBias,
-                         self.ActFun])
-
+                        CreateNewForceField=False
+                        #Recreate force field network             
+                        ForceFieldWeights = WeightData.ForceFieldNetworkData
+                        ForceFieldBias = BiasData.ForceFieldNetworkData
         
+                        for j in range(1, len(ForceFieldStructure)):
+                            
+                            ThisWeightData = ForceFieldWeights[j - 1]
+                            ThisBiasData = ForceFieldBias[j - 1]
+                            ForceFieldNrIn = ThisWeightData.shape[0]
+                            ForceFieldNrHidden = ThisWeightData.shape[1]
+                            ForceFieldHiddenLayers.append(construct_hidden_layer(ForceFieldNrIn, ForceFieldNrHidden, self.HiddenType, ThisWeightData, self.BiasType,ThisBiasData,WeightData.ForceFieldVariable,self.InitMean,self.InitStddev))
+    
+                        NetworkHiddenLayers[0]=ForceFieldHiddenLayers
+                        
+                    if len(WeightData.CorrectionNetworkData)>0:   
+                        CreateNewCorrection=False
+                        #Recreate correction network             
+                        CorrectionWeights = WeightData.CorrectionNetworkData
+                        CorrectionBias = BiasData.CorrectionNetworkData
+        
+                        for j in range(1, len(CorrectionStructure)):
+                            
+                            ThisWeightData = CorrectionWeights[j - 1]
+                            ThisBiasData = CorrectionBias[j - 1]
+                            CorrectionNrIn = ThisWeightData.shape[0]
+                            CorrectionNrHidden = ThisWeightData.shape[1]
+                            CorrectionHiddenLayers.append(construct_hidden_layer(CorrectionNrIn, CorrectionNrHidden, self.HiddenType, ThisWeightData, self.BiasType,ThisBiasData,WeightData.CorrectionVariable,self.InitMean,self.InitStddev))
+                         
+                        NetworkHiddenLayers[1]=CorrectionHiddenLayers
+                
+                if CreateNewForceField==True:
+                    #Create force field network
+                    for j in range(1, len(ForceFieldStructure)):
+                        ForceFieldNrIn = ForceFieldStructure[j - 1]
+                        ForceFieldNrHidden = ForceFieldStructure[j]
+                        ForceFieldHiddenLayers.append(construct_hidden_layer(ForceFieldNrIn, ForceFieldNrHidden, self.HiddenType, [], self.BiasType,[],True,self.InitMean,self.InitStddev))
+    
+                    NetworkHiddenLayers[0]=ForceFieldHiddenLayers
+    
+                if CreateNewCorrection==True:
+                    #Create correction network
+                    for j in range(1, len(CorrectionStructure)):
+                        CorrectionNrIn = CorrectionStructure[j - 1]
+                        CorrectionNrHidden = CorrectionStructure[j]
+                        CorrectionHiddenLayers.append(construct_hidden_layer(CorrectionNrIn, CorrectionNrHidden, self.HiddenType, [], self.BiasType,[],True,self.InitMean,self.InitStddev))
+                    
+                    NetworkHiddenLayers[1]=CorrectionHiddenLayers
+                    
+                AllHiddenLayers.append(NetworkHiddenLayers)
+    
+                for k in range(0, self.NumberOfSameNetworks[i]):
+                    
+                    
+                    if len(ForceFieldHiddenLayers)>0:
+                        # Make force field input layer
+                        if CreateNewForceField==False:
+                            ForceFieldHiddenData=self.HiddenData[i].ForceFieldNetworkData
+                            ForceFieldNrInputs = ForceFieldHiddenData[0].shape[0]
+                        else:
+                            ForceFieldNrInputs = ForceFieldStructure[0]
+        
+                        ForceFieldInputLayer = construct_input_layer(ForceFieldNrInputs)
+                        # Connect force field input to first hidden layer
+                        ForceFieldFirstWeights = ForceFieldHiddenLayers[0][0]
+                        ForceFieldFirstBiases = ForceFieldHiddenLayers[0][1]
+                        ForceFieldNetwork = connect_layers(ForceFieldInputLayer, ForceFieldFirstWeights, ForceFieldFirstBiases, self.ActFun, self.ActFunParam)
+                        #Connect force field hidden layers
+                        for l in range(1, len(ForceFieldHiddenLayers)):
+                            ForceFieldTempWeights = ForceFieldHiddenLayers[l][0]
+                            ForceFieldTempBiases = ForceFieldHiddenLayers[l][1]
+                            if l == len(ForceFieldHiddenLayers) - 1:
+                                ForceFieldNetwork = connect_layers(ForceFieldNetwork, ForceFieldTempWeights, ForceFieldTempBiases, "none", self.ActFunParam)
+                            else:
+                                ForceFieldNetwork = connect_layers(ForceFieldNetwork, ForceFieldTempWeights, ForceFieldTempBiases, self.ActFun, self.ActFunParam)
+                        
+    
+                    if len(CorrectionHiddenLayers)>0:
+                        # Make correction input layer
+                        if CreateNewCorrection==False:
+                            CorrectionHiddenData=self.HiddenData[i].CorrectionNetworkData
+                            CorrectionNrInputs = CorrectionHiddenData[0].shape[0]
+                        else:
+                            CorrectionNrInputs = CorrectionStructure[0]
+        
+                        CorrectionInputLayer = construct_input_layer(CorrectionNrInputs)
+                        # Connect Correction input to first hidden layer
+                        CorrectionFirstWeights = CorrectionHiddenLayers[0][0]
+                        CorrectionFirstBiases = CorrectionHiddenLayers[0][1]
+                        CorrectionNetwork = connect_layers(CorrectionInputLayer, CorrectionFirstWeights, CorrectionFirstBiases, self.ActFun, self.ActFunParam)
+                        #Connect Correction hidden layers
+                        for l in range(1, len(CorrectionHiddenLayers)):
+                            CorrectionTempWeights = CorrectionHiddenLayers[l][0]
+                            CorrectionTempBiases = CorrectionHiddenLayers[l][1]
+                            if l == len(CorrectionHiddenLayers) - 1:
+                                CorrectionNetwork = connect_layers(CorrectionNetwork, CorrectionTempWeights, CorrectionTempBiases, "none", self.ActFunParam)
+                            else:
+                                CorrectionNetwork = connect_layers(CorrectionNetwork, CorrectionTempWeights, CorrectionTempBiases, self.ActFun, self.ActFunParam)
+         
+                    
+                    #Store all networks
+                    Network=range(2)
+                    if ForceFieldNetwork!=None :
+                        Network[0]=ForceFieldNetwork
+                    if CorrectionNetwork!=None:
+                        Network[1]=CorrectionNetwork
+                    
+                    #Store all input layers
+                    InputLayer=range(2)
+                    if ForceFieldInputLayer!=None :
+                        InputLayer[0]=ForceFieldInputLayer
+                    if CorrectionInputLayer!=None:
+                        InputLayer[1]=CorrectionInputLayer
+                               
+                    if len(self.Gs) != 0:
+                        if len(self.Gs) > 0:
+                            AtomicNNs.append(
+                                [self.NumberOfSameNetworks[i], Network, InputLayer,self.Gs[i]])
+                        else:
+                            AtomicNNs.append(
+                                [self.NumberOfSameNetworks[i], Network, InputLayer])
+                    else:
+                        AtomicNNs.append(
+                            [self.NumberOfSameNetworks[i], Network, InputLayer])
+    
+            
+            self.AtomicNNs=AtomicNNs
+            self.VariablesDictionary=AllHiddenLayers
+        
+    def make_parallel_atomic_networks(self):
+
+        AtomicNNs = list()
+        # Start Session
+        self.Session=tf.Session()    
+        # make all layers
+        if len(self.HiddenData) != 0:
+            for i in range(0, len(self.Structures)):
+                for k in range(0, self.NumberOfSameNetworks[i]):
+               
+                    # Make hidden layers
+                    HiddenLayers = list()
+                    Structure = self.Structures[i]
+                    
+                    RawWeights = self.HiddenData[i]
+                    RawBias = self.BiasData[i]
+                        
+                    for j in range(1, len(Structure)):
+                        NrIn = Structure[j - 1]
+                        NrHidden = Structure[j]
+                        # fill old weights in new structure
+                        ThisWeightData = RawWeights[j - 1]
+                        ThisBiasData = RawBias[j - 1]
+        
+                        HiddenLayers.append(
+                            construct_hidden_layer(NrIn, NrHidden, self.HiddenType, ThisWeightData, self.BiasType,
+                                                   ThisBiasData, self.MakeAllVariable))
+                                   
+                    # Make input layer
+                    if len(self.HiddenData) != 0:
+                        NrInputs = self.HiddenData[i][0].shape[0]
+                    else:
+                        NrInputs = Structure[0]
+        
+                    InputLayer = construct_input_layer(NrInputs)
+                    # Connect input to first hidden layer
+                    FirstWeights = HiddenLayers[0][0]
+                    FirstBiases = HiddenLayers[0][1]
+                    Network = connect_layers(InputLayer, FirstWeights, FirstBiases, self.ActFun, self.ActFunParam)
+        
+                    for l in range(1, len(HiddenLayers)):
+                        # Connect ouput of in layer to second hidden layer
+        
+                        if l == len(HiddenLayers) - 1:
+                            Weights = HiddenLayers[l][0]
+                            Biases = HiddenLayers[l][1]
+                            Network = connect_layers(Network, Weights, Biases, "none", self.ActFunParam)
+                        else:
+                            Weights = HiddenLayers[l][0]
+                            Biases = HiddenLayers[l][1]
+                            Network = connect_layers(Network, Weights, Biases, self.ActFun, self.ActFunParam)
+        
+                    if len(self.Gs) != 0:
+                        if len(self.Gs) > 0:
+                            AtomicNNs.append(
+                                [self.NumberOfSameNetworks[i], Network, InputLayer,self.Gs[i]])
+                        else:
+                            AtomicNNs.append(
+                                [self.NumberOfSameNetworks[i], Network, InputLayer])
+                    else:
+                        AtomicNNs.append(
+                            [self.NumberOfSameNetworks[i], Network, InputLayer])
+        else:
+            print("No network data found!")
+            
         self.AtomicNNs=AtomicNNs
-        self.VariablesDictionary=AllHiddenLayers
+
 
     def make_atomic_networks(self):
 
@@ -1546,127 +1725,116 @@ class AtomicNeuralNetInstance(object):
             
         OldBiasNr = 0
         OldShape = None
-
-        # make all the networks for the different atom types
-        for i in range(0, len(self.Structures)):
-            # Make hidden layers
-            HiddenLayers = list()
-            Structure = self.Structures[i]
-            if len(self.HiddenData) != 0:
-                RawWeights = self.HiddenData[i]
-                RawBias = self.BiasData[i]
-                if len(RawWeights) == len(Structure) - 1:
-                    ForceNetworks = make_force_networks(Structure, RawWeights, RawBias)
-                else:
-                    ForceNetworks = None
-
-                for j in range(1, len(Structure)):
-                    NrIn = Structure[j - 1]
-                    NrHidden = Structure[j]
-
-                    if j == len(Structure) - 1 and self.MakeLastLayerConstant == True:
-                        HiddenLayers.append(construct_not_trainable_layer(NrIn, NrHidden, self.MinOfOut))
-                    else:
-                        if j >= len(self.HiddenData[i]) and self.MakeLastLayerConstant == True:
-                            tempWeights, tempBias = construct_hidden_layer(NrIn, NrHidden, self.HiddenType, [], self.BiasType, [],
-                                                                           self.MakeAllVariable, self.InitMean, self.InitStddev)
-
-                            indices = []
-                            values = []
-                            thisShape = tempWeights.get_shape().as_list()
-
-                            for q in range(0, OldBiasNr):
-                                indices.append([q, q])
-                                values += [1.0]
-
-                            delta = tf.SparseTensor(indices, values, thisShape)
-                            tempWeights = tempWeights + tf.sparse_tensor_to_dense(delta)
-
-                            HiddenLayers.append([tempWeights, tempBias])
-                        else:
-                            if len(RawBias) >= j:
-                                OldBiasNr = len(self.BiasData[i][j - 1])
-                                OldShape = self.HiddenData[i][j - 1].shape
-                                # fill old weights in new structure
-                                if OldBiasNr < NrHidden:
-                                    ThisWeightData = np.random.normal(loc=0.0, scale=0.01, size=(NrIn, NrHidden))
-                                    ThisWeightData[0:OldShape[0], 0:OldShape[1]] = self.HiddenData[i][j - 1]
-                                    ThisBiasData = np.zeros([NrHidden])
-                                    ThisBiasData[0:OldBiasNr] = self.BiasData[i][j - 1]
-                                elif OldBiasNr>NrHidden:
-                                    ThisWeightData = np.zeros((NrIn, NrHidden))
-                                    ThisWeightData[0:, 0:] = self.HiddenData[i][j - 1][0:NrIn,0:NrHidden]
-                                    ThisBiasData = np.zeros([NrHidden])
-                                    ThisBiasData[0:OldBiasNr] = self.BiasData[i][j - 1][0:NrIn,0:NrHidden]
-                                else:
-                                    ThisWeightData = self.HiddenData[i][j - 1]
-                                    ThisBiasData = self.BiasData[i][j - 1]
-    
-                                HiddenLayers.append(
-                                    construct_hidden_layer(NrIn, NrHidden, self.HiddenType, ThisWeightData, self.BiasType,
-                                                           ThisBiasData, self.MakeAllVariable))
-                            else:
-                                raise ValueError("Number of layers doesn't match, MakeLastLayerConstant has to be set to True!")
-
-
-            else:
-                RawWeights = None
-                RawBias = None
-                ForceNetworks = None
-                for j in range(1, len(Structure)):
-                    NrIn = Structure[j - 1]
-                    NrHidden = Structure[j]
-                    if j == len(Structure) - 1 and self.MakeLastLayerConstant == True:
-                        HiddenLayers.append(construct_not_trainable_layer(NrIn, NrHidden, self.MinOfOut))
-                    else:
-                        HiddenLayers.append(construct_hidden_layer(NrIn, NrHidden, self.HiddenType, [], self.BiasType))
-
-            AllHiddenLayers.append(HiddenLayers)
-
-            for k in range(0, self.NumberOfSameNetworks[i]):
-                # Make input layer
+        if isinstance(self.Structures[0],PartitionedStructure):
+            raise ValueError("Please set IsPartitioned = True !")
+        else:
+            # make all the networks for the different atom types
+            for i in range(0, len(self.Structures)):
+                # Make hidden layers
+                HiddenLayers = list()
+                Structure = self.Structures[i]
                 if len(self.HiddenData) != 0:
-                    NrInputs = self.HiddenData[i][0].shape[0]
-                else:
-                    NrInputs = Structure[0]
-
-                InputLayer = construct_input_layer(NrInputs)
-                # Make output layer
-                OutputLayer = construct_output_layer(Structure[-1])
-                # Connect input to first hidden layer
-                FirstWeights = HiddenLayers[0][0]
-                FirstBiases = HiddenLayers[0][1]
-                Network = connect_layers(InputLayer, FirstWeights, FirstBiases, self.ActFun, self.ActFunParam)
-
-                for l in range(1, len(HiddenLayers)):
-                    # Connect ouput of in layer to second hidden layer
-
-                    if l == len(HiddenLayers) - 1:
-                        Weights = HiddenLayers[l][0]
-                        Biases = HiddenLayers[l][1]
-                        Network = connect_layers(Network, Weights, Biases, "none", self.ActFunParam)
-                    else:
-                        Weights = HiddenLayers[l][0]
-                        Biases = HiddenLayers[l][1]
-                        Network = connect_layers(Network, Weights, Biases, self.ActFun, self.ActFunParam)
-
-                if len(self.Gs) != 0:
-                    if len(self.Gs) > 0:
-                        AtomicNNs.append(
-                            [self.NumberOfSameNetworks[i], Network, InputLayer, OutputLayer, ForceNetworks, RawWeights,
-                             RawBias, self.ActFun, self.Gs[i]])
-                    else:
-                        AtomicNNs.append(
-                            [self.NumberOfSameNetworks[i], Network, InputLayer, OutputLayer, ForceNetworks, RawWeights,
-                             RawBias, self.ActFun])
-                else:
-                    AtomicNNs.append(
-                        [self.NumberOfSameNetworks[i], Network, InputLayer, OutputLayer, ForceNetworks, RawWeights, RawBias,
-                         self.ActFun])
-
+                    
+                    RawBias = self.BiasData[i]
+    
+                    for j in range(1, len(Structure)):
+                        NrIn = Structure[j - 1]
+                        NrHidden = Structure[j]
+    
+                        if j == len(Structure) - 1 and self.MakeLastLayerConstant == True:
+                            HiddenLayers.append(construct_not_trainable_layer(NrIn, NrHidden, self.MinOfOut))
+                        else:
+                            if j >= len(self.HiddenData[i]) and self.MakeLastLayerConstant == True:
+                                tempWeights, tempBias = construct_hidden_layer(NrIn, NrHidden, self.HiddenType, [], self.BiasType, [],
+                                                                               self.MakeAllVariable, self.InitMean, self.InitStddev)
+    
+                                indices = []
+                                values = []
+                                thisShape = tempWeights.get_shape().as_list()
+    
+                                for q in range(0, OldBiasNr):
+                                    indices.append([q, q])
+                                    values += [1.0]
+    
+                                delta = tf.SparseTensor(indices, values, thisShape)
+                                tempWeights = tempWeights + tf.sparse_tensor_to_dense(delta)
+    
+                                HiddenLayers.append([tempWeights, tempBias])
+                            else:
+                                if len(RawBias) >= j:
+                                    OldBiasNr = len(self.BiasData[i][j - 1])
+                                    OldShape = self.HiddenData[i][j - 1].shape
+                                    # fill old weights in new structure
+                                    if OldBiasNr < NrHidden:
+                                        ThisWeightData = np.random.normal(loc=0.0, scale=0.01, size=(NrIn, NrHidden))
+                                        ThisWeightData[0:OldShape[0], 0:OldShape[1]] = self.HiddenData[i][j - 1]
+                                        ThisBiasData = np.zeros([NrHidden])
+                                        ThisBiasData[0:OldBiasNr] = self.BiasData[i][j - 1]
+                                    elif OldBiasNr>NrHidden:
+                                        ThisWeightData = np.zeros((NrIn, NrHidden))
+                                        ThisWeightData[0:, 0:] = self.HiddenData[i][j - 1][0:NrIn,0:NrHidden]
+                                        ThisBiasData = np.zeros([NrHidden])
+                                        ThisBiasData[0:OldBiasNr] = self.BiasData[i][j - 1][0:NrIn,0:NrHidden]
+                                    else:
+                                        ThisWeightData = self.HiddenData[i][j - 1]
+                                        ThisBiasData = self.BiasData[i][j - 1]
         
-        self.AtomicNNs=AtomicNNs
-        self.VariablesDictionary=AllHiddenLayers
+                                    HiddenLayers.append(
+                                        construct_hidden_layer(NrIn, NrHidden, self.HiddenType, ThisWeightData, self.BiasType,
+                                                               ThisBiasData, self.MakeAllVariable))
+                                else:
+                                    raise ValueError("Number of layers doesn't match, MakeLastLayerConstant has to be set to True!")
+    
+    
+                else:
+                    for j in range(1, len(Structure)):
+                        NrIn = Structure[j - 1]
+                        NrHidden = Structure[j]
+                        if j == len(Structure) - 1 and self.MakeLastLayerConstant == True:
+                            HiddenLayers.append(construct_not_trainable_layer(NrIn, NrHidden, self.MinOfOut))
+                        else:
+                            HiddenLayers.append(construct_hidden_layer(NrIn, NrHidden, self.HiddenType, [], self.BiasType))
+    
+                AllHiddenLayers.append(HiddenLayers)
+    
+                for k in range(0, self.NumberOfSameNetworks[i]):
+                    # Make input layer
+                    if len(self.HiddenData) != 0:
+                        NrInputs = self.HiddenData[i][0].shape[0]
+                    else:
+                        NrInputs = Structure[0]
+    
+                    InputLayer = construct_input_layer(NrInputs)
+                    # Connect input to first hidden layer
+                    FirstWeights = HiddenLayers[0][0]
+                    FirstBiases = HiddenLayers[0][1]
+                    Network = connect_layers(InputLayer, FirstWeights, FirstBiases, self.ActFun, self.ActFunParam)
+    
+                    for l in range(1, len(HiddenLayers)):
+                        # Connect ouput of in layer to second hidden layer
+    
+                        if l == len(HiddenLayers) - 1:
+                            Weights = HiddenLayers[l][0]
+                            Biases = HiddenLayers[l][1]
+                            Network = connect_layers(Network, Weights, Biases, "none", self.ActFunParam)
+                        else:
+                            Weights = HiddenLayers[l][0]
+                            Biases = HiddenLayers[l][1]
+                            Network = connect_layers(Network, Weights, Biases, self.ActFun, self.ActFunParam)
+    
+                    if len(self.Gs) != 0:
+                        if len(self.Gs) > 0:
+                            AtomicNNs.append(
+                                [self.NumberOfSameNetworks[i], Network, InputLayer, self.Gs[i]])
+                        else:
+                            AtomicNNs.append(
+                                [self.NumberOfSameNetworks[i], Network, InputLayer])
+                    else:
+                        AtomicNNs.append([self.NumberOfSameNetworks[i], Network, InputLayer])
+    
+            
+            self.AtomicNNs=AtomicNNs
+            self.VariablesDictionary=AllHiddenLayers
         
         
 class MultipleInstanceTraining(object):
@@ -1678,7 +1846,8 @@ class MultipleInstanceTraining(object):
         self.GlobalEpochs=100
         self.GlobalStructures=list()
         self.GlobalLearningRate=0.001
-        self.GlobalCostCriterium=0.0001
+        self.GlobalCostCriterium=0
+        self.Global_dE_Criterium=0
         self.GlobalRegularization="L2"
         self.GlobalRegularizationParam=0.0001
         self.GlobalOptimizer="Adam"
@@ -1686,6 +1855,7 @@ class MultipleInstanceTraining(object):
         self.GlobalValidationCosts=list()
         self.GlobalMinOfOut=0
         self.MakePlots=False
+        self.IsPartitioned=False
         self.GlobalSession=tf.Session()
         
     def initialize_multiple_instances(self):
@@ -1706,6 +1876,8 @@ class MultipleInstanceTraining(object):
                 Instance.MakePlots=False
                 Instance.ActFun="relu"
                 Instance.CostCriterium=0
+                Instance.dE_Criterium=0
+                Instance.IsPartitioned=self.IsPartitioned
                 Instance.HiddenType="truncated_normal"
                 Instance.LearningRate=self.GlobalLearningRate
                 Instance.OptimizerType=self.GlobalOptimizer
@@ -1732,7 +1904,6 @@ class MultipleInstanceTraining(object):
         ct=0
         LastStepsModelData=list()
         for i in range(0,self.GlobalEpochs):
-            AllConverged=True
             for Instance in self.TrainingInstances:
                 if ct==0:
                     if StartModelName!=None:
@@ -1760,22 +1931,40 @@ class MultipleInstanceTraining(object):
                     np.save("trained_variables",LastStepsModelData)
                 ct=ct+1
                 #Abort criteria
-                if Instance.TrainingCosts<=self.GlobalCostCriterium and Instance.ValidationCosts<=self.GlobalCostCriterium and AllConverged==True:
-                    AllConverged=True
-                else:
-                    AllConverged=False
-                
-            if AllConverged==True:
-                print("Reached cost criterium: "+str(self.GlobalTrainingCosts))
-                break     
+                if self.GlobalTrainingCosts<=self.GlobalCostCriterium and self.GlobalValidationCosts<=self.GloablCostCriterium or Instance.DeltaE<self.Global_dE_Criterium:
+                    
+                    if self.GlobalValidationCosts!=0:
+                        print("Reached criterium!")
+                        print("Cost= "+str((self.GlobalTrainingCosts+self.GlobalValidationCosts)/2))
+                        print("delta E = "+str(Instance.DeltaE)+" ev")
+                        print("Epoch = "+str(i))
+                        print("")
+    
+                    else:
+                        print("Reached criterium!")
+                        print("Cost= "+str(self.GlobalTrainingCosts))
+                        print("delta E = "+str(Instance.DeltaE)+" ev")
+                        print("Epoch = "+str(i))
+                        print("")
+                        
+                    print("Training finished")
+                    break
+                        
+                if i==(self.GlobalEpochs-1):
+                    print("Training finished")
+                    print("delta E = "+str(Instance.DeltaE)+" ev")
+                    print("Epoch = "+str(i))
+                    print("")
+                    
+            
+        
                     
                 
 class PartitionedStructure(object):
     
      def __init__(self):
          
-         self.RadialNetworkStructure=list()
-         self.AngularNetworkStructure=list()
+         self.ForceFieldNetworkStructure=list()
          self.CorrectionNetworkStructure=list()
          
                 
@@ -1783,18 +1972,15 @@ class PartitionedNetworkData(object):
     
      def __init__(self):
          
-         self.RadialNetworkData=list()
-         self.AngularNetworkData=list()
+         self.ForceFieldNetworkData=list()
          self.CorrectionNetworkData=list()
-         self.RadialVariable=False
-         self.AngularVariable=False
+         self.ForceFieldVariable=False
          self.CorrectionVariable=False
          
 class PartitionedGs(object):
     
      def __init__(self):
          
-         self.RadialGs=list()
-         self.AngularGs=list()
+         self.ForceFieldGs=list()
          self.CorrectionGs=list()
                 
