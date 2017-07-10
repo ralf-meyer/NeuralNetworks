@@ -6,7 +6,6 @@ cdef class CosCutoffFunction(CutoffFunction):
     cdef public double evaluate(self, double r)      
     cdef public double derivative(self, double r)
         
-        
 cdef class TanhCutoffFunction(CutoffFunction):
     
     cdef public double evaluate(self, double r)

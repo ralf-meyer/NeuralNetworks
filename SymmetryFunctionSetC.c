@@ -774,8 +774,8 @@ struct __pyx_obj_14NeuralNetworks_18SymmetryFunctionsC_CosCutoffFunction {
 };
 
 
-/* "SymmetryFunctionsC.pxd":10
- * 
+/* "SymmetryFunctionsC.pxd":9
+ *     cdef public double derivative(self, double r)
  * 
  * cdef class TanhCutoffFunction(CutoffFunction):             # <<<<<<<<<<<<<<
  * 
@@ -787,7 +787,7 @@ struct __pyx_obj_14NeuralNetworks_18SymmetryFunctionsC_TanhCutoffFunction {
 };
 
 
-/* "SymmetryFunctionsC.pxd":15
+/* "SymmetryFunctionsC.pxd":14
  *     cdef public double derivative(self, double r)
  * 
  * cdef class RadialSymmetryFunction(object):             # <<<<<<<<<<<<<<
@@ -803,7 +803,7 @@ struct __pyx_obj_14NeuralNetworks_18SymmetryFunctionsC_RadialSymmetryFunction {
 };
 
 
-/* "SymmetryFunctionsC.pxd":23
+/* "SymmetryFunctionsC.pxd":22
  *     cdef public double derivative(self, double r)
  * 
  * cdef class AngularSymmetryFunction(object):             # <<<<<<<<<<<<<<
@@ -913,8 +913,8 @@ struct __pyx_vtabstruct_14NeuralNetworks_18SymmetryFunctionsC_CosCutoffFunction 
 static struct __pyx_vtabstruct_14NeuralNetworks_18SymmetryFunctionsC_CosCutoffFunction *__pyx_vtabptr_14NeuralNetworks_18SymmetryFunctionsC_CosCutoffFunction;
 
 
-/* "SymmetryFunctionsC.pxd":10
- * 
+/* "SymmetryFunctionsC.pxd":9
+ *     cdef public double derivative(self, double r)
  * 
  * cdef class TanhCutoffFunction(CutoffFunction):             # <<<<<<<<<<<<<<
  * 
@@ -928,7 +928,7 @@ struct __pyx_vtabstruct_14NeuralNetworks_18SymmetryFunctionsC_TanhCutoffFunction
 static struct __pyx_vtabstruct_14NeuralNetworks_18SymmetryFunctionsC_TanhCutoffFunction *__pyx_vtabptr_14NeuralNetworks_18SymmetryFunctionsC_TanhCutoffFunction;
 
 
-/* "SymmetryFunctionsC.pxd":15
+/* "SymmetryFunctionsC.pxd":14
  *     cdef public double derivative(self, double r)
  * 
  * cdef class RadialSymmetryFunction(object):             # <<<<<<<<<<<<<<
@@ -943,7 +943,7 @@ struct __pyx_vtabstruct_14NeuralNetworks_18SymmetryFunctionsC_RadialSymmetryFunc
 static struct __pyx_vtabstruct_14NeuralNetworks_18SymmetryFunctionsC_RadialSymmetryFunction *__pyx_vtabptr_14NeuralNetworks_18SymmetryFunctionsC_RadialSymmetryFunction;
 
 
-/* "SymmetryFunctionsC.pxd":23
+/* "SymmetryFunctionsC.pxd":22
  *     cdef public double derivative(self, double r)
  * 
  * cdef class AngularSymmetryFunction(object):             # <<<<<<<<<<<<<<
@@ -1755,7 +1755,6 @@ static const char __pyx_k_index[] = "index";
 static const char __pyx_k_int32[] = "int32";
 static const char __pyx_k_lambs[] = "lambs";
 static const char __pyx_k_numpy[] = "numpy";
-static const char __pyx_k_pdist[] = "pdist";
 static const char __pyx_k_range[] = "range";
 static const char __pyx_k_shape[] = "shape";
 static const char __pyx_k_start[] = "start";
@@ -1791,7 +1790,6 @@ static const char __pyx_k_derivative[] = "derivative";
 static const char __pyx_k_pyx_vtable[] = "__pyx_vtable__";
 static const char __pyx_k_repetition[] = "repetition";
 static const char __pyx_k_scipy_misc[] = "scipy.misc";
-static const char __pyx_k_squareform[] = "squareform";
 static const char __pyx_k_MemoryError[] = "MemoryError";
 static const char __pyx_k_eval_geometry[] = "eval_geometry";
 static const char __pyx_k_pyx_getbuffer[] = "__pyx_getbuffer";
@@ -1806,7 +1804,6 @@ static const char __pyx_k_strided_and_indirect[] = "<strided and indirect>";
 static const char __pyx_k_add_angular_functions[] = "add_angular_functions";
 static const char __pyx_k_contiguous_and_direct[] = "<contiguous and direct>";
 static const char __pyx_k_MemoryView_of_r_object[] = "<MemoryView of %r object>";
-static const char __pyx_k_scipy_spatial_distance[] = "scipy.spatial.distance";
 static const char __pyx_k_MemoryView_of_r_at_0x_x[] = "<MemoryView of %r at 0x%x>";
 static const char __pyx_k_contiguous_and_indirect[] = "<contiguous and indirect>";
 static const char __pyx_k_Cannot_index_with_type_s[] = "Cannot index with type '%s'";
@@ -1933,7 +1930,6 @@ static PyObject *__pyx_n_s_obj;
 static PyObject *__pyx_n_s_object;
 static PyObject *__pyx_n_s_out;
 static PyObject *__pyx_n_s_pack;
-static PyObject *__pyx_n_s_pdist;
 static PyObject *__pyx_n_s_prepare;
 static PyObject *__pyx_n_s_pyx_getbuffer;
 static PyObject *__pyx_n_s_pyx_vtable;
@@ -1946,11 +1942,9 @@ static PyObject *__pyx_n_s_rik;
 static PyObject *__pyx_n_s_rs;
 static PyObject *__pyx_n_s_rss;
 static PyObject *__pyx_n_s_scipy_misc;
-static PyObject *__pyx_n_s_scipy_spatial_distance;
 static PyObject *__pyx_n_s_self;
 static PyObject *__pyx_n_s_shape;
 static PyObject *__pyx_n_s_size;
-static PyObject *__pyx_n_s_squareform;
 static PyObject *__pyx_n_s_start;
 static PyObject *__pyx_n_s_step;
 static PyObject *__pyx_n_s_stop;
@@ -2052,7 +2046,7 @@ static PyObject *__pyx_codeobj__22;
 static PyObject *__pyx_codeobj__24;
 static PyObject *__pyx_codeobj__26;
 
-/* "NeuralNetworks/SymmetryFunctionSetC.pyx":13
+/* "NeuralNetworks/SymmetryFunctionSetC.pyx":12
  * class SymmetryFunctionSet(object):
  * 
  *     def __init__(self, atomtypes, cutoff = 7.):             # <<<<<<<<<<<<<<
@@ -2092,7 +2086,7 @@ static PyObject *__pyx_pw_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunc
         case  1:
         if (likely((values[1] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_atomtypes)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("__init__", 0, 2, 3, 1); __PYX_ERR(0, 13, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__init__", 0, 2, 3, 1); __PYX_ERR(0, 12, __pyx_L3_error)
         }
         case  2:
         if (kw_args > 0) {
@@ -2101,7 +2095,7 @@ static PyObject *__pyx_pw_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunc
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__init__") < 0)) __PYX_ERR(0, 13, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__init__") < 0)) __PYX_ERR(0, 12, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -2118,7 +2112,7 @@ static PyObject *__pyx_pw_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunc
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("__init__", 0, 2, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 13, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("__init__", 0, 2, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 12, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("NeuralNetworks.SymmetryFunctionSetC.SymmetryFunctionSet.__init__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -2137,49 +2131,49 @@ static PyObject *__pyx_pf_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunc
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("__init__", 0);
 
-  /* "NeuralNetworks/SymmetryFunctionSetC.pyx":14
+  /* "NeuralNetworks/SymmetryFunctionSetC.pyx":13
  * 
  *     def __init__(self, atomtypes, cutoff = 7.):
  *         self.atomtypes = atomtypes             # <<<<<<<<<<<<<<
  *         self.cutoff = cutoff
  *         self.radial_sym_funs = []
  */
-  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_atomtypes, __pyx_v_atomtypes) < 0) __PYX_ERR(0, 14, __pyx_L1_error)
+  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_atomtypes, __pyx_v_atomtypes) < 0) __PYX_ERR(0, 13, __pyx_L1_error)
 
-  /* "NeuralNetworks/SymmetryFunctionSetC.pyx":15
+  /* "NeuralNetworks/SymmetryFunctionSetC.pyx":14
  *     def __init__(self, atomtypes, cutoff = 7.):
  *         self.atomtypes = atomtypes
  *         self.cutoff = cutoff             # <<<<<<<<<<<<<<
  *         self.radial_sym_funs = []
  *         self.angular_sym_funs = []
  */
-  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_cutoff, __pyx_v_cutoff) < 0) __PYX_ERR(0, 15, __pyx_L1_error)
+  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_cutoff, __pyx_v_cutoff) < 0) __PYX_ERR(0, 14, __pyx_L1_error)
 
-  /* "NeuralNetworks/SymmetryFunctionSetC.pyx":16
+  /* "NeuralNetworks/SymmetryFunctionSetC.pyx":15
  *         self.atomtypes = atomtypes
  *         self.cutoff = cutoff
  *         self.radial_sym_funs = []             # <<<<<<<<<<<<<<
  *         self.angular_sym_funs = []
  * 
  */
-  __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 16, __pyx_L1_error)
+  __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 15, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_radial_sym_funs, __pyx_t_1) < 0) __PYX_ERR(0, 16, __pyx_L1_error)
+  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_radial_sym_funs, __pyx_t_1) < 0) __PYX_ERR(0, 15, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "NeuralNetworks/SymmetryFunctionSetC.pyx":17
+  /* "NeuralNetworks/SymmetryFunctionSetC.pyx":16
  *         self.cutoff = cutoff
  *         self.radial_sym_funs = []
  *         self.angular_sym_funs = []             # <<<<<<<<<<<<<<
  * 
  *     def add_radial_functions(self, rss, etas):
  */
-  __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 17, __pyx_L1_error)
+  __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 16, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_angular_sym_funs, __pyx_t_1) < 0) __PYX_ERR(0, 17, __pyx_L1_error)
+  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_angular_sym_funs, __pyx_t_1) < 0) __PYX_ERR(0, 16, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "NeuralNetworks/SymmetryFunctionSetC.pyx":13
+  /* "NeuralNetworks/SymmetryFunctionSetC.pyx":12
  * class SymmetryFunctionSet(object):
  * 
  *     def __init__(self, atomtypes, cutoff = 7.):             # <<<<<<<<<<<<<<
@@ -2200,7 +2194,7 @@ static PyObject *__pyx_pf_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunc
   return __pyx_r;
 }
 
-/* "NeuralNetworks/SymmetryFunctionSetC.pyx":19
+/* "NeuralNetworks/SymmetryFunctionSetC.pyx":18
  *         self.angular_sym_funs = []
  * 
  *     def add_radial_functions(self, rss, etas):             # <<<<<<<<<<<<<<
@@ -2239,16 +2233,16 @@ static PyObject *__pyx_pw_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunc
         case  1:
         if (likely((values[1] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_rss)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("add_radial_functions", 1, 3, 3, 1); __PYX_ERR(0, 19, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("add_radial_functions", 1, 3, 3, 1); __PYX_ERR(0, 18, __pyx_L3_error)
         }
         case  2:
         if (likely((values[2] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_etas)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("add_radial_functions", 1, 3, 3, 2); __PYX_ERR(0, 19, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("add_radial_functions", 1, 3, 3, 2); __PYX_ERR(0, 18, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "add_radial_functions") < 0)) __PYX_ERR(0, 19, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "add_radial_functions") < 0)) __PYX_ERR(0, 18, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 3) {
       goto __pyx_L5_argtuple_error;
@@ -2263,7 +2257,7 @@ static PyObject *__pyx_pw_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunc
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("add_radial_functions", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 19, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("add_radial_functions", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 18, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("NeuralNetworks.SymmetryFunctionSetC.SymmetryFunctionSet.add_radial_functions", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -2293,7 +2287,7 @@ static PyObject *__pyx_pf_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunc
   int __pyx_t_10;
   __Pyx_RefNannySetupContext("add_radial_functions", 0);
 
-  /* "NeuralNetworks/SymmetryFunctionSetC.pyx":20
+  /* "NeuralNetworks/SymmetryFunctionSetC.pyx":19
  * 
  *     def add_radial_functions(self, rss, etas):
  *         for rs in rss:             # <<<<<<<<<<<<<<
@@ -2304,26 +2298,26 @@ static PyObject *__pyx_pf_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunc
     __pyx_t_1 = __pyx_v_rss; __Pyx_INCREF(__pyx_t_1); __pyx_t_2 = 0;
     __pyx_t_3 = NULL;
   } else {
-    __pyx_t_2 = -1; __pyx_t_1 = PyObject_GetIter(__pyx_v_rss); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 20, __pyx_L1_error)
+    __pyx_t_2 = -1; __pyx_t_1 = PyObject_GetIter(__pyx_v_rss); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 19, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_3 = Py_TYPE(__pyx_t_1)->tp_iternext; if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 20, __pyx_L1_error)
+    __pyx_t_3 = Py_TYPE(__pyx_t_1)->tp_iternext; if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 19, __pyx_L1_error)
   }
   for (;;) {
     if (likely(!__pyx_t_3)) {
       if (likely(PyList_CheckExact(__pyx_t_1))) {
         if (__pyx_t_2 >= PyList_GET_SIZE(__pyx_t_1)) break;
         #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-        __pyx_t_4 = PyList_GET_ITEM(__pyx_t_1, __pyx_t_2); __Pyx_INCREF(__pyx_t_4); __pyx_t_2++; if (unlikely(0 < 0)) __PYX_ERR(0, 20, __pyx_L1_error)
+        __pyx_t_4 = PyList_GET_ITEM(__pyx_t_1, __pyx_t_2); __Pyx_INCREF(__pyx_t_4); __pyx_t_2++; if (unlikely(0 < 0)) __PYX_ERR(0, 19, __pyx_L1_error)
         #else
-        __pyx_t_4 = PySequence_ITEM(__pyx_t_1, __pyx_t_2); __pyx_t_2++; if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 20, __pyx_L1_error)
+        __pyx_t_4 = PySequence_ITEM(__pyx_t_1, __pyx_t_2); __pyx_t_2++; if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 19, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_4);
         #endif
       } else {
         if (__pyx_t_2 >= PyTuple_GET_SIZE(__pyx_t_1)) break;
         #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-        __pyx_t_4 = PyTuple_GET_ITEM(__pyx_t_1, __pyx_t_2); __Pyx_INCREF(__pyx_t_4); __pyx_t_2++; if (unlikely(0 < 0)) __PYX_ERR(0, 20, __pyx_L1_error)
+        __pyx_t_4 = PyTuple_GET_ITEM(__pyx_t_1, __pyx_t_2); __Pyx_INCREF(__pyx_t_4); __pyx_t_2++; if (unlikely(0 < 0)) __PYX_ERR(0, 19, __pyx_L1_error)
         #else
-        __pyx_t_4 = PySequence_ITEM(__pyx_t_1, __pyx_t_2); __pyx_t_2++; if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 20, __pyx_L1_error)
+        __pyx_t_4 = PySequence_ITEM(__pyx_t_1, __pyx_t_2); __pyx_t_2++; if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 19, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_4);
         #endif
       }
@@ -2333,7 +2327,7 @@ static PyObject *__pyx_pf_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunc
         PyObject* exc_type = PyErr_Occurred();
         if (exc_type) {
           if (likely(exc_type == PyExc_StopIteration || PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) PyErr_Clear();
-          else __PYX_ERR(0, 20, __pyx_L1_error)
+          else __PYX_ERR(0, 19, __pyx_L1_error)
         }
         break;
       }
@@ -2342,7 +2336,7 @@ static PyObject *__pyx_pf_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunc
     __Pyx_XDECREF_SET(__pyx_v_rs, __pyx_t_4);
     __pyx_t_4 = 0;
 
-    /* "NeuralNetworks/SymmetryFunctionSetC.pyx":21
+    /* "NeuralNetworks/SymmetryFunctionSetC.pyx":20
  *     def add_radial_functions(self, rss, etas):
  *         for rs in rss:
  *             for eta in etas:             # <<<<<<<<<<<<<<
@@ -2353,26 +2347,26 @@ static PyObject *__pyx_pf_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunc
       __pyx_t_4 = __pyx_v_etas; __Pyx_INCREF(__pyx_t_4); __pyx_t_5 = 0;
       __pyx_t_6 = NULL;
     } else {
-      __pyx_t_5 = -1; __pyx_t_4 = PyObject_GetIter(__pyx_v_etas); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 21, __pyx_L1_error)
+      __pyx_t_5 = -1; __pyx_t_4 = PyObject_GetIter(__pyx_v_etas); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 20, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_4);
-      __pyx_t_6 = Py_TYPE(__pyx_t_4)->tp_iternext; if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 21, __pyx_L1_error)
+      __pyx_t_6 = Py_TYPE(__pyx_t_4)->tp_iternext; if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 20, __pyx_L1_error)
     }
     for (;;) {
       if (likely(!__pyx_t_6)) {
         if (likely(PyList_CheckExact(__pyx_t_4))) {
           if (__pyx_t_5 >= PyList_GET_SIZE(__pyx_t_4)) break;
           #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-          __pyx_t_7 = PyList_GET_ITEM(__pyx_t_4, __pyx_t_5); __Pyx_INCREF(__pyx_t_7); __pyx_t_5++; if (unlikely(0 < 0)) __PYX_ERR(0, 21, __pyx_L1_error)
+          __pyx_t_7 = PyList_GET_ITEM(__pyx_t_4, __pyx_t_5); __Pyx_INCREF(__pyx_t_7); __pyx_t_5++; if (unlikely(0 < 0)) __PYX_ERR(0, 20, __pyx_L1_error)
           #else
-          __pyx_t_7 = PySequence_ITEM(__pyx_t_4, __pyx_t_5); __pyx_t_5++; if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 21, __pyx_L1_error)
+          __pyx_t_7 = PySequence_ITEM(__pyx_t_4, __pyx_t_5); __pyx_t_5++; if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 20, __pyx_L1_error)
           __Pyx_GOTREF(__pyx_t_7);
           #endif
         } else {
           if (__pyx_t_5 >= PyTuple_GET_SIZE(__pyx_t_4)) break;
           #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-          __pyx_t_7 = PyTuple_GET_ITEM(__pyx_t_4, __pyx_t_5); __Pyx_INCREF(__pyx_t_7); __pyx_t_5++; if (unlikely(0 < 0)) __PYX_ERR(0, 21, __pyx_L1_error)
+          __pyx_t_7 = PyTuple_GET_ITEM(__pyx_t_4, __pyx_t_5); __Pyx_INCREF(__pyx_t_7); __pyx_t_5++; if (unlikely(0 < 0)) __PYX_ERR(0, 20, __pyx_L1_error)
           #else
-          __pyx_t_7 = PySequence_ITEM(__pyx_t_4, __pyx_t_5); __pyx_t_5++; if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 21, __pyx_L1_error)
+          __pyx_t_7 = PySequence_ITEM(__pyx_t_4, __pyx_t_5); __pyx_t_5++; if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 20, __pyx_L1_error)
           __Pyx_GOTREF(__pyx_t_7);
           #endif
         }
@@ -2382,7 +2376,7 @@ static PyObject *__pyx_pf_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunc
           PyObject* exc_type = PyErr_Occurred();
           if (exc_type) {
             if (likely(exc_type == PyExc_StopIteration || PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) PyErr_Clear();
-            else __PYX_ERR(0, 21, __pyx_L1_error)
+            else __PYX_ERR(0, 20, __pyx_L1_error)
           }
           break;
         }
@@ -2391,26 +2385,26 @@ static PyObject *__pyx_pf_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunc
       __Pyx_XDECREF_SET(__pyx_v_eta, __pyx_t_7);
       __pyx_t_7 = 0;
 
-      /* "NeuralNetworks/SymmetryFunctionSetC.pyx":22
+      /* "NeuralNetworks/SymmetryFunctionSetC.pyx":21
  *         for rs in rss:
  *             for eta in etas:
  *                 self.radial_sym_funs.append(             # <<<<<<<<<<<<<<
  *                         RadialSymmetryFunction(rs, eta, self.cutoff))
  * 
  */
-      __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_radial_sym_funs); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 22, __pyx_L1_error)
+      __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_radial_sym_funs); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 21, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_7);
 
-      /* "NeuralNetworks/SymmetryFunctionSetC.pyx":23
+      /* "NeuralNetworks/SymmetryFunctionSetC.pyx":22
  *             for eta in etas:
  *                 self.radial_sym_funs.append(
  *                         RadialSymmetryFunction(rs, eta, self.cutoff))             # <<<<<<<<<<<<<<
  * 
  *     def add_angular_functions(self, etas, zetas, lambs):
  */
-      __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_cutoff); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 23, __pyx_L1_error)
+      __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_cutoff); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 22, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_8);
-      __pyx_t_9 = PyTuple_New(3); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 23, __pyx_L1_error)
+      __pyx_t_9 = PyTuple_New(3); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 22, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_9);
       __Pyx_INCREF(__pyx_v_rs);
       __Pyx_GIVEREF(__pyx_v_rs);
@@ -2421,22 +2415,22 @@ static PyObject *__pyx_pf_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunc
       __Pyx_GIVEREF(__pyx_t_8);
       PyTuple_SET_ITEM(__pyx_t_9, 2, __pyx_t_8);
       __pyx_t_8 = 0;
-      __pyx_t_8 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_14NeuralNetworks_18SymmetryFunctionsC_RadialSymmetryFunction), __pyx_t_9, NULL); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 23, __pyx_L1_error)
+      __pyx_t_8 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_14NeuralNetworks_18SymmetryFunctionsC_RadialSymmetryFunction), __pyx_t_9, NULL); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 22, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_8);
       __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
 
-      /* "NeuralNetworks/SymmetryFunctionSetC.pyx":22
+      /* "NeuralNetworks/SymmetryFunctionSetC.pyx":21
  *         for rs in rss:
  *             for eta in etas:
  *                 self.radial_sym_funs.append(             # <<<<<<<<<<<<<<
  *                         RadialSymmetryFunction(rs, eta, self.cutoff))
  * 
  */
-      __pyx_t_10 = __Pyx_PyObject_Append(__pyx_t_7, __pyx_t_8); if (unlikely(__pyx_t_10 == -1)) __PYX_ERR(0, 22, __pyx_L1_error)
+      __pyx_t_10 = __Pyx_PyObject_Append(__pyx_t_7, __pyx_t_8); if (unlikely(__pyx_t_10 == -1)) __PYX_ERR(0, 21, __pyx_L1_error)
       __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
       __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
 
-      /* "NeuralNetworks/SymmetryFunctionSetC.pyx":21
+      /* "NeuralNetworks/SymmetryFunctionSetC.pyx":20
  *     def add_radial_functions(self, rss, etas):
  *         for rs in rss:
  *             for eta in etas:             # <<<<<<<<<<<<<<
@@ -2446,7 +2440,7 @@ static PyObject *__pyx_pf_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunc
     }
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-    /* "NeuralNetworks/SymmetryFunctionSetC.pyx":20
+    /* "NeuralNetworks/SymmetryFunctionSetC.pyx":19
  * 
  *     def add_radial_functions(self, rss, etas):
  *         for rs in rss:             # <<<<<<<<<<<<<<
@@ -2456,7 +2450,7 @@ static PyObject *__pyx_pf_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunc
   }
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "NeuralNetworks/SymmetryFunctionSetC.pyx":19
+  /* "NeuralNetworks/SymmetryFunctionSetC.pyx":18
  *         self.angular_sym_funs = []
  * 
  *     def add_radial_functions(self, rss, etas):             # <<<<<<<<<<<<<<
@@ -2483,7 +2477,7 @@ static PyObject *__pyx_pf_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunc
   return __pyx_r;
 }
 
-/* "NeuralNetworks/SymmetryFunctionSetC.pyx":25
+/* "NeuralNetworks/SymmetryFunctionSetC.pyx":24
  *                         RadialSymmetryFunction(rs, eta, self.cutoff))
  * 
  *     def add_angular_functions(self, etas, zetas, lambs):             # <<<<<<<<<<<<<<
@@ -2524,21 +2518,21 @@ static PyObject *__pyx_pw_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunc
         case  1:
         if (likely((values[1] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_etas)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("add_angular_functions", 1, 4, 4, 1); __PYX_ERR(0, 25, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("add_angular_functions", 1, 4, 4, 1); __PYX_ERR(0, 24, __pyx_L3_error)
         }
         case  2:
         if (likely((values[2] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_zetas)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("add_angular_functions", 1, 4, 4, 2); __PYX_ERR(0, 25, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("add_angular_functions", 1, 4, 4, 2); __PYX_ERR(0, 24, __pyx_L3_error)
         }
         case  3:
         if (likely((values[3] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_lambs)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("add_angular_functions", 1, 4, 4, 3); __PYX_ERR(0, 25, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("add_angular_functions", 1, 4, 4, 3); __PYX_ERR(0, 24, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "add_angular_functions") < 0)) __PYX_ERR(0, 25, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "add_angular_functions") < 0)) __PYX_ERR(0, 24, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 4) {
       goto __pyx_L5_argtuple_error;
@@ -2555,7 +2549,7 @@ static PyObject *__pyx_pw_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunc
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("add_angular_functions", 1, 4, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 25, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("add_angular_functions", 1, 4, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 24, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("NeuralNetworks.SymmetryFunctionSetC.SymmetryFunctionSet.add_angular_functions", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -2589,7 +2583,7 @@ static PyObject *__pyx_pf_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunc
   int __pyx_t_13;
   __Pyx_RefNannySetupContext("add_angular_functions", 0);
 
-  /* "NeuralNetworks/SymmetryFunctionSetC.pyx":26
+  /* "NeuralNetworks/SymmetryFunctionSetC.pyx":25
  * 
  *     def add_angular_functions(self, etas, zetas, lambs):
  *         for eta in etas:             # <<<<<<<<<<<<<<
@@ -2600,26 +2594,26 @@ static PyObject *__pyx_pf_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunc
     __pyx_t_1 = __pyx_v_etas; __Pyx_INCREF(__pyx_t_1); __pyx_t_2 = 0;
     __pyx_t_3 = NULL;
   } else {
-    __pyx_t_2 = -1; __pyx_t_1 = PyObject_GetIter(__pyx_v_etas); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 26, __pyx_L1_error)
+    __pyx_t_2 = -1; __pyx_t_1 = PyObject_GetIter(__pyx_v_etas); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 25, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_3 = Py_TYPE(__pyx_t_1)->tp_iternext; if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 26, __pyx_L1_error)
+    __pyx_t_3 = Py_TYPE(__pyx_t_1)->tp_iternext; if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 25, __pyx_L1_error)
   }
   for (;;) {
     if (likely(!__pyx_t_3)) {
       if (likely(PyList_CheckExact(__pyx_t_1))) {
         if (__pyx_t_2 >= PyList_GET_SIZE(__pyx_t_1)) break;
         #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-        __pyx_t_4 = PyList_GET_ITEM(__pyx_t_1, __pyx_t_2); __Pyx_INCREF(__pyx_t_4); __pyx_t_2++; if (unlikely(0 < 0)) __PYX_ERR(0, 26, __pyx_L1_error)
+        __pyx_t_4 = PyList_GET_ITEM(__pyx_t_1, __pyx_t_2); __Pyx_INCREF(__pyx_t_4); __pyx_t_2++; if (unlikely(0 < 0)) __PYX_ERR(0, 25, __pyx_L1_error)
         #else
-        __pyx_t_4 = PySequence_ITEM(__pyx_t_1, __pyx_t_2); __pyx_t_2++; if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 26, __pyx_L1_error)
+        __pyx_t_4 = PySequence_ITEM(__pyx_t_1, __pyx_t_2); __pyx_t_2++; if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 25, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_4);
         #endif
       } else {
         if (__pyx_t_2 >= PyTuple_GET_SIZE(__pyx_t_1)) break;
         #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-        __pyx_t_4 = PyTuple_GET_ITEM(__pyx_t_1, __pyx_t_2); __Pyx_INCREF(__pyx_t_4); __pyx_t_2++; if (unlikely(0 < 0)) __PYX_ERR(0, 26, __pyx_L1_error)
+        __pyx_t_4 = PyTuple_GET_ITEM(__pyx_t_1, __pyx_t_2); __Pyx_INCREF(__pyx_t_4); __pyx_t_2++; if (unlikely(0 < 0)) __PYX_ERR(0, 25, __pyx_L1_error)
         #else
-        __pyx_t_4 = PySequence_ITEM(__pyx_t_1, __pyx_t_2); __pyx_t_2++; if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 26, __pyx_L1_error)
+        __pyx_t_4 = PySequence_ITEM(__pyx_t_1, __pyx_t_2); __pyx_t_2++; if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 25, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_4);
         #endif
       }
@@ -2629,7 +2623,7 @@ static PyObject *__pyx_pf_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunc
         PyObject* exc_type = PyErr_Occurred();
         if (exc_type) {
           if (likely(exc_type == PyExc_StopIteration || PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) PyErr_Clear();
-          else __PYX_ERR(0, 26, __pyx_L1_error)
+          else __PYX_ERR(0, 25, __pyx_L1_error)
         }
         break;
       }
@@ -2638,7 +2632,7 @@ static PyObject *__pyx_pf_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunc
     __Pyx_XDECREF_SET(__pyx_v_eta, __pyx_t_4);
     __pyx_t_4 = 0;
 
-    /* "NeuralNetworks/SymmetryFunctionSetC.pyx":27
+    /* "NeuralNetworks/SymmetryFunctionSetC.pyx":26
  *     def add_angular_functions(self, etas, zetas, lambs):
  *         for eta in etas:
  *             for zeta in zetas:             # <<<<<<<<<<<<<<
@@ -2649,26 +2643,26 @@ static PyObject *__pyx_pf_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunc
       __pyx_t_4 = __pyx_v_zetas; __Pyx_INCREF(__pyx_t_4); __pyx_t_5 = 0;
       __pyx_t_6 = NULL;
     } else {
-      __pyx_t_5 = -1; __pyx_t_4 = PyObject_GetIter(__pyx_v_zetas); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 27, __pyx_L1_error)
+      __pyx_t_5 = -1; __pyx_t_4 = PyObject_GetIter(__pyx_v_zetas); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 26, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_4);
-      __pyx_t_6 = Py_TYPE(__pyx_t_4)->tp_iternext; if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 27, __pyx_L1_error)
+      __pyx_t_6 = Py_TYPE(__pyx_t_4)->tp_iternext; if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 26, __pyx_L1_error)
     }
     for (;;) {
       if (likely(!__pyx_t_6)) {
         if (likely(PyList_CheckExact(__pyx_t_4))) {
           if (__pyx_t_5 >= PyList_GET_SIZE(__pyx_t_4)) break;
           #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-          __pyx_t_7 = PyList_GET_ITEM(__pyx_t_4, __pyx_t_5); __Pyx_INCREF(__pyx_t_7); __pyx_t_5++; if (unlikely(0 < 0)) __PYX_ERR(0, 27, __pyx_L1_error)
+          __pyx_t_7 = PyList_GET_ITEM(__pyx_t_4, __pyx_t_5); __Pyx_INCREF(__pyx_t_7); __pyx_t_5++; if (unlikely(0 < 0)) __PYX_ERR(0, 26, __pyx_L1_error)
           #else
-          __pyx_t_7 = PySequence_ITEM(__pyx_t_4, __pyx_t_5); __pyx_t_5++; if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 27, __pyx_L1_error)
+          __pyx_t_7 = PySequence_ITEM(__pyx_t_4, __pyx_t_5); __pyx_t_5++; if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 26, __pyx_L1_error)
           __Pyx_GOTREF(__pyx_t_7);
           #endif
         } else {
           if (__pyx_t_5 >= PyTuple_GET_SIZE(__pyx_t_4)) break;
           #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-          __pyx_t_7 = PyTuple_GET_ITEM(__pyx_t_4, __pyx_t_5); __Pyx_INCREF(__pyx_t_7); __pyx_t_5++; if (unlikely(0 < 0)) __PYX_ERR(0, 27, __pyx_L1_error)
+          __pyx_t_7 = PyTuple_GET_ITEM(__pyx_t_4, __pyx_t_5); __Pyx_INCREF(__pyx_t_7); __pyx_t_5++; if (unlikely(0 < 0)) __PYX_ERR(0, 26, __pyx_L1_error)
           #else
-          __pyx_t_7 = PySequence_ITEM(__pyx_t_4, __pyx_t_5); __pyx_t_5++; if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 27, __pyx_L1_error)
+          __pyx_t_7 = PySequence_ITEM(__pyx_t_4, __pyx_t_5); __pyx_t_5++; if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 26, __pyx_L1_error)
           __Pyx_GOTREF(__pyx_t_7);
           #endif
         }
@@ -2678,7 +2672,7 @@ static PyObject *__pyx_pf_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunc
           PyObject* exc_type = PyErr_Occurred();
           if (exc_type) {
             if (likely(exc_type == PyExc_StopIteration || PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) PyErr_Clear();
-            else __PYX_ERR(0, 27, __pyx_L1_error)
+            else __PYX_ERR(0, 26, __pyx_L1_error)
           }
           break;
         }
@@ -2687,7 +2681,7 @@ static PyObject *__pyx_pf_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunc
       __Pyx_XDECREF_SET(__pyx_v_zeta, __pyx_t_7);
       __pyx_t_7 = 0;
 
-      /* "NeuralNetworks/SymmetryFunctionSetC.pyx":28
+      /* "NeuralNetworks/SymmetryFunctionSetC.pyx":27
  *         for eta in etas:
  *             for zeta in zetas:
  *                 for lamb in lambs:             # <<<<<<<<<<<<<<
@@ -2698,26 +2692,26 @@ static PyObject *__pyx_pf_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunc
         __pyx_t_7 = __pyx_v_lambs; __Pyx_INCREF(__pyx_t_7); __pyx_t_8 = 0;
         __pyx_t_9 = NULL;
       } else {
-        __pyx_t_8 = -1; __pyx_t_7 = PyObject_GetIter(__pyx_v_lambs); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 28, __pyx_L1_error)
+        __pyx_t_8 = -1; __pyx_t_7 = PyObject_GetIter(__pyx_v_lambs); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 27, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_7);
-        __pyx_t_9 = Py_TYPE(__pyx_t_7)->tp_iternext; if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 28, __pyx_L1_error)
+        __pyx_t_9 = Py_TYPE(__pyx_t_7)->tp_iternext; if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 27, __pyx_L1_error)
       }
       for (;;) {
         if (likely(!__pyx_t_9)) {
           if (likely(PyList_CheckExact(__pyx_t_7))) {
             if (__pyx_t_8 >= PyList_GET_SIZE(__pyx_t_7)) break;
             #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-            __pyx_t_10 = PyList_GET_ITEM(__pyx_t_7, __pyx_t_8); __Pyx_INCREF(__pyx_t_10); __pyx_t_8++; if (unlikely(0 < 0)) __PYX_ERR(0, 28, __pyx_L1_error)
+            __pyx_t_10 = PyList_GET_ITEM(__pyx_t_7, __pyx_t_8); __Pyx_INCREF(__pyx_t_10); __pyx_t_8++; if (unlikely(0 < 0)) __PYX_ERR(0, 27, __pyx_L1_error)
             #else
-            __pyx_t_10 = PySequence_ITEM(__pyx_t_7, __pyx_t_8); __pyx_t_8++; if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 28, __pyx_L1_error)
+            __pyx_t_10 = PySequence_ITEM(__pyx_t_7, __pyx_t_8); __pyx_t_8++; if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 27, __pyx_L1_error)
             __Pyx_GOTREF(__pyx_t_10);
             #endif
           } else {
             if (__pyx_t_8 >= PyTuple_GET_SIZE(__pyx_t_7)) break;
             #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-            __pyx_t_10 = PyTuple_GET_ITEM(__pyx_t_7, __pyx_t_8); __Pyx_INCREF(__pyx_t_10); __pyx_t_8++; if (unlikely(0 < 0)) __PYX_ERR(0, 28, __pyx_L1_error)
+            __pyx_t_10 = PyTuple_GET_ITEM(__pyx_t_7, __pyx_t_8); __Pyx_INCREF(__pyx_t_10); __pyx_t_8++; if (unlikely(0 < 0)) __PYX_ERR(0, 27, __pyx_L1_error)
             #else
-            __pyx_t_10 = PySequence_ITEM(__pyx_t_7, __pyx_t_8); __pyx_t_8++; if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 28, __pyx_L1_error)
+            __pyx_t_10 = PySequence_ITEM(__pyx_t_7, __pyx_t_8); __pyx_t_8++; if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 27, __pyx_L1_error)
             __Pyx_GOTREF(__pyx_t_10);
             #endif
           }
@@ -2727,7 +2721,7 @@ static PyObject *__pyx_pf_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunc
             PyObject* exc_type = PyErr_Occurred();
             if (exc_type) {
               if (likely(exc_type == PyExc_StopIteration || PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) PyErr_Clear();
-              else __PYX_ERR(0, 28, __pyx_L1_error)
+              else __PYX_ERR(0, 27, __pyx_L1_error)
             }
             break;
           }
@@ -2736,26 +2730,26 @@ static PyObject *__pyx_pf_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunc
         __Pyx_XDECREF_SET(__pyx_v_lamb, __pyx_t_10);
         __pyx_t_10 = 0;
 
-        /* "NeuralNetworks/SymmetryFunctionSetC.pyx":29
+        /* "NeuralNetworks/SymmetryFunctionSetC.pyx":28
  *             for zeta in zetas:
  *                 for lamb in lambs:
  *                     self.angular_sym_funs.append(             # <<<<<<<<<<<<<<
  *                             AngularSymmetryFunction(eta, zeta, lamb, self.cutoff))
  * 
  */
-        __pyx_t_10 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_angular_sym_funs); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 29, __pyx_L1_error)
+        __pyx_t_10 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_angular_sym_funs); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 28, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_10);
 
-        /* "NeuralNetworks/SymmetryFunctionSetC.pyx":30
+        /* "NeuralNetworks/SymmetryFunctionSetC.pyx":29
  *                 for lamb in lambs:
  *                     self.angular_sym_funs.append(
  *                             AngularSymmetryFunction(eta, zeta, lamb, self.cutoff))             # <<<<<<<<<<<<<<
  * 
  *     def add_angular_functions_new(self, etas, zetas, lambs, rss):
  */
-        __pyx_t_11 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_cutoff); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 30, __pyx_L1_error)
+        __pyx_t_11 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_cutoff); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 29, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_11);
-        __pyx_t_12 = PyTuple_New(4); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 30, __pyx_L1_error)
+        __pyx_t_12 = PyTuple_New(4); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 29, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_12);
         __Pyx_INCREF(__pyx_v_eta);
         __Pyx_GIVEREF(__pyx_v_eta);
@@ -2769,22 +2763,22 @@ static PyObject *__pyx_pf_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunc
         __Pyx_GIVEREF(__pyx_t_11);
         PyTuple_SET_ITEM(__pyx_t_12, 3, __pyx_t_11);
         __pyx_t_11 = 0;
-        __pyx_t_11 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_14NeuralNetworks_18SymmetryFunctionsC_AngularSymmetryFunction), __pyx_t_12, NULL); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 30, __pyx_L1_error)
+        __pyx_t_11 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_14NeuralNetworks_18SymmetryFunctionsC_AngularSymmetryFunction), __pyx_t_12, NULL); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 29, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_11);
         __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
 
-        /* "NeuralNetworks/SymmetryFunctionSetC.pyx":29
+        /* "NeuralNetworks/SymmetryFunctionSetC.pyx":28
  *             for zeta in zetas:
  *                 for lamb in lambs:
  *                     self.angular_sym_funs.append(             # <<<<<<<<<<<<<<
  *                             AngularSymmetryFunction(eta, zeta, lamb, self.cutoff))
  * 
  */
-        __pyx_t_13 = __Pyx_PyObject_Append(__pyx_t_10, __pyx_t_11); if (unlikely(__pyx_t_13 == -1)) __PYX_ERR(0, 29, __pyx_L1_error)
+        __pyx_t_13 = __Pyx_PyObject_Append(__pyx_t_10, __pyx_t_11); if (unlikely(__pyx_t_13 == -1)) __PYX_ERR(0, 28, __pyx_L1_error)
         __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
         __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
 
-        /* "NeuralNetworks/SymmetryFunctionSetC.pyx":28
+        /* "NeuralNetworks/SymmetryFunctionSetC.pyx":27
  *         for eta in etas:
  *             for zeta in zetas:
  *                 for lamb in lambs:             # <<<<<<<<<<<<<<
@@ -2794,7 +2788,7 @@ static PyObject *__pyx_pf_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunc
       }
       __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
 
-      /* "NeuralNetworks/SymmetryFunctionSetC.pyx":27
+      /* "NeuralNetworks/SymmetryFunctionSetC.pyx":26
  *     def add_angular_functions(self, etas, zetas, lambs):
  *         for eta in etas:
  *             for zeta in zetas:             # <<<<<<<<<<<<<<
@@ -2804,7 +2798,7 @@ static PyObject *__pyx_pf_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunc
     }
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-    /* "NeuralNetworks/SymmetryFunctionSetC.pyx":26
+    /* "NeuralNetworks/SymmetryFunctionSetC.pyx":25
  * 
  *     def add_angular_functions(self, etas, zetas, lambs):
  *         for eta in etas:             # <<<<<<<<<<<<<<
@@ -2814,7 +2808,7 @@ static PyObject *__pyx_pf_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunc
   }
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "NeuralNetworks/SymmetryFunctionSetC.pyx":25
+  /* "NeuralNetworks/SymmetryFunctionSetC.pyx":24
  *                         RadialSymmetryFunction(rs, eta, self.cutoff))
  * 
  *     def add_angular_functions(self, etas, zetas, lambs):             # <<<<<<<<<<<<<<
@@ -2843,7 +2837,7 @@ static PyObject *__pyx_pf_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunc
   return __pyx_r;
 }
 
-/* "NeuralNetworks/SymmetryFunctionSetC.pyx":32
+/* "NeuralNetworks/SymmetryFunctionSetC.pyx":31
  *                             AngularSymmetryFunction(eta, zeta, lamb, self.cutoff))
  * 
  *     def add_angular_functions_new(self, etas, zetas, lambs, rss):             # <<<<<<<<<<<<<<
@@ -2886,26 +2880,26 @@ static PyObject *__pyx_pw_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunc
         case  1:
         if (likely((values[1] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_etas)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("add_angular_functions_new", 1, 5, 5, 1); __PYX_ERR(0, 32, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("add_angular_functions_new", 1, 5, 5, 1); __PYX_ERR(0, 31, __pyx_L3_error)
         }
         case  2:
         if (likely((values[2] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_zetas)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("add_angular_functions_new", 1, 5, 5, 2); __PYX_ERR(0, 32, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("add_angular_functions_new", 1, 5, 5, 2); __PYX_ERR(0, 31, __pyx_L3_error)
         }
         case  3:
         if (likely((values[3] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_lambs)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("add_angular_functions_new", 1, 5, 5, 3); __PYX_ERR(0, 32, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("add_angular_functions_new", 1, 5, 5, 3); __PYX_ERR(0, 31, __pyx_L3_error)
         }
         case  4:
         if (likely((values[4] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_rss)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("add_angular_functions_new", 1, 5, 5, 4); __PYX_ERR(0, 32, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("add_angular_functions_new", 1, 5, 5, 4); __PYX_ERR(0, 31, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "add_angular_functions_new") < 0)) __PYX_ERR(0, 32, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "add_angular_functions_new") < 0)) __PYX_ERR(0, 31, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 5) {
       goto __pyx_L5_argtuple_error;
@@ -2924,7 +2918,7 @@ static PyObject *__pyx_pw_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunc
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("add_angular_functions_new", 1, 5, 5, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 32, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("add_angular_functions_new", 1, 5, 5, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 31, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("NeuralNetworks.SymmetryFunctionSetC.SymmetryFunctionSet.add_angular_functions_new", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -2962,7 +2956,7 @@ static PyObject *__pyx_pf_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunc
   int __pyx_t_16;
   __Pyx_RefNannySetupContext("add_angular_functions_new", 0);
 
-  /* "NeuralNetworks/SymmetryFunctionSetC.pyx":33
+  /* "NeuralNetworks/SymmetryFunctionSetC.pyx":32
  * 
  *     def add_angular_functions_new(self, etas, zetas, lambs, rss):
  *         for eta in etas:             # <<<<<<<<<<<<<<
@@ -2973,26 +2967,26 @@ static PyObject *__pyx_pf_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunc
     __pyx_t_1 = __pyx_v_etas; __Pyx_INCREF(__pyx_t_1); __pyx_t_2 = 0;
     __pyx_t_3 = NULL;
   } else {
-    __pyx_t_2 = -1; __pyx_t_1 = PyObject_GetIter(__pyx_v_etas); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 33, __pyx_L1_error)
+    __pyx_t_2 = -1; __pyx_t_1 = PyObject_GetIter(__pyx_v_etas); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 32, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_3 = Py_TYPE(__pyx_t_1)->tp_iternext; if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 33, __pyx_L1_error)
+    __pyx_t_3 = Py_TYPE(__pyx_t_1)->tp_iternext; if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 32, __pyx_L1_error)
   }
   for (;;) {
     if (likely(!__pyx_t_3)) {
       if (likely(PyList_CheckExact(__pyx_t_1))) {
         if (__pyx_t_2 >= PyList_GET_SIZE(__pyx_t_1)) break;
         #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-        __pyx_t_4 = PyList_GET_ITEM(__pyx_t_1, __pyx_t_2); __Pyx_INCREF(__pyx_t_4); __pyx_t_2++; if (unlikely(0 < 0)) __PYX_ERR(0, 33, __pyx_L1_error)
+        __pyx_t_4 = PyList_GET_ITEM(__pyx_t_1, __pyx_t_2); __Pyx_INCREF(__pyx_t_4); __pyx_t_2++; if (unlikely(0 < 0)) __PYX_ERR(0, 32, __pyx_L1_error)
         #else
-        __pyx_t_4 = PySequence_ITEM(__pyx_t_1, __pyx_t_2); __pyx_t_2++; if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 33, __pyx_L1_error)
+        __pyx_t_4 = PySequence_ITEM(__pyx_t_1, __pyx_t_2); __pyx_t_2++; if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 32, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_4);
         #endif
       } else {
         if (__pyx_t_2 >= PyTuple_GET_SIZE(__pyx_t_1)) break;
         #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-        __pyx_t_4 = PyTuple_GET_ITEM(__pyx_t_1, __pyx_t_2); __Pyx_INCREF(__pyx_t_4); __pyx_t_2++; if (unlikely(0 < 0)) __PYX_ERR(0, 33, __pyx_L1_error)
+        __pyx_t_4 = PyTuple_GET_ITEM(__pyx_t_1, __pyx_t_2); __Pyx_INCREF(__pyx_t_4); __pyx_t_2++; if (unlikely(0 < 0)) __PYX_ERR(0, 32, __pyx_L1_error)
         #else
-        __pyx_t_4 = PySequence_ITEM(__pyx_t_1, __pyx_t_2); __pyx_t_2++; if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 33, __pyx_L1_error)
+        __pyx_t_4 = PySequence_ITEM(__pyx_t_1, __pyx_t_2); __pyx_t_2++; if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 32, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_4);
         #endif
       }
@@ -3002,7 +2996,7 @@ static PyObject *__pyx_pf_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunc
         PyObject* exc_type = PyErr_Occurred();
         if (exc_type) {
           if (likely(exc_type == PyExc_StopIteration || PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) PyErr_Clear();
-          else __PYX_ERR(0, 33, __pyx_L1_error)
+          else __PYX_ERR(0, 32, __pyx_L1_error)
         }
         break;
       }
@@ -3011,7 +3005,7 @@ static PyObject *__pyx_pf_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunc
     __Pyx_XDECREF_SET(__pyx_v_eta, __pyx_t_4);
     __pyx_t_4 = 0;
 
-    /* "NeuralNetworks/SymmetryFunctionSetC.pyx":34
+    /* "NeuralNetworks/SymmetryFunctionSetC.pyx":33
  *     def add_angular_functions_new(self, etas, zetas, lambs, rss):
  *         for eta in etas:
  *             for zeta in zetas:             # <<<<<<<<<<<<<<
@@ -3022,26 +3016,26 @@ static PyObject *__pyx_pf_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunc
       __pyx_t_4 = __pyx_v_zetas; __Pyx_INCREF(__pyx_t_4); __pyx_t_5 = 0;
       __pyx_t_6 = NULL;
     } else {
-      __pyx_t_5 = -1; __pyx_t_4 = PyObject_GetIter(__pyx_v_zetas); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 34, __pyx_L1_error)
+      __pyx_t_5 = -1; __pyx_t_4 = PyObject_GetIter(__pyx_v_zetas); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 33, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_4);
-      __pyx_t_6 = Py_TYPE(__pyx_t_4)->tp_iternext; if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 34, __pyx_L1_error)
+      __pyx_t_6 = Py_TYPE(__pyx_t_4)->tp_iternext; if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 33, __pyx_L1_error)
     }
     for (;;) {
       if (likely(!__pyx_t_6)) {
         if (likely(PyList_CheckExact(__pyx_t_4))) {
           if (__pyx_t_5 >= PyList_GET_SIZE(__pyx_t_4)) break;
           #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-          __pyx_t_7 = PyList_GET_ITEM(__pyx_t_4, __pyx_t_5); __Pyx_INCREF(__pyx_t_7); __pyx_t_5++; if (unlikely(0 < 0)) __PYX_ERR(0, 34, __pyx_L1_error)
+          __pyx_t_7 = PyList_GET_ITEM(__pyx_t_4, __pyx_t_5); __Pyx_INCREF(__pyx_t_7); __pyx_t_5++; if (unlikely(0 < 0)) __PYX_ERR(0, 33, __pyx_L1_error)
           #else
-          __pyx_t_7 = PySequence_ITEM(__pyx_t_4, __pyx_t_5); __pyx_t_5++; if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 34, __pyx_L1_error)
+          __pyx_t_7 = PySequence_ITEM(__pyx_t_4, __pyx_t_5); __pyx_t_5++; if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 33, __pyx_L1_error)
           __Pyx_GOTREF(__pyx_t_7);
           #endif
         } else {
           if (__pyx_t_5 >= PyTuple_GET_SIZE(__pyx_t_4)) break;
           #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-          __pyx_t_7 = PyTuple_GET_ITEM(__pyx_t_4, __pyx_t_5); __Pyx_INCREF(__pyx_t_7); __pyx_t_5++; if (unlikely(0 < 0)) __PYX_ERR(0, 34, __pyx_L1_error)
+          __pyx_t_7 = PyTuple_GET_ITEM(__pyx_t_4, __pyx_t_5); __Pyx_INCREF(__pyx_t_7); __pyx_t_5++; if (unlikely(0 < 0)) __PYX_ERR(0, 33, __pyx_L1_error)
           #else
-          __pyx_t_7 = PySequence_ITEM(__pyx_t_4, __pyx_t_5); __pyx_t_5++; if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 34, __pyx_L1_error)
+          __pyx_t_7 = PySequence_ITEM(__pyx_t_4, __pyx_t_5); __pyx_t_5++; if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 33, __pyx_L1_error)
           __Pyx_GOTREF(__pyx_t_7);
           #endif
         }
@@ -3051,7 +3045,7 @@ static PyObject *__pyx_pf_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunc
           PyObject* exc_type = PyErr_Occurred();
           if (exc_type) {
             if (likely(exc_type == PyExc_StopIteration || PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) PyErr_Clear();
-            else __PYX_ERR(0, 34, __pyx_L1_error)
+            else __PYX_ERR(0, 33, __pyx_L1_error)
           }
           break;
         }
@@ -3060,7 +3054,7 @@ static PyObject *__pyx_pf_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunc
       __Pyx_XDECREF_SET(__pyx_v_zeta, __pyx_t_7);
       __pyx_t_7 = 0;
 
-      /* "NeuralNetworks/SymmetryFunctionSetC.pyx":35
+      /* "NeuralNetworks/SymmetryFunctionSetC.pyx":34
  *         for eta in etas:
  *             for zeta in zetas:
  *                 for lamb in lambs:             # <<<<<<<<<<<<<<
@@ -3071,26 +3065,26 @@ static PyObject *__pyx_pf_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunc
         __pyx_t_7 = __pyx_v_lambs; __Pyx_INCREF(__pyx_t_7); __pyx_t_8 = 0;
         __pyx_t_9 = NULL;
       } else {
-        __pyx_t_8 = -1; __pyx_t_7 = PyObject_GetIter(__pyx_v_lambs); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 35, __pyx_L1_error)
+        __pyx_t_8 = -1; __pyx_t_7 = PyObject_GetIter(__pyx_v_lambs); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 34, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_7);
-        __pyx_t_9 = Py_TYPE(__pyx_t_7)->tp_iternext; if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 35, __pyx_L1_error)
+        __pyx_t_9 = Py_TYPE(__pyx_t_7)->tp_iternext; if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 34, __pyx_L1_error)
       }
       for (;;) {
         if (likely(!__pyx_t_9)) {
           if (likely(PyList_CheckExact(__pyx_t_7))) {
             if (__pyx_t_8 >= PyList_GET_SIZE(__pyx_t_7)) break;
             #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-            __pyx_t_10 = PyList_GET_ITEM(__pyx_t_7, __pyx_t_8); __Pyx_INCREF(__pyx_t_10); __pyx_t_8++; if (unlikely(0 < 0)) __PYX_ERR(0, 35, __pyx_L1_error)
+            __pyx_t_10 = PyList_GET_ITEM(__pyx_t_7, __pyx_t_8); __Pyx_INCREF(__pyx_t_10); __pyx_t_8++; if (unlikely(0 < 0)) __PYX_ERR(0, 34, __pyx_L1_error)
             #else
-            __pyx_t_10 = PySequence_ITEM(__pyx_t_7, __pyx_t_8); __pyx_t_8++; if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 35, __pyx_L1_error)
+            __pyx_t_10 = PySequence_ITEM(__pyx_t_7, __pyx_t_8); __pyx_t_8++; if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 34, __pyx_L1_error)
             __Pyx_GOTREF(__pyx_t_10);
             #endif
           } else {
             if (__pyx_t_8 >= PyTuple_GET_SIZE(__pyx_t_7)) break;
             #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-            __pyx_t_10 = PyTuple_GET_ITEM(__pyx_t_7, __pyx_t_8); __Pyx_INCREF(__pyx_t_10); __pyx_t_8++; if (unlikely(0 < 0)) __PYX_ERR(0, 35, __pyx_L1_error)
+            __pyx_t_10 = PyTuple_GET_ITEM(__pyx_t_7, __pyx_t_8); __Pyx_INCREF(__pyx_t_10); __pyx_t_8++; if (unlikely(0 < 0)) __PYX_ERR(0, 34, __pyx_L1_error)
             #else
-            __pyx_t_10 = PySequence_ITEM(__pyx_t_7, __pyx_t_8); __pyx_t_8++; if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 35, __pyx_L1_error)
+            __pyx_t_10 = PySequence_ITEM(__pyx_t_7, __pyx_t_8); __pyx_t_8++; if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 34, __pyx_L1_error)
             __Pyx_GOTREF(__pyx_t_10);
             #endif
           }
@@ -3100,7 +3094,7 @@ static PyObject *__pyx_pf_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunc
             PyObject* exc_type = PyErr_Occurred();
             if (exc_type) {
               if (likely(exc_type == PyExc_StopIteration || PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) PyErr_Clear();
-              else __PYX_ERR(0, 35, __pyx_L1_error)
+              else __PYX_ERR(0, 34, __pyx_L1_error)
             }
             break;
           }
@@ -3109,7 +3103,7 @@ static PyObject *__pyx_pf_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunc
         __Pyx_XDECREF_SET(__pyx_v_lamb, __pyx_t_10);
         __pyx_t_10 = 0;
 
-        /* "NeuralNetworks/SymmetryFunctionSetC.pyx":36
+        /* "NeuralNetworks/SymmetryFunctionSetC.pyx":35
  *             for zeta in zetas:
  *                 for lamb in lambs:
  *                     for rs in rss:             # <<<<<<<<<<<<<<
@@ -3120,26 +3114,26 @@ static PyObject *__pyx_pf_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunc
           __pyx_t_10 = __pyx_v_rss; __Pyx_INCREF(__pyx_t_10); __pyx_t_11 = 0;
           __pyx_t_12 = NULL;
         } else {
-          __pyx_t_11 = -1; __pyx_t_10 = PyObject_GetIter(__pyx_v_rss); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 36, __pyx_L1_error)
+          __pyx_t_11 = -1; __pyx_t_10 = PyObject_GetIter(__pyx_v_rss); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 35, __pyx_L1_error)
           __Pyx_GOTREF(__pyx_t_10);
-          __pyx_t_12 = Py_TYPE(__pyx_t_10)->tp_iternext; if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 36, __pyx_L1_error)
+          __pyx_t_12 = Py_TYPE(__pyx_t_10)->tp_iternext; if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 35, __pyx_L1_error)
         }
         for (;;) {
           if (likely(!__pyx_t_12)) {
             if (likely(PyList_CheckExact(__pyx_t_10))) {
               if (__pyx_t_11 >= PyList_GET_SIZE(__pyx_t_10)) break;
               #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-              __pyx_t_13 = PyList_GET_ITEM(__pyx_t_10, __pyx_t_11); __Pyx_INCREF(__pyx_t_13); __pyx_t_11++; if (unlikely(0 < 0)) __PYX_ERR(0, 36, __pyx_L1_error)
+              __pyx_t_13 = PyList_GET_ITEM(__pyx_t_10, __pyx_t_11); __Pyx_INCREF(__pyx_t_13); __pyx_t_11++; if (unlikely(0 < 0)) __PYX_ERR(0, 35, __pyx_L1_error)
               #else
-              __pyx_t_13 = PySequence_ITEM(__pyx_t_10, __pyx_t_11); __pyx_t_11++; if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 36, __pyx_L1_error)
+              __pyx_t_13 = PySequence_ITEM(__pyx_t_10, __pyx_t_11); __pyx_t_11++; if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 35, __pyx_L1_error)
               __Pyx_GOTREF(__pyx_t_13);
               #endif
             } else {
               if (__pyx_t_11 >= PyTuple_GET_SIZE(__pyx_t_10)) break;
               #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-              __pyx_t_13 = PyTuple_GET_ITEM(__pyx_t_10, __pyx_t_11); __Pyx_INCREF(__pyx_t_13); __pyx_t_11++; if (unlikely(0 < 0)) __PYX_ERR(0, 36, __pyx_L1_error)
+              __pyx_t_13 = PyTuple_GET_ITEM(__pyx_t_10, __pyx_t_11); __Pyx_INCREF(__pyx_t_13); __pyx_t_11++; if (unlikely(0 < 0)) __PYX_ERR(0, 35, __pyx_L1_error)
               #else
-              __pyx_t_13 = PySequence_ITEM(__pyx_t_10, __pyx_t_11); __pyx_t_11++; if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 36, __pyx_L1_error)
+              __pyx_t_13 = PySequence_ITEM(__pyx_t_10, __pyx_t_11); __pyx_t_11++; if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 35, __pyx_L1_error)
               __Pyx_GOTREF(__pyx_t_13);
               #endif
             }
@@ -3149,7 +3143,7 @@ static PyObject *__pyx_pf_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunc
               PyObject* exc_type = PyErr_Occurred();
               if (exc_type) {
                 if (likely(exc_type == PyExc_StopIteration || PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) PyErr_Clear();
-                else __PYX_ERR(0, 36, __pyx_L1_error)
+                else __PYX_ERR(0, 35, __pyx_L1_error)
               }
               break;
             }
@@ -3158,26 +3152,26 @@ static PyObject *__pyx_pf_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunc
           __Pyx_XDECREF_SET(__pyx_v_rs, __pyx_t_13);
           __pyx_t_13 = 0;
 
-          /* "NeuralNetworks/SymmetryFunctionSetC.pyx":37
+          /* "NeuralNetworks/SymmetryFunctionSetC.pyx":36
  *                 for lamb in lambs:
  *                     for rs in rss:
  *                         self.angular_sym_funs.append(             # <<<<<<<<<<<<<<
  *                             AngularSymmetryFunction(eta, zeta, lamb, rs, self.cutoff))
  * 
  */
-          __pyx_t_13 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_angular_sym_funs); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 37, __pyx_L1_error)
+          __pyx_t_13 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_angular_sym_funs); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 36, __pyx_L1_error)
           __Pyx_GOTREF(__pyx_t_13);
 
-          /* "NeuralNetworks/SymmetryFunctionSetC.pyx":38
+          /* "NeuralNetworks/SymmetryFunctionSetC.pyx":37
  *                     for rs in rss:
  *                         self.angular_sym_funs.append(
  *                             AngularSymmetryFunction(eta, zeta, lamb, rs, self.cutoff))             # <<<<<<<<<<<<<<
  * 
  *     def add_radial_functions_evenly(self, N):
  */
-          __pyx_t_14 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_cutoff); if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 38, __pyx_L1_error)
+          __pyx_t_14 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_cutoff); if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 37, __pyx_L1_error)
           __Pyx_GOTREF(__pyx_t_14);
-          __pyx_t_15 = PyTuple_New(5); if (unlikely(!__pyx_t_15)) __PYX_ERR(0, 38, __pyx_L1_error)
+          __pyx_t_15 = PyTuple_New(5); if (unlikely(!__pyx_t_15)) __PYX_ERR(0, 37, __pyx_L1_error)
           __Pyx_GOTREF(__pyx_t_15);
           __Pyx_INCREF(__pyx_v_eta);
           __Pyx_GIVEREF(__pyx_v_eta);
@@ -3194,22 +3188,22 @@ static PyObject *__pyx_pf_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunc
           __Pyx_GIVEREF(__pyx_t_14);
           PyTuple_SET_ITEM(__pyx_t_15, 4, __pyx_t_14);
           __pyx_t_14 = 0;
-          __pyx_t_14 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_14NeuralNetworks_18SymmetryFunctionsC_AngularSymmetryFunction), __pyx_t_15, NULL); if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 38, __pyx_L1_error)
+          __pyx_t_14 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_14NeuralNetworks_18SymmetryFunctionsC_AngularSymmetryFunction), __pyx_t_15, NULL); if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 37, __pyx_L1_error)
           __Pyx_GOTREF(__pyx_t_14);
           __Pyx_DECREF(__pyx_t_15); __pyx_t_15 = 0;
 
-          /* "NeuralNetworks/SymmetryFunctionSetC.pyx":37
+          /* "NeuralNetworks/SymmetryFunctionSetC.pyx":36
  *                 for lamb in lambs:
  *                     for rs in rss:
  *                         self.angular_sym_funs.append(             # <<<<<<<<<<<<<<
  *                             AngularSymmetryFunction(eta, zeta, lamb, rs, self.cutoff))
  * 
  */
-          __pyx_t_16 = __Pyx_PyObject_Append(__pyx_t_13, __pyx_t_14); if (unlikely(__pyx_t_16 == -1)) __PYX_ERR(0, 37, __pyx_L1_error)
+          __pyx_t_16 = __Pyx_PyObject_Append(__pyx_t_13, __pyx_t_14); if (unlikely(__pyx_t_16 == -1)) __PYX_ERR(0, 36, __pyx_L1_error)
           __Pyx_DECREF(__pyx_t_13); __pyx_t_13 = 0;
           __Pyx_DECREF(__pyx_t_14); __pyx_t_14 = 0;
 
-          /* "NeuralNetworks/SymmetryFunctionSetC.pyx":36
+          /* "NeuralNetworks/SymmetryFunctionSetC.pyx":35
  *             for zeta in zetas:
  *                 for lamb in lambs:
  *                     for rs in rss:             # <<<<<<<<<<<<<<
@@ -3219,7 +3213,7 @@ static PyObject *__pyx_pf_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunc
         }
         __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
 
-        /* "NeuralNetworks/SymmetryFunctionSetC.pyx":35
+        /* "NeuralNetworks/SymmetryFunctionSetC.pyx":34
  *         for eta in etas:
  *             for zeta in zetas:
  *                 for lamb in lambs:             # <<<<<<<<<<<<<<
@@ -3229,7 +3223,7 @@ static PyObject *__pyx_pf_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunc
       }
       __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
 
-      /* "NeuralNetworks/SymmetryFunctionSetC.pyx":34
+      /* "NeuralNetworks/SymmetryFunctionSetC.pyx":33
  *     def add_angular_functions_new(self, etas, zetas, lambs, rss):
  *         for eta in etas:
  *             for zeta in zetas:             # <<<<<<<<<<<<<<
@@ -3239,7 +3233,7 @@ static PyObject *__pyx_pf_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunc
     }
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-    /* "NeuralNetworks/SymmetryFunctionSetC.pyx":33
+    /* "NeuralNetworks/SymmetryFunctionSetC.pyx":32
  * 
  *     def add_angular_functions_new(self, etas, zetas, lambs, rss):
  *         for eta in etas:             # <<<<<<<<<<<<<<
@@ -3249,7 +3243,7 @@ static PyObject *__pyx_pf_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunc
   }
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "NeuralNetworks/SymmetryFunctionSetC.pyx":32
+  /* "NeuralNetworks/SymmetryFunctionSetC.pyx":31
  *                             AngularSymmetryFunction(eta, zeta, lamb, self.cutoff))
  * 
  *     def add_angular_functions_new(self, etas, zetas, lambs, rss):             # <<<<<<<<<<<<<<
@@ -3280,7 +3274,7 @@ static PyObject *__pyx_pf_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunc
   return __pyx_r;
 }
 
-/* "NeuralNetworks/SymmetryFunctionSetC.pyx":40
+/* "NeuralNetworks/SymmetryFunctionSetC.pyx":39
  *                             AngularSymmetryFunction(eta, zeta, lamb, rs, self.cutoff))
  * 
  *     def add_radial_functions_evenly(self, N):             # <<<<<<<<<<<<<<
@@ -3317,11 +3311,11 @@ static PyObject *__pyx_pw_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunc
         case  1:
         if (likely((values[1] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_N)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("add_radial_functions_evenly", 1, 2, 2, 1); __PYX_ERR(0, 40, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("add_radial_functions_evenly", 1, 2, 2, 1); __PYX_ERR(0, 39, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "add_radial_functions_evenly") < 0)) __PYX_ERR(0, 40, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "add_radial_functions_evenly") < 0)) __PYX_ERR(0, 39, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 2) {
       goto __pyx_L5_argtuple_error;
@@ -3334,7 +3328,7 @@ static PyObject *__pyx_pw_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunc
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("add_radial_functions_evenly", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 40, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("add_radial_functions_evenly", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 39, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("NeuralNetworks.SymmetryFunctionSetC.SymmetryFunctionSet.add_radial_functions_evenly", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -3366,19 +3360,19 @@ static PyObject *__pyx_pf_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunc
   int __pyx_t_10;
   __Pyx_RefNannySetupContext("add_radial_functions_evenly", 0);
 
-  /* "NeuralNetworks/SymmetryFunctionSetC.pyx":41
+  /* "NeuralNetworks/SymmetryFunctionSetC.pyx":40
  * 
  *     def add_radial_functions_evenly(self, N):
  *         rss = _np.linspace(0.,self.cutoff,N)             # <<<<<<<<<<<<<<
  *         etas = [2./(self.cutoff/(N-1))**2]*N
  *         for rs, eta in zip(rss, etas):
  */
-  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 41, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 40, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_linspace); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 41, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_linspace); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 40, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_cutoff); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 41, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_cutoff); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 40, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_4 = NULL;
   __pyx_t_5 = 0;
@@ -3395,7 +3389,7 @@ static PyObject *__pyx_pf_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunc
   #if CYTHON_FAST_PYCALL
   if (PyFunction_Check(__pyx_t_3)) {
     PyObject *__pyx_temp[4] = {__pyx_t_4, __pyx_float_0_, __pyx_t_2, __pyx_v_N};
-    __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_3, __pyx_temp+1-__pyx_t_5, 3+__pyx_t_5); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 41, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_3, __pyx_temp+1-__pyx_t_5, 3+__pyx_t_5); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 40, __pyx_L1_error)
     __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
@@ -3404,14 +3398,14 @@ static PyObject *__pyx_pf_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunc
   #if CYTHON_FAST_PYCCALL
   if (__Pyx_PyFastCFunction_Check(__pyx_t_3)) {
     PyObject *__pyx_temp[4] = {__pyx_t_4, __pyx_float_0_, __pyx_t_2, __pyx_v_N};
-    __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_3, __pyx_temp+1-__pyx_t_5, 3+__pyx_t_5); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 41, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_3, __pyx_temp+1-__pyx_t_5, 3+__pyx_t_5); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 40, __pyx_L1_error)
     __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   } else
   #endif
   {
-    __pyx_t_6 = PyTuple_New(3+__pyx_t_5); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 41, __pyx_L1_error)
+    __pyx_t_6 = PyTuple_New(3+__pyx_t_5); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 40, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
     if (__pyx_t_4) {
       __Pyx_GIVEREF(__pyx_t_4); PyTuple_SET_ITEM(__pyx_t_6, 0, __pyx_t_4); __pyx_t_4 = NULL;
@@ -3425,7 +3419,7 @@ static PyObject *__pyx_pf_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunc
     __Pyx_GIVEREF(__pyx_v_N);
     PyTuple_SET_ITEM(__pyx_t_6, 2+__pyx_t_5, __pyx_v_N);
     __pyx_t_2 = 0;
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_6, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 41, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_6, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 40, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
   }
@@ -3433,32 +3427,32 @@ static PyObject *__pyx_pf_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunc
   __pyx_v_rss = __pyx_t_1;
   __pyx_t_1 = 0;
 
-  /* "NeuralNetworks/SymmetryFunctionSetC.pyx":42
+  /* "NeuralNetworks/SymmetryFunctionSetC.pyx":41
  *     def add_radial_functions_evenly(self, N):
  *         rss = _np.linspace(0.,self.cutoff,N)
  *         etas = [2./(self.cutoff/(N-1))**2]*N             # <<<<<<<<<<<<<<
  *         for rs, eta in zip(rss, etas):
  *             self.radial_sym_funs.append(
  */
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_cutoff); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 42, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_cutoff); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 41, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = __Pyx_PyInt_SubtractObjC(__pyx_v_N, __pyx_int_1, 1, 0); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 42, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyInt_SubtractObjC(__pyx_v_N, __pyx_int_1, 1, 0); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 41, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_6 = __Pyx_PyNumber_Divide(__pyx_t_1, __pyx_t_3); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 42, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyNumber_Divide(__pyx_t_1, __pyx_t_3); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 41, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = PyNumber_Power(__pyx_t_6, __pyx_int_2, Py_None); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 42, __pyx_L1_error)
+  __pyx_t_3 = PyNumber_Power(__pyx_t_6, __pyx_int_2, Py_None); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 41, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_t_6 = __Pyx_PyFloat_DivideCObj(__pyx_float_2_, __pyx_t_3, 2., 0); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 42, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyFloat_DivideCObj(__pyx_float_2_, __pyx_t_3, 2., 0); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 41, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = PyList_New(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 42, __pyx_L1_error)
+  __pyx_t_3 = PyList_New(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 41, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_GIVEREF(__pyx_t_6);
   PyList_SET_ITEM(__pyx_t_3, 0, __pyx_t_6);
-  { PyObject* __pyx_temp = PyNumber_InPlaceMultiply(__pyx_t_3, __pyx_v_N); if (unlikely(!__pyx_temp)) __PYX_ERR(0, 42, __pyx_L1_error)
+  { PyObject* __pyx_temp = PyNumber_InPlaceMultiply(__pyx_t_3, __pyx_v_N); if (unlikely(!__pyx_temp)) __PYX_ERR(0, 41, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_temp);
     __Pyx_DECREF(__pyx_t_3);
     __pyx_t_3 = __pyx_temp;
@@ -3467,14 +3461,14 @@ static PyObject *__pyx_pf_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunc
   __pyx_v_etas = ((PyObject*)__pyx_t_3);
   __pyx_t_3 = 0;
 
-  /* "NeuralNetworks/SymmetryFunctionSetC.pyx":43
+  /* "NeuralNetworks/SymmetryFunctionSetC.pyx":42
  *         rss = _np.linspace(0.,self.cutoff,N)
  *         etas = [2./(self.cutoff/(N-1))**2]*N
  *         for rs, eta in zip(rss, etas):             # <<<<<<<<<<<<<<
  *             self.radial_sym_funs.append(
  *                         RadialSymmetryFunction(rs, eta, self.cutoff))
  */
-  __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 43, __pyx_L1_error)
+  __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 42, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_INCREF(__pyx_v_rss);
   __Pyx_GIVEREF(__pyx_v_rss);
@@ -3482,16 +3476,16 @@ static PyObject *__pyx_pf_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunc
   __Pyx_INCREF(__pyx_v_etas);
   __Pyx_GIVEREF(__pyx_v_etas);
   PyTuple_SET_ITEM(__pyx_t_3, 1, __pyx_v_etas);
-  __pyx_t_6 = __Pyx_PyObject_Call(__pyx_builtin_zip, __pyx_t_3, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 43, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyObject_Call(__pyx_builtin_zip, __pyx_t_3, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 42, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   if (likely(PyList_CheckExact(__pyx_t_6)) || PyTuple_CheckExact(__pyx_t_6)) {
     __pyx_t_3 = __pyx_t_6; __Pyx_INCREF(__pyx_t_3); __pyx_t_7 = 0;
     __pyx_t_8 = NULL;
   } else {
-    __pyx_t_7 = -1; __pyx_t_3 = PyObject_GetIter(__pyx_t_6); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 43, __pyx_L1_error)
+    __pyx_t_7 = -1; __pyx_t_3 = PyObject_GetIter(__pyx_t_6); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 42, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_8 = Py_TYPE(__pyx_t_3)->tp_iternext; if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 43, __pyx_L1_error)
+    __pyx_t_8 = Py_TYPE(__pyx_t_3)->tp_iternext; if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 42, __pyx_L1_error)
   }
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
   for (;;) {
@@ -3499,17 +3493,17 @@ static PyObject *__pyx_pf_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunc
       if (likely(PyList_CheckExact(__pyx_t_3))) {
         if (__pyx_t_7 >= PyList_GET_SIZE(__pyx_t_3)) break;
         #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-        __pyx_t_6 = PyList_GET_ITEM(__pyx_t_3, __pyx_t_7); __Pyx_INCREF(__pyx_t_6); __pyx_t_7++; if (unlikely(0 < 0)) __PYX_ERR(0, 43, __pyx_L1_error)
+        __pyx_t_6 = PyList_GET_ITEM(__pyx_t_3, __pyx_t_7); __Pyx_INCREF(__pyx_t_6); __pyx_t_7++; if (unlikely(0 < 0)) __PYX_ERR(0, 42, __pyx_L1_error)
         #else
-        __pyx_t_6 = PySequence_ITEM(__pyx_t_3, __pyx_t_7); __pyx_t_7++; if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 43, __pyx_L1_error)
+        __pyx_t_6 = PySequence_ITEM(__pyx_t_3, __pyx_t_7); __pyx_t_7++; if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 42, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_6);
         #endif
       } else {
         if (__pyx_t_7 >= PyTuple_GET_SIZE(__pyx_t_3)) break;
         #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-        __pyx_t_6 = PyTuple_GET_ITEM(__pyx_t_3, __pyx_t_7); __Pyx_INCREF(__pyx_t_6); __pyx_t_7++; if (unlikely(0 < 0)) __PYX_ERR(0, 43, __pyx_L1_error)
+        __pyx_t_6 = PyTuple_GET_ITEM(__pyx_t_3, __pyx_t_7); __Pyx_INCREF(__pyx_t_6); __pyx_t_7++; if (unlikely(0 < 0)) __PYX_ERR(0, 42, __pyx_L1_error)
         #else
-        __pyx_t_6 = PySequence_ITEM(__pyx_t_3, __pyx_t_7); __pyx_t_7++; if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 43, __pyx_L1_error)
+        __pyx_t_6 = PySequence_ITEM(__pyx_t_3, __pyx_t_7); __pyx_t_7++; if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 42, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_6);
         #endif
       }
@@ -3519,7 +3513,7 @@ static PyObject *__pyx_pf_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunc
         PyObject* exc_type = PyErr_Occurred();
         if (exc_type) {
           if (likely(exc_type == PyExc_StopIteration || PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) PyErr_Clear();
-          else __PYX_ERR(0, 43, __pyx_L1_error)
+          else __PYX_ERR(0, 42, __pyx_L1_error)
         }
         break;
       }
@@ -3535,7 +3529,7 @@ static PyObject *__pyx_pf_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunc
       if (unlikely(size != 2)) {
         if (size > 2) __Pyx_RaiseTooManyValuesError(2);
         else if (size >= 0) __Pyx_RaiseNeedMoreValuesError(size);
-        __PYX_ERR(0, 43, __pyx_L1_error)
+        __PYX_ERR(0, 42, __pyx_L1_error)
       }
       #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
       if (likely(PyTuple_CheckExact(sequence))) {
@@ -3548,15 +3542,15 @@ static PyObject *__pyx_pf_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunc
       __Pyx_INCREF(__pyx_t_1);
       __Pyx_INCREF(__pyx_t_2);
       #else
-      __pyx_t_1 = PySequence_ITEM(sequence, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 43, __pyx_L1_error)
+      __pyx_t_1 = PySequence_ITEM(sequence, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 42, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
-      __pyx_t_2 = PySequence_ITEM(sequence, 1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 43, __pyx_L1_error)
+      __pyx_t_2 = PySequence_ITEM(sequence, 1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 42, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_2);
       #endif
       __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
     } else {
       Py_ssize_t index = -1;
-      __pyx_t_4 = PyObject_GetIter(__pyx_t_6); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 43, __pyx_L1_error)
+      __pyx_t_4 = PyObject_GetIter(__pyx_t_6); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 42, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_4);
       __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
       __pyx_t_9 = Py_TYPE(__pyx_t_4)->tp_iternext;
@@ -3564,7 +3558,7 @@ static PyObject *__pyx_pf_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunc
       __Pyx_GOTREF(__pyx_t_1);
       index = 1; __pyx_t_2 = __pyx_t_9(__pyx_t_4); if (unlikely(!__pyx_t_2)) goto __pyx_L5_unpacking_failed;
       __Pyx_GOTREF(__pyx_t_2);
-      if (__Pyx_IternextUnpackEndCheck(__pyx_t_9(__pyx_t_4), 2) < 0) __PYX_ERR(0, 43, __pyx_L1_error)
+      if (__Pyx_IternextUnpackEndCheck(__pyx_t_9(__pyx_t_4), 2) < 0) __PYX_ERR(0, 42, __pyx_L1_error)
       __pyx_t_9 = NULL;
       __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
       goto __pyx_L6_unpacking_done;
@@ -3572,7 +3566,7 @@ static PyObject *__pyx_pf_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunc
       __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
       __pyx_t_9 = NULL;
       if (__Pyx_IterFinish() == 0) __Pyx_RaiseNeedMoreValuesError(index);
-      __PYX_ERR(0, 43, __pyx_L1_error)
+      __PYX_ERR(0, 42, __pyx_L1_error)
       __pyx_L6_unpacking_done:;
     }
     __Pyx_XDECREF_SET(__pyx_v_rs, __pyx_t_1);
@@ -3580,26 +3574,26 @@ static PyObject *__pyx_pf_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunc
     __Pyx_XDECREF_SET(__pyx_v_eta, __pyx_t_2);
     __pyx_t_2 = 0;
 
-    /* "NeuralNetworks/SymmetryFunctionSetC.pyx":44
+    /* "NeuralNetworks/SymmetryFunctionSetC.pyx":43
  *         etas = [2./(self.cutoff/(N-1))**2]*N
  *         for rs, eta in zip(rss, etas):
  *             self.radial_sym_funs.append(             # <<<<<<<<<<<<<<
  *                         RadialSymmetryFunction(rs, eta, self.cutoff))
  * 
  */
-    __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_radial_sym_funs); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 44, __pyx_L1_error)
+    __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_radial_sym_funs); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 43, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
 
-    /* "NeuralNetworks/SymmetryFunctionSetC.pyx":45
+    /* "NeuralNetworks/SymmetryFunctionSetC.pyx":44
  *         for rs, eta in zip(rss, etas):
  *             self.radial_sym_funs.append(
  *                         RadialSymmetryFunction(rs, eta, self.cutoff))             # <<<<<<<<<<<<<<
  * 
  *     def eval_geometry(self, geometry, derivative = False):
  */
-    __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_cutoff); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 45, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_cutoff); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 44, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_1 = PyTuple_New(3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 45, __pyx_L1_error)
+    __pyx_t_1 = PyTuple_New(3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 44, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_INCREF(__pyx_v_rs);
     __Pyx_GIVEREF(__pyx_v_rs);
@@ -3610,22 +3604,22 @@ static PyObject *__pyx_pf_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunc
     __Pyx_GIVEREF(__pyx_t_2);
     PyTuple_SET_ITEM(__pyx_t_1, 2, __pyx_t_2);
     __pyx_t_2 = 0;
-    __pyx_t_2 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_14NeuralNetworks_18SymmetryFunctionsC_RadialSymmetryFunction), __pyx_t_1, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 45, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_14NeuralNetworks_18SymmetryFunctionsC_RadialSymmetryFunction), __pyx_t_1, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 44, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-    /* "NeuralNetworks/SymmetryFunctionSetC.pyx":44
+    /* "NeuralNetworks/SymmetryFunctionSetC.pyx":43
  *         etas = [2./(self.cutoff/(N-1))**2]*N
  *         for rs, eta in zip(rss, etas):
  *             self.radial_sym_funs.append(             # <<<<<<<<<<<<<<
  *                         RadialSymmetryFunction(rs, eta, self.cutoff))
  * 
  */
-    __pyx_t_10 = __Pyx_PyObject_Append(__pyx_t_6, __pyx_t_2); if (unlikely(__pyx_t_10 == -1)) __PYX_ERR(0, 44, __pyx_L1_error)
+    __pyx_t_10 = __Pyx_PyObject_Append(__pyx_t_6, __pyx_t_2); if (unlikely(__pyx_t_10 == -1)) __PYX_ERR(0, 43, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-    /* "NeuralNetworks/SymmetryFunctionSetC.pyx":43
+    /* "NeuralNetworks/SymmetryFunctionSetC.pyx":42
  *         rss = _np.linspace(0.,self.cutoff,N)
  *         etas = [2./(self.cutoff/(N-1))**2]*N
  *         for rs, eta in zip(rss, etas):             # <<<<<<<<<<<<<<
@@ -3635,7 +3629,7 @@ static PyObject *__pyx_pf_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunc
   }
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "NeuralNetworks/SymmetryFunctionSetC.pyx":40
+  /* "NeuralNetworks/SymmetryFunctionSetC.pyx":39
  *                             AngularSymmetryFunction(eta, zeta, lamb, rs, self.cutoff))
  * 
  *     def add_radial_functions_evenly(self, N):             # <<<<<<<<<<<<<<
@@ -3664,7 +3658,7 @@ static PyObject *__pyx_pf_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunc
   return __pyx_r;
 }
 
-/* "NeuralNetworks/SymmetryFunctionSetC.pyx":47
+/* "NeuralNetworks/SymmetryFunctionSetC.pyx":46
  *                         RadialSymmetryFunction(rs, eta, self.cutoff))
  * 
  *     def eval_geometry(self, geometry, derivative = False):             # <<<<<<<<<<<<<<
@@ -3704,7 +3698,7 @@ static PyObject *__pyx_pw_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunc
         case  1:
         if (likely((values[1] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_geometry)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("eval_geometry", 0, 2, 3, 1); __PYX_ERR(0, 47, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("eval_geometry", 0, 2, 3, 1); __PYX_ERR(0, 46, __pyx_L3_error)
         }
         case  2:
         if (kw_args > 0) {
@@ -3713,7 +3707,7 @@ static PyObject *__pyx_pw_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunc
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "eval_geometry") < 0)) __PYX_ERR(0, 47, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "eval_geometry") < 0)) __PYX_ERR(0, 46, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -3730,7 +3724,7 @@ static PyObject *__pyx_pw_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunc
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("eval_geometry", 0, 2, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 47, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("eval_geometry", 0, 2, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 46, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("NeuralNetworks.SymmetryFunctionSetC.SymmetryFunctionSet.eval_geometry", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -3871,69 +3865,207 @@ static PyObject *__pyx_pf_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunc
   Py_ssize_t __pyx_t_102;
   __Pyx_RefNannySetupContext("eval_geometry", 0);
 
-  /* "NeuralNetworks/SymmetryFunctionSetC.pyx":50
+  /* "NeuralNetworks/SymmetryFunctionSetC.pyx":49
  *         # Returns a (Number of atoms) x (Size of G vector) matrix
  *         # The G vector doubles in size if derivatives are also requested
  *         cdef int N = len(geometry) # Number of atoms             # <<<<<<<<<<<<<<
  *         cdef int Nt = len(self.atomtypes) # Number of atomtypes
  *         cdef int Nr = len(self.radial_sym_funs) # Number of radial symmetry functions
  */
-  __pyx_t_1 = PyObject_Length(__pyx_v_geometry); if (unlikely(__pyx_t_1 == -1)) __PYX_ERR(0, 50, __pyx_L1_error)
+  __pyx_t_1 = PyObject_Length(__pyx_v_geometry); if (unlikely(__pyx_t_1 == -1)) __PYX_ERR(0, 49, __pyx_L1_error)
   __pyx_v_N = __pyx_t_1;
 
-  /* "NeuralNetworks/SymmetryFunctionSetC.pyx":51
+  /* "NeuralNetworks/SymmetryFunctionSetC.pyx":50
  *         # The G vector doubles in size if derivatives are also requested
  *         cdef int N = len(geometry) # Number of atoms
  *         cdef int Nt = len(self.atomtypes) # Number of atomtypes             # <<<<<<<<<<<<<<
  *         cdef int Nr = len(self.radial_sym_funs) # Number of radial symmetry functions
  *         cdef int Na = len(self.angular_sym_funs) # Number of angular symmetry functions
  */
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_atomtypes); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 51, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_atomtypes); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 50, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_1 = PyObject_Length(__pyx_t_2); if (unlikely(__pyx_t_1 == -1)) __PYX_ERR(0, 51, __pyx_L1_error)
+  __pyx_t_1 = PyObject_Length(__pyx_t_2); if (unlikely(__pyx_t_1 == -1)) __PYX_ERR(0, 50, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_v_Nt = __pyx_t_1;
 
-  /* "NeuralNetworks/SymmetryFunctionSetC.pyx":52
+  /* "NeuralNetworks/SymmetryFunctionSetC.pyx":51
  *         cdef int N = len(geometry) # Number of atoms
  *         cdef int Nt = len(self.atomtypes) # Number of atomtypes
  *         cdef int Nr = len(self.radial_sym_funs) # Number of radial symmetry functions             # <<<<<<<<<<<<<<
  *         cdef int Na = len(self.angular_sym_funs) # Number of angular symmetry functions
  *         cdef int tj, tk
  */
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_radial_sym_funs); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 52, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_radial_sym_funs); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 51, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_1 = PyObject_Length(__pyx_t_2); if (unlikely(__pyx_t_1 == -1)) __PYX_ERR(0, 52, __pyx_L1_error)
+  __pyx_t_1 = PyObject_Length(__pyx_t_2); if (unlikely(__pyx_t_1 == -1)) __PYX_ERR(0, 51, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_v_Nr = __pyx_t_1;
 
-  /* "NeuralNetworks/SymmetryFunctionSetC.pyx":53
+  /* "NeuralNetworks/SymmetryFunctionSetC.pyx":52
  *         cdef int Nt = len(self.atomtypes) # Number of atomtypes
  *         cdef int Nr = len(self.radial_sym_funs) # Number of radial symmetry functions
  *         cdef int Na = len(self.angular_sym_funs) # Number of angular symmetry functions             # <<<<<<<<<<<<<<
  *         cdef int tj, tk
  *         cdef int i, j, k # indices for the atomic loops
  */
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_angular_sym_funs); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 53, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_angular_sym_funs); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 52, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_1 = PyObject_Length(__pyx_t_2); if (unlikely(__pyx_t_1 == -1)) __PYX_ERR(0, 53, __pyx_L1_error)
+  __pyx_t_1 = PyObject_Length(__pyx_t_2); if (unlikely(__pyx_t_1 == -1)) __PYX_ERR(0, 52, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_v_Na = __pyx_t_1;
 
-  /* "NeuralNetworks/SymmetryFunctionSetC.pyx":58
+  /* "NeuralNetworks/SymmetryFunctionSetC.pyx":57
  *         cdef int ir, ia, itj, itk, ind
  * 
  *         cdef int [:] types = _np.array([self.atomtypes.index(atom[0]) for atom in geometry], dtype=_np.int32)             # <<<<<<<<<<<<<<
  *         cdef double [:,:] xyzs = _np.array([atom[1] for atom in geometry], dtype=_np.float)
  * 
  */
-  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 58, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 57, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_array); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 58, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_array); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 57, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = PyList_New(0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 58, __pyx_L1_error)
+  __pyx_t_2 = PyList_New(0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 57, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
+  if (likely(PyList_CheckExact(__pyx_v_geometry)) || PyTuple_CheckExact(__pyx_v_geometry)) {
+    __pyx_t_4 = __pyx_v_geometry; __Pyx_INCREF(__pyx_t_4); __pyx_t_1 = 0;
+    __pyx_t_5 = NULL;
+  } else {
+    __pyx_t_1 = -1; __pyx_t_4 = PyObject_GetIter(__pyx_v_geometry); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 57, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_4);
+    __pyx_t_5 = Py_TYPE(__pyx_t_4)->tp_iternext; if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 57, __pyx_L1_error)
+  }
+  for (;;) {
+    if (likely(!__pyx_t_5)) {
+      if (likely(PyList_CheckExact(__pyx_t_4))) {
+        if (__pyx_t_1 >= PyList_GET_SIZE(__pyx_t_4)) break;
+        #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
+        __pyx_t_6 = PyList_GET_ITEM(__pyx_t_4, __pyx_t_1); __Pyx_INCREF(__pyx_t_6); __pyx_t_1++; if (unlikely(0 < 0)) __PYX_ERR(0, 57, __pyx_L1_error)
+        #else
+        __pyx_t_6 = PySequence_ITEM(__pyx_t_4, __pyx_t_1); __pyx_t_1++; if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 57, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_6);
+        #endif
+      } else {
+        if (__pyx_t_1 >= PyTuple_GET_SIZE(__pyx_t_4)) break;
+        #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
+        __pyx_t_6 = PyTuple_GET_ITEM(__pyx_t_4, __pyx_t_1); __Pyx_INCREF(__pyx_t_6); __pyx_t_1++; if (unlikely(0 < 0)) __PYX_ERR(0, 57, __pyx_L1_error)
+        #else
+        __pyx_t_6 = PySequence_ITEM(__pyx_t_4, __pyx_t_1); __pyx_t_1++; if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 57, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_6);
+        #endif
+      }
+    } else {
+      __pyx_t_6 = __pyx_t_5(__pyx_t_4);
+      if (unlikely(!__pyx_t_6)) {
+        PyObject* exc_type = PyErr_Occurred();
+        if (exc_type) {
+          if (likely(exc_type == PyExc_StopIteration || PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) PyErr_Clear();
+          else __PYX_ERR(0, 57, __pyx_L1_error)
+        }
+        break;
+      }
+      __Pyx_GOTREF(__pyx_t_6);
+    }
+    __Pyx_XDECREF_SET(__pyx_v_atom, __pyx_t_6);
+    __pyx_t_6 = 0;
+    __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_atomtypes); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 57, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_7);
+    __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_t_7, __pyx_n_s_index); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 57, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_8);
+    __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+    __pyx_t_7 = __Pyx_GetItemInt(__pyx_v_atom, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 0); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 57, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_7);
+    __pyx_t_9 = NULL;
+    if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_8))) {
+      __pyx_t_9 = PyMethod_GET_SELF(__pyx_t_8);
+      if (likely(__pyx_t_9)) {
+        PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_8);
+        __Pyx_INCREF(__pyx_t_9);
+        __Pyx_INCREF(function);
+        __Pyx_DECREF_SET(__pyx_t_8, function);
+      }
+    }
+    if (!__pyx_t_9) {
+      __pyx_t_6 = __Pyx_PyObject_CallOneArg(__pyx_t_8, __pyx_t_7); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 57, __pyx_L1_error)
+      __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+      __Pyx_GOTREF(__pyx_t_6);
+    } else {
+      #if CYTHON_FAST_PYCALL
+      if (PyFunction_Check(__pyx_t_8)) {
+        PyObject *__pyx_temp[2] = {__pyx_t_9, __pyx_t_7};
+        __pyx_t_6 = __Pyx_PyFunction_FastCall(__pyx_t_8, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 57, __pyx_L1_error)
+        __Pyx_XDECREF(__pyx_t_9); __pyx_t_9 = 0;
+        __Pyx_GOTREF(__pyx_t_6);
+        __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+      } else
+      #endif
+      #if CYTHON_FAST_PYCCALL
+      if (__Pyx_PyFastCFunction_Check(__pyx_t_8)) {
+        PyObject *__pyx_temp[2] = {__pyx_t_9, __pyx_t_7};
+        __pyx_t_6 = __Pyx_PyCFunction_FastCall(__pyx_t_8, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 57, __pyx_L1_error)
+        __Pyx_XDECREF(__pyx_t_9); __pyx_t_9 = 0;
+        __Pyx_GOTREF(__pyx_t_6);
+        __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+      } else
+      #endif
+      {
+        __pyx_t_10 = PyTuple_New(1+1); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 57, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_10);
+        __Pyx_GIVEREF(__pyx_t_9); PyTuple_SET_ITEM(__pyx_t_10, 0, __pyx_t_9); __pyx_t_9 = NULL;
+        __Pyx_GIVEREF(__pyx_t_7);
+        PyTuple_SET_ITEM(__pyx_t_10, 0+1, __pyx_t_7);
+        __pyx_t_7 = 0;
+        __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_8, __pyx_t_10, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 57, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_6);
+        __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
+      }
+    }
+    __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
+    if (unlikely(__Pyx_ListComp_Append(__pyx_t_2, (PyObject*)__pyx_t_6))) __PYX_ERR(0, 57, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+  }
+  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+  __pyx_t_4 = PyTuple_New(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 57, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
+  __Pyx_GIVEREF(__pyx_t_2);
+  PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_2);
+  __pyx_t_2 = 0;
+  __pyx_t_2 = PyDict_New(); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 57, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_t_6 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 57, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_6);
+  __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_t_6, __pyx_n_s_int32); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 57, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_8);
+  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+  if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_dtype, __pyx_t_8) < 0) __PYX_ERR(0, 57, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
+  __pyx_t_8 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_4, __pyx_t_2); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 57, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_8);
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __pyx_t_11 = __Pyx_PyObject_to_MemoryviewSlice_ds_int(__pyx_t_8);
+  if (unlikely(!__pyx_t_11.memview)) __PYX_ERR(0, 57, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
+  __pyx_v_types = __pyx_t_11;
+  __pyx_t_11.memview = NULL;
+  __pyx_t_11.data = NULL;
+
+  /* "NeuralNetworks/SymmetryFunctionSetC.pyx":58
+ * 
+ *         cdef int [:] types = _np.array([self.atomtypes.index(atom[0]) for atom in geometry], dtype=_np.int32)
+ *         cdef double [:,:] xyzs = _np.array([atom[1] for atom in geometry], dtype=_np.float)             # <<<<<<<<<<<<<<
+ * 
+ *         cdef double rij, rik, costheta
+ */
+  __pyx_t_8 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 58, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_8);
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_8, __pyx_n_s_array); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 58, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
+  __pyx_t_8 = PyList_New(0); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 58, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_8);
   if (likely(PyList_CheckExact(__pyx_v_geometry)) || PyTuple_CheckExact(__pyx_v_geometry)) {
     __pyx_t_4 = __pyx_v_geometry; __Pyx_INCREF(__pyx_t_4); __pyx_t_1 = 0;
     __pyx_t_5 = NULL;
@@ -3947,155 +4079,17 @@ static PyObject *__pyx_pf_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunc
       if (likely(PyList_CheckExact(__pyx_t_4))) {
         if (__pyx_t_1 >= PyList_GET_SIZE(__pyx_t_4)) break;
         #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-        __pyx_t_6 = PyList_GET_ITEM(__pyx_t_4, __pyx_t_1); __Pyx_INCREF(__pyx_t_6); __pyx_t_1++; if (unlikely(0 < 0)) __PYX_ERR(0, 58, __pyx_L1_error)
+        __pyx_t_3 = PyList_GET_ITEM(__pyx_t_4, __pyx_t_1); __Pyx_INCREF(__pyx_t_3); __pyx_t_1++; if (unlikely(0 < 0)) __PYX_ERR(0, 58, __pyx_L1_error)
         #else
-        __pyx_t_6 = PySequence_ITEM(__pyx_t_4, __pyx_t_1); __pyx_t_1++; if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 58, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_6);
-        #endif
-      } else {
-        if (__pyx_t_1 >= PyTuple_GET_SIZE(__pyx_t_4)) break;
-        #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-        __pyx_t_6 = PyTuple_GET_ITEM(__pyx_t_4, __pyx_t_1); __Pyx_INCREF(__pyx_t_6); __pyx_t_1++; if (unlikely(0 < 0)) __PYX_ERR(0, 58, __pyx_L1_error)
-        #else
-        __pyx_t_6 = PySequence_ITEM(__pyx_t_4, __pyx_t_1); __pyx_t_1++; if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 58, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_6);
-        #endif
-      }
-    } else {
-      __pyx_t_6 = __pyx_t_5(__pyx_t_4);
-      if (unlikely(!__pyx_t_6)) {
-        PyObject* exc_type = PyErr_Occurred();
-        if (exc_type) {
-          if (likely(exc_type == PyExc_StopIteration || PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) PyErr_Clear();
-          else __PYX_ERR(0, 58, __pyx_L1_error)
-        }
-        break;
-      }
-      __Pyx_GOTREF(__pyx_t_6);
-    }
-    __Pyx_XDECREF_SET(__pyx_v_atom, __pyx_t_6);
-    __pyx_t_6 = 0;
-    __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_atomtypes); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 58, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_7);
-    __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_t_7, __pyx_n_s_index); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 58, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_8);
-    __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-    __pyx_t_7 = __Pyx_GetItemInt(__pyx_v_atom, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 0); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 58, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_7);
-    __pyx_t_9 = NULL;
-    if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_8))) {
-      __pyx_t_9 = PyMethod_GET_SELF(__pyx_t_8);
-      if (likely(__pyx_t_9)) {
-        PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_8);
-        __Pyx_INCREF(__pyx_t_9);
-        __Pyx_INCREF(function);
-        __Pyx_DECREF_SET(__pyx_t_8, function);
-      }
-    }
-    if (!__pyx_t_9) {
-      __pyx_t_6 = __Pyx_PyObject_CallOneArg(__pyx_t_8, __pyx_t_7); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 58, __pyx_L1_error)
-      __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-      __Pyx_GOTREF(__pyx_t_6);
-    } else {
-      #if CYTHON_FAST_PYCALL
-      if (PyFunction_Check(__pyx_t_8)) {
-        PyObject *__pyx_temp[2] = {__pyx_t_9, __pyx_t_7};
-        __pyx_t_6 = __Pyx_PyFunction_FastCall(__pyx_t_8, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 58, __pyx_L1_error)
-        __Pyx_XDECREF(__pyx_t_9); __pyx_t_9 = 0;
-        __Pyx_GOTREF(__pyx_t_6);
-        __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-      } else
-      #endif
-      #if CYTHON_FAST_PYCCALL
-      if (__Pyx_PyFastCFunction_Check(__pyx_t_8)) {
-        PyObject *__pyx_temp[2] = {__pyx_t_9, __pyx_t_7};
-        __pyx_t_6 = __Pyx_PyCFunction_FastCall(__pyx_t_8, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 58, __pyx_L1_error)
-        __Pyx_XDECREF(__pyx_t_9); __pyx_t_9 = 0;
-        __Pyx_GOTREF(__pyx_t_6);
-        __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-      } else
-      #endif
-      {
-        __pyx_t_10 = PyTuple_New(1+1); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 58, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_10);
-        __Pyx_GIVEREF(__pyx_t_9); PyTuple_SET_ITEM(__pyx_t_10, 0, __pyx_t_9); __pyx_t_9 = NULL;
-        __Pyx_GIVEREF(__pyx_t_7);
-        PyTuple_SET_ITEM(__pyx_t_10, 0+1, __pyx_t_7);
-        __pyx_t_7 = 0;
-        __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_8, __pyx_t_10, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 58, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_6);
-        __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
-      }
-    }
-    __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
-    if (unlikely(__Pyx_ListComp_Append(__pyx_t_2, (PyObject*)__pyx_t_6))) __PYX_ERR(0, 58, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  }
-  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = PyTuple_New(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 58, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __Pyx_GIVEREF(__pyx_t_2);
-  PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_2);
-  __pyx_t_2 = 0;
-  __pyx_t_2 = PyDict_New(); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 58, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_6 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 58, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_6);
-  __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_t_6, __pyx_n_s_int32); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 58, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_8);
-  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_dtype, __pyx_t_8) < 0) __PYX_ERR(0, 58, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
-  __pyx_t_8 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_4, __pyx_t_2); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 58, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_8);
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_11 = __Pyx_PyObject_to_MemoryviewSlice_ds_int(__pyx_t_8);
-  if (unlikely(!__pyx_t_11.memview)) __PYX_ERR(0, 58, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
-  __pyx_v_types = __pyx_t_11;
-  __pyx_t_11.memview = NULL;
-  __pyx_t_11.data = NULL;
-
-  /* "NeuralNetworks/SymmetryFunctionSetC.pyx":59
- * 
- *         cdef int [:] types = _np.array([self.atomtypes.index(atom[0]) for atom in geometry], dtype=_np.int32)
- *         cdef double [:,:] xyzs = _np.array([atom[1] for atom in geometry], dtype=_np.float)             # <<<<<<<<<<<<<<
- * 
- *         cdef double rij, rik, costheta
- */
-  __pyx_t_8 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 59, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_8);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_8, __pyx_n_s_array); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 59, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
-  __pyx_t_8 = PyList_New(0); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 59, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_8);
-  if (likely(PyList_CheckExact(__pyx_v_geometry)) || PyTuple_CheckExact(__pyx_v_geometry)) {
-    __pyx_t_4 = __pyx_v_geometry; __Pyx_INCREF(__pyx_t_4); __pyx_t_1 = 0;
-    __pyx_t_5 = NULL;
-  } else {
-    __pyx_t_1 = -1; __pyx_t_4 = PyObject_GetIter(__pyx_v_geometry); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 59, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_4);
-    __pyx_t_5 = Py_TYPE(__pyx_t_4)->tp_iternext; if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 59, __pyx_L1_error)
-  }
-  for (;;) {
-    if (likely(!__pyx_t_5)) {
-      if (likely(PyList_CheckExact(__pyx_t_4))) {
-        if (__pyx_t_1 >= PyList_GET_SIZE(__pyx_t_4)) break;
-        #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-        __pyx_t_3 = PyList_GET_ITEM(__pyx_t_4, __pyx_t_1); __Pyx_INCREF(__pyx_t_3); __pyx_t_1++; if (unlikely(0 < 0)) __PYX_ERR(0, 59, __pyx_L1_error)
-        #else
-        __pyx_t_3 = PySequence_ITEM(__pyx_t_4, __pyx_t_1); __pyx_t_1++; if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 59, __pyx_L1_error)
+        __pyx_t_3 = PySequence_ITEM(__pyx_t_4, __pyx_t_1); __pyx_t_1++; if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 58, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_3);
         #endif
       } else {
         if (__pyx_t_1 >= PyTuple_GET_SIZE(__pyx_t_4)) break;
         #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-        __pyx_t_3 = PyTuple_GET_ITEM(__pyx_t_4, __pyx_t_1); __Pyx_INCREF(__pyx_t_3); __pyx_t_1++; if (unlikely(0 < 0)) __PYX_ERR(0, 59, __pyx_L1_error)
+        __pyx_t_3 = PyTuple_GET_ITEM(__pyx_t_4, __pyx_t_1); __Pyx_INCREF(__pyx_t_3); __pyx_t_1++; if (unlikely(0 < 0)) __PYX_ERR(0, 58, __pyx_L1_error)
         #else
-        __pyx_t_3 = PySequence_ITEM(__pyx_t_4, __pyx_t_1); __pyx_t_1++; if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 59, __pyx_L1_error)
+        __pyx_t_3 = PySequence_ITEM(__pyx_t_4, __pyx_t_1); __pyx_t_1++; if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 58, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_3);
         #endif
       }
@@ -4105,7 +4099,7 @@ static PyObject *__pyx_pf_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunc
         PyObject* exc_type = PyErr_Occurred();
         if (exc_type) {
           if (likely(exc_type == PyExc_StopIteration || PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) PyErr_Clear();
-          else __PYX_ERR(0, 59, __pyx_L1_error)
+          else __PYX_ERR(0, 58, __pyx_L1_error)
         }
         break;
       }
@@ -4113,71 +4107,71 @@ static PyObject *__pyx_pf_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunc
     }
     __Pyx_XDECREF_SET(__pyx_v_atom, __pyx_t_3);
     __pyx_t_3 = 0;
-    __pyx_t_3 = __Pyx_GetItemInt(__pyx_v_atom, 1, long, 1, __Pyx_PyInt_From_long, 0, 0, 0); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 59, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_GetItemInt(__pyx_v_atom, 1, long, 1, __Pyx_PyInt_From_long, 0, 0, 0); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 58, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
-    if (unlikely(__Pyx_ListComp_Append(__pyx_t_8, (PyObject*)__pyx_t_3))) __PYX_ERR(0, 59, __pyx_L1_error)
+    if (unlikely(__Pyx_ListComp_Append(__pyx_t_8, (PyObject*)__pyx_t_3))) __PYX_ERR(0, 58, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   }
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = PyTuple_New(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 59, __pyx_L1_error)
+  __pyx_t_4 = PyTuple_New(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 58, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_GIVEREF(__pyx_t_8);
   PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_8);
   __pyx_t_8 = 0;
-  __pyx_t_8 = PyDict_New(); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 59, __pyx_L1_error)
+  __pyx_t_8 = PyDict_New(); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 58, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_8);
-  __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 59, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 58, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_float); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 59, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_float); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 58, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (PyDict_SetItem(__pyx_t_8, __pyx_n_s_dtype, __pyx_t_6) < 0) __PYX_ERR(0, 59, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_8, __pyx_n_s_dtype, __pyx_t_6) < 0) __PYX_ERR(0, 58, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_4, __pyx_t_8); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 59, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_4, __pyx_t_8); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 58, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
   __pyx_t_12 = __Pyx_PyObject_to_MemoryviewSlice_dsds_double(__pyx_t_6);
-  if (unlikely(!__pyx_t_12.memview)) __PYX_ERR(0, 59, __pyx_L1_error)
+  if (unlikely(!__pyx_t_12.memview)) __PYX_ERR(0, 58, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
   __pyx_v_xyzs = __pyx_t_12;
   __pyx_t_12.memview = NULL;
   __pyx_t_12.data = NULL;
 
-  /* "NeuralNetworks/SymmetryFunctionSetC.pyx":65
+  /* "NeuralNetworks/SymmetryFunctionSetC.pyx":64
  *         cdef double [:,:] out
  * 
  *         if derivative == False:             # <<<<<<<<<<<<<<
  *             out = _np.zeros((N, Nr*Nt + comb(Nt, 2, exact = True, repetition = True)*Na), dtype=_np.float)
  *             for i in range(N):
  */
-  __pyx_t_6 = PyObject_RichCompare(__pyx_v_derivative, Py_False, Py_EQ); __Pyx_XGOTREF(__pyx_t_6); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 65, __pyx_L1_error)
-  __pyx_t_13 = __Pyx_PyObject_IsTrue(__pyx_t_6); if (unlikely(__pyx_t_13 < 0)) __PYX_ERR(0, 65, __pyx_L1_error)
+  __pyx_t_6 = PyObject_RichCompare(__pyx_v_derivative, Py_False, Py_EQ); __Pyx_XGOTREF(__pyx_t_6); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 64, __pyx_L1_error)
+  __pyx_t_13 = __Pyx_PyObject_IsTrue(__pyx_t_6); if (unlikely(__pyx_t_13 < 0)) __PYX_ERR(0, 64, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
   if (__pyx_t_13) {
 
-    /* "NeuralNetworks/SymmetryFunctionSetC.pyx":66
+    /* "NeuralNetworks/SymmetryFunctionSetC.pyx":65
  * 
  *         if derivative == False:
  *             out = _np.zeros((N, Nr*Nt + comb(Nt, 2, exact = True, repetition = True)*Na), dtype=_np.float)             # <<<<<<<<<<<<<<
  *             for i in range(N):
  *                 for j in range(N):
  */
-    __pyx_t_6 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 66, __pyx_L1_error)
+    __pyx_t_6 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 65, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
-    __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_t_6, __pyx_n_s_zeros); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 66, __pyx_L1_error)
+    __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_t_6, __pyx_n_s_zeros); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 65, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_8);
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-    __pyx_t_6 = __Pyx_PyInt_From_int(__pyx_v_N); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 66, __pyx_L1_error)
+    __pyx_t_6 = __Pyx_PyInt_From_int(__pyx_v_N); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 65, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
-    __pyx_t_4 = __Pyx_PyInt_From_int((__pyx_v_Nr * __pyx_v_Nt)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 66, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_PyInt_From_int((__pyx_v_Nr * __pyx_v_Nt)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 65, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
-    __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_comb); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 66, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_comb); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 65, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_Nt); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 66, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_Nt); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 65, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_10 = PyTuple_New(2); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 66, __pyx_L1_error)
+    __pyx_t_10 = PyTuple_New(2); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 65, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_10);
     __Pyx_GIVEREF(__pyx_t_3);
     PyTuple_SET_ITEM(__pyx_t_10, 0, __pyx_t_3);
@@ -4185,26 +4179,26 @@ static PyObject *__pyx_pf_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunc
     __Pyx_GIVEREF(__pyx_int_2);
     PyTuple_SET_ITEM(__pyx_t_10, 1, __pyx_int_2);
     __pyx_t_3 = 0;
-    __pyx_t_3 = PyDict_New(); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 66, __pyx_L1_error)
+    __pyx_t_3 = PyDict_New(); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 65, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
-    if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_exact, Py_True) < 0) __PYX_ERR(0, 66, __pyx_L1_error)
-    if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_repetition, Py_True) < 0) __PYX_ERR(0, 66, __pyx_L1_error)
-    __pyx_t_7 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_10, __pyx_t_3); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 66, __pyx_L1_error)
+    if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_exact, Py_True) < 0) __PYX_ERR(0, 65, __pyx_L1_error)
+    if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_repetition, Py_True) < 0) __PYX_ERR(0, 65, __pyx_L1_error)
+    __pyx_t_7 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_10, __pyx_t_3); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 65, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_7);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
     __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_Na); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 66, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_Na); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 65, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_10 = PyNumber_Multiply(__pyx_t_7, __pyx_t_3); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 66, __pyx_L1_error)
+    __pyx_t_10 = PyNumber_Multiply(__pyx_t_7, __pyx_t_3); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 65, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_10);
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __pyx_t_3 = PyNumber_Add(__pyx_t_4, __pyx_t_10); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 66, __pyx_L1_error)
+    __pyx_t_3 = PyNumber_Add(__pyx_t_4, __pyx_t_10); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 65, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
-    __pyx_t_10 = PyTuple_New(2); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 66, __pyx_L1_error)
+    __pyx_t_10 = PyTuple_New(2); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 65, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_10);
     __Pyx_GIVEREF(__pyx_t_6);
     PyTuple_SET_ITEM(__pyx_t_10, 0, __pyx_t_6);
@@ -4212,33 +4206,33 @@ static PyObject *__pyx_pf_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunc
     PyTuple_SET_ITEM(__pyx_t_10, 1, __pyx_t_3);
     __pyx_t_6 = 0;
     __pyx_t_3 = 0;
-    __pyx_t_3 = PyTuple_New(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 66, __pyx_L1_error)
+    __pyx_t_3 = PyTuple_New(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 65, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_GIVEREF(__pyx_t_10);
     PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_10);
     __pyx_t_10 = 0;
-    __pyx_t_10 = PyDict_New(); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 66, __pyx_L1_error)
+    __pyx_t_10 = PyDict_New(); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 65, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_10);
-    __pyx_t_6 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 66, __pyx_L1_error)
+    __pyx_t_6 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 65, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
-    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_6, __pyx_n_s_float); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 66, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_6, __pyx_n_s_float); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 65, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-    if (PyDict_SetItem(__pyx_t_10, __pyx_n_s_dtype, __pyx_t_4) < 0) __PYX_ERR(0, 66, __pyx_L1_error)
+    if (PyDict_SetItem(__pyx_t_10, __pyx_n_s_dtype, __pyx_t_4) < 0) __PYX_ERR(0, 65, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_8, __pyx_t_3, __pyx_t_10); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 66, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_8, __pyx_t_3, __pyx_t_10); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 65, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
     __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
     __pyx_t_12 = __Pyx_PyObject_to_MemoryviewSlice_dsds_double(__pyx_t_4);
-    if (unlikely(!__pyx_t_12.memview)) __PYX_ERR(0, 66, __pyx_L1_error)
+    if (unlikely(!__pyx_t_12.memview)) __PYX_ERR(0, 65, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     __pyx_v_out = __pyx_t_12;
     __pyx_t_12.memview = NULL;
     __pyx_t_12.data = NULL;
 
-    /* "NeuralNetworks/SymmetryFunctionSetC.pyx":67
+    /* "NeuralNetworks/SymmetryFunctionSetC.pyx":66
  *         if derivative == False:
  *             out = _np.zeros((N, Nr*Nt + comb(Nt, 2, exact = True, repetition = True)*Na), dtype=_np.float)
  *             for i in range(N):             # <<<<<<<<<<<<<<
@@ -4249,7 +4243,7 @@ static PyObject *__pyx_pf_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunc
     for (__pyx_t_15 = 0; __pyx_t_15 < __pyx_t_14; __pyx_t_15+=1) {
       __pyx_v_i = __pyx_t_15;
 
-      /* "NeuralNetworks/SymmetryFunctionSetC.pyx":68
+      /* "NeuralNetworks/SymmetryFunctionSetC.pyx":67
  *             out = _np.zeros((N, Nr*Nt + comb(Nt, 2, exact = True, repetition = True)*Na), dtype=_np.float)
  *             for i in range(N):
  *                 for j in range(N):             # <<<<<<<<<<<<<<
@@ -4260,7 +4254,7 @@ static PyObject *__pyx_pf_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunc
       for (__pyx_t_17 = 0; __pyx_t_17 < __pyx_t_16; __pyx_t_17+=1) {
         __pyx_v_j = __pyx_t_17;
 
-        /* "NeuralNetworks/SymmetryFunctionSetC.pyx":69
+        /* "NeuralNetworks/SymmetryFunctionSetC.pyx":68
  *             for i in range(N):
  *                 for j in range(N):
  *                     if i == j:             # <<<<<<<<<<<<<<
@@ -4270,7 +4264,7 @@ static PyObject *__pyx_pf_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunc
         __pyx_t_13 = ((__pyx_v_i == __pyx_v_j) != 0);
         if (__pyx_t_13) {
 
-          /* "NeuralNetworks/SymmetryFunctionSetC.pyx":70
+          /* "NeuralNetworks/SymmetryFunctionSetC.pyx":69
  *                 for j in range(N):
  *                     if i == j:
  *                         continue             # <<<<<<<<<<<<<<
@@ -4279,7 +4273,7 @@ static PyObject *__pyx_pf_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunc
  */
           goto __pyx_L10_continue;
 
-          /* "NeuralNetworks/SymmetryFunctionSetC.pyx":69
+          /* "NeuralNetworks/SymmetryFunctionSetC.pyx":68
  *             for i in range(N):
  *                 for j in range(N):
  *                     if i == j:             # <<<<<<<<<<<<<<
@@ -4288,7 +4282,7 @@ static PyObject *__pyx_pf_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunc
  */
         }
 
-        /* "NeuralNetworks/SymmetryFunctionSetC.pyx":71
+        /* "NeuralNetworks/SymmetryFunctionSetC.pyx":70
  *                     if i == j:
  *                         continue
  *                     tj = types[j]             # <<<<<<<<<<<<<<
@@ -4298,7 +4292,7 @@ static PyObject *__pyx_pf_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunc
         __pyx_t_18 = __pyx_v_j;
         __pyx_v_tj = (*((int *) ( /* dim=0 */ (__pyx_v_types.data + __pyx_t_18 * __pyx_v_types.strides[0]) )));
 
-        /* "NeuralNetworks/SymmetryFunctionSetC.pyx":73
+        /* "NeuralNetworks/SymmetryFunctionSetC.pyx":72
  *                     tj = types[j]
  *                     # Radial function
  *                     rij = sqrt((xyzs[i][0]-xyzs[j][0])**2 + (xyzs[i][1]-xyzs[j][1])**2 +             # <<<<<<<<<<<<<<
@@ -4316,7 +4310,7 @@ static PyObject *__pyx_pf_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunc
         __pyx_tmp_idx += __pyx_tmp_shape;
     if (0 && (__pyx_tmp_idx < 0 || __pyx_tmp_idx >= __pyx_tmp_shape)) {
         PyErr_SetString(PyExc_IndexError, "Index out of bounds (axis 0)");
-        __PYX_ERR(0, 73, __pyx_L1_error)
+        __PYX_ERR(0, 72, __pyx_L1_error)
     }
         __pyx_t_19.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
@@ -4337,7 +4331,7 @@ __pyx_t_20 = 0;
         __pyx_tmp_idx += __pyx_tmp_shape;
     if (0 && (__pyx_tmp_idx < 0 || __pyx_tmp_idx >= __pyx_tmp_shape)) {
         PyErr_SetString(PyExc_IndexError, "Index out of bounds (axis 0)");
-        __PYX_ERR(0, 73, __pyx_L1_error)
+        __PYX_ERR(0, 72, __pyx_L1_error)
     }
         __pyx_t_21.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
@@ -4358,7 +4352,7 @@ __pyx_t_22 = 0;
         __pyx_tmp_idx += __pyx_tmp_shape;
     if (0 && (__pyx_tmp_idx < 0 || __pyx_tmp_idx >= __pyx_tmp_shape)) {
         PyErr_SetString(PyExc_IndexError, "Index out of bounds (axis 0)");
-        __PYX_ERR(0, 73, __pyx_L1_error)
+        __PYX_ERR(0, 72, __pyx_L1_error)
     }
         __pyx_t_23.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
@@ -4379,7 +4373,7 @@ __pyx_t_24 = 1;
         __pyx_tmp_idx += __pyx_tmp_shape;
     if (0 && (__pyx_tmp_idx < 0 || __pyx_tmp_idx >= __pyx_tmp_shape)) {
         PyErr_SetString(PyExc_IndexError, "Index out of bounds (axis 0)");
-        __PYX_ERR(0, 73, __pyx_L1_error)
+        __PYX_ERR(0, 72, __pyx_L1_error)
     }
         __pyx_t_25.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
@@ -4390,7 +4384,7 @@ __pyx_t_25.strides[0] = __pyx_v_xyzs.strides[1];
 
 __pyx_t_26 = 1;
 
-        /* "NeuralNetworks/SymmetryFunctionSetC.pyx":74
+        /* "NeuralNetworks/SymmetryFunctionSetC.pyx":73
  *                     # Radial function
  *                     rij = sqrt((xyzs[i][0]-xyzs[j][0])**2 + (xyzs[i][1]-xyzs[j][1])**2 +
  *                                    (xyzs[i][2]-xyzs[j][2])**2)             # <<<<<<<<<<<<<<
@@ -4408,7 +4402,7 @@ __pyx_t_26 = 1;
         __pyx_tmp_idx += __pyx_tmp_shape;
     if (0 && (__pyx_tmp_idx < 0 || __pyx_tmp_idx >= __pyx_tmp_shape)) {
         PyErr_SetString(PyExc_IndexError, "Index out of bounds (axis 0)");
-        __PYX_ERR(0, 74, __pyx_L1_error)
+        __PYX_ERR(0, 73, __pyx_L1_error)
     }
         __pyx_t_27.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
@@ -4429,7 +4423,7 @@ __pyx_t_28 = 2;
         __pyx_tmp_idx += __pyx_tmp_shape;
     if (0 && (__pyx_tmp_idx < 0 || __pyx_tmp_idx >= __pyx_tmp_shape)) {
         PyErr_SetString(PyExc_IndexError, "Index out of bounds (axis 0)");
-        __PYX_ERR(0, 74, __pyx_L1_error)
+        __PYX_ERR(0, 73, __pyx_L1_error)
     }
         __pyx_t_29.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
@@ -4440,7 +4434,7 @@ __pyx_t_29.strides[0] = __pyx_v_xyzs.strides[1];
 
 __pyx_t_30 = 2;
 
-        /* "NeuralNetworks/SymmetryFunctionSetC.pyx":73
+        /* "NeuralNetworks/SymmetryFunctionSetC.pyx":72
  *                     tj = types[j]
  *                     # Radial function
  *                     rij = sqrt((xyzs[i][0]-xyzs[j][0])**2 + (xyzs[i][1]-xyzs[j][1])**2 +             # <<<<<<<<<<<<<<
@@ -4467,7 +4461,7 @@ __pyx_t_30 = 2;
         __pyx_t_29.memview = NULL;
         __pyx_t_29.data = NULL;
 
-        /* "NeuralNetworks/SymmetryFunctionSetC.pyx":75
+        /* "NeuralNetworks/SymmetryFunctionSetC.pyx":74
  *                     rij = sqrt((xyzs[i][0]-xyzs[j][0])**2 + (xyzs[i][1]-xyzs[j][1])**2 +
  *                                    (xyzs[i][2]-xyzs[j][2])**2)
  *                     for itj in range(Nt):             # <<<<<<<<<<<<<<
@@ -4478,7 +4472,7 @@ __pyx_t_30 = 2;
         for (__pyx_t_32 = 0; __pyx_t_32 < __pyx_t_31; __pyx_t_32+=1) {
           __pyx_v_itj = __pyx_t_32;
 
-          /* "NeuralNetworks/SymmetryFunctionSetC.pyx":76
+          /* "NeuralNetworks/SymmetryFunctionSetC.pyx":75
  *                                    (xyzs[i][2]-xyzs[j][2])**2)
  *                     for itj in range(Nt):
  *                         for ir in range(Nr):             # <<<<<<<<<<<<<<
@@ -4489,7 +4483,7 @@ __pyx_t_30 = 2;
           for (__pyx_t_34 = 0; __pyx_t_34 < __pyx_t_33; __pyx_t_34+=1) {
             __pyx_v_ir = __pyx_t_34;
 
-            /* "NeuralNetworks/SymmetryFunctionSetC.pyx":77
+            /* "NeuralNetworks/SymmetryFunctionSetC.pyx":76
  *                     for itj in range(Nt):
  *                         for ir in range(Nr):
  *                             if itj == tj:             # <<<<<<<<<<<<<<
@@ -4499,16 +4493,16 @@ __pyx_t_30 = 2;
             __pyx_t_13 = ((__pyx_v_itj == __pyx_v_tj) != 0);
             if (__pyx_t_13) {
 
-              /* "NeuralNetworks/SymmetryFunctionSetC.pyx":78
+              /* "NeuralNetworks/SymmetryFunctionSetC.pyx":77
  *                         for ir in range(Nr):
  *                             if itj == tj:
  *                                 out[i,itj*Nr+ir] += (<RadialSymmetryFunction>self.radial_sym_funs[ir]).evaluate(rij)             # <<<<<<<<<<<<<<
  *                     # Angular functions
  *                     for k in range(N):
  */
-              __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_radial_sym_funs); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 78, __pyx_L1_error)
+              __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_radial_sym_funs); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 77, __pyx_L1_error)
               __Pyx_GOTREF(__pyx_t_4);
-              __pyx_t_10 = __Pyx_GetItemInt(__pyx_t_4, __pyx_v_ir, int, 1, __Pyx_PyInt_From_int, 0, 0, 0); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 78, __pyx_L1_error)
+              __pyx_t_10 = __Pyx_GetItemInt(__pyx_t_4, __pyx_v_ir, int, 1, __Pyx_PyInt_From_int, 0, 0, 0); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 77, __pyx_L1_error)
               __Pyx_GOTREF(__pyx_t_10);
               __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
               __pyx_t_35 = __pyx_v_i;
@@ -4516,7 +4510,7 @@ __pyx_t_30 = 2;
               *((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_out.data + __pyx_t_35 * __pyx_v_out.strides[0]) ) + __pyx_t_36 * __pyx_v_out.strides[1]) )) += ((struct __pyx_vtabstruct_14NeuralNetworks_18SymmetryFunctionsC_RadialSymmetryFunction *)((struct __pyx_obj_14NeuralNetworks_18SymmetryFunctionsC_RadialSymmetryFunction *)__pyx_t_10)->__pyx_vtab)->evaluate(((struct __pyx_obj_14NeuralNetworks_18SymmetryFunctionsC_RadialSymmetryFunction *)__pyx_t_10), __pyx_v_rij);
               __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
 
-              /* "NeuralNetworks/SymmetryFunctionSetC.pyx":77
+              /* "NeuralNetworks/SymmetryFunctionSetC.pyx":76
  *                     for itj in range(Nt):
  *                         for ir in range(Nr):
  *                             if itj == tj:             # <<<<<<<<<<<<<<
@@ -4527,7 +4521,7 @@ __pyx_t_30 = 2;
           }
         }
 
-        /* "NeuralNetworks/SymmetryFunctionSetC.pyx":80
+        /* "NeuralNetworks/SymmetryFunctionSetC.pyx":79
  *                                 out[i,itj*Nr+ir] += (<RadialSymmetryFunction>self.radial_sym_funs[ir]).evaluate(rij)
  *                     # Angular functions
  *                     for k in range(N):             # <<<<<<<<<<<<<<
@@ -4538,7 +4532,7 @@ __pyx_t_30 = 2;
         for (__pyx_t_32 = 0; __pyx_t_32 < __pyx_t_31; __pyx_t_32+=1) {
           __pyx_v_k = __pyx_t_32;
 
-          /* "NeuralNetworks/SymmetryFunctionSetC.pyx":81
+          /* "NeuralNetworks/SymmetryFunctionSetC.pyx":80
  *                     # Angular functions
  *                     for k in range(N):
  *                         if i == k or j == k:             # <<<<<<<<<<<<<<
@@ -4556,7 +4550,7 @@ __pyx_t_30 = 2;
           __pyx_L21_bool_binop_done:;
           if (__pyx_t_13) {
 
-            /* "NeuralNetworks/SymmetryFunctionSetC.pyx":82
+            /* "NeuralNetworks/SymmetryFunctionSetC.pyx":81
  *                     for k in range(N):
  *                         if i == k or j == k:
  *                             continue             # <<<<<<<<<<<<<<
@@ -4565,7 +4559,7 @@ __pyx_t_30 = 2;
  */
             goto __pyx_L18_continue;
 
-            /* "NeuralNetworks/SymmetryFunctionSetC.pyx":81
+            /* "NeuralNetworks/SymmetryFunctionSetC.pyx":80
  *                     # Angular functions
  *                     for k in range(N):
  *                         if i == k or j == k:             # <<<<<<<<<<<<<<
@@ -4574,7 +4568,7 @@ __pyx_t_30 = 2;
  */
           }
 
-          /* "NeuralNetworks/SymmetryFunctionSetC.pyx":83
+          /* "NeuralNetworks/SymmetryFunctionSetC.pyx":82
  *                         if i == k or j == k:
  *                             continue
  *                         tk = types[k]             # <<<<<<<<<<<<<<
@@ -4584,7 +4578,7 @@ __pyx_t_30 = 2;
           __pyx_t_38 = __pyx_v_k;
           __pyx_v_tk = (*((int *) ( /* dim=0 */ (__pyx_v_types.data + __pyx_t_38 * __pyx_v_types.strides[0]) )));
 
-          /* "NeuralNetworks/SymmetryFunctionSetC.pyx":84
+          /* "NeuralNetworks/SymmetryFunctionSetC.pyx":83
  *                             continue
  *                         tk = types[k]
  *                         rik = sqrt((xyzs[i][0]-xyzs[k][0])**2 + (xyzs[i][1]-xyzs[k][1])**2 +             # <<<<<<<<<<<<<<
@@ -4602,7 +4596,7 @@ __pyx_t_30 = 2;
         __pyx_tmp_idx += __pyx_tmp_shape;
     if (0 && (__pyx_tmp_idx < 0 || __pyx_tmp_idx >= __pyx_tmp_shape)) {
         PyErr_SetString(PyExc_IndexError, "Index out of bounds (axis 0)");
-        __PYX_ERR(0, 84, __pyx_L1_error)
+        __PYX_ERR(0, 83, __pyx_L1_error)
     }
         __pyx_t_29.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
@@ -4623,7 +4617,7 @@ __pyx_t_39 = 0;
         __pyx_tmp_idx += __pyx_tmp_shape;
     if (0 && (__pyx_tmp_idx < 0 || __pyx_tmp_idx >= __pyx_tmp_shape)) {
         PyErr_SetString(PyExc_IndexError, "Index out of bounds (axis 0)");
-        __PYX_ERR(0, 84, __pyx_L1_error)
+        __PYX_ERR(0, 83, __pyx_L1_error)
     }
         __pyx_t_27.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
@@ -4644,7 +4638,7 @@ __pyx_t_40 = 0;
         __pyx_tmp_idx += __pyx_tmp_shape;
     if (0 && (__pyx_tmp_idx < 0 || __pyx_tmp_idx >= __pyx_tmp_shape)) {
         PyErr_SetString(PyExc_IndexError, "Index out of bounds (axis 0)");
-        __PYX_ERR(0, 84, __pyx_L1_error)
+        __PYX_ERR(0, 83, __pyx_L1_error)
     }
         __pyx_t_25.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
@@ -4665,7 +4659,7 @@ __pyx_t_41 = 1;
         __pyx_tmp_idx += __pyx_tmp_shape;
     if (0 && (__pyx_tmp_idx < 0 || __pyx_tmp_idx >= __pyx_tmp_shape)) {
         PyErr_SetString(PyExc_IndexError, "Index out of bounds (axis 0)");
-        __PYX_ERR(0, 84, __pyx_L1_error)
+        __PYX_ERR(0, 83, __pyx_L1_error)
     }
         __pyx_t_23.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
@@ -4676,7 +4670,7 @@ __pyx_t_23.strides[0] = __pyx_v_xyzs.strides[1];
 
 __pyx_t_42 = 1;
 
-          /* "NeuralNetworks/SymmetryFunctionSetC.pyx":85
+          /* "NeuralNetworks/SymmetryFunctionSetC.pyx":84
  *                         tk = types[k]
  *                         rik = sqrt((xyzs[i][0]-xyzs[k][0])**2 + (xyzs[i][1]-xyzs[k][1])**2 +
  *                                    (xyzs[i][2]-xyzs[k][2])**2)             # <<<<<<<<<<<<<<
@@ -4694,7 +4688,7 @@ __pyx_t_42 = 1;
         __pyx_tmp_idx += __pyx_tmp_shape;
     if (0 && (__pyx_tmp_idx < 0 || __pyx_tmp_idx >= __pyx_tmp_shape)) {
         PyErr_SetString(PyExc_IndexError, "Index out of bounds (axis 0)");
-        __PYX_ERR(0, 85, __pyx_L1_error)
+        __PYX_ERR(0, 84, __pyx_L1_error)
     }
         __pyx_t_21.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
@@ -4715,7 +4709,7 @@ __pyx_t_43 = 2;
         __pyx_tmp_idx += __pyx_tmp_shape;
     if (0 && (__pyx_tmp_idx < 0 || __pyx_tmp_idx >= __pyx_tmp_shape)) {
         PyErr_SetString(PyExc_IndexError, "Index out of bounds (axis 0)");
-        __PYX_ERR(0, 85, __pyx_L1_error)
+        __PYX_ERR(0, 84, __pyx_L1_error)
     }
         __pyx_t_19.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
@@ -4726,7 +4720,7 @@ __pyx_t_19.strides[0] = __pyx_v_xyzs.strides[1];
 
 __pyx_t_44 = 2;
 
-          /* "NeuralNetworks/SymmetryFunctionSetC.pyx":84
+          /* "NeuralNetworks/SymmetryFunctionSetC.pyx":83
  *                             continue
  *                         tk = types[k]
  *                         rik = sqrt((xyzs[i][0]-xyzs[k][0])**2 + (xyzs[i][1]-xyzs[k][1])**2 +             # <<<<<<<<<<<<<<
@@ -4753,7 +4747,7 @@ __pyx_t_44 = 2;
           __pyx_t_19.memview = NULL;
           __pyx_t_19.data = NULL;
 
-          /* "NeuralNetworks/SymmetryFunctionSetC.pyx":86
+          /* "NeuralNetworks/SymmetryFunctionSetC.pyx":85
  *                         rik = sqrt((xyzs[i][0]-xyzs[k][0])**2 + (xyzs[i][1]-xyzs[k][1])**2 +
  *                                    (xyzs[i][2]-xyzs[k][2])**2)
  *                         costheta = ((xyzs[j][0]-xyzs[i][0])*(xyzs[k][0]-xyzs[i][0])+             # <<<<<<<<<<<<<<
@@ -4771,7 +4765,7 @@ __pyx_t_44 = 2;
         __pyx_tmp_idx += __pyx_tmp_shape;
     if (0 && (__pyx_tmp_idx < 0 || __pyx_tmp_idx >= __pyx_tmp_shape)) {
         PyErr_SetString(PyExc_IndexError, "Index out of bounds (axis 0)");
-        __PYX_ERR(0, 86, __pyx_L1_error)
+        __PYX_ERR(0, 85, __pyx_L1_error)
     }
         __pyx_t_19.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
@@ -4792,7 +4786,7 @@ __pyx_t_45 = 0;
         __pyx_tmp_idx += __pyx_tmp_shape;
     if (0 && (__pyx_tmp_idx < 0 || __pyx_tmp_idx >= __pyx_tmp_shape)) {
         PyErr_SetString(PyExc_IndexError, "Index out of bounds (axis 0)");
-        __PYX_ERR(0, 86, __pyx_L1_error)
+        __PYX_ERR(0, 85, __pyx_L1_error)
     }
         __pyx_t_21.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
@@ -4813,7 +4807,7 @@ __pyx_t_46 = 0;
         __pyx_tmp_idx += __pyx_tmp_shape;
     if (0 && (__pyx_tmp_idx < 0 || __pyx_tmp_idx >= __pyx_tmp_shape)) {
         PyErr_SetString(PyExc_IndexError, "Index out of bounds (axis 0)");
-        __PYX_ERR(0, 86, __pyx_L1_error)
+        __PYX_ERR(0, 85, __pyx_L1_error)
     }
         __pyx_t_23.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
@@ -4834,7 +4828,7 @@ __pyx_t_47 = 0;
         __pyx_tmp_idx += __pyx_tmp_shape;
     if (0 && (__pyx_tmp_idx < 0 || __pyx_tmp_idx >= __pyx_tmp_shape)) {
         PyErr_SetString(PyExc_IndexError, "Index out of bounds (axis 0)");
-        __PYX_ERR(0, 86, __pyx_L1_error)
+        __PYX_ERR(0, 85, __pyx_L1_error)
     }
         __pyx_t_25.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
@@ -4845,7 +4839,7 @@ __pyx_t_25.strides[0] = __pyx_v_xyzs.strides[1];
 
 __pyx_t_48 = 0;
 
-          /* "NeuralNetworks/SymmetryFunctionSetC.pyx":87
+          /* "NeuralNetworks/SymmetryFunctionSetC.pyx":86
  *                                    (xyzs[i][2]-xyzs[k][2])**2)
  *                         costheta = ((xyzs[j][0]-xyzs[i][0])*(xyzs[k][0]-xyzs[i][0])+
  *                                     (xyzs[j][1]-xyzs[i][1])*(xyzs[k][1]-xyzs[i][1])+             # <<<<<<<<<<<<<<
@@ -4863,7 +4857,7 @@ __pyx_t_48 = 0;
         __pyx_tmp_idx += __pyx_tmp_shape;
     if (0 && (__pyx_tmp_idx < 0 || __pyx_tmp_idx >= __pyx_tmp_shape)) {
         PyErr_SetString(PyExc_IndexError, "Index out of bounds (axis 0)");
-        __PYX_ERR(0, 87, __pyx_L1_error)
+        __PYX_ERR(0, 86, __pyx_L1_error)
     }
         __pyx_t_27.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
@@ -4884,7 +4878,7 @@ __pyx_t_49 = 1;
         __pyx_tmp_idx += __pyx_tmp_shape;
     if (0 && (__pyx_tmp_idx < 0 || __pyx_tmp_idx >= __pyx_tmp_shape)) {
         PyErr_SetString(PyExc_IndexError, "Index out of bounds (axis 0)");
-        __PYX_ERR(0, 87, __pyx_L1_error)
+        __PYX_ERR(0, 86, __pyx_L1_error)
     }
         __pyx_t_29.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
@@ -4905,7 +4899,7 @@ __pyx_t_50 = 1;
         __pyx_tmp_idx += __pyx_tmp_shape;
     if (0 && (__pyx_tmp_idx < 0 || __pyx_tmp_idx >= __pyx_tmp_shape)) {
         PyErr_SetString(PyExc_IndexError, "Index out of bounds (axis 0)");
-        __PYX_ERR(0, 87, __pyx_L1_error)
+        __PYX_ERR(0, 86, __pyx_L1_error)
     }
         __pyx_t_51.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
@@ -4926,7 +4920,7 @@ __pyx_t_52 = 1;
         __pyx_tmp_idx += __pyx_tmp_shape;
     if (0 && (__pyx_tmp_idx < 0 || __pyx_tmp_idx >= __pyx_tmp_shape)) {
         PyErr_SetString(PyExc_IndexError, "Index out of bounds (axis 0)");
-        __PYX_ERR(0, 87, __pyx_L1_error)
+        __PYX_ERR(0, 86, __pyx_L1_error)
     }
         __pyx_t_53.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
@@ -4937,7 +4931,7 @@ __pyx_t_53.strides[0] = __pyx_v_xyzs.strides[1];
 
 __pyx_t_54 = 1;
 
-          /* "NeuralNetworks/SymmetryFunctionSetC.pyx":88
+          /* "NeuralNetworks/SymmetryFunctionSetC.pyx":87
  *                         costheta = ((xyzs[j][0]-xyzs[i][0])*(xyzs[k][0]-xyzs[i][0])+
  *                                     (xyzs[j][1]-xyzs[i][1])*(xyzs[k][1]-xyzs[i][1])+
  *                                     (xyzs[j][2]-xyzs[i][2])*(xyzs[k][2]-xyzs[i][2]))/(rij*rik)             # <<<<<<<<<<<<<<
@@ -4955,7 +4949,7 @@ __pyx_t_54 = 1;
         __pyx_tmp_idx += __pyx_tmp_shape;
     if (0 && (__pyx_tmp_idx < 0 || __pyx_tmp_idx >= __pyx_tmp_shape)) {
         PyErr_SetString(PyExc_IndexError, "Index out of bounds (axis 0)");
-        __PYX_ERR(0, 88, __pyx_L1_error)
+        __PYX_ERR(0, 87, __pyx_L1_error)
     }
         __pyx_t_55.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
@@ -4976,7 +4970,7 @@ __pyx_t_56 = 2;
         __pyx_tmp_idx += __pyx_tmp_shape;
     if (0 && (__pyx_tmp_idx < 0 || __pyx_tmp_idx >= __pyx_tmp_shape)) {
         PyErr_SetString(PyExc_IndexError, "Index out of bounds (axis 0)");
-        __PYX_ERR(0, 88, __pyx_L1_error)
+        __PYX_ERR(0, 87, __pyx_L1_error)
     }
         __pyx_t_57.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
@@ -4997,7 +4991,7 @@ __pyx_t_58 = 2;
         __pyx_tmp_idx += __pyx_tmp_shape;
     if (0 && (__pyx_tmp_idx < 0 || __pyx_tmp_idx >= __pyx_tmp_shape)) {
         PyErr_SetString(PyExc_IndexError, "Index out of bounds (axis 0)");
-        __PYX_ERR(0, 88, __pyx_L1_error)
+        __PYX_ERR(0, 87, __pyx_L1_error)
     }
         __pyx_t_59.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
@@ -5018,7 +5012,7 @@ __pyx_t_60 = 2;
         __pyx_tmp_idx += __pyx_tmp_shape;
     if (0 && (__pyx_tmp_idx < 0 || __pyx_tmp_idx >= __pyx_tmp_shape)) {
         PyErr_SetString(PyExc_IndexError, "Index out of bounds (axis 0)");
-        __PYX_ERR(0, 88, __pyx_L1_error)
+        __PYX_ERR(0, 87, __pyx_L1_error)
     }
         __pyx_t_61.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
@@ -5029,7 +5023,7 @@ __pyx_t_61.strides[0] = __pyx_v_xyzs.strides[1];
 
 __pyx_t_62 = 2;
 
-          /* "NeuralNetworks/SymmetryFunctionSetC.pyx":87
+          /* "NeuralNetworks/SymmetryFunctionSetC.pyx":86
  *                                    (xyzs[i][2]-xyzs[k][2])**2)
  *                         costheta = ((xyzs[j][0]-xyzs[i][0])*(xyzs[k][0]-xyzs[i][0])+
  *                                     (xyzs[j][1]-xyzs[i][1])*(xyzs[k][1]-xyzs[i][1])+             # <<<<<<<<<<<<<<
@@ -5074,7 +5068,7 @@ __pyx_t_62 = 2;
           __pyx_t_61.memview = NULL;
           __pyx_t_61.data = NULL;
 
-          /* "NeuralNetworks/SymmetryFunctionSetC.pyx":89
+          /* "NeuralNetworks/SymmetryFunctionSetC.pyx":88
  *                                     (xyzs[j][1]-xyzs[i][1])*(xyzs[k][1]-xyzs[i][1])+
  *                                     (xyzs[j][2]-xyzs[i][2])*(xyzs[k][2]-xyzs[i][2]))/(rij*rik)
  *                         ind = 0             # <<<<<<<<<<<<<<
@@ -5083,7 +5077,7 @@ __pyx_t_62 = 2;
  */
           __pyx_v_ind = 0;
 
-          /* "NeuralNetworks/SymmetryFunctionSetC.pyx":90
+          /* "NeuralNetworks/SymmetryFunctionSetC.pyx":89
  *                                     (xyzs[j][2]-xyzs[i][2])*(xyzs[k][2]-xyzs[i][2]))/(rij*rik)
  *                         ind = 0
  *                         for itj in range(Nt):             # <<<<<<<<<<<<<<
@@ -5094,7 +5088,7 @@ __pyx_t_62 = 2;
           for (__pyx_t_34 = 0; __pyx_t_34 < __pyx_t_33; __pyx_t_34+=1) {
             __pyx_v_itj = __pyx_t_34;
 
-            /* "NeuralNetworks/SymmetryFunctionSetC.pyx":91
+            /* "NeuralNetworks/SymmetryFunctionSetC.pyx":90
  *                         ind = 0
  *                         for itj in range(Nt):
  *                             for itk in range(itj, Nt):             # <<<<<<<<<<<<<<
@@ -5105,7 +5099,7 @@ __pyx_t_62 = 2;
             for (__pyx_t_64 = __pyx_v_itj; __pyx_t_64 < __pyx_t_63; __pyx_t_64+=1) {
               __pyx_v_itk = __pyx_t_64;
 
-              /* "NeuralNetworks/SymmetryFunctionSetC.pyx":92
+              /* "NeuralNetworks/SymmetryFunctionSetC.pyx":91
  *                         for itj in range(Nt):
  *                             for itk in range(itj, Nt):
  *                                 for ia in range(Na):             # <<<<<<<<<<<<<<
@@ -5116,7 +5110,7 @@ __pyx_t_62 = 2;
               for (__pyx_t_66 = 0; __pyx_t_66 < __pyx_t_65; __pyx_t_66+=1) {
                 __pyx_v_ia = __pyx_t_66;
 
-                /* "NeuralNetworks/SymmetryFunctionSetC.pyx":93
+                /* "NeuralNetworks/SymmetryFunctionSetC.pyx":92
  *                             for itk in range(itj, Nt):
  *                                 for ia in range(Na):
  *                                     if itj == tj and itk == tk:             # <<<<<<<<<<<<<<
@@ -5134,16 +5128,16 @@ __pyx_t_62 = 2;
                 __pyx_L30_bool_binop_done:;
                 if (__pyx_t_13) {
 
-                  /* "NeuralNetworks/SymmetryFunctionSetC.pyx":94
+                  /* "NeuralNetworks/SymmetryFunctionSetC.pyx":93
  *                                 for ia in range(Na):
  *                                     if itj == tj and itk == tk:
  *                                         out[i,Nt*Nr+ ind*Na+ ia] += (<AngularSymmetryFunction>self.angular_sym_funs[ia]).evaluate(rij,rik,costheta)             # <<<<<<<<<<<<<<
  *                                 ind += 1
  *         else:
  */
-                  __pyx_t_10 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_angular_sym_funs); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 94, __pyx_L1_error)
+                  __pyx_t_10 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_angular_sym_funs); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 93, __pyx_L1_error)
                   __Pyx_GOTREF(__pyx_t_10);
-                  __pyx_t_4 = __Pyx_GetItemInt(__pyx_t_10, __pyx_v_ia, int, 1, __Pyx_PyInt_From_int, 0, 0, 0); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 94, __pyx_L1_error)
+                  __pyx_t_4 = __Pyx_GetItemInt(__pyx_t_10, __pyx_v_ia, int, 1, __Pyx_PyInt_From_int, 0, 0, 0); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 93, __pyx_L1_error)
                   __Pyx_GOTREF(__pyx_t_4);
                   __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
                   __pyx_t_67 = __pyx_v_i;
@@ -5151,7 +5145,7 @@ __pyx_t_62 = 2;
                   *((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_out.data + __pyx_t_67 * __pyx_v_out.strides[0]) ) + __pyx_t_68 * __pyx_v_out.strides[1]) )) += ((struct __pyx_vtabstruct_14NeuralNetworks_18SymmetryFunctionsC_AngularSymmetryFunction *)((struct __pyx_obj_14NeuralNetworks_18SymmetryFunctionsC_AngularSymmetryFunction *)__pyx_t_4)->__pyx_vtab)->evaluate(((struct __pyx_obj_14NeuralNetworks_18SymmetryFunctionsC_AngularSymmetryFunction *)__pyx_t_4), __pyx_v_rij, __pyx_v_rik, __pyx_v_costheta);
                   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-                  /* "NeuralNetworks/SymmetryFunctionSetC.pyx":93
+                  /* "NeuralNetworks/SymmetryFunctionSetC.pyx":92
  *                             for itk in range(itj, Nt):
  *                                 for ia in range(Na):
  *                                     if itj == tj and itk == tk:             # <<<<<<<<<<<<<<
@@ -5161,7 +5155,7 @@ __pyx_t_62 = 2;
                 }
               }
 
-              /* "NeuralNetworks/SymmetryFunctionSetC.pyx":95
+              /* "NeuralNetworks/SymmetryFunctionSetC.pyx":94
  *                                     if itj == tj and itk == tk:
  *                                         out[i,Nt*Nr+ ind*Na+ ia] += (<AngularSymmetryFunction>self.angular_sym_funs[ia]).evaluate(rij,rik,costheta)
  *                                 ind += 1             # <<<<<<<<<<<<<<
@@ -5177,7 +5171,7 @@ __pyx_t_62 = 2;
       }
     }
 
-    /* "NeuralNetworks/SymmetryFunctionSetC.pyx":65
+    /* "NeuralNetworks/SymmetryFunctionSetC.pyx":64
  *         cdef double [:,:] out
  * 
  *         if derivative == False:             # <<<<<<<<<<<<<<
@@ -5187,7 +5181,7 @@ __pyx_t_62 = 2;
     goto __pyx_L7;
   }
 
-  /* "NeuralNetworks/SymmetryFunctionSetC.pyx":97
+  /* "NeuralNetworks/SymmetryFunctionSetC.pyx":96
  *                                 ind += 1
  *         else:
  *             out = _np.zeros((N, 2*(Nr*Nt + comb(Nt, 2, exact = True, repetition = True)*Na)), dtype=_np.float)             # <<<<<<<<<<<<<<
@@ -5195,20 +5189,20 @@ __pyx_t_62 = 2;
  *                 for j in range(N):
  */
   /*else*/ {
-    __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 97, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 96, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
-    __pyx_t_10 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_zeros); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 97, __pyx_L1_error)
+    __pyx_t_10 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_zeros); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 96, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_10);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    __pyx_t_4 = __Pyx_PyInt_From_int(__pyx_v_N); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 97, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_PyInt_From_int(__pyx_v_N); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 96, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
-    __pyx_t_3 = __Pyx_PyInt_From_int((__pyx_v_Nr * __pyx_v_Nt)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 97, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyInt_From_int((__pyx_v_Nr * __pyx_v_Nt)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 96, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_8 = __Pyx_GetModuleGlobalName(__pyx_n_s_comb); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 97, __pyx_L1_error)
+    __pyx_t_8 = __Pyx_GetModuleGlobalName(__pyx_n_s_comb); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 96, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_8);
-    __pyx_t_6 = __Pyx_PyInt_From_int(__pyx_v_Nt); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 97, __pyx_L1_error)
+    __pyx_t_6 = __Pyx_PyInt_From_int(__pyx_v_Nt); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 96, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
-    __pyx_t_7 = PyTuple_New(2); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 97, __pyx_L1_error)
+    __pyx_t_7 = PyTuple_New(2); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 96, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_7);
     __Pyx_GIVEREF(__pyx_t_6);
     PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_t_6);
@@ -5216,29 +5210,29 @@ __pyx_t_62 = 2;
     __Pyx_GIVEREF(__pyx_int_2);
     PyTuple_SET_ITEM(__pyx_t_7, 1, __pyx_int_2);
     __pyx_t_6 = 0;
-    __pyx_t_6 = PyDict_New(); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 97, __pyx_L1_error)
+    __pyx_t_6 = PyDict_New(); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 96, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
-    if (PyDict_SetItem(__pyx_t_6, __pyx_n_s_exact, Py_True) < 0) __PYX_ERR(0, 97, __pyx_L1_error)
-    if (PyDict_SetItem(__pyx_t_6, __pyx_n_s_repetition, Py_True) < 0) __PYX_ERR(0, 97, __pyx_L1_error)
-    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_8, __pyx_t_7, __pyx_t_6); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 97, __pyx_L1_error)
+    if (PyDict_SetItem(__pyx_t_6, __pyx_n_s_exact, Py_True) < 0) __PYX_ERR(0, 96, __pyx_L1_error)
+    if (PyDict_SetItem(__pyx_t_6, __pyx_n_s_repetition, Py_True) < 0) __PYX_ERR(0, 96, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_8, __pyx_t_7, __pyx_t_6); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 96, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-    __pyx_t_6 = __Pyx_PyInt_From_int(__pyx_v_Na); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 97, __pyx_L1_error)
+    __pyx_t_6 = __Pyx_PyInt_From_int(__pyx_v_Na); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 96, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
-    __pyx_t_7 = PyNumber_Multiply(__pyx_t_2, __pyx_t_6); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 97, __pyx_L1_error)
+    __pyx_t_7 = PyNumber_Multiply(__pyx_t_2, __pyx_t_6); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 96, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_7);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-    __pyx_t_6 = PyNumber_Add(__pyx_t_3, __pyx_t_7); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 97, __pyx_L1_error)
+    __pyx_t_6 = PyNumber_Add(__pyx_t_3, __pyx_t_7); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 96, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-    __pyx_t_7 = PyNumber_Multiply(__pyx_int_2, __pyx_t_6); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 97, __pyx_L1_error)
+    __pyx_t_7 = PyNumber_Multiply(__pyx_int_2, __pyx_t_6); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 96, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_7);
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-    __pyx_t_6 = PyTuple_New(2); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 97, __pyx_L1_error)
+    __pyx_t_6 = PyTuple_New(2); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 96, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
     __Pyx_GIVEREF(__pyx_t_4);
     PyTuple_SET_ITEM(__pyx_t_6, 0, __pyx_t_4);
@@ -5246,33 +5240,33 @@ __pyx_t_62 = 2;
     PyTuple_SET_ITEM(__pyx_t_6, 1, __pyx_t_7);
     __pyx_t_4 = 0;
     __pyx_t_7 = 0;
-    __pyx_t_7 = PyTuple_New(1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 97, __pyx_L1_error)
+    __pyx_t_7 = PyTuple_New(1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 96, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_7);
     __Pyx_GIVEREF(__pyx_t_6);
     PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_t_6);
     __pyx_t_6 = 0;
-    __pyx_t_6 = PyDict_New(); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 97, __pyx_L1_error)
+    __pyx_t_6 = PyDict_New(); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 96, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
-    __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 97, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 96, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
-    __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_float); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 97, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_float); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 96, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    if (PyDict_SetItem(__pyx_t_6, __pyx_n_s_dtype, __pyx_t_3) < 0) __PYX_ERR(0, 97, __pyx_L1_error)
+    if (PyDict_SetItem(__pyx_t_6, __pyx_n_s_dtype, __pyx_t_3) < 0) __PYX_ERR(0, 96, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_10, __pyx_t_7, __pyx_t_6); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 97, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_10, __pyx_t_7, __pyx_t_6); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 96, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
     __pyx_t_12 = __Pyx_PyObject_to_MemoryviewSlice_dsds_double(__pyx_t_3);
-    if (unlikely(!__pyx_t_12.memview)) __PYX_ERR(0, 97, __pyx_L1_error)
+    if (unlikely(!__pyx_t_12.memview)) __PYX_ERR(0, 96, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
     __pyx_v_out = __pyx_t_12;
     __pyx_t_12.memview = NULL;
     __pyx_t_12.data = NULL;
 
-    /* "NeuralNetworks/SymmetryFunctionSetC.pyx":98
+    /* "NeuralNetworks/SymmetryFunctionSetC.pyx":97
  *         else:
  *             out = _np.zeros((N, 2*(Nr*Nt + comb(Nt, 2, exact = True, repetition = True)*Na)), dtype=_np.float)
  *             for i in range(N):             # <<<<<<<<<<<<<<
@@ -5283,7 +5277,7 @@ __pyx_t_62 = 2;
     for (__pyx_t_15 = 0; __pyx_t_15 < __pyx_t_14; __pyx_t_15+=1) {
       __pyx_v_i = __pyx_t_15;
 
-      /* "NeuralNetworks/SymmetryFunctionSetC.pyx":99
+      /* "NeuralNetworks/SymmetryFunctionSetC.pyx":98
  *             out = _np.zeros((N, 2*(Nr*Nt + comb(Nt, 2, exact = True, repetition = True)*Na)), dtype=_np.float)
  *             for i in range(N):
  *                 for j in range(N):             # <<<<<<<<<<<<<<
@@ -5294,7 +5288,7 @@ __pyx_t_62 = 2;
       for (__pyx_t_17 = 0; __pyx_t_17 < __pyx_t_16; __pyx_t_17+=1) {
         __pyx_v_j = __pyx_t_17;
 
-        /* "NeuralNetworks/SymmetryFunctionSetC.pyx":100
+        /* "NeuralNetworks/SymmetryFunctionSetC.pyx":99
  *             for i in range(N):
  *                 for j in range(N):
  *                     if i == j:             # <<<<<<<<<<<<<<
@@ -5304,7 +5298,7 @@ __pyx_t_62 = 2;
         __pyx_t_13 = ((__pyx_v_i == __pyx_v_j) != 0);
         if (__pyx_t_13) {
 
-          /* "NeuralNetworks/SymmetryFunctionSetC.pyx":101
+          /* "NeuralNetworks/SymmetryFunctionSetC.pyx":100
  *                 for j in range(N):
  *                     if i == j:
  *                         continue             # <<<<<<<<<<<<<<
@@ -5313,7 +5307,7 @@ __pyx_t_62 = 2;
  */
           goto __pyx_L34_continue;
 
-          /* "NeuralNetworks/SymmetryFunctionSetC.pyx":100
+          /* "NeuralNetworks/SymmetryFunctionSetC.pyx":99
  *             for i in range(N):
  *                 for j in range(N):
  *                     if i == j:             # <<<<<<<<<<<<<<
@@ -5322,7 +5316,7 @@ __pyx_t_62 = 2;
  */
         }
 
-        /* "NeuralNetworks/SymmetryFunctionSetC.pyx":102
+        /* "NeuralNetworks/SymmetryFunctionSetC.pyx":101
  *                     if i == j:
  *                         continue
  *                     tj = types[j]             # <<<<<<<<<<<<<<
@@ -5332,7 +5326,7 @@ __pyx_t_62 = 2;
         __pyx_t_69 = __pyx_v_j;
         __pyx_v_tj = (*((int *) ( /* dim=0 */ (__pyx_v_types.data + __pyx_t_69 * __pyx_v_types.strides[0]) )));
 
-        /* "NeuralNetworks/SymmetryFunctionSetC.pyx":104
+        /* "NeuralNetworks/SymmetryFunctionSetC.pyx":103
  *                     tj = types[j]
  *                     # Radial function
  *                     rij = sqrt((xyzs[i][0]-xyzs[j][0])**2 + (xyzs[i][1]-xyzs[j][1])**2 +             # <<<<<<<<<<<<<<
@@ -5350,7 +5344,7 @@ __pyx_t_62 = 2;
         __pyx_tmp_idx += __pyx_tmp_shape;
     if (0 && (__pyx_tmp_idx < 0 || __pyx_tmp_idx >= __pyx_tmp_shape)) {
         PyErr_SetString(PyExc_IndexError, "Index out of bounds (axis 0)");
-        __PYX_ERR(0, 104, __pyx_L1_error)
+        __PYX_ERR(0, 103, __pyx_L1_error)
     }
         __pyx_t_61.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
@@ -5371,7 +5365,7 @@ __pyx_t_70 = 0;
         __pyx_tmp_idx += __pyx_tmp_shape;
     if (0 && (__pyx_tmp_idx < 0 || __pyx_tmp_idx >= __pyx_tmp_shape)) {
         PyErr_SetString(PyExc_IndexError, "Index out of bounds (axis 0)");
-        __PYX_ERR(0, 104, __pyx_L1_error)
+        __PYX_ERR(0, 103, __pyx_L1_error)
     }
         __pyx_t_59.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
@@ -5392,7 +5386,7 @@ __pyx_t_71 = 0;
         __pyx_tmp_idx += __pyx_tmp_shape;
     if (0 && (__pyx_tmp_idx < 0 || __pyx_tmp_idx >= __pyx_tmp_shape)) {
         PyErr_SetString(PyExc_IndexError, "Index out of bounds (axis 0)");
-        __PYX_ERR(0, 104, __pyx_L1_error)
+        __PYX_ERR(0, 103, __pyx_L1_error)
     }
         __pyx_t_57.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
@@ -5413,7 +5407,7 @@ __pyx_t_72 = 1;
         __pyx_tmp_idx += __pyx_tmp_shape;
     if (0 && (__pyx_tmp_idx < 0 || __pyx_tmp_idx >= __pyx_tmp_shape)) {
         PyErr_SetString(PyExc_IndexError, "Index out of bounds (axis 0)");
-        __PYX_ERR(0, 104, __pyx_L1_error)
+        __PYX_ERR(0, 103, __pyx_L1_error)
     }
         __pyx_t_55.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
@@ -5424,7 +5418,7 @@ __pyx_t_55.strides[0] = __pyx_v_xyzs.strides[1];
 
 __pyx_t_73 = 1;
 
-        /* "NeuralNetworks/SymmetryFunctionSetC.pyx":105
+        /* "NeuralNetworks/SymmetryFunctionSetC.pyx":104
  *                     # Radial function
  *                     rij = sqrt((xyzs[i][0]-xyzs[j][0])**2 + (xyzs[i][1]-xyzs[j][1])**2 +
  *                                    (xyzs[i][2]-xyzs[j][2])**2)             # <<<<<<<<<<<<<<
@@ -5442,7 +5436,7 @@ __pyx_t_73 = 1;
         __pyx_tmp_idx += __pyx_tmp_shape;
     if (0 && (__pyx_tmp_idx < 0 || __pyx_tmp_idx >= __pyx_tmp_shape)) {
         PyErr_SetString(PyExc_IndexError, "Index out of bounds (axis 0)");
-        __PYX_ERR(0, 105, __pyx_L1_error)
+        __PYX_ERR(0, 104, __pyx_L1_error)
     }
         __pyx_t_53.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
@@ -5463,7 +5457,7 @@ __pyx_t_74 = 2;
         __pyx_tmp_idx += __pyx_tmp_shape;
     if (0 && (__pyx_tmp_idx < 0 || __pyx_tmp_idx >= __pyx_tmp_shape)) {
         PyErr_SetString(PyExc_IndexError, "Index out of bounds (axis 0)");
-        __PYX_ERR(0, 105, __pyx_L1_error)
+        __PYX_ERR(0, 104, __pyx_L1_error)
     }
         __pyx_t_51.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
@@ -5474,7 +5468,7 @@ __pyx_t_51.strides[0] = __pyx_v_xyzs.strides[1];
 
 __pyx_t_75 = 2;
 
-        /* "NeuralNetworks/SymmetryFunctionSetC.pyx":104
+        /* "NeuralNetworks/SymmetryFunctionSetC.pyx":103
  *                     tj = types[j]
  *                     # Radial function
  *                     rij = sqrt((xyzs[i][0]-xyzs[j][0])**2 + (xyzs[i][1]-xyzs[j][1])**2 +             # <<<<<<<<<<<<<<
@@ -5501,7 +5495,7 @@ __pyx_t_75 = 2;
         __pyx_t_51.memview = NULL;
         __pyx_t_51.data = NULL;
 
-        /* "NeuralNetworks/SymmetryFunctionSetC.pyx":106
+        /* "NeuralNetworks/SymmetryFunctionSetC.pyx":105
  *                     rij = sqrt((xyzs[i][0]-xyzs[j][0])**2 + (xyzs[i][1]-xyzs[j][1])**2 +
  *                                    (xyzs[i][2]-xyzs[j][2])**2)
  *                     for itj in range(Nt):             # <<<<<<<<<<<<<<
@@ -5512,7 +5506,7 @@ __pyx_t_75 = 2;
         for (__pyx_t_32 = 0; __pyx_t_32 < __pyx_t_31; __pyx_t_32+=1) {
           __pyx_v_itj = __pyx_t_32;
 
-          /* "NeuralNetworks/SymmetryFunctionSetC.pyx":107
+          /* "NeuralNetworks/SymmetryFunctionSetC.pyx":106
  *                                    (xyzs[i][2]-xyzs[j][2])**2)
  *                     for itj in range(Nt):
  *                         for ir in range(Nr):             # <<<<<<<<<<<<<<
@@ -5523,7 +5517,7 @@ __pyx_t_75 = 2;
           for (__pyx_t_34 = 0; __pyx_t_34 < __pyx_t_33; __pyx_t_34+=1) {
             __pyx_v_ir = __pyx_t_34;
 
-            /* "NeuralNetworks/SymmetryFunctionSetC.pyx":108
+            /* "NeuralNetworks/SymmetryFunctionSetC.pyx":107
  *                     for itj in range(Nt):
  *                         for ir in range(Nr):
  *                             if itj == tj:             # <<<<<<<<<<<<<<
@@ -5533,16 +5527,16 @@ __pyx_t_75 = 2;
             __pyx_t_13 = ((__pyx_v_itj == __pyx_v_tj) != 0);
             if (__pyx_t_13) {
 
-              /* "NeuralNetworks/SymmetryFunctionSetC.pyx":109
+              /* "NeuralNetworks/SymmetryFunctionSetC.pyx":108
  *                         for ir in range(Nr):
  *                             if itj == tj:
  *                                 out[i,itj*2*Nr+2*ir] += (<RadialSymmetryFunction>self.radial_sym_funs[ir]).evaluate(rij)             # <<<<<<<<<<<<<<
  *                                 out[i,itj*2*Nr+2*ir+1] += (<RadialSymmetryFunction>self.radial_sym_funs[ir]).derivative(rij)
  *                     # Angular functions
  */
-              __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_radial_sym_funs); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 109, __pyx_L1_error)
+              __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_radial_sym_funs); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 108, __pyx_L1_error)
               __Pyx_GOTREF(__pyx_t_3);
-              __pyx_t_6 = __Pyx_GetItemInt(__pyx_t_3, __pyx_v_ir, int, 1, __Pyx_PyInt_From_int, 0, 0, 0); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 109, __pyx_L1_error)
+              __pyx_t_6 = __Pyx_GetItemInt(__pyx_t_3, __pyx_v_ir, int, 1, __Pyx_PyInt_From_int, 0, 0, 0); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 108, __pyx_L1_error)
               __Pyx_GOTREF(__pyx_t_6);
               __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
               __pyx_t_76 = __pyx_v_i;
@@ -5550,16 +5544,16 @@ __pyx_t_75 = 2;
               *((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_out.data + __pyx_t_76 * __pyx_v_out.strides[0]) ) + __pyx_t_77 * __pyx_v_out.strides[1]) )) += ((struct __pyx_vtabstruct_14NeuralNetworks_18SymmetryFunctionsC_RadialSymmetryFunction *)((struct __pyx_obj_14NeuralNetworks_18SymmetryFunctionsC_RadialSymmetryFunction *)__pyx_t_6)->__pyx_vtab)->evaluate(((struct __pyx_obj_14NeuralNetworks_18SymmetryFunctionsC_RadialSymmetryFunction *)__pyx_t_6), __pyx_v_rij);
               __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
 
-              /* "NeuralNetworks/SymmetryFunctionSetC.pyx":110
+              /* "NeuralNetworks/SymmetryFunctionSetC.pyx":109
  *                             if itj == tj:
  *                                 out[i,itj*2*Nr+2*ir] += (<RadialSymmetryFunction>self.radial_sym_funs[ir]).evaluate(rij)
  *                                 out[i,itj*2*Nr+2*ir+1] += (<RadialSymmetryFunction>self.radial_sym_funs[ir]).derivative(rij)             # <<<<<<<<<<<<<<
  *                     # Angular functions
  *                     for k in range(N):
  */
-              __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_radial_sym_funs); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 110, __pyx_L1_error)
+              __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_radial_sym_funs); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 109, __pyx_L1_error)
               __Pyx_GOTREF(__pyx_t_6);
-              __pyx_t_3 = __Pyx_GetItemInt(__pyx_t_6, __pyx_v_ir, int, 1, __Pyx_PyInt_From_int, 0, 0, 0); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 110, __pyx_L1_error)
+              __pyx_t_3 = __Pyx_GetItemInt(__pyx_t_6, __pyx_v_ir, int, 1, __Pyx_PyInt_From_int, 0, 0, 0); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 109, __pyx_L1_error)
               __Pyx_GOTREF(__pyx_t_3);
               __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
               __pyx_t_78 = __pyx_v_i;
@@ -5567,7 +5561,7 @@ __pyx_t_75 = 2;
               *((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_out.data + __pyx_t_78 * __pyx_v_out.strides[0]) ) + __pyx_t_79 * __pyx_v_out.strides[1]) )) += ((struct __pyx_vtabstruct_14NeuralNetworks_18SymmetryFunctionsC_RadialSymmetryFunction *)((struct __pyx_obj_14NeuralNetworks_18SymmetryFunctionsC_RadialSymmetryFunction *)__pyx_t_3)->__pyx_vtab)->derivative(((struct __pyx_obj_14NeuralNetworks_18SymmetryFunctionsC_RadialSymmetryFunction *)__pyx_t_3), __pyx_v_rij);
               __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-              /* "NeuralNetworks/SymmetryFunctionSetC.pyx":108
+              /* "NeuralNetworks/SymmetryFunctionSetC.pyx":107
  *                     for itj in range(Nt):
  *                         for ir in range(Nr):
  *                             if itj == tj:             # <<<<<<<<<<<<<<
@@ -5578,7 +5572,7 @@ __pyx_t_75 = 2;
           }
         }
 
-        /* "NeuralNetworks/SymmetryFunctionSetC.pyx":112
+        /* "NeuralNetworks/SymmetryFunctionSetC.pyx":111
  *                                 out[i,itj*2*Nr+2*ir+1] += (<RadialSymmetryFunction>self.radial_sym_funs[ir]).derivative(rij)
  *                     # Angular functions
  *                     for k in range(N):             # <<<<<<<<<<<<<<
@@ -5589,7 +5583,7 @@ __pyx_t_75 = 2;
         for (__pyx_t_32 = 0; __pyx_t_32 < __pyx_t_31; __pyx_t_32+=1) {
           __pyx_v_k = __pyx_t_32;
 
-          /* "NeuralNetworks/SymmetryFunctionSetC.pyx":113
+          /* "NeuralNetworks/SymmetryFunctionSetC.pyx":112
  *                     # Angular functions
  *                     for k in range(N):
  *                         if i == k or j == k:             # <<<<<<<<<<<<<<
@@ -5607,7 +5601,7 @@ __pyx_t_75 = 2;
           __pyx_L45_bool_binop_done:;
           if (__pyx_t_13) {
 
-            /* "NeuralNetworks/SymmetryFunctionSetC.pyx":114
+            /* "NeuralNetworks/SymmetryFunctionSetC.pyx":113
  *                     for k in range(N):
  *                         if i == k or j == k:
  *                             continue             # <<<<<<<<<<<<<<
@@ -5616,7 +5610,7 @@ __pyx_t_75 = 2;
  */
             goto __pyx_L42_continue;
 
-            /* "NeuralNetworks/SymmetryFunctionSetC.pyx":113
+            /* "NeuralNetworks/SymmetryFunctionSetC.pyx":112
  *                     # Angular functions
  *                     for k in range(N):
  *                         if i == k or j == k:             # <<<<<<<<<<<<<<
@@ -5625,7 +5619,7 @@ __pyx_t_75 = 2;
  */
           }
 
-          /* "NeuralNetworks/SymmetryFunctionSetC.pyx":115
+          /* "NeuralNetworks/SymmetryFunctionSetC.pyx":114
  *                         if i == k or j == k:
  *                             continue
  *                         tk = types[k]             # <<<<<<<<<<<<<<
@@ -5635,7 +5629,7 @@ __pyx_t_75 = 2;
           __pyx_t_80 = __pyx_v_k;
           __pyx_v_tk = (*((int *) ( /* dim=0 */ (__pyx_v_types.data + __pyx_t_80 * __pyx_v_types.strides[0]) )));
 
-          /* "NeuralNetworks/SymmetryFunctionSetC.pyx":116
+          /* "NeuralNetworks/SymmetryFunctionSetC.pyx":115
  *                             continue
  *                         tk = types[k]
  *                         rik = sqrt((xyzs[i][0]-xyzs[k][0])**2 + (xyzs[i][1]-xyzs[k][1])**2 +             # <<<<<<<<<<<<<<
@@ -5653,7 +5647,7 @@ __pyx_t_75 = 2;
         __pyx_tmp_idx += __pyx_tmp_shape;
     if (0 && (__pyx_tmp_idx < 0 || __pyx_tmp_idx >= __pyx_tmp_shape)) {
         PyErr_SetString(PyExc_IndexError, "Index out of bounds (axis 0)");
-        __PYX_ERR(0, 116, __pyx_L1_error)
+        __PYX_ERR(0, 115, __pyx_L1_error)
     }
         __pyx_t_51.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
@@ -5674,7 +5668,7 @@ __pyx_t_81 = 0;
         __pyx_tmp_idx += __pyx_tmp_shape;
     if (0 && (__pyx_tmp_idx < 0 || __pyx_tmp_idx >= __pyx_tmp_shape)) {
         PyErr_SetString(PyExc_IndexError, "Index out of bounds (axis 0)");
-        __PYX_ERR(0, 116, __pyx_L1_error)
+        __PYX_ERR(0, 115, __pyx_L1_error)
     }
         __pyx_t_53.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
@@ -5695,7 +5689,7 @@ __pyx_t_82 = 0;
         __pyx_tmp_idx += __pyx_tmp_shape;
     if (0 && (__pyx_tmp_idx < 0 || __pyx_tmp_idx >= __pyx_tmp_shape)) {
         PyErr_SetString(PyExc_IndexError, "Index out of bounds (axis 0)");
-        __PYX_ERR(0, 116, __pyx_L1_error)
+        __PYX_ERR(0, 115, __pyx_L1_error)
     }
         __pyx_t_55.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
@@ -5716,7 +5710,7 @@ __pyx_t_83 = 1;
         __pyx_tmp_idx += __pyx_tmp_shape;
     if (0 && (__pyx_tmp_idx < 0 || __pyx_tmp_idx >= __pyx_tmp_shape)) {
         PyErr_SetString(PyExc_IndexError, "Index out of bounds (axis 0)");
-        __PYX_ERR(0, 116, __pyx_L1_error)
+        __PYX_ERR(0, 115, __pyx_L1_error)
     }
         __pyx_t_57.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
@@ -5727,7 +5721,7 @@ __pyx_t_57.strides[0] = __pyx_v_xyzs.strides[1];
 
 __pyx_t_84 = 1;
 
-          /* "NeuralNetworks/SymmetryFunctionSetC.pyx":117
+          /* "NeuralNetworks/SymmetryFunctionSetC.pyx":116
  *                         tk = types[k]
  *                         rik = sqrt((xyzs[i][0]-xyzs[k][0])**2 + (xyzs[i][1]-xyzs[k][1])**2 +
  *                                    (xyzs[i][2]-xyzs[k][2])**2)             # <<<<<<<<<<<<<<
@@ -5745,7 +5739,7 @@ __pyx_t_84 = 1;
         __pyx_tmp_idx += __pyx_tmp_shape;
     if (0 && (__pyx_tmp_idx < 0 || __pyx_tmp_idx >= __pyx_tmp_shape)) {
         PyErr_SetString(PyExc_IndexError, "Index out of bounds (axis 0)");
-        __PYX_ERR(0, 117, __pyx_L1_error)
+        __PYX_ERR(0, 116, __pyx_L1_error)
     }
         __pyx_t_59.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
@@ -5766,7 +5760,7 @@ __pyx_t_85 = 2;
         __pyx_tmp_idx += __pyx_tmp_shape;
     if (0 && (__pyx_tmp_idx < 0 || __pyx_tmp_idx >= __pyx_tmp_shape)) {
         PyErr_SetString(PyExc_IndexError, "Index out of bounds (axis 0)");
-        __PYX_ERR(0, 117, __pyx_L1_error)
+        __PYX_ERR(0, 116, __pyx_L1_error)
     }
         __pyx_t_61.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
@@ -5777,7 +5771,7 @@ __pyx_t_61.strides[0] = __pyx_v_xyzs.strides[1];
 
 __pyx_t_86 = 2;
 
-          /* "NeuralNetworks/SymmetryFunctionSetC.pyx":116
+          /* "NeuralNetworks/SymmetryFunctionSetC.pyx":115
  *                             continue
  *                         tk = types[k]
  *                         rik = sqrt((xyzs[i][0]-xyzs[k][0])**2 + (xyzs[i][1]-xyzs[k][1])**2 +             # <<<<<<<<<<<<<<
@@ -5804,7 +5798,7 @@ __pyx_t_86 = 2;
           __pyx_t_61.memview = NULL;
           __pyx_t_61.data = NULL;
 
-          /* "NeuralNetworks/SymmetryFunctionSetC.pyx":118
+          /* "NeuralNetworks/SymmetryFunctionSetC.pyx":117
  *                         rik = sqrt((xyzs[i][0]-xyzs[k][0])**2 + (xyzs[i][1]-xyzs[k][1])**2 +
  *                                    (xyzs[i][2]-xyzs[k][2])**2)
  *                         costheta = ((xyzs[j][0]-xyzs[i][0])*(xyzs[k][0]-xyzs[i][0])+             # <<<<<<<<<<<<<<
@@ -5822,7 +5816,7 @@ __pyx_t_86 = 2;
         __pyx_tmp_idx += __pyx_tmp_shape;
     if (0 && (__pyx_tmp_idx < 0 || __pyx_tmp_idx >= __pyx_tmp_shape)) {
         PyErr_SetString(PyExc_IndexError, "Index out of bounds (axis 0)");
-        __PYX_ERR(0, 118, __pyx_L1_error)
+        __PYX_ERR(0, 117, __pyx_L1_error)
     }
         __pyx_t_61.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
@@ -5843,7 +5837,7 @@ __pyx_t_87 = 0;
         __pyx_tmp_idx += __pyx_tmp_shape;
     if (0 && (__pyx_tmp_idx < 0 || __pyx_tmp_idx >= __pyx_tmp_shape)) {
         PyErr_SetString(PyExc_IndexError, "Index out of bounds (axis 0)");
-        __PYX_ERR(0, 118, __pyx_L1_error)
+        __PYX_ERR(0, 117, __pyx_L1_error)
     }
         __pyx_t_59.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
@@ -5864,7 +5858,7 @@ __pyx_t_88 = 0;
         __pyx_tmp_idx += __pyx_tmp_shape;
     if (0 && (__pyx_tmp_idx < 0 || __pyx_tmp_idx >= __pyx_tmp_shape)) {
         PyErr_SetString(PyExc_IndexError, "Index out of bounds (axis 0)");
-        __PYX_ERR(0, 118, __pyx_L1_error)
+        __PYX_ERR(0, 117, __pyx_L1_error)
     }
         __pyx_t_57.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
@@ -5885,7 +5879,7 @@ __pyx_t_89 = 0;
         __pyx_tmp_idx += __pyx_tmp_shape;
     if (0 && (__pyx_tmp_idx < 0 || __pyx_tmp_idx >= __pyx_tmp_shape)) {
         PyErr_SetString(PyExc_IndexError, "Index out of bounds (axis 0)");
-        __PYX_ERR(0, 118, __pyx_L1_error)
+        __PYX_ERR(0, 117, __pyx_L1_error)
     }
         __pyx_t_55.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
@@ -5896,7 +5890,7 @@ __pyx_t_55.strides[0] = __pyx_v_xyzs.strides[1];
 
 __pyx_t_90 = 0;
 
-          /* "NeuralNetworks/SymmetryFunctionSetC.pyx":119
+          /* "NeuralNetworks/SymmetryFunctionSetC.pyx":118
  *                                    (xyzs[i][2]-xyzs[k][2])**2)
  *                         costheta = ((xyzs[j][0]-xyzs[i][0])*(xyzs[k][0]-xyzs[i][0])+
  *                                     (xyzs[j][1]-xyzs[i][1])*(xyzs[k][1]-xyzs[i][1])+             # <<<<<<<<<<<<<<
@@ -5914,7 +5908,7 @@ __pyx_t_90 = 0;
         __pyx_tmp_idx += __pyx_tmp_shape;
     if (0 && (__pyx_tmp_idx < 0 || __pyx_tmp_idx >= __pyx_tmp_shape)) {
         PyErr_SetString(PyExc_IndexError, "Index out of bounds (axis 0)");
-        __PYX_ERR(0, 119, __pyx_L1_error)
+        __PYX_ERR(0, 118, __pyx_L1_error)
     }
         __pyx_t_53.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
@@ -5935,7 +5929,7 @@ __pyx_t_91 = 1;
         __pyx_tmp_idx += __pyx_tmp_shape;
     if (0 && (__pyx_tmp_idx < 0 || __pyx_tmp_idx >= __pyx_tmp_shape)) {
         PyErr_SetString(PyExc_IndexError, "Index out of bounds (axis 0)");
-        __PYX_ERR(0, 119, __pyx_L1_error)
+        __PYX_ERR(0, 118, __pyx_L1_error)
     }
         __pyx_t_51.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
@@ -5956,7 +5950,7 @@ __pyx_t_92 = 1;
         __pyx_tmp_idx += __pyx_tmp_shape;
     if (0 && (__pyx_tmp_idx < 0 || __pyx_tmp_idx >= __pyx_tmp_shape)) {
         PyErr_SetString(PyExc_IndexError, "Index out of bounds (axis 0)");
-        __PYX_ERR(0, 119, __pyx_L1_error)
+        __PYX_ERR(0, 118, __pyx_L1_error)
     }
         __pyx_t_29.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
@@ -5977,7 +5971,7 @@ __pyx_t_93 = 1;
         __pyx_tmp_idx += __pyx_tmp_shape;
     if (0 && (__pyx_tmp_idx < 0 || __pyx_tmp_idx >= __pyx_tmp_shape)) {
         PyErr_SetString(PyExc_IndexError, "Index out of bounds (axis 0)");
-        __PYX_ERR(0, 119, __pyx_L1_error)
+        __PYX_ERR(0, 118, __pyx_L1_error)
     }
         __pyx_t_27.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
@@ -5988,7 +5982,7 @@ __pyx_t_27.strides[0] = __pyx_v_xyzs.strides[1];
 
 __pyx_t_94 = 1;
 
-          /* "NeuralNetworks/SymmetryFunctionSetC.pyx":120
+          /* "NeuralNetworks/SymmetryFunctionSetC.pyx":119
  *                         costheta = ((xyzs[j][0]-xyzs[i][0])*(xyzs[k][0]-xyzs[i][0])+
  *                                     (xyzs[j][1]-xyzs[i][1])*(xyzs[k][1]-xyzs[i][1])+
  *                                     (xyzs[j][2]-xyzs[i][2])*(xyzs[k][2]-xyzs[i][2]))/(rij*rik)             # <<<<<<<<<<<<<<
@@ -6006,7 +6000,7 @@ __pyx_t_94 = 1;
         __pyx_tmp_idx += __pyx_tmp_shape;
     if (0 && (__pyx_tmp_idx < 0 || __pyx_tmp_idx >= __pyx_tmp_shape)) {
         PyErr_SetString(PyExc_IndexError, "Index out of bounds (axis 0)");
-        __PYX_ERR(0, 120, __pyx_L1_error)
+        __PYX_ERR(0, 119, __pyx_L1_error)
     }
         __pyx_t_25.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
@@ -6027,7 +6021,7 @@ __pyx_t_95 = 2;
         __pyx_tmp_idx += __pyx_tmp_shape;
     if (0 && (__pyx_tmp_idx < 0 || __pyx_tmp_idx >= __pyx_tmp_shape)) {
         PyErr_SetString(PyExc_IndexError, "Index out of bounds (axis 0)");
-        __PYX_ERR(0, 120, __pyx_L1_error)
+        __PYX_ERR(0, 119, __pyx_L1_error)
     }
         __pyx_t_23.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
@@ -6048,7 +6042,7 @@ __pyx_t_96 = 2;
         __pyx_tmp_idx += __pyx_tmp_shape;
     if (0 && (__pyx_tmp_idx < 0 || __pyx_tmp_idx >= __pyx_tmp_shape)) {
         PyErr_SetString(PyExc_IndexError, "Index out of bounds (axis 0)");
-        __PYX_ERR(0, 120, __pyx_L1_error)
+        __PYX_ERR(0, 119, __pyx_L1_error)
     }
         __pyx_t_21.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
@@ -6069,7 +6063,7 @@ __pyx_t_97 = 2;
         __pyx_tmp_idx += __pyx_tmp_shape;
     if (0 && (__pyx_tmp_idx < 0 || __pyx_tmp_idx >= __pyx_tmp_shape)) {
         PyErr_SetString(PyExc_IndexError, "Index out of bounds (axis 0)");
-        __PYX_ERR(0, 120, __pyx_L1_error)
+        __PYX_ERR(0, 119, __pyx_L1_error)
     }
         __pyx_t_19.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
@@ -6080,7 +6074,7 @@ __pyx_t_19.strides[0] = __pyx_v_xyzs.strides[1];
 
 __pyx_t_98 = 2;
 
-          /* "NeuralNetworks/SymmetryFunctionSetC.pyx":119
+          /* "NeuralNetworks/SymmetryFunctionSetC.pyx":118
  *                                    (xyzs[i][2]-xyzs[k][2])**2)
  *                         costheta = ((xyzs[j][0]-xyzs[i][0])*(xyzs[k][0]-xyzs[i][0])+
  *                                     (xyzs[j][1]-xyzs[i][1])*(xyzs[k][1]-xyzs[i][1])+             # <<<<<<<<<<<<<<
@@ -6125,7 +6119,7 @@ __pyx_t_98 = 2;
           __pyx_t_19.memview = NULL;
           __pyx_t_19.data = NULL;
 
-          /* "NeuralNetworks/SymmetryFunctionSetC.pyx":121
+          /* "NeuralNetworks/SymmetryFunctionSetC.pyx":120
  *                                     (xyzs[j][1]-xyzs[i][1])*(xyzs[k][1]-xyzs[i][1])+
  *                                     (xyzs[j][2]-xyzs[i][2])*(xyzs[k][2]-xyzs[i][2]))/(rij*rik)
  *                         ind = 0             # <<<<<<<<<<<<<<
@@ -6134,7 +6128,7 @@ __pyx_t_98 = 2;
  */
           __pyx_v_ind = 0;
 
-          /* "NeuralNetworks/SymmetryFunctionSetC.pyx":122
+          /* "NeuralNetworks/SymmetryFunctionSetC.pyx":121
  *                                     (xyzs[j][2]-xyzs[i][2])*(xyzs[k][2]-xyzs[i][2]))/(rij*rik)
  *                         ind = 0
  *                         for itj in range(Nt):             # <<<<<<<<<<<<<<
@@ -6145,7 +6139,7 @@ __pyx_t_98 = 2;
           for (__pyx_t_34 = 0; __pyx_t_34 < __pyx_t_33; __pyx_t_34+=1) {
             __pyx_v_itj = __pyx_t_34;
 
-            /* "NeuralNetworks/SymmetryFunctionSetC.pyx":123
+            /* "NeuralNetworks/SymmetryFunctionSetC.pyx":122
  *                         ind = 0
  *                         for itj in range(Nt):
  *                             for itk in range(itj, Nt):             # <<<<<<<<<<<<<<
@@ -6156,7 +6150,7 @@ __pyx_t_98 = 2;
             for (__pyx_t_64 = __pyx_v_itj; __pyx_t_64 < __pyx_t_63; __pyx_t_64+=1) {
               __pyx_v_itk = __pyx_t_64;
 
-              /* "NeuralNetworks/SymmetryFunctionSetC.pyx":124
+              /* "NeuralNetworks/SymmetryFunctionSetC.pyx":123
  *                         for itj in range(Nt):
  *                             for itk in range(itj, Nt):
  *                                 for ia in range(Na):             # <<<<<<<<<<<<<<
@@ -6167,7 +6161,7 @@ __pyx_t_98 = 2;
               for (__pyx_t_66 = 0; __pyx_t_66 < __pyx_t_65; __pyx_t_66+=1) {
                 __pyx_v_ia = __pyx_t_66;
 
-                /* "NeuralNetworks/SymmetryFunctionSetC.pyx":125
+                /* "NeuralNetworks/SymmetryFunctionSetC.pyx":124
  *                             for itk in range(itj, Nt):
  *                                 for ia in range(Na):
  *                                     if itj == tj and itk == tk:             # <<<<<<<<<<<<<<
@@ -6185,16 +6179,16 @@ __pyx_t_98 = 2;
                 __pyx_L54_bool_binop_done:;
                 if (__pyx_t_13) {
 
-                  /* "NeuralNetworks/SymmetryFunctionSetC.pyx":126
+                  /* "NeuralNetworks/SymmetryFunctionSetC.pyx":125
  *                                 for ia in range(Na):
  *                                     if itj == tj and itk == tk:
  *                                         out[i,Nt*2*Nr+ ind*2*Na+ 2*ia] += (<AngularSymmetryFunction>self.angular_sym_funs[ia]).evaluate(rij,rik,costheta)             # <<<<<<<<<<<<<<
  *                                         out[i,Nt*2*Nr+ ind*2*Na+ 2*ia + 1] += (<AngularSymmetryFunction>self.angular_sym_funs[ia]).derivative(rij,rik,costheta)
  *                                 ind += 1
  */
-                  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_angular_sym_funs); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 126, __pyx_L1_error)
+                  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_angular_sym_funs); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 125, __pyx_L1_error)
                   __Pyx_GOTREF(__pyx_t_3);
-                  __pyx_t_6 = __Pyx_GetItemInt(__pyx_t_3, __pyx_v_ia, int, 1, __Pyx_PyInt_From_int, 0, 0, 0); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 126, __pyx_L1_error)
+                  __pyx_t_6 = __Pyx_GetItemInt(__pyx_t_3, __pyx_v_ia, int, 1, __Pyx_PyInt_From_int, 0, 0, 0); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 125, __pyx_L1_error)
                   __Pyx_GOTREF(__pyx_t_6);
                   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
                   __pyx_t_99 = __pyx_v_i;
@@ -6202,16 +6196,16 @@ __pyx_t_98 = 2;
                   *((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_out.data + __pyx_t_99 * __pyx_v_out.strides[0]) ) + __pyx_t_100 * __pyx_v_out.strides[1]) )) += ((struct __pyx_vtabstruct_14NeuralNetworks_18SymmetryFunctionsC_AngularSymmetryFunction *)((struct __pyx_obj_14NeuralNetworks_18SymmetryFunctionsC_AngularSymmetryFunction *)__pyx_t_6)->__pyx_vtab)->evaluate(((struct __pyx_obj_14NeuralNetworks_18SymmetryFunctionsC_AngularSymmetryFunction *)__pyx_t_6), __pyx_v_rij, __pyx_v_rik, __pyx_v_costheta);
                   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
 
-                  /* "NeuralNetworks/SymmetryFunctionSetC.pyx":127
+                  /* "NeuralNetworks/SymmetryFunctionSetC.pyx":126
  *                                     if itj == tj and itk == tk:
  *                                         out[i,Nt*2*Nr+ ind*2*Na+ 2*ia] += (<AngularSymmetryFunction>self.angular_sym_funs[ia]).evaluate(rij,rik,costheta)
  *                                         out[i,Nt*2*Nr+ ind*2*Na+ 2*ia + 1] += (<AngularSymmetryFunction>self.angular_sym_funs[ia]).derivative(rij,rik,costheta)             # <<<<<<<<<<<<<<
  *                                 ind += 1
  *         return out
  */
-                  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_angular_sym_funs); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 127, __pyx_L1_error)
+                  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_angular_sym_funs); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 126, __pyx_L1_error)
                   __Pyx_GOTREF(__pyx_t_6);
-                  __pyx_t_3 = __Pyx_GetItemInt(__pyx_t_6, __pyx_v_ia, int, 1, __Pyx_PyInt_From_int, 0, 0, 0); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 127, __pyx_L1_error)
+                  __pyx_t_3 = __Pyx_GetItemInt(__pyx_t_6, __pyx_v_ia, int, 1, __Pyx_PyInt_From_int, 0, 0, 0); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 126, __pyx_L1_error)
                   __Pyx_GOTREF(__pyx_t_3);
                   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
                   __pyx_t_101 = __pyx_v_i;
@@ -6219,7 +6213,7 @@ __pyx_t_98 = 2;
                   *((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_out.data + __pyx_t_101 * __pyx_v_out.strides[0]) ) + __pyx_t_102 * __pyx_v_out.strides[1]) )) += ((struct __pyx_vtabstruct_14NeuralNetworks_18SymmetryFunctionsC_AngularSymmetryFunction *)((struct __pyx_obj_14NeuralNetworks_18SymmetryFunctionsC_AngularSymmetryFunction *)__pyx_t_3)->__pyx_vtab)->derivative(((struct __pyx_obj_14NeuralNetworks_18SymmetryFunctionsC_AngularSymmetryFunction *)__pyx_t_3), __pyx_v_rij, __pyx_v_rik, __pyx_v_costheta);
                   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-                  /* "NeuralNetworks/SymmetryFunctionSetC.pyx":125
+                  /* "NeuralNetworks/SymmetryFunctionSetC.pyx":124
  *                             for itk in range(itj, Nt):
  *                                 for ia in range(Na):
  *                                     if itj == tj and itk == tk:             # <<<<<<<<<<<<<<
@@ -6229,7 +6223,7 @@ __pyx_t_98 = 2;
                 }
               }
 
-              /* "NeuralNetworks/SymmetryFunctionSetC.pyx":128
+              /* "NeuralNetworks/SymmetryFunctionSetC.pyx":127
  *                                         out[i,Nt*2*Nr+ ind*2*Na+ 2*ia] += (<AngularSymmetryFunction>self.angular_sym_funs[ia]).evaluate(rij,rik,costheta)
  *                                         out[i,Nt*2*Nr+ ind*2*Na+ 2*ia + 1] += (<AngularSymmetryFunction>self.angular_sym_funs[ia]).derivative(rij,rik,costheta)
  *                                 ind += 1             # <<<<<<<<<<<<<<
@@ -6246,19 +6240,19 @@ __pyx_t_98 = 2;
   }
   __pyx_L7:;
 
-  /* "NeuralNetworks/SymmetryFunctionSetC.pyx":129
+  /* "NeuralNetworks/SymmetryFunctionSetC.pyx":128
  *                                         out[i,Nt*2*Nr+ ind*2*Na+ 2*ia + 1] += (<AngularSymmetryFunction>self.angular_sym_funs[ia]).derivative(rij,rik,costheta)
  *                                 ind += 1
  *         return out             # <<<<<<<<<<<<<<
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_3 = __pyx_memoryview_fromslice(__pyx_v_out, 2, (PyObject *(*)(char *)) __pyx_memview_get_double, (int (*)(char *, PyObject *)) __pyx_memview_set_double, 0);; if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 129, __pyx_L1_error)
+  __pyx_t_3 = __pyx_memoryview_fromslice(__pyx_v_out, 2, (PyObject *(*)(char *)) __pyx_memview_get_double, (int (*)(char *, PyObject *)) __pyx_memview_set_double, 0);; if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 128, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __pyx_r = __pyx_t_3;
   __pyx_t_3 = 0;
   goto __pyx_L0;
 
-  /* "NeuralNetworks/SymmetryFunctionSetC.pyx":47
+  /* "NeuralNetworks/SymmetryFunctionSetC.pyx":46
  *                         RadialSymmetryFunction(rs, eta, self.cutoff))
  * 
  *     def eval_geometry(self, geometry, derivative = False):             # <<<<<<<<<<<<<<
@@ -18744,7 +18738,6 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_object, __pyx_k_object, sizeof(__pyx_k_object), 0, 0, 1, 1},
   {&__pyx_n_s_out, __pyx_k_out, sizeof(__pyx_k_out), 0, 0, 1, 1},
   {&__pyx_n_s_pack, __pyx_k_pack, sizeof(__pyx_k_pack), 0, 0, 1, 1},
-  {&__pyx_n_s_pdist, __pyx_k_pdist, sizeof(__pyx_k_pdist), 0, 0, 1, 1},
   {&__pyx_n_s_prepare, __pyx_k_prepare, sizeof(__pyx_k_prepare), 0, 0, 1, 1},
   {&__pyx_n_s_pyx_getbuffer, __pyx_k_pyx_getbuffer, sizeof(__pyx_k_pyx_getbuffer), 0, 0, 1, 1},
   {&__pyx_n_s_pyx_vtable, __pyx_k_pyx_vtable, sizeof(__pyx_k_pyx_vtable), 0, 0, 1, 1},
@@ -18757,11 +18750,9 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_rs, __pyx_k_rs, sizeof(__pyx_k_rs), 0, 0, 1, 1},
   {&__pyx_n_s_rss, __pyx_k_rss, sizeof(__pyx_k_rss), 0, 0, 1, 1},
   {&__pyx_n_s_scipy_misc, __pyx_k_scipy_misc, sizeof(__pyx_k_scipy_misc), 0, 0, 1, 1},
-  {&__pyx_n_s_scipy_spatial_distance, __pyx_k_scipy_spatial_distance, sizeof(__pyx_k_scipy_spatial_distance), 0, 0, 1, 1},
   {&__pyx_n_s_self, __pyx_k_self, sizeof(__pyx_k_self), 0, 0, 1, 1},
   {&__pyx_n_s_shape, __pyx_k_shape, sizeof(__pyx_k_shape), 0, 0, 1, 1},
   {&__pyx_n_s_size, __pyx_k_size, sizeof(__pyx_k_size), 0, 0, 1, 1},
-  {&__pyx_n_s_squareform, __pyx_k_squareform, sizeof(__pyx_k_squareform), 0, 0, 1, 1},
   {&__pyx_n_s_start, __pyx_k_start, sizeof(__pyx_k_start), 0, 0, 1, 1},
   {&__pyx_n_s_step, __pyx_k_step, sizeof(__pyx_k_step), 0, 0, 1, 1},
   {&__pyx_n_s_stop, __pyx_k_stop, sizeof(__pyx_k_stop), 0, 0, 1, 1},
@@ -18784,9 +18775,9 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {0, 0, 0, 0, 0, 0, 0}
 };
 static int __Pyx_InitCachedBuiltins(void) {
-  __pyx_builtin_object = __Pyx_GetBuiltinName(__pyx_n_s_object); if (!__pyx_builtin_object) __PYX_ERR(0, 11, __pyx_L1_error)
-  __pyx_builtin_zip = __Pyx_GetBuiltinName(__pyx_n_s_zip); if (!__pyx_builtin_zip) __PYX_ERR(0, 43, __pyx_L1_error)
-  __pyx_builtin_range = __Pyx_GetBuiltinName(__pyx_n_s_range); if (!__pyx_builtin_range) __PYX_ERR(0, 67, __pyx_L1_error)
+  __pyx_builtin_object = __Pyx_GetBuiltinName(__pyx_n_s_object); if (!__pyx_builtin_object) __PYX_ERR(0, 10, __pyx_L1_error)
+  __pyx_builtin_zip = __Pyx_GetBuiltinName(__pyx_n_s_zip); if (!__pyx_builtin_zip) __PYX_ERR(0, 42, __pyx_L1_error)
+  __pyx_builtin_range = __Pyx_GetBuiltinName(__pyx_n_s_range); if (!__pyx_builtin_range) __PYX_ERR(0, 66, __pyx_L1_error)
   __pyx_builtin_ValueError = __Pyx_GetBuiltinName(__pyx_n_s_ValueError); if (!__pyx_builtin_ValueError) __PYX_ERR(1, 131, __pyx_L1_error)
   __pyx_builtin_MemoryError = __Pyx_GetBuiltinName(__pyx_n_s_MemoryError); if (!__pyx_builtin_MemoryError) __PYX_ERR(1, 146, __pyx_L1_error)
   __pyx_builtin_enumerate = __Pyx_GetBuiltinName(__pyx_n_s_enumerate); if (!__pyx_builtin_enumerate) __PYX_ERR(1, 149, __pyx_L1_error)
@@ -18949,81 +18940,81 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__13);
   __Pyx_GIVEREF(__pyx_tuple__13);
 
-  /* "NeuralNetworks/SymmetryFunctionSetC.pyx":13
+  /* "NeuralNetworks/SymmetryFunctionSetC.pyx":12
  * class SymmetryFunctionSet(object):
  * 
  *     def __init__(self, atomtypes, cutoff = 7.):             # <<<<<<<<<<<<<<
  *         self.atomtypes = atomtypes
  *         self.cutoff = cutoff
  */
-  __pyx_tuple__14 = PyTuple_Pack(3, __pyx_n_s_self, __pyx_n_s_atomtypes, __pyx_n_s_cutoff); if (unlikely(!__pyx_tuple__14)) __PYX_ERR(0, 13, __pyx_L1_error)
+  __pyx_tuple__14 = PyTuple_Pack(3, __pyx_n_s_self, __pyx_n_s_atomtypes, __pyx_n_s_cutoff); if (unlikely(!__pyx_tuple__14)) __PYX_ERR(0, 12, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__14);
   __Pyx_GIVEREF(__pyx_tuple__14);
-  __pyx_codeobj__15 = (PyObject*)__Pyx_PyCode_New(3, 0, 3, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__14, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_home_rmeyer_PythonModules_Neura, __pyx_n_s_init, 13, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__15)) __PYX_ERR(0, 13, __pyx_L1_error)
-  __pyx_tuple__16 = PyTuple_Pack(1, ((PyObject*)__pyx_float_7_)); if (unlikely(!__pyx_tuple__16)) __PYX_ERR(0, 13, __pyx_L1_error)
+  __pyx_codeobj__15 = (PyObject*)__Pyx_PyCode_New(3, 0, 3, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__14, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_home_rmeyer_PythonModules_Neura, __pyx_n_s_init, 12, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__15)) __PYX_ERR(0, 12, __pyx_L1_error)
+  __pyx_tuple__16 = PyTuple_Pack(1, ((PyObject*)__pyx_float_7_)); if (unlikely(!__pyx_tuple__16)) __PYX_ERR(0, 12, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__16);
   __Pyx_GIVEREF(__pyx_tuple__16);
 
-  /* "NeuralNetworks/SymmetryFunctionSetC.pyx":19
+  /* "NeuralNetworks/SymmetryFunctionSetC.pyx":18
  *         self.angular_sym_funs = []
  * 
  *     def add_radial_functions(self, rss, etas):             # <<<<<<<<<<<<<<
  *         for rs in rss:
  *             for eta in etas:
  */
-  __pyx_tuple__17 = PyTuple_Pack(5, __pyx_n_s_self, __pyx_n_s_rss, __pyx_n_s_etas, __pyx_n_s_rs, __pyx_n_s_eta); if (unlikely(!__pyx_tuple__17)) __PYX_ERR(0, 19, __pyx_L1_error)
+  __pyx_tuple__17 = PyTuple_Pack(5, __pyx_n_s_self, __pyx_n_s_rss, __pyx_n_s_etas, __pyx_n_s_rs, __pyx_n_s_eta); if (unlikely(!__pyx_tuple__17)) __PYX_ERR(0, 18, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__17);
   __Pyx_GIVEREF(__pyx_tuple__17);
-  __pyx_codeobj__18 = (PyObject*)__Pyx_PyCode_New(3, 0, 5, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__17, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_home_rmeyer_PythonModules_Neura, __pyx_n_s_add_radial_functions, 19, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__18)) __PYX_ERR(0, 19, __pyx_L1_error)
+  __pyx_codeobj__18 = (PyObject*)__Pyx_PyCode_New(3, 0, 5, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__17, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_home_rmeyer_PythonModules_Neura, __pyx_n_s_add_radial_functions, 18, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__18)) __PYX_ERR(0, 18, __pyx_L1_error)
 
-  /* "NeuralNetworks/SymmetryFunctionSetC.pyx":25
+  /* "NeuralNetworks/SymmetryFunctionSetC.pyx":24
  *                         RadialSymmetryFunction(rs, eta, self.cutoff))
  * 
  *     def add_angular_functions(self, etas, zetas, lambs):             # <<<<<<<<<<<<<<
  *         for eta in etas:
  *             for zeta in zetas:
  */
-  __pyx_tuple__19 = PyTuple_Pack(7, __pyx_n_s_self, __pyx_n_s_etas, __pyx_n_s_zetas, __pyx_n_s_lambs, __pyx_n_s_eta, __pyx_n_s_zeta, __pyx_n_s_lamb); if (unlikely(!__pyx_tuple__19)) __PYX_ERR(0, 25, __pyx_L1_error)
+  __pyx_tuple__19 = PyTuple_Pack(7, __pyx_n_s_self, __pyx_n_s_etas, __pyx_n_s_zetas, __pyx_n_s_lambs, __pyx_n_s_eta, __pyx_n_s_zeta, __pyx_n_s_lamb); if (unlikely(!__pyx_tuple__19)) __PYX_ERR(0, 24, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__19);
   __Pyx_GIVEREF(__pyx_tuple__19);
-  __pyx_codeobj__20 = (PyObject*)__Pyx_PyCode_New(4, 0, 7, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__19, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_home_rmeyer_PythonModules_Neura, __pyx_n_s_add_angular_functions, 25, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__20)) __PYX_ERR(0, 25, __pyx_L1_error)
+  __pyx_codeobj__20 = (PyObject*)__Pyx_PyCode_New(4, 0, 7, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__19, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_home_rmeyer_PythonModules_Neura, __pyx_n_s_add_angular_functions, 24, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__20)) __PYX_ERR(0, 24, __pyx_L1_error)
 
-  /* "NeuralNetworks/SymmetryFunctionSetC.pyx":32
+  /* "NeuralNetworks/SymmetryFunctionSetC.pyx":31
  *                             AngularSymmetryFunction(eta, zeta, lamb, self.cutoff))
  * 
  *     def add_angular_functions_new(self, etas, zetas, lambs, rss):             # <<<<<<<<<<<<<<
  *         for eta in etas:
  *             for zeta in zetas:
  */
-  __pyx_tuple__21 = PyTuple_Pack(9, __pyx_n_s_self, __pyx_n_s_etas, __pyx_n_s_zetas, __pyx_n_s_lambs, __pyx_n_s_rss, __pyx_n_s_eta, __pyx_n_s_zeta, __pyx_n_s_lamb, __pyx_n_s_rs); if (unlikely(!__pyx_tuple__21)) __PYX_ERR(0, 32, __pyx_L1_error)
+  __pyx_tuple__21 = PyTuple_Pack(9, __pyx_n_s_self, __pyx_n_s_etas, __pyx_n_s_zetas, __pyx_n_s_lambs, __pyx_n_s_rss, __pyx_n_s_eta, __pyx_n_s_zeta, __pyx_n_s_lamb, __pyx_n_s_rs); if (unlikely(!__pyx_tuple__21)) __PYX_ERR(0, 31, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__21);
   __Pyx_GIVEREF(__pyx_tuple__21);
-  __pyx_codeobj__22 = (PyObject*)__Pyx_PyCode_New(5, 0, 9, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__21, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_home_rmeyer_PythonModules_Neura, __pyx_n_s_add_angular_functions_new, 32, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__22)) __PYX_ERR(0, 32, __pyx_L1_error)
+  __pyx_codeobj__22 = (PyObject*)__Pyx_PyCode_New(5, 0, 9, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__21, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_home_rmeyer_PythonModules_Neura, __pyx_n_s_add_angular_functions_new, 31, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__22)) __PYX_ERR(0, 31, __pyx_L1_error)
 
-  /* "NeuralNetworks/SymmetryFunctionSetC.pyx":40
+  /* "NeuralNetworks/SymmetryFunctionSetC.pyx":39
  *                             AngularSymmetryFunction(eta, zeta, lamb, rs, self.cutoff))
  * 
  *     def add_radial_functions_evenly(self, N):             # <<<<<<<<<<<<<<
  *         rss = _np.linspace(0.,self.cutoff,N)
  *         etas = [2./(self.cutoff/(N-1))**2]*N
  */
-  __pyx_tuple__23 = PyTuple_Pack(6, __pyx_n_s_self, __pyx_n_s_N, __pyx_n_s_rss, __pyx_n_s_etas, __pyx_n_s_rs, __pyx_n_s_eta); if (unlikely(!__pyx_tuple__23)) __PYX_ERR(0, 40, __pyx_L1_error)
+  __pyx_tuple__23 = PyTuple_Pack(6, __pyx_n_s_self, __pyx_n_s_N, __pyx_n_s_rss, __pyx_n_s_etas, __pyx_n_s_rs, __pyx_n_s_eta); if (unlikely(!__pyx_tuple__23)) __PYX_ERR(0, 39, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__23);
   __Pyx_GIVEREF(__pyx_tuple__23);
-  __pyx_codeobj__24 = (PyObject*)__Pyx_PyCode_New(2, 0, 6, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__23, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_home_rmeyer_PythonModules_Neura, __pyx_n_s_add_radial_functions_evenly, 40, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__24)) __PYX_ERR(0, 40, __pyx_L1_error)
+  __pyx_codeobj__24 = (PyObject*)__Pyx_PyCode_New(2, 0, 6, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__23, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_home_rmeyer_PythonModules_Neura, __pyx_n_s_add_radial_functions_evenly, 39, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__24)) __PYX_ERR(0, 39, __pyx_L1_error)
 
-  /* "NeuralNetworks/SymmetryFunctionSetC.pyx":47
+  /* "NeuralNetworks/SymmetryFunctionSetC.pyx":46
  *                         RadialSymmetryFunction(rs, eta, self.cutoff))
  * 
  *     def eval_geometry(self, geometry, derivative = False):             # <<<<<<<<<<<<<<
  *         # Returns a (Number of atoms) x (Size of G vector) matrix
  *         # The G vector doubles in size if derivatives are also requested
  */
-  __pyx_tuple__25 = PyTuple_Pack(24, __pyx_n_s_self, __pyx_n_s_geometry, __pyx_n_s_derivative, __pyx_n_s_N, __pyx_n_s_Nt, __pyx_n_s_Nr, __pyx_n_s_Na, __pyx_n_s_tj, __pyx_n_s_tk, __pyx_n_s_i, __pyx_n_s_j, __pyx_n_s_k, __pyx_n_s_ir, __pyx_n_s_ia, __pyx_n_s_itj, __pyx_n_s_itk, __pyx_n_s_ind, __pyx_n_s_types, __pyx_n_s_xyzs, __pyx_n_s_rij, __pyx_n_s_rik, __pyx_n_s_costheta, __pyx_n_s_out, __pyx_n_s_atom); if (unlikely(!__pyx_tuple__25)) __PYX_ERR(0, 47, __pyx_L1_error)
+  __pyx_tuple__25 = PyTuple_Pack(24, __pyx_n_s_self, __pyx_n_s_geometry, __pyx_n_s_derivative, __pyx_n_s_N, __pyx_n_s_Nt, __pyx_n_s_Nr, __pyx_n_s_Na, __pyx_n_s_tj, __pyx_n_s_tk, __pyx_n_s_i, __pyx_n_s_j, __pyx_n_s_k, __pyx_n_s_ir, __pyx_n_s_ia, __pyx_n_s_itj, __pyx_n_s_itk, __pyx_n_s_ind, __pyx_n_s_types, __pyx_n_s_xyzs, __pyx_n_s_rij, __pyx_n_s_rik, __pyx_n_s_costheta, __pyx_n_s_out, __pyx_n_s_atom); if (unlikely(!__pyx_tuple__25)) __PYX_ERR(0, 46, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__25);
   __Pyx_GIVEREF(__pyx_tuple__25);
-  __pyx_codeobj__26 = (PyObject*)__Pyx_PyCode_New(3, 0, 24, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__25, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_home_rmeyer_PythonModules_Neura, __pyx_n_s_eval_geometry, 47, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__26)) __PYX_ERR(0, 47, __pyx_L1_error)
-  __pyx_tuple__27 = PyTuple_Pack(1, ((PyObject *)Py_False)); if (unlikely(!__pyx_tuple__27)) __PYX_ERR(0, 47, __pyx_L1_error)
+  __pyx_codeobj__26 = (PyObject*)__Pyx_PyCode_New(3, 0, 24, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__25, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_home_rmeyer_PythonModules_Neura, __pyx_n_s_eval_geometry, 46, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__26)) __PYX_ERR(0, 46, __pyx_L1_error)
+  __pyx_tuple__27 = PyTuple_Pack(1, ((PyObject *)Py_False)); if (unlikely(!__pyx_tuple__27)) __PYX_ERR(0, 46, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__27);
   __Pyx_GIVEREF(__pyx_tuple__27);
 
@@ -19229,12 +19220,12 @@ PyMODINIT_FUNC PyInit_SymmetryFunctionSetC(void)
   __pyx_ptype_14NeuralNetworks_18SymmetryFunctionsC_CutoffFunction = __Pyx_ImportType("NeuralNetworks.SymmetryFunctionsC", "CutoffFunction", sizeof(struct __pyx_obj_14NeuralNetworks_18SymmetryFunctionsC_CutoffFunction), 1); if (unlikely(!__pyx_ptype_14NeuralNetworks_18SymmetryFunctionsC_CutoffFunction)) __PYX_ERR(2, 1, __pyx_L1_error)
   __pyx_ptype_14NeuralNetworks_18SymmetryFunctionsC_CosCutoffFunction = __Pyx_ImportType("NeuralNetworks.SymmetryFunctionsC", "CosCutoffFunction", sizeof(struct __pyx_obj_14NeuralNetworks_18SymmetryFunctionsC_CosCutoffFunction), 1); if (unlikely(!__pyx_ptype_14NeuralNetworks_18SymmetryFunctionsC_CosCutoffFunction)) __PYX_ERR(2, 4, __pyx_L1_error)
   __pyx_vtabptr_14NeuralNetworks_18SymmetryFunctionsC_CosCutoffFunction = (struct __pyx_vtabstruct_14NeuralNetworks_18SymmetryFunctionsC_CosCutoffFunction*)__Pyx_GetVtable(__pyx_ptype_14NeuralNetworks_18SymmetryFunctionsC_CosCutoffFunction->tp_dict); if (unlikely(!__pyx_vtabptr_14NeuralNetworks_18SymmetryFunctionsC_CosCutoffFunction)) __PYX_ERR(2, 4, __pyx_L1_error)
-  __pyx_ptype_14NeuralNetworks_18SymmetryFunctionsC_TanhCutoffFunction = __Pyx_ImportType("NeuralNetworks.SymmetryFunctionsC", "TanhCutoffFunction", sizeof(struct __pyx_obj_14NeuralNetworks_18SymmetryFunctionsC_TanhCutoffFunction), 1); if (unlikely(!__pyx_ptype_14NeuralNetworks_18SymmetryFunctionsC_TanhCutoffFunction)) __PYX_ERR(2, 10, __pyx_L1_error)
-  __pyx_vtabptr_14NeuralNetworks_18SymmetryFunctionsC_TanhCutoffFunction = (struct __pyx_vtabstruct_14NeuralNetworks_18SymmetryFunctionsC_TanhCutoffFunction*)__Pyx_GetVtable(__pyx_ptype_14NeuralNetworks_18SymmetryFunctionsC_TanhCutoffFunction->tp_dict); if (unlikely(!__pyx_vtabptr_14NeuralNetworks_18SymmetryFunctionsC_TanhCutoffFunction)) __PYX_ERR(2, 10, __pyx_L1_error)
-  __pyx_ptype_14NeuralNetworks_18SymmetryFunctionsC_RadialSymmetryFunction = __Pyx_ImportType("NeuralNetworks.SymmetryFunctionsC", "RadialSymmetryFunction", sizeof(struct __pyx_obj_14NeuralNetworks_18SymmetryFunctionsC_RadialSymmetryFunction), 1); if (unlikely(!__pyx_ptype_14NeuralNetworks_18SymmetryFunctionsC_RadialSymmetryFunction)) __PYX_ERR(2, 15, __pyx_L1_error)
-  __pyx_vtabptr_14NeuralNetworks_18SymmetryFunctionsC_RadialSymmetryFunction = (struct __pyx_vtabstruct_14NeuralNetworks_18SymmetryFunctionsC_RadialSymmetryFunction*)__Pyx_GetVtable(__pyx_ptype_14NeuralNetworks_18SymmetryFunctionsC_RadialSymmetryFunction->tp_dict); if (unlikely(!__pyx_vtabptr_14NeuralNetworks_18SymmetryFunctionsC_RadialSymmetryFunction)) __PYX_ERR(2, 15, __pyx_L1_error)
-  __pyx_ptype_14NeuralNetworks_18SymmetryFunctionsC_AngularSymmetryFunction = __Pyx_ImportType("NeuralNetworks.SymmetryFunctionsC", "AngularSymmetryFunction", sizeof(struct __pyx_obj_14NeuralNetworks_18SymmetryFunctionsC_AngularSymmetryFunction), 1); if (unlikely(!__pyx_ptype_14NeuralNetworks_18SymmetryFunctionsC_AngularSymmetryFunction)) __PYX_ERR(2, 23, __pyx_L1_error)
-  __pyx_vtabptr_14NeuralNetworks_18SymmetryFunctionsC_AngularSymmetryFunction = (struct __pyx_vtabstruct_14NeuralNetworks_18SymmetryFunctionsC_AngularSymmetryFunction*)__Pyx_GetVtable(__pyx_ptype_14NeuralNetworks_18SymmetryFunctionsC_AngularSymmetryFunction->tp_dict); if (unlikely(!__pyx_vtabptr_14NeuralNetworks_18SymmetryFunctionsC_AngularSymmetryFunction)) __PYX_ERR(2, 23, __pyx_L1_error)
+  __pyx_ptype_14NeuralNetworks_18SymmetryFunctionsC_TanhCutoffFunction = __Pyx_ImportType("NeuralNetworks.SymmetryFunctionsC", "TanhCutoffFunction", sizeof(struct __pyx_obj_14NeuralNetworks_18SymmetryFunctionsC_TanhCutoffFunction), 1); if (unlikely(!__pyx_ptype_14NeuralNetworks_18SymmetryFunctionsC_TanhCutoffFunction)) __PYX_ERR(2, 9, __pyx_L1_error)
+  __pyx_vtabptr_14NeuralNetworks_18SymmetryFunctionsC_TanhCutoffFunction = (struct __pyx_vtabstruct_14NeuralNetworks_18SymmetryFunctionsC_TanhCutoffFunction*)__Pyx_GetVtable(__pyx_ptype_14NeuralNetworks_18SymmetryFunctionsC_TanhCutoffFunction->tp_dict); if (unlikely(!__pyx_vtabptr_14NeuralNetworks_18SymmetryFunctionsC_TanhCutoffFunction)) __PYX_ERR(2, 9, __pyx_L1_error)
+  __pyx_ptype_14NeuralNetworks_18SymmetryFunctionsC_RadialSymmetryFunction = __Pyx_ImportType("NeuralNetworks.SymmetryFunctionsC", "RadialSymmetryFunction", sizeof(struct __pyx_obj_14NeuralNetworks_18SymmetryFunctionsC_RadialSymmetryFunction), 1); if (unlikely(!__pyx_ptype_14NeuralNetworks_18SymmetryFunctionsC_RadialSymmetryFunction)) __PYX_ERR(2, 14, __pyx_L1_error)
+  __pyx_vtabptr_14NeuralNetworks_18SymmetryFunctionsC_RadialSymmetryFunction = (struct __pyx_vtabstruct_14NeuralNetworks_18SymmetryFunctionsC_RadialSymmetryFunction*)__Pyx_GetVtable(__pyx_ptype_14NeuralNetworks_18SymmetryFunctionsC_RadialSymmetryFunction->tp_dict); if (unlikely(!__pyx_vtabptr_14NeuralNetworks_18SymmetryFunctionsC_RadialSymmetryFunction)) __PYX_ERR(2, 14, __pyx_L1_error)
+  __pyx_ptype_14NeuralNetworks_18SymmetryFunctionsC_AngularSymmetryFunction = __Pyx_ImportType("NeuralNetworks.SymmetryFunctionsC", "AngularSymmetryFunction", sizeof(struct __pyx_obj_14NeuralNetworks_18SymmetryFunctionsC_AngularSymmetryFunction), 1); if (unlikely(!__pyx_ptype_14NeuralNetworks_18SymmetryFunctionsC_AngularSymmetryFunction)) __PYX_ERR(2, 22, __pyx_L1_error)
+  __pyx_vtabptr_14NeuralNetworks_18SymmetryFunctionsC_AngularSymmetryFunction = (struct __pyx_vtabstruct_14NeuralNetworks_18SymmetryFunctionsC_AngularSymmetryFunction*)__Pyx_GetVtable(__pyx_ptype_14NeuralNetworks_18SymmetryFunctionsC_AngularSymmetryFunction->tp_dict); if (unlikely(!__pyx_vtabptr_14NeuralNetworks_18SymmetryFunctionsC_AngularSymmetryFunction)) __PYX_ERR(2, 22, __pyx_L1_error)
   /*--- Variable import code ---*/
   /*--- Function import code ---*/
   /*--- Execution code ---*/
@@ -19246,8 +19237,8 @@ PyMODINIT_FUNC PyInit_SymmetryFunctionSetC(void)
  * #cython: boundscheck=False, wraparound=False, cdivision=True
  * from SymmetryFunctionsC cimport RadialSymmetryFunction, AngularSymmetryFunction
  * import numpy as _np             # <<<<<<<<<<<<<<
- * from scipy.spatial.distance import pdist, squareform
  * from scipy.misc import comb
+ * 
  */
   __pyx_t_1 = __Pyx_Import(__pyx_n_s_numpy, 0, -1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
@@ -19257,167 +19248,139 @@ PyMODINIT_FUNC PyInit_SymmetryFunctionSetC(void)
   /* "NeuralNetworks/SymmetryFunctionSetC.pyx":5
  * from SymmetryFunctionsC cimport RadialSymmetryFunction, AngularSymmetryFunction
  * import numpy as _np
- * from scipy.spatial.distance import pdist, squareform             # <<<<<<<<<<<<<<
- * from scipy.misc import comb
- * 
- */
-  __pyx_t_1 = PyList_New(2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 5, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __Pyx_INCREF(__pyx_n_s_pdist);
-  __Pyx_GIVEREF(__pyx_n_s_pdist);
-  PyList_SET_ITEM(__pyx_t_1, 0, __pyx_n_s_pdist);
-  __Pyx_INCREF(__pyx_n_s_squareform);
-  __Pyx_GIVEREF(__pyx_n_s_squareform);
-  PyList_SET_ITEM(__pyx_t_1, 1, __pyx_n_s_squareform);
-  __pyx_t_2 = __Pyx_Import(__pyx_n_s_scipy_spatial_distance, __pyx_t_1, -1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 5, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_ImportFrom(__pyx_t_2, __pyx_n_s_pdist); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 5, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_pdist, __pyx_t_1) < 0) __PYX_ERR(0, 5, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_ImportFrom(__pyx_t_2, __pyx_n_s_squareform); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 5, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_squareform, __pyx_t_1) < 0) __PYX_ERR(0, 5, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-
-  /* "NeuralNetworks/SymmetryFunctionSetC.pyx":6
- * import numpy as _np
- * from scipy.spatial.distance import pdist, squareform
  * from scipy.misc import comb             # <<<<<<<<<<<<<<
  * 
  * cdef extern from "math.h":
  */
-  __pyx_t_2 = PyList_New(1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 6, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_t_1 = PyList_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 5, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
   __Pyx_INCREF(__pyx_n_s_comb);
   __Pyx_GIVEREF(__pyx_n_s_comb);
-  PyList_SET_ITEM(__pyx_t_2, 0, __pyx_n_s_comb);
-  __pyx_t_1 = __Pyx_Import(__pyx_n_s_scipy_misc, __pyx_t_2, -1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 6, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_ImportFrom(__pyx_t_1, __pyx_n_s_comb); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 6, __pyx_L1_error)
+  PyList_SET_ITEM(__pyx_t_1, 0, __pyx_n_s_comb);
+  __pyx_t_2 = __Pyx_Import(__pyx_n_s_scipy_misc, __pyx_t_1, -1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 5, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_comb, __pyx_t_2) < 0) __PYX_ERR(0, 6, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __pyx_t_1 = __Pyx_ImportFrom(__pyx_t_2, __pyx_n_s_comb); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 5, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_comb, __pyx_t_1) < 0) __PYX_ERR(0, 5, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "NeuralNetworks/SymmetryFunctionSetC.pyx":11
+  /* "NeuralNetworks/SymmetryFunctionSetC.pyx":10
  *     double sqrt(double m)
  * 
  * class SymmetryFunctionSet(object):             # <<<<<<<<<<<<<<
  * 
  *     def __init__(self, atomtypes, cutoff = 7.):
  */
-  __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 11, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_t_2 = PyTuple_New(1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 10, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
   __Pyx_INCREF(__pyx_builtin_object);
   __Pyx_GIVEREF(__pyx_builtin_object);
-  PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_builtin_object);
-  __pyx_t_2 = __Pyx_CalculateMetaclass(NULL, __pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 11, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_Py3MetaclassPrepare(__pyx_t_2, __pyx_t_1, __pyx_n_s_SymmetryFunctionSet, __pyx_n_s_SymmetryFunctionSet, (PyObject *) NULL, __pyx_n_s_NeuralNetworks_SymmetryFunctionS, (PyObject *) NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 11, __pyx_L1_error)
+  PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_builtin_object);
+  __pyx_t_1 = __Pyx_CalculateMetaclass(NULL, __pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 10, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_t_3 = __Pyx_Py3MetaclassPrepare(__pyx_t_1, __pyx_t_2, __pyx_n_s_SymmetryFunctionSet, __pyx_n_s_SymmetryFunctionSet, (PyObject *) NULL, __pyx_n_s_NeuralNetworks_SymmetryFunctionS, (PyObject *) NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 10, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
 
-  /* "NeuralNetworks/SymmetryFunctionSetC.pyx":13
+  /* "NeuralNetworks/SymmetryFunctionSetC.pyx":12
  * class SymmetryFunctionSet(object):
  * 
  *     def __init__(self, atomtypes, cutoff = 7.):             # <<<<<<<<<<<<<<
  *         self.atomtypes = atomtypes
  *         self.cutoff = cutoff
  */
-  __pyx_t_4 = __Pyx_CyFunction_NewEx(&__pyx_mdef_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunctionSet_1__init__, 0, __pyx_n_s_SymmetryFunctionSet___init, NULL, __pyx_n_s_NeuralNetworks_SymmetryFunctionS, __pyx_d, ((PyObject *)__pyx_codeobj__15)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 13, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_CyFunction_NewEx(&__pyx_mdef_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunctionSet_1__init__, 0, __pyx_n_s_SymmetryFunctionSet___init, NULL, __pyx_n_s_NeuralNetworks_SymmetryFunctionS, __pyx_d, ((PyObject *)__pyx_codeobj__15)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 12, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_4, __pyx_tuple__16);
-  if (PyObject_SetItem(__pyx_t_3, __pyx_n_s_init, __pyx_t_4) < 0) __PYX_ERR(0, 13, __pyx_L1_error)
+  if (PyObject_SetItem(__pyx_t_3, __pyx_n_s_init, __pyx_t_4) < 0) __PYX_ERR(0, 12, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "NeuralNetworks/SymmetryFunctionSetC.pyx":19
+  /* "NeuralNetworks/SymmetryFunctionSetC.pyx":18
  *         self.angular_sym_funs = []
  * 
  *     def add_radial_functions(self, rss, etas):             # <<<<<<<<<<<<<<
  *         for rs in rss:
  *             for eta in etas:
  */
-  __pyx_t_4 = __Pyx_CyFunction_NewEx(&__pyx_mdef_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunctionSet_3add_radial_functions, 0, __pyx_n_s_SymmetryFunctionSet_add_radial_f, NULL, __pyx_n_s_NeuralNetworks_SymmetryFunctionS, __pyx_d, ((PyObject *)__pyx_codeobj__18)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 19, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_CyFunction_NewEx(&__pyx_mdef_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunctionSet_3add_radial_functions, 0, __pyx_n_s_SymmetryFunctionSet_add_radial_f, NULL, __pyx_n_s_NeuralNetworks_SymmetryFunctionS, __pyx_d, ((PyObject *)__pyx_codeobj__18)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 18, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  if (PyObject_SetItem(__pyx_t_3, __pyx_n_s_add_radial_functions, __pyx_t_4) < 0) __PYX_ERR(0, 19, __pyx_L1_error)
+  if (PyObject_SetItem(__pyx_t_3, __pyx_n_s_add_radial_functions, __pyx_t_4) < 0) __PYX_ERR(0, 18, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "NeuralNetworks/SymmetryFunctionSetC.pyx":25
+  /* "NeuralNetworks/SymmetryFunctionSetC.pyx":24
  *                         RadialSymmetryFunction(rs, eta, self.cutoff))
  * 
  *     def add_angular_functions(self, etas, zetas, lambs):             # <<<<<<<<<<<<<<
  *         for eta in etas:
  *             for zeta in zetas:
  */
-  __pyx_t_4 = __Pyx_CyFunction_NewEx(&__pyx_mdef_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunctionSet_5add_angular_functions, 0, __pyx_n_s_SymmetryFunctionSet_add_angular, NULL, __pyx_n_s_NeuralNetworks_SymmetryFunctionS, __pyx_d, ((PyObject *)__pyx_codeobj__20)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 25, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_CyFunction_NewEx(&__pyx_mdef_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunctionSet_5add_angular_functions, 0, __pyx_n_s_SymmetryFunctionSet_add_angular, NULL, __pyx_n_s_NeuralNetworks_SymmetryFunctionS, __pyx_d, ((PyObject *)__pyx_codeobj__20)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 24, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  if (PyObject_SetItem(__pyx_t_3, __pyx_n_s_add_angular_functions, __pyx_t_4) < 0) __PYX_ERR(0, 25, __pyx_L1_error)
+  if (PyObject_SetItem(__pyx_t_3, __pyx_n_s_add_angular_functions, __pyx_t_4) < 0) __PYX_ERR(0, 24, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "NeuralNetworks/SymmetryFunctionSetC.pyx":32
+  /* "NeuralNetworks/SymmetryFunctionSetC.pyx":31
  *                             AngularSymmetryFunction(eta, zeta, lamb, self.cutoff))
  * 
  *     def add_angular_functions_new(self, etas, zetas, lambs, rss):             # <<<<<<<<<<<<<<
  *         for eta in etas:
  *             for zeta in zetas:
  */
-  __pyx_t_4 = __Pyx_CyFunction_NewEx(&__pyx_mdef_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunctionSet_7add_angular_functions_new, 0, __pyx_n_s_SymmetryFunctionSet_add_angular_2, NULL, __pyx_n_s_NeuralNetworks_SymmetryFunctionS, __pyx_d, ((PyObject *)__pyx_codeobj__22)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 32, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_CyFunction_NewEx(&__pyx_mdef_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunctionSet_7add_angular_functions_new, 0, __pyx_n_s_SymmetryFunctionSet_add_angular_2, NULL, __pyx_n_s_NeuralNetworks_SymmetryFunctionS, __pyx_d, ((PyObject *)__pyx_codeobj__22)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 31, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  if (PyObject_SetItem(__pyx_t_3, __pyx_n_s_add_angular_functions_new, __pyx_t_4) < 0) __PYX_ERR(0, 32, __pyx_L1_error)
+  if (PyObject_SetItem(__pyx_t_3, __pyx_n_s_add_angular_functions_new, __pyx_t_4) < 0) __PYX_ERR(0, 31, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "NeuralNetworks/SymmetryFunctionSetC.pyx":40
+  /* "NeuralNetworks/SymmetryFunctionSetC.pyx":39
  *                             AngularSymmetryFunction(eta, zeta, lamb, rs, self.cutoff))
  * 
  *     def add_radial_functions_evenly(self, N):             # <<<<<<<<<<<<<<
  *         rss = _np.linspace(0.,self.cutoff,N)
  *         etas = [2./(self.cutoff/(N-1))**2]*N
  */
-  __pyx_t_4 = __Pyx_CyFunction_NewEx(&__pyx_mdef_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunctionSet_9add_radial_functions_evenly, 0, __pyx_n_s_SymmetryFunctionSet_add_radial_f_2, NULL, __pyx_n_s_NeuralNetworks_SymmetryFunctionS, __pyx_d, ((PyObject *)__pyx_codeobj__24)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 40, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_CyFunction_NewEx(&__pyx_mdef_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunctionSet_9add_radial_functions_evenly, 0, __pyx_n_s_SymmetryFunctionSet_add_radial_f_2, NULL, __pyx_n_s_NeuralNetworks_SymmetryFunctionS, __pyx_d, ((PyObject *)__pyx_codeobj__24)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 39, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  if (PyObject_SetItem(__pyx_t_3, __pyx_n_s_add_radial_functions_evenly, __pyx_t_4) < 0) __PYX_ERR(0, 40, __pyx_L1_error)
+  if (PyObject_SetItem(__pyx_t_3, __pyx_n_s_add_radial_functions_evenly, __pyx_t_4) < 0) __PYX_ERR(0, 39, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "NeuralNetworks/SymmetryFunctionSetC.pyx":47
+  /* "NeuralNetworks/SymmetryFunctionSetC.pyx":46
  *                         RadialSymmetryFunction(rs, eta, self.cutoff))
  * 
  *     def eval_geometry(self, geometry, derivative = False):             # <<<<<<<<<<<<<<
  *         # Returns a (Number of atoms) x (Size of G vector) matrix
  *         # The G vector doubles in size if derivatives are also requested
  */
-  __pyx_t_4 = __Pyx_CyFunction_NewEx(&__pyx_mdef_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunctionSet_11eval_geometry, 0, __pyx_n_s_SymmetryFunctionSet_eval_geometr, NULL, __pyx_n_s_NeuralNetworks_SymmetryFunctionS, __pyx_d, ((PyObject *)__pyx_codeobj__26)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 47, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_CyFunction_NewEx(&__pyx_mdef_14NeuralNetworks_20SymmetryFunctionSetC_19SymmetryFunctionSet_11eval_geometry, 0, __pyx_n_s_SymmetryFunctionSet_eval_geometr, NULL, __pyx_n_s_NeuralNetworks_SymmetryFunctionS, __pyx_d, ((PyObject *)__pyx_codeobj__26)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 46, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_4, __pyx_tuple__27);
-  if (PyObject_SetItem(__pyx_t_3, __pyx_n_s_eval_geometry, __pyx_t_4) < 0) __PYX_ERR(0, 47, __pyx_L1_error)
+  if (PyObject_SetItem(__pyx_t_3, __pyx_n_s_eval_geometry, __pyx_t_4) < 0) __PYX_ERR(0, 46, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "NeuralNetworks/SymmetryFunctionSetC.pyx":11
+  /* "NeuralNetworks/SymmetryFunctionSetC.pyx":10
  *     double sqrt(double m)
  * 
  * class SymmetryFunctionSet(object):             # <<<<<<<<<<<<<<
  * 
  *     def __init__(self, atomtypes, cutoff = 7.):
  */
-  __pyx_t_4 = __Pyx_Py3ClassCreate(__pyx_t_2, __pyx_n_s_SymmetryFunctionSet, __pyx_t_1, __pyx_t_3, NULL, 0, 1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 11, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_Py3ClassCreate(__pyx_t_1, __pyx_n_s_SymmetryFunctionSet, __pyx_t_2, __pyx_t_3, NULL, 0, 1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 10, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_SymmetryFunctionSet, __pyx_t_4) < 0) __PYX_ERR(0, 11, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_SymmetryFunctionSet, __pyx_t_4) < 0) __PYX_ERR(0, 10, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
   /* "NeuralNetworks/SymmetryFunctionSetC.pyx":1
  * #!python             # <<<<<<<<<<<<<<
  * #cython: boundscheck=False, wraparound=False, cdivision=True
  * from SymmetryFunctionsC cimport RadialSymmetryFunction, AngularSymmetryFunction
  */
-  __pyx_t_1 = PyDict_New(); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_test, __pyx_t_1) < 0) __PYX_ERR(0, 1, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __pyx_t_2 = PyDict_New(); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_test, __pyx_t_2) < 0) __PYX_ERR(0, 1, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
   /* "View.MemoryView":207
  *         info.obj = self
@@ -19426,10 +19389,10 @@ PyMODINIT_FUNC PyInit_SymmetryFunctionSetC(void)
  * 
  *     def __dealloc__(array self):
  */
-  __pyx_t_1 = __pyx_capsule_create(((void *)(&__pyx_array_getbuffer)), ((char *)"getbuffer(obj, view, flags)")); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 207, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_array_type->tp_dict, __pyx_n_s_pyx_getbuffer, __pyx_t_1) < 0) __PYX_ERR(1, 207, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __pyx_t_2 = __pyx_capsule_create(((void *)(&__pyx_array_getbuffer)), ((char *)"getbuffer(obj, view, flags)")); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 207, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  if (PyDict_SetItem(__pyx_array_type->tp_dict, __pyx_n_s_pyx_getbuffer, __pyx_t_2) < 0) __PYX_ERR(1, 207, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   PyType_Modified(__pyx_array_type);
 
   /* "View.MemoryView":282
@@ -19439,12 +19402,12 @@ PyMODINIT_FUNC PyInit_SymmetryFunctionSetC(void)
  * cdef strided = Enum("<strided and direct>") # default
  * cdef indirect = Enum("<strided and indirect>")
  */
-  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)__pyx_MemviewEnum_type), __pyx_tuple__28, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 282, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_t_2 = __Pyx_PyObject_Call(((PyObject *)__pyx_MemviewEnum_type), __pyx_tuple__28, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 282, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
   __Pyx_XGOTREF(generic);
-  __Pyx_DECREF_SET(generic, __pyx_t_1);
-  __Pyx_GIVEREF(__pyx_t_1);
-  __pyx_t_1 = 0;
+  __Pyx_DECREF_SET(generic, __pyx_t_2);
+  __Pyx_GIVEREF(__pyx_t_2);
+  __pyx_t_2 = 0;
 
   /* "View.MemoryView":283
  * 
@@ -19453,12 +19416,12 @@ PyMODINIT_FUNC PyInit_SymmetryFunctionSetC(void)
  * cdef indirect = Enum("<strided and indirect>")
  * 
  */
-  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)__pyx_MemviewEnum_type), __pyx_tuple__29, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 283, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_t_2 = __Pyx_PyObject_Call(((PyObject *)__pyx_MemviewEnum_type), __pyx_tuple__29, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 283, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
   __Pyx_XGOTREF(strided);
-  __Pyx_DECREF_SET(strided, __pyx_t_1);
-  __Pyx_GIVEREF(__pyx_t_1);
-  __pyx_t_1 = 0;
+  __Pyx_DECREF_SET(strided, __pyx_t_2);
+  __Pyx_GIVEREF(__pyx_t_2);
+  __pyx_t_2 = 0;
 
   /* "View.MemoryView":284
  * cdef generic = Enum("<strided and direct or indirect>")
@@ -19467,12 +19430,12 @@ PyMODINIT_FUNC PyInit_SymmetryFunctionSetC(void)
  * 
  * 
  */
-  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)__pyx_MemviewEnum_type), __pyx_tuple__30, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 284, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_t_2 = __Pyx_PyObject_Call(((PyObject *)__pyx_MemviewEnum_type), __pyx_tuple__30, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 284, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
   __Pyx_XGOTREF(indirect);
-  __Pyx_DECREF_SET(indirect, __pyx_t_1);
-  __Pyx_GIVEREF(__pyx_t_1);
-  __pyx_t_1 = 0;
+  __Pyx_DECREF_SET(indirect, __pyx_t_2);
+  __Pyx_GIVEREF(__pyx_t_2);
+  __pyx_t_2 = 0;
 
   /* "View.MemoryView":287
  * 
@@ -19481,12 +19444,12 @@ PyMODINIT_FUNC PyInit_SymmetryFunctionSetC(void)
  * cdef indirect_contiguous = Enum("<contiguous and indirect>")
  * 
  */
-  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)__pyx_MemviewEnum_type), __pyx_tuple__31, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 287, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_t_2 = __Pyx_PyObject_Call(((PyObject *)__pyx_MemviewEnum_type), __pyx_tuple__31, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 287, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
   __Pyx_XGOTREF(contiguous);
-  __Pyx_DECREF_SET(contiguous, __pyx_t_1);
-  __Pyx_GIVEREF(__pyx_t_1);
-  __pyx_t_1 = 0;
+  __Pyx_DECREF_SET(contiguous, __pyx_t_2);
+  __Pyx_GIVEREF(__pyx_t_2);
+  __pyx_t_2 = 0;
 
   /* "View.MemoryView":288
  * 
@@ -19495,12 +19458,12 @@ PyMODINIT_FUNC PyInit_SymmetryFunctionSetC(void)
  * 
  * 
  */
-  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)__pyx_MemviewEnum_type), __pyx_tuple__32, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 288, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_t_2 = __Pyx_PyObject_Call(((PyObject *)__pyx_MemviewEnum_type), __pyx_tuple__32, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 288, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
   __Pyx_XGOTREF(indirect_contiguous);
-  __Pyx_DECREF_SET(indirect_contiguous, __pyx_t_1);
-  __Pyx_GIVEREF(__pyx_t_1);
-  __pyx_t_1 = 0;
+  __Pyx_DECREF_SET(indirect_contiguous, __pyx_t_2);
+  __Pyx_GIVEREF(__pyx_t_2);
+  __pyx_t_2 = 0;
 
   /* "View.MemoryView":312
  * 
@@ -19535,10 +19498,10 @@ PyMODINIT_FUNC PyInit_SymmetryFunctionSetC(void)
  * 
  * 
  */
-  __pyx_t_1 = __pyx_capsule_create(((void *)(&__pyx_memoryview_getbuffer)), ((char *)"getbuffer(obj, view, flags)")); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 535, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_memoryview_type->tp_dict, __pyx_n_s_pyx_getbuffer, __pyx_t_1) < 0) __PYX_ERR(1, 535, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __pyx_t_2 = __pyx_capsule_create(((void *)(&__pyx_memoryview_getbuffer)), ((char *)"getbuffer(obj, view, flags)")); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 535, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  if (PyDict_SetItem(__pyx_memoryview_type->tp_dict, __pyx_n_s_pyx_getbuffer, __pyx_t_2) < 0) __PYX_ERR(1, 535, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   PyType_Modified(__pyx_memoryview_type);
 
   /* "View.MemoryView":981
@@ -19548,10 +19511,10 @@ PyMODINIT_FUNC PyInit_SymmetryFunctionSetC(void)
  * 
  * 
  */
-  __pyx_t_1 = __pyx_capsule_create(((void *)(&__pyx_memoryview_getbuffer)), ((char *)"getbuffer(obj, view, flags)")); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 981, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_memoryviewslice_type->tp_dict, __pyx_n_s_pyx_getbuffer, __pyx_t_1) < 0) __PYX_ERR(1, 981, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __pyx_t_2 = __pyx_capsule_create(((void *)(&__pyx_memoryview_getbuffer)), ((char *)"getbuffer(obj, view, flags)")); if (unlikely(!__pyx_t_2)) __PYX_ERR(1, 981, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  if (PyDict_SetItem(__pyx_memoryviewslice_type->tp_dict, __pyx_n_s_pyx_getbuffer, __pyx_t_2) < 0) __PYX_ERR(1, 981, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   PyType_Modified(__pyx_memoryviewslice_type);
 
   /* "View.MemoryView":1391
