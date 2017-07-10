@@ -69,8 +69,8 @@ class SymmetryFunctionSet(object):
                         continue
                     tj = types[j]
                     # Radial function
-                    rij = sqrt((xyzs[i][0]-xyzs[j][0])**2 + (xyzs[i][1]-xyzs[j][1])**2 +
-                                   (xyzs[i][2]-xyzs[j][2])**2)
+                    rij = sqrt((xyzs[i,0]-xyzs[j,0])**2 + (xyzs[i,1]-xyzs[j,1])**2 +
+                                   (xyzs[i,2]-xyzs[j,2])**2)
                     for itj in range(Nt):
                         for ir in range(Nr):                        
                             if itj == tj:
@@ -80,11 +80,11 @@ class SymmetryFunctionSet(object):
                         if i == k or j == k:
                             continue                        
                         tk = types[k]
-                        rik = sqrt((xyzs[i][0]-xyzs[k][0])**2 + (xyzs[i][1]-xyzs[k][1])**2 +
-                                   (xyzs[i][2]-xyzs[k][2])**2)
-                        costheta = ((xyzs[j][0]-xyzs[i][0])*(xyzs[k][0]-xyzs[i][0])+
-                                    (xyzs[j][1]-xyzs[i][1])*(xyzs[k][1]-xyzs[i][1])+
-                                    (xyzs[j][2]-xyzs[i][2])*(xyzs[k][2]-xyzs[i][2]))/(rij*rik)
+                        rik = sqrt((xyzs[i,0]-xyzs[k,0])**2 + (xyzs[i,1]-xyzs[k,1])**2 +
+                                   (xyzs[i,2]-xyzs[k,2])**2)
+                        costheta = ((xyzs[j,0]-xyzs[i,0])*(xyzs[k,0]-xyzs[i,0])+
+                                    (xyzs[j,1]-xyzs[i,1])*(xyzs[k,1]-xyzs[i,1])+
+                                    (xyzs[j,2]-xyzs[i,2])*(xyzs[k,2]-xyzs[i,2]))/(rij*rik)
                         ind = 0
                         for itj in range(Nt):
                             for itk in range(itj, Nt):
@@ -100,8 +100,8 @@ class SymmetryFunctionSet(object):
                         continue
                     tj = types[j]
                     # Radial function
-                    rij = sqrt((xyzs[i][0]-xyzs[j][0])**2 + (xyzs[i][1]-xyzs[j][1])**2 +
-                                   (xyzs[i][2]-xyzs[j][2])**2)
+                    rij = sqrt((xyzs[i,0]-xyzs[j,0])**2 + (xyzs[i,1]-xyzs[j,1])**2 +
+                                   (xyzs[i,2]-xyzs[j,2])**2)
                     for itj in range(Nt):
                         for ir in range(Nr):                        
                             if itj == tj:
@@ -112,11 +112,11 @@ class SymmetryFunctionSet(object):
                         if i == k or j == k:
                             continue                        
                         tk = types[k]
-                        rik = sqrt((xyzs[i][0]-xyzs[k][0])**2 + (xyzs[i][1]-xyzs[k][1])**2 +
-                                   (xyzs[i][2]-xyzs[k][2])**2)
-                        costheta = ((xyzs[j][0]-xyzs[i][0])*(xyzs[k][0]-xyzs[i][0])+
-                                    (xyzs[j][1]-xyzs[i][1])*(xyzs[k][1]-xyzs[i][1])+
-                                    (xyzs[j][2]-xyzs[i][2])*(xyzs[k][2]-xyzs[i][2]))/(rij*rik)
+                        rik = sqrt((xyzs[i,0]-xyzs[k,0])**2 + (xyzs[i,1]-xyzs[k,1])**2 +
+                                   (xyzs[i,2]-xyzs[k,2])**2)
+                        costheta = ((xyzs[j,0]-xyzs[i,0])*(xyzs[k,0]-xyzs[i,0])+
+                                    (xyzs[j,1]-xyzs[i,1])*(xyzs[k,1]-xyzs[i,1])+
+                                    (xyzs[j,2]-xyzs[i,2])*(xyzs[k,2]-xyzs[i,2]))/(rij*rik)
                         ind = 0
                         for itj in range(Nt):
                             for itk in range(itj, Nt):

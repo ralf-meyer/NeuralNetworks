@@ -1,6 +1,5 @@
 #!python
 #cython: cdivision=True
-import math
 import warnings
 
 cdef extern from "math.h":
