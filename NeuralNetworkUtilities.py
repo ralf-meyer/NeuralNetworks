@@ -555,7 +555,26 @@ def get_trained_variables_partitioned(Session,Dict):
 
     return NetworkData                
                     
-        
+def convert_standard_to_partitioned_net(NetworkData):
+    
+    WeightData,BiasData=get_weights_biases_from_data(NetworkData)
+    OutWeights=list()
+    OutBiases=list()
+    for i in range(0,len(NetworkData)):
+        Network=NetworkData[i]
+        DataStructWeights=PartitionedNetworkData() 
+        DataStructBiases=PartitionedNetworkData() 
+        for j in range(0,len(Network)):
+            Weights=WeightData[i][j]
+            Biases=BiasData[i][j]
+            DataStructWeights.ForceFieldNetworkData.append(Weights)
+            DataStructBiases.ForceFieldNetworkData.append(Biases)
+                    
+            
+        OutWeights.append(DataStructWeights)
+        OutBiases.append(DataStructBiases)
+
+    return OutWeights,OutBiases      
 
 def get_trained_variables(Session,AllHiddenLayers):
 
@@ -829,7 +848,7 @@ class AtomicNeuralNetInstance(object):
 
         return 1
 
-    def expand_existing_net(self,ModelName="trained_variables",MakeAllVariable=True,ModelData=None):
+    def expand_existing_net(self,ModelName="trained_variables",MakeAllVariable=True,ModelData=None,ConvertToPartitioned=False):
         
         if ModelData==None:
             Success=AtomicNeuralNetInstance.load_model(self,ModelName)
@@ -841,7 +860,10 @@ class AtomicNeuralNetInstance(object):
             if self.IsPartitioned==False:
                 self.HiddenData,self.BiasData=get_weights_biases_from_data(self.TrainedVariables)
             else:
-                self.HiddenData,self.BiasData=get_weights_biases_from_partitioned_data(self.TrainedVariables,self.Multiple)
+                if ConvertToPartitioned:
+                    self.HiddenData,self.BiasData=convert_standard_to_partitioned_net(self.TrainedVariables)
+                else:
+                    self.HiddenData,self.BiasData=get_weights_biases_from_partitioned_data(self.TrainedVariables,self.Multiple)
 
             self.HiddenType="truncated_normal"
             self.InitMean=0
@@ -1141,7 +1163,9 @@ class AtomicNeuralNetInstance(object):
         AllTemp=list()
         #Get G vectors
         for i in range(0,NrGeom):
+
             temp=np.asarray(self.SymmFunSet.eval_geometry(self.Ds.geometries[i],self.InputDerivatives))
+            
             NrAtoms=len(temp)
             self.AllGeometries.append(temp)
             if i % max(int(NrGeom/25),1)==0:
