@@ -14,8 +14,9 @@ cdef class TanhCutoffFunction(CutoffFunction):
 cdef class RadialSymmetryFunction(object):
     cdef double rs
     cdef double eta
+    cdef double cut
     cdef CosCutoffFunction cut_fun;
-    
+    cdef int cut_type    
     cdef public double evaluate(self, double r)
     cdef public double derivative(self, double r)
 
@@ -23,6 +24,8 @@ cdef class AngularSymmetryFunction(object):
     cdef double eta
     cdef double zeta
     cdef double lamb
+    cdef double cut
+    cdef int cut_type
     cdef CosCutoffFunction cut_fun
     
     cdef public double evaluate(self, double rij, double rik, double costheta)
