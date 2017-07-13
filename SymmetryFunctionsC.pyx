@@ -43,12 +43,14 @@ cdef class RadialSymmetryFunction(object):
     def __init__(self, rs, eta, cut, cutoff_type = "cos"):
         self.rs = rs
         self.eta = eta
+        self.cut = cut
         if cutoff_type == "cos":
             self.cut_fun = CosCutoffFunction(cut)
+            self.cut_type=1
         elif cutoff_type == "tanh":
-            warnings.warn("TanhCutoffFunction not implemented in C")
-            self.cut_fun = CosCutoffFunction(cut)
-            #self.cut_fun = TanhCutoffFunction(cut)
+            warnings.warn("TanhCutoffFunction disabled in C")
+            self.cut_fun = TanhCutoffFunction(cut)
+            self.cut_type=1#2
         else:
             warnings.warn("{} not recognized, switching to 'cos'".format(cutoff_type),
                           UserWarning)
@@ -67,12 +69,14 @@ cdef class AngularSymmetryFunction(object):
         self.eta = eta
         self.zeta = zeta
         self.lamb = lamb
+        self.cut=cut
         if cutoff_type == "cos":
             self.cut_fun = CosCutoffFunction(cut)
+            self.cut_type=1
         elif cutoff_type == "tanh":
-            warnings.warn("TanhCutoffFunction not implemented in C")
-            self.cut_fun = CosCutoffFunction(cut)
-            #self.cut_fun = TanhCutoffFunction(cut)
+            warnings.warn("TanhCutoffFunction disabled in C")
+            self.cut_fun = TanhCutoffFunction(cut)
+            self.cut_type=1#2
         else:
             warnings.warn("{} not recognized, switching to 'cos'".format(cutoff_type),
                           UserWarning)
