@@ -87,7 +87,7 @@ def read_ekin_temp_etot(my_file):
                
     return e_kin,temp,e_tot
 
-def read_total_energy(my_file):
+def read_total_energy(my_file,eq_idx,temp_idx):
     
     #find total energies in file
     tot_idx=[i.start() for i in re.finditer('total energy', my_file)]
@@ -112,7 +112,7 @@ def read_total_energy(my_file):
     return values
 
 
-def read_harris_foulkes_estimate(my_file):
+def read_harris_foulkes_estimate(my_file,eq_idx,temp_idx):
     
     #find harris foulkes estimates in file
     tot_idx=[i.start() for i in re.finditer('Harris-Foulkes estimate', my_file)]
@@ -134,6 +134,152 @@ def read_harris_foulkes_estimate(my_file):
                
     return values
     
+def read_one_electron_contrib(my_file,eq_idx,temp_idx):
+    
+    #find harris foulkes estimates in file
+    tot_idx=[i.start() for i in re.finditer('one-electron contribution', my_file)]
+    
+    start_idx=[]
+    end_idx=[]
+    #Match start and end indices
+    for idx in tot_idx:
+        start_idx.append(eq_idx[next(x[0] for x in enumerate(eq_idx) if x[1] > idx)])
+        end_idx.append(temp_idx[next(x[0] for x in enumerate(temp_idx) if x[1] > idx)])
+        
+    #get values
+    values=[]
+    if len(start_idx)==len(end_idx):
+        for i in range(0,len(start_idx)):
+            values.append(float(my_file[start_idx[i]+1:end_idx[i]]))
+    
+    if len(values)>1 or len(values)==0:
+        return values
+    else:
+        return values[0]
+
+def read_hartree_contribution(my_file,eq_idx,temp_idx):
+    
+    #find harris foulkes estimates in file
+    tot_idx=[i.start() for i in re.finditer('hartree contribution', my_file)]
+    eq_idx=[i.start() for i in re.finditer('=', my_file)]
+    temp_idx=[j.start() for j in re.finditer('Ry', my_file)]
+    
+    start_idx=[]
+    end_idx=[]
+    #Match start and end indices
+    for idx in tot_idx:
+        start_idx.append(eq_idx[next(x[0] for x in enumerate(eq_idx) if x[1] > idx)])
+        end_idx.append(temp_idx[next(x[0] for x in enumerate(temp_idx) if x[1] > idx)])
+        
+    #get values
+    values=[]
+    if len(start_idx)==len(end_idx):
+        for i in range(0,len(start_idx)):
+            values.append(float(my_file[start_idx[i]+1:end_idx[i]]))
+               
+    if len(values)>1 or len(values)==0:
+        return values
+    else:
+        return values[0]
+
+def read_xc_contribution(my_file,eq_idx,temp_idx):
+    
+    #find harris foulkes estimates in file
+    tot_idx=[i.start() for i in re.finditer('xc contribution', my_file)]
+    eq_idx=[i.start() for i in re.finditer('=', my_file)]
+    temp_idx=[j.start() for j in re.finditer('Ry', my_file)]
+    
+    start_idx=[]
+    end_idx=[]
+    #Match start and end indices
+    for idx in tot_idx:
+        start_idx.append(eq_idx[next(x[0] for x in enumerate(eq_idx) if x[1] > idx)])
+        end_idx.append(temp_idx[next(x[0] for x in enumerate(temp_idx) if x[1] > idx)])
+        
+    #get values
+    values=[]
+    if len(start_idx)==len(end_idx):
+        for i in range(0,len(start_idx)):
+            values.append(float(my_file[start_idx[i]+1:end_idx[i]]))
+               
+    if len(values)>1 or len(values)==0:
+        return values
+    else:
+        return values[0]
+
+def read_ewald_contribution(my_file,eq_idx,temp_idx):
+    
+    #find harris foulkes estimates in file
+    tot_idx=[i.start() for i in re.finditer('ewald contribution', my_file)]
+    eq_idx=[i.start() for i in re.finditer('=', my_file)]
+    temp_idx=[j.start() for j in re.finditer('Ry', my_file)]
+    
+    start_idx=[]
+    end_idx=[]
+    #Match start and end indices
+    for idx in tot_idx:
+        start_idx.append(eq_idx[next(x[0] for x in enumerate(eq_idx) if x[1] > idx)])
+        end_idx.append(temp_idx[next(x[0] for x in enumerate(temp_idx) if x[1] > idx)])
+        
+    #get values
+    values=[]
+    if len(start_idx)==len(end_idx):
+        for i in range(0,len(start_idx)):
+            values.append(float(my_file[start_idx[i]+1:end_idx[i]]))
+               
+    if len(values)>1 or len(values)==0:
+        return values
+    else:
+        return values[0]
+def read_one_center_paw_contrib(my_file,eq_idx,temp_idx):
+    
+    #find harris foulkes estimates in file
+    tot_idx=[i.start() for i in re.finditer('one-center paw contrib', my_file)]
+    eq_idx=[i.start() for i in re.finditer('=', my_file)]
+    temp_idx=[j.start() for j in re.finditer('Ry', my_file)]
+    
+    start_idx=[]
+    end_idx=[]
+    #Match start and end indices
+    for idx in tot_idx:
+        start_idx.append(eq_idx[next(x[0] for x in enumerate(eq_idx) if x[1] > idx)])
+        end_idx.append(temp_idx[next(x[0] for x in enumerate(temp_idx) if x[1] > idx)])
+        
+    #get values
+    values=[]
+    if len(start_idx)==len(end_idx):
+        for i in range(0,len(start_idx)):
+            values.append(float(my_file[start_idx[i]+1:end_idx[i]]))
+               
+    if len(values)>1 or len(values)==0:
+        return values
+    else:
+        return values[0]
+
+def read_smearing_contrib(my_file,eq_idx,temp_idx):
+    
+    #find harris foulkes estimates in file
+    tot_idx=[i.start() for i in re.finditer('smearing contrib', my_file)]
+    
+    start_idx=[]
+    end_idx=[]
+    #Match start and end indices
+    for idx in tot_idx:
+        start_idx.append(eq_idx[next(x[0] for x in enumerate(eq_idx) if x[1] > idx)])
+        end_idx.append(temp_idx[next(x[0] for x in enumerate(temp_idx) if x[1] > idx)])
+        
+    #get values
+    values=[]
+    if len(start_idx)==len(end_idx):
+        for i in range(0,len(start_idx)):
+            values.append(float(my_file[start_idx[i]+1:end_idx[i]]))
+               
+    if len(values)>1 or len(values)==0:
+        return values
+    else:
+        return values[0]
+
+
 def read_scf_accuracy(my_file):
     
     #find scf accuracies in file
@@ -251,6 +397,12 @@ class QE_SCF_Reader(object):
         self.e_cutoffs=[]
         self.cpu_times=[]
         self.avg_cpu_times=[]
+        self.one_e_contrib=[]
+        self.hartree_contrib=[]
+        self.xc_contrib=[]
+        self.ewald_contrib=[]
+        self.one_center_paw_contrib=[]
+        self.smearing_contrib=[]
         
     def get_files(self,folder):
         for dirpath, dirnames, filenames in os.walk(folder):
@@ -268,18 +420,38 @@ class QE_SCF_Reader(object):
         temp_cpu_t=[]
         temp_ecut=[]
         temp_avg_t=[]
+        temp_one_e=[]
+        temp_hartree=[]
+        temp_xc=[]
+        temp_ewald=[]
+        temp_one_center=[]
+        temp_smearing=[]
         
         for this in self.files:
+            eq_idx=[i.start() for i in re.finditer('=', this)]
+            temp_idx=[j.start() for j in re.finditer('Ry',this)]
             temp_tot.append(read_total_energy(this))
-            temp_harris.append(read_harris_foulkes_estimate(this))
+            temp_harris.append(read_harris_foulkes_estimate(this,eq_idx,temp_idx))
             temp_scf_a.append(read_scf_accuracy(this))
             temp_ecut.append(get_ecut(this))
             temp_cpu_t.append(read_cpu_time(this))
             temp_avg_t.append(calc_avg_cpu_time(temp_cpu_t[-1]))
+            temp_one_e.append(read_one_electron_contrib(this,eq_idx,temp_idx))
+            temp_hartree.append(read_hartree_contribution(this,eq_idx,temp_idx))
+            temp_xc.append(read_xc_contribution(this,eq_idx,temp_idx))
+            temp_ewald.append(read_ewald_contribution(this,eq_idx,temp_idx))
+            temp_one_center.append(read_one_center_paw_contrib(this,eq_idx,temp_idx))
+            temp_smearing.append(read_smearing_contrib(this,eq_idx,temp_idx))
             
-        all_data=zip(temp_ecut,temp_tot,temp_harris,temp_scf_a,temp_cpu_t,temp_avg_t)
+        all_data=zip(temp_ecut,temp_tot,temp_harris,temp_scf_a,temp_cpu_t,\
+                     temp_avg_t,temp_one_e,temp_hartree,temp_xc,temp_ewald,\
+                     temp_one_center,temp_smearing)
         all_data.sort(key=lambda t:t[0])
-        self.e_cutoffs,self.total_energies,self.harris_foulkes_energies,self.scf_accuracies,self.cpu_times,self.avg_cpu_times = map(list,zip(*all_data))
+        self.e_cutoffs,self.total_energies,self.harris_foulkes_energies,\
+        self.scf_accuracies,self.cpu_times,self.avg_cpu_times,\
+        self.one_e_contrib,self.hartree_contrib,self.xc_contrib,\
+        self.ewald_contrib,self.one_center_paw_contrib,\
+        self.smearing_contrib= map(list,zip(*all_data))
             
         
         
