@@ -57,7 +57,7 @@ Training.Structures.append(MyStructure)
 Training.NumberOfSameNetworks.append(NrAu)
 Training.LearningRate=0.001
 Training.CostFunType="Adaptive_2"
-Training.dE_Criterium=0.043
+Training.dE_Criterium=0.03
 Training.Epochs=1500
 Training.MakePlots=True
 Training.ActFun="elu"
@@ -65,6 +65,9 @@ Training.IsPartitioned=True
 Training.OptimizerType="Adam"
 Training.Regularization="L2"
 Training.RegularizationParam=0.0001
+Training.LearningRateType="exponential_decay"
+Training.LearningRateDecaySteps=1000
+Training.SavingDirectory="save_stage_1"
 Training.make_and_initialize_network()
 
 #Start first training
@@ -74,24 +77,29 @@ Training.start_batch_training()
 
 #Train with second data
 MyStructure2=NN.PartitionedStructure()
-MyStructure2.ForceFieldNetworkStructure=[Training2.SizeOfInputs[0],10,10,1]
-MyStructure2.CorrectionNetworkStructure=[Training2.SizeOfInputs[0],25,25,1]
+MyStructure2.ForceFieldNetworkStructure=[Training.SizeOfInputs[0],10,10,1]
+MyStructure2.CorrectionNetworkStructure=[Training.SizeOfInputs[0],80,80,15,1]
 #MyStructure2.CorrectionNetworkStructure=[Training2.SizeOfInputs[0],15,15,1]
 Training2.Structures.append(MyStructure2)
 Training2.Structures.append(MyStructure2)
 Training2.IsPartitioned=True
 Training2.LearningRate=0.001
 Training2.CostFunType="Adaptive_2"
-Training2.dE_Criterium=0.043
+Training2.dE_Criterium=0.03
 Training2.Epochs=1500
 Training2.MakePlots=True
 Training2.OptimizerType="Adam"
 Training2.ActFun="elu"
+Training2.Regularization="L2"
+Training2.RegularizationParam=0.0001
+Training2.LearningRateType="exponential_decay"
+Training2.LearningRateDecaySteps=1000
+Training2.SavingDirectory="save_stage_2"
 NrAu=1
 NrNi=2
 Training2.NumberOfSameNetworks.append(NrNi)
 Training2.NumberOfSameNetworks.append(NrAu)
-Training2.expand_existing_net()
+Training2.expand_existing_net(ModelName="save_stage_1/trained_variables")
 
 Training2.start_batch_training()
 
