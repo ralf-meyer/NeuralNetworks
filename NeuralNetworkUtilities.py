@@ -13,7 +13,7 @@ import random as rand
 import matplotlib.pyplot as plt
 import multiprocessing
 import time 
-
+import os
 
 
 plt.ion()
@@ -818,6 +818,7 @@ class AtomicNeuralNetInstance(object):
         
         #Other
         self.Multiple=False
+        self.SavingDirectory="save"
 
 
     def initialize_network(self):
@@ -862,7 +863,7 @@ class AtomicNeuralNetInstance(object):
         #Initialize session
         self.Session.run(tf.global_variables_initializer())
 
-    def load_model(self,ModelName="trained_variables"):
+    def load_model(self,ModelName="save/trained_variables"):
 
         if ".npy" not in ModelName:
             ModelName=ModelName+".npy"
@@ -873,7 +874,7 @@ class AtomicNeuralNetInstance(object):
 
         return 1
 
-    def expand_existing_net(self,ModelName="trained_variables",MakeAllVariable=True,ModelData=None,ConvertToPartitioned=False):
+    def expand_existing_net(self,ModelName="save/trained_variables",MakeAllVariable=True,ModelData=None,ConvertToPartitioned=False):
         
         if ModelData==None:
             Success=AtomicNeuralNetInstance.load_model(self,ModelName)
@@ -938,7 +939,10 @@ class AtomicNeuralNetInstance(object):
             self.Session,self.TrainedNetwork,TrainingCosts,ValidationCosts=train_atomic_networks(self.Session,self.AtomicNNs,self.TrainingInputs,self.TrainingOutputs,self.Epochs,self.Optimizer,self.OutputLayer,self.CostFun,self.ValidationInputs,self.ValidationOutputs,self.CostCriterium,self.MakePlots,self.TotalNrOfRadialFuns)
             self.TrainedVariables=get_trained_variables(self.Session,self.VariablesDictionary)
             #Store variables
-            np.save("trained_variables",self.TrainedVariables)
+
+            if not os.path.exists(self.SavingDirectory):
+                os.makedirs(self.SavingDirectory)
+            np.save(self.SavingDirectory+"/trained_variables",self.TrainedVariables)
 
             self.TrainingCosts=TrainingCosts
             self.ValidationCosts=ValidationCosts
@@ -1135,7 +1139,10 @@ class AtomicNeuralNetInstance(object):
                         else:
                             self.TrainedVariables=get_trained_variables_partitioned(self.Session,self.VariablesDictionary)
 
-                        np.save("trained_variables",[self.TrainedVariables,self.MinOfOut])
+
+                        if not os.path.exists(self.SavingDirectory):
+                            os.makedirs(self.SavingDirectory)
+                        np.save(self.SavingDirectory+"/trained_variables",[self.TrainedVariables,self.MinOfOut])
                     
 
                     #Abort criteria
