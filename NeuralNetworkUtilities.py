@@ -719,6 +719,26 @@ def update_cost_plot(figure,ax,TrainingCostPlot,TrainingCost,ValidationCostPlot=
     figure.canvas.draw()
     figure.canvas.flush_events()
     
+def get_learning_rate(StartLearningRate,LearningRateType,decay_steps,boundaries=[],values=[]):
+    
+    if LearningRateType=="none":
+        global_step = tf.Variable(0, trainable=False)
+        return global_step,StartLearningRate
+    elif LearningRateType=="exponential_decay":
+        global_step = tf.Variable(0, trainable=False)
+        return global_step,tf.train.exponential_decay(StartLearningRate, global_step, decay_steps, decay_rate=0.96, staircase=False)
+    elif LearningRateType=="inverse_time_decay":
+        global_step = tf.Variable(0, trainable=False)
+        return global_step,tf.train.inverse_time_decay(StartLearningRate, global_step, decay_steps,  decay_rate=0.96, staircase=False)
+    elif LearningRateType=="piecewise_constant":
+        global_step = tf.Variable(0, trainable=False)
+        return global_step,tf.train.piecewise_constant(global_step, boundaries, values)
+    elif LearningRateType=="polynomial_decay_p1":
+        global_step = tf.Variable(0, trainable=False)
+        return global_step,tf.train.polynomial_decay(StartLearningRate, global_step, decay_steps, end_learning_rate=0.00001, power=1.0, cycle=False)
+    elif LearningRateType=="polynomial_decay_p2":
+        global_step = tf.Variable(0, trainable=False)
+        return global_step,tf.train.polynomial_decay(StartLearningRate, global_step, decay_steps, end_learning_rate=0.00001, power=2.0, cycle=False)
 
 
 class AtomicNeuralNetInstance(object):
@@ -732,6 +752,11 @@ class AtomicNeuralNetInstance(object):
         self.TrainingOutputs=list()
         self.Epochs=1000
         self.LearningRate=0.01
+        self.LearningRateFun=None
+        self.LearningRateType="none"
+        self.LearningRateDecaySteps=1000
+        self.LearningRateBounds=[]
+        self.LearningRateValues=[]
         self.ValidationInputs=list()
         self.ValidationOutputs=list()
         self.Gs=list()
@@ -805,33 +830,33 @@ class AtomicNeuralNetInstance(object):
             
             #if self.IsPartitioned==True:
             All_Vars=tf.trainable_variables()#get_my_variables(self.VariablesDictionary)
-                
+            global_step,self.LearningRateFun=get_learning_rate(self.LearningRate,self.LearningRateType,self.LearningRateDecaySteps,self.LearningRateBounds,self.LearningRateValues)
                 #Set optimizer
             if self.OptimizerType==None:
-               self.Optimizer=tf.train.GradientDescentOptimizer(self.LearningRate).minimize(self.CostFun,var_list=All_Vars)
+               self.Optimizer=tf.train.GradientDescentOptimizer(self.LearningRateFun).minimize(self.CostFun,var_list=All_Vars,global_step=global_step)
             else:
                 if self.OptimizerType=="GradientDescent":
-                    self.Optimizer=tf.train.GradientDescentOptimizer(self.LearningRate).minimize(self.CostFun,var_list=All_Vars)
+                    self.Optimizer=tf.train.GradientDescentOptimizer(self.LearningRateFun).minimize(self.CostFun,var_list=All_Vars,global_step=global_step)
                 elif self.OptimizerType=="Adagrad":
-                    self.Optimizer=tf.train.AdagradOptimizer(self.LearningRate).minimize(self.CostFun,var_list=All_Vars)
+                    self.Optimizer=tf.train.AdagradOptimizer(self.LearningRateFun).minimize(self.CostFun,var_list=All_Vars,global_step=global_step)
                 elif self.OptimizerType=="Adadelta":
-                    self.Optimizer=tf.train.AdadeltaOptimizer(self.LearningRate).minimize(self.CostFun,var_list=All_Vars)
+                    self.Optimizer=tf.train.AdadeltaOptimizer(self.LearningRateFun).minimize(self.CostFun,var_list=All_Vars,global_step=global_step)
                 elif self.OptimizerType=="AdagradDA":
-                    self.Optimizer=tf.train.AdagradDAOptimizer(self.LearningRate,self.OptimizerProp).minimize(self.CostFun,var_list=All_Vars)
+                    self.Optimizer=tf.train.AdagradDAOptimizer(self.LearningRateFun,self.OptimizerProp).minimize(self.CostFun,var_list=All_Vars,global_step=global_step)
                 elif self.OptimizerType=="Momentum":
-                    self.Optimizer=tf.train.MomentumOptimizer(self.LearningRate,self.OptimizerProp).minimize(self.CostFun,var_list=All_Vars)
+                    self.Optimizer=tf.train.MomentumOptimizer(self.LearningRateFun,self.OptimizerProp).minimize(self.CostFun,var_list=All_Vars,global_step=global_step)
                 elif self.OptimizerType=="Adam":
-                    self.Optimizer=tf.train.AdamOptimizer(self.LearningRate, beta1=0.9, beta2=0.999, epsilon=1e-08).minimize(self.CostFun,var_list=All_Vars)
+                    self.Optimizer=tf.train.AdamOptimizer(self.LearningRateFun, beta1=0.9, beta2=0.999, epsilon=1e-08).minimize(self.CostFun,var_list=All_Vars,global_step=global_step)
                 elif self.OptimizerType=="Ftrl":
-                   self.Optimizer=tf.train.FtrlOptimizer(self.LearningRate).minimize(self.CostFun,var_list=All_Vars)
+                   self.Optimizer=tf.train.FtrlOptimizer(self.LearningRateFun).minimize(self.CostFun,var_list=All_Vars,global_step=global_step)
                 elif self.OptimizerType=="ProximalGradientDescent":
-                    self.Optimizer=tf.train.ProximalGradientDescentOptimizer(self.LearningRate).minimize(self.CostFun,var_list=All_Vars)
+                    self.Optimizer=tf.train.ProximalGradientDescentOptimizer(self.LearningRateFun).minimize(self.CostFun,var_list=All_Vars,global_step=global_step)
                 elif self.OptimizerType=="ProximalAdagrad":
-                    self.Optimizer=tf.train.ProximalAdagradOptimizer(self.LearningRate).minimize(self.CostFun,var_list=All_Vars)
+                    self.Optimizer=tf.train.ProximalAdagradOptimizer(self.LearningRateFun).minimize(self.CostFun,var_list=All_Vars,global_step=global_step)
                 elif self.OptimizerType=="RMSProp":
-                    self.Optimizer=tf.train.RMSPropOptimizer(self.LearningRate).minimize(self.CostFun,var_list=All_Vars)
+                    self.Optimizer=tf.train.RMSPropOptimizer(self.LearningRateFun).minimize(self.CostFun,var_list=All_Vars,global_step=global_step)
                 else:
-                    self.Optimizer=tf.train.GradientDescentOptimizer(self.LearningRate).minimize(self.CostFun,var_list=All_Vars)
+                    self.Optimizer=tf.train.GradientDescentOptimizer(self.LearningRateFun).minimize(self.CostFun,var_list=All_Vars,global_step=global_step)
         except:
             print("Evaluation only no training supported if all networks are constant!")
         #Initialize session
