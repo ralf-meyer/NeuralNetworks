@@ -32,9 +32,9 @@ Training.make_training_and_validation_data(100,70,30)
 NrNi=12
 NrAu=14
 
-Training.Structures.append([Training.SizeOfInputs[0],35,35,15,1])
+Training.Structures.append([Training.SizeOfInputs[0],80,80,15,1])
 Training.NumberOfSameNetworks.append(NrNi)
-Training.Structures.append([Training.SizeOfInputs[1],35,35,15,1])
+Training.Structures.append([Training.SizeOfInputs[1],80,80,15,1])
 Training.NumberOfSameNetworks.append(NrAu)
 Training.HiddenType="truncated_normal"
 Training.HiddenData=list()
@@ -42,12 +42,15 @@ Training.BiasData=list()
 Training.ActFun="elu"
 Training.ActFunParam=None
 Training.LearningRate=0.001
-Training.dE_Criterium=0.043
+Training.dE_Criterium=0.03
 Training.Epochs=1500
 Training.MakePlots=True
 Training.OptimizerType="Adam"
 Training.Regularization="L2"
 Training.CostFunType="Adaptive_2"
+Training.LearningRateType="exponential_decay"
+Training.SavingDirectory="save_cluster"
+Training.LearningRateDecaySteps=1000
 Training.RegularizationParam=0.001
 #Training.expand_existing_net()
 Training.make_and_initialize_network()
