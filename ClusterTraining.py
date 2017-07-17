@@ -50,7 +50,7 @@ Training.Regularization="L2"
 Training.CostFunType="Adaptive_2"
 Training.LearningRateType="exponential_decay"
 Training.SavingDirectory="save_cluster"
-Training.LearningRateDecaySteps=1000
+Training.LearningDecayEpochs=10
 Training.RegularizationParam=0.001
 #Training.expand_existing_net()
 Training.make_and_initialize_network()
