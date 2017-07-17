@@ -688,9 +688,9 @@ def initialize_cost_plot(TrainingData,ValidationData=[]):
     fig=plt.figure()
     ax = fig.add_subplot(111)
     ax.set_autoscaley_on(True)
-    TrainingCostPlot, = ax.plot(np.arange(0,len(TrainingData)),TrainingData)
+    TrainingCostPlot, = ax.semilogy(np.arange(0,len(TrainingData)),TrainingData)
     if len(ValidationData)!=0:
-        ValidationCostPlot,=ax.plot(np.arange(0,len(ValidationData)),ValidationData)
+        ValidationCostPlot,=ax.semilogy(np.arange(0,len(ValidationData)),ValidationData)
     else:
         ValidationCostPlot=None
 
@@ -698,8 +698,9 @@ def initialize_cost_plot(TrainingData,ValidationData=[]):
     ax.relim()
     ax.autoscale_view()
     ax.set_xlabel("batches")
-    ax.set_ylabel("cost")
+    ax.set_ylabel("log(cost)")
     ax.set_title("Normalized cost per batch")
+
     #We need to draw *and* flush
     fig.canvas.draw()
     fig.canvas.flush_events()
@@ -755,7 +756,7 @@ class AtomicNeuralNetInstance(object):
         self.LearningRate=0.01
         self.LearningRateFun=None
         self.LearningRateType="none"
-        self.LearningRateDecaySteps=1000
+        self.LearningDecayEpochs=10
         self.LearningRateBounds=[]
         self.LearningRateValues=[]
         self.ValidationInputs=list()
@@ -832,7 +833,8 @@ class AtomicNeuralNetInstance(object):
             
             #if self.IsPartitioned==True:
             All_Vars=tf.trainable_variables()#get_my_variables(self.VariablesDictionary)
-            self.GlobalStep,self.LearningRateFun=get_learning_rate(self.LearningRate,self.LearningRateType,self.LearningRateDecaySteps,self.LearningRateBounds,self.LearningRateValues)
+            decay_steps=len(self.TrainingBatches)*self.LearningDecayEpochs
+            self.GlobalStep,self.LearningRateFun=get_learning_rate(self.LearningRate,self.LearningRateType,decay_steps,self.LearningRateBounds,self.LearningRateValues)
             
             #Set optimizer
             if self.OptimizerType==None:
