@@ -331,7 +331,8 @@ def train(Session,Optimizer,CostFun,Layers,TrainingData,Epochs,ValidationData=No
         TrainCost.append(sum(Cost)/len(Cost))
         #check validation dataset error
         if ValidationData!=None:
-            ValidationCost.append(sum(validate_step(Session,Layers,ValidationData,CostFun))/len(Cost))
+            temp_val=validate_step(Session,Layers,ValidationData,CostFun)
+            ValidationCost.append(sum(temp_val)/len(temp_val))
 
         if i % max(int(Epochs/100),1)==0:
             if MakePlot:
@@ -756,7 +757,7 @@ class AtomicNeuralNetInstance(object):
         self.LearningRate=0.01
         self.LearningRateFun=None
         self.LearningRateType="none"
-        self.LearningDecayEpochs=10
+        self.LearningDecayEpochs=100
         self.LearningRateBounds=[]
         self.LearningRateValues=[]
         self.ValidationInputs=list()
@@ -804,7 +805,7 @@ class AtomicNeuralNetInstance(object):
         self.SizeOfInputs=list()
         self.XYZfile=None
         self.Logfile=None
-        self.SymmFunKeys=[]
+        self.atomtypes=[]
         self.TotalNrOfRadialFuns=None
         self.NumberOfRadialFunctions=7
         self.Rs=[]
@@ -1229,7 +1230,7 @@ class AtomicNeuralNetInstance(object):
             self.MinOfOut=np.min(NormalizedEnergy)*2 #factor of two is to make sure that there is room for lower energies
 
 
-    def read_files(self,TakeAsReference=True):
+    def read_files(self,TakeAsReference=True,LoadGeometries=True):
 
         Execute=True
         if self.XYZfile==None:
@@ -1238,8 +1239,8 @@ class AtomicNeuralNetInstance(object):
         if self.Logfile==None:
             print("No log-file name specified!")
             Execute=False
-        if len(self.SymmFunKeys)==0:
-            print("No symmetry function keys specified!")
+        if len(self.atomtypes)==0:
+            print("No atom types specified!")
             Execute=False
 #        if len(self.Zetas)==0:
 #            print("No zetas specified!")
@@ -1251,11 +1252,13 @@ class AtomicNeuralNetInstance(object):
         if Execute==True:
 
             self.Ds=DataSet.DataSet()
-            self.SymmFunSet=SymmetryFunctionSet.SymmetryFunctionSet(self.SymmFunKeys)
+            self.SymmFunSet=SymmetryFunctionSet.SymmetryFunctionSet(self.atomtypes)
             self.Ds.read_lammps(self.XYZfile,self.Logfile)
+            print("Added dataset!")
             #self.SymmFunSet.add_radial_functions(self.Rs,self.Etas)
             self.SymmFunSet.add_radial_functions_evenly(self.NumberOfRadialFunctions)
             self.SymmFunSet.add_angular_functions(self.Etas,self.Zetas,self.Lambs)
+        if LoadGeometries:
             AtomicNeuralNetInstance.calculate_statistics_for_dataset(self,TakeAsReference)
 
 
@@ -1324,7 +1327,7 @@ class AtomicNeuralNetInstance(object):
 
         if Execute==True:
             self.SizeOfInputs=get_size_of_input(self.SymmFunSet.eval_geometry(self.Ds.geometries[0],self.InputDerivatives))
-            self.TotalNrOfRadialFuns=self.NumberOfRadialFunctions*len(self.SymmFunKeys)
+            self.TotalNrOfRadialFuns=self.NumberOfRadialFunctions*len(self.atomtypes)
             AllDataSetLength=len(self.Ds.geometries)
             SetLength=int(AllDataSetLength*CoverageOfSetInPercent/100)
 
@@ -1896,8 +1899,116 @@ class AtomicNeuralNetInstance(object):
             
             self.AtomicNNs=AtomicNNs
             self.VariablesDictionary=AllHiddenLayers
+            
+    def find_best_symmetry_functions(self,nr_sample_geometries,training_share,epochs=1000,nr_features=20,nr_hidden=100,lamb_sparse=1.0,make_plots=True):
         
+        #Create training data
+        print("Creating training data...")
+        samples=[]
+        val_samples=[]
+        training_share=float(training_share)/100
+        training_cost=[]
+        validation_cost=[]
+        for i in range(0,nr_sample_geometries):
+            #Get a random geometry
+            idx=rand.randint(0,len(self.Ds.geometries)-1)
+            this_geometry=self.Ds.geometries[idx]
+            save_types=self.atomtypes
+            self.atomtypes=[self.atomtypes[0]] #reduce only select one atom type for evalution
+            xyzs = np.array([atom[1] for atom in this_geometry], dtype=np.float)
+            n_atoms=len(xyzs[:,0])
+            gs=self.SymmFunSet.eval_geometry(this_geometry)
+            n_gs=len(gs[0])
+            if i % max(int(epochs/100),1)==0:
+                print(str(100*i/nr_sample_geometries)+" %")
+            xyz_batch=np.zeros((n_atoms,n_atoms,3))
+            g_batch=np.zeros((n_atoms,n_gs))
+            for j in range(0,n_atoms):
+                xyz_n=np.zeros_like(xyzs)
+                for k in range(0,n_atoms):
+                    xyz_n[k,0] = xyzs[k,0]-xyzs[j,0]
+                    xyz_n[k,1] = xyzs[k,1]-xyzs[j,1]
+                    xyz_n[k,2] = xyzs[k,2]-xyzs[j,2]
+                xyz_batch[j,:,:]=xyz_n
+                g_batch[j,:]=gs[j]
+
+            if (float(i)/nr_sample_geometries)<training_share:
+                samples.append([g_batch,xyz_batch])
+            else:
+                val_samples.append([g_batch,xyz_batch])
+            
+        self.atomtypes=save_types
         
+        with tf.Session() as temp_session:
+            print("Creating network ...")
+            
+            print(str(n_atoms)+" atoms")
+            #Create variables
+            input_layer=construct_input_layer(n_gs)
+            sparse_layer_weights,sparse_layer_biases=construct_hidden_layer(n_gs,nr_features,"truncated_normal",MakeAllVariable=True)
+            hidden_layer_weights,hidden_layer_biases=construct_hidden_layer(nr_features,nr_hidden,"truncated_normal",MakeAllVariable=True)
+            xyz_layer_weights,xyz_layer_biases=construct_hidden_layer(nr_hidden,n_atoms,"truncated_normal",MakeAllVariable=True)
+            ref=tf.placeholder(tf.float32, shape=[None, len(xyzs[:,0]),3])
+            #Connect network
+            out=connect_layers(input_layer,sparse_layer_weights,sparse_layer_biases,ActFun="elu")
+            out=connect_layers(out,hidden_layer_weights,hidden_layer_biases,ActFun="elu")
+            out_x=connect_layers(out,xyz_layer_weights,xyz_layer_biases,ActFun="elu")
+            out_y=connect_layers(out,xyz_layer_weights,xyz_layer_biases,ActFun="elu")
+            out_z=connect_layers(out,xyz_layer_weights,xyz_layer_biases,ActFun="elu")
+            out=tf.stack([out_x,out_y,out_z],axis=2)
+            #Optimizer
+            global_step,learning_rate=get_learning_rate(self.LearningRate,self.LearningRateType,self.LearningDecayEpochs)
+            l1_regularizer = tf.contrib.layers.l1_regularizer(scale=lamb_sparse, scope=None)
+            #Normal quadratic loss function
+            cost_fun=tf.reduce_sum(tf.subtract(out, ref) * tf.subtract(out, ref))
+            #Addidtional loss for sparsity of first layer
+            cost_fun += tf.contrib.layers.apply_regularization(l1_regularizer, [sparse_layer_weights])
+            #Create optimizer
+            optimizer=tf.train.AdamOptimizer(learning_rate, beta1=0.9, beta2=0.999, epsilon=1e-08).minimize(cost_fun,global_step=global_step)
+            #initialize network
+            temp_session.run(tf.global_variables_initializer())
+            #Train network
+            print("Started training...")
+            fig=plt.figure()
+            for i in range(0,epochs):
+                for j in range(0,len(samples)):
+                    idx_train=rand.randint(0,len(samples)-1)
+                    idx_val=rand.randint(0,len(val_samples)-1)
+                    cost=train_step(temp_session,optimizer,[input_layer,ref],samples[idx_train],cost_fun)
+                    training_cost.append(cost)
+                    #check validation dataset error
+                    temp_val=validate_step(temp_session,[input_layer,ref],val_samples[idx_val],cost_fun)
+                    validation_cost.append(temp_val)
+                    #Get weights of sparese layer
+                    sparse_tensor=np.abs(temp_session.run(sparse_layer_weights))
+                    
+                
+                    if i % max(int(epochs/100),1)==0  and j==0:
+                        sparse_weights=np.sum(sparse_tensor,axis=1)
+                        if make_plots:
+                            if i==0:
+                                ax = fig.add_subplot(111)
+                                weights_plot=ax.bar(np.arange(n_gs),sparse_weights)
+                                ax.set_autoscaley_on(True)
+                                #Need both of these in order to rescale
+                                ax.relim()
+                                ax.autoscale_view()
+                                ax.set_xlabel("Symmetry function")
+                                ax.set_ylabel("Weights")
+                                ax.set_title("Weights for symmetry functions")
+                                fig.canvas.draw()
+                                fig.canvas.flush_events()
+                            else:
+                                for u,rect in enumerate(weights_plot):
+                                    rect.set_height(sparse_weights[u])
+                                fig.canvas.draw()
+                                fig.canvas.flush_events()
+    
+                        print(str(100*i/epochs)+" %")
+            
+            print("Training finished")
+
+            
 class MultipleInstanceTraining(object):
     
     def __init__(self):
