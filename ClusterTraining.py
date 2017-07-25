@@ -18,7 +18,7 @@ Training=NN.AtomicNeuralNetInstance()
 
 Training.XYZfile="2ClusterNiAu_data.xyz"
 Training.Logfile="2cluster.md"
-Training.SymmFunKeys=["1","2"]
+Training.atomtypes=["1","2"]
 Training.NumberOfRadialFunctions=6
 #angular symmetry function settings
 Training.Lambs=[1.0,-1.0]
@@ -50,7 +50,7 @@ Training.Regularization="L2"
 Training.CostFunType="Adaptive_2"
 Training.LearningRateType="exponential_decay"
 Training.SavingDirectory="save_cluster"
-Training.LearningDecayEpochs=10
+Training.LearningDecayEpochs=100
 Training.RegularizationParam=0.001
 #Training.expand_existing_net()
 Training.make_and_initialize_network()
