@@ -1,10 +1,12 @@
 #!python
 #cython: boundscheck=False, wraparound=False, cdivision=True 
 from SymmetryFunctionsC cimport RadialSymmetryFunction, AngularSymmetryFunction
+from MySymmetryFunctions cimport eval_radial,eval_derivative_radial,eval_angular,\
+eval_derivative_angular,eval_cutoff,eval_derivative_cutoff
+
 import numpy as _np 
 from scipy.misc import comb
 import time
-
 
 cdef extern from "math.h":
     double cos(double m)
@@ -14,78 +16,9 @@ cdef extern from "math.h":
     double cosh(double m)
     double sqrt(double m)
     double M_PI
-
-#gaussian and its derivative
-cdef double gaussian(double r,double rs,double eta):
-    return exp(-eta*(r-rs)**2)
-
-cdef double derivative_gaussian(double r,double rs,double eta):
-    return (-2.0*eta*(r-rs)*gaussian(r,rs,eta))
-            
-#angular symmetry function and its derivative
-cdef double angular(double rij,double rik,double costheta,double eta,double lamb,double zeta):
-    return 2**(1-zeta)* ((1 + lamb*costheta)**zeta * 
-            exp(-eta*(rij**2+rik**2)))
-            
-cdef double derivative_angular(double rij,double rik,double costheta,double eta,double lamb,double zeta):
-    sintheta = sqrt(abs(1.-costheta**2))
-    return 2**(1-zeta)*(-lamb * zeta * sintheta *
-            (1 + lamb*costheta)**(zeta-1) * 
-            exp(-eta*(rij**2+rik**2))) 
-            
-#cos cutoff function and its derivative
-cdef double cos_cutoff(double r,double cut):
-    if r>cut:
-        return 0
-    else:
-        return 0.5*(cos(M_PI*r/cut)+1)
-
-cdef double derivative_cos_cutoff(double r,double cut):
-    if r>cut:
-        return 0
-    else:
-        return (-0.5*M_PI*sin(M_PI*r/cut)/cut)
-
-#tanh cutoff function and its derivative
-cdef double tanh_cutoff(double r,double cut):
-    if r>cut:
-        return 0
-    else:
-        return tanh(1.-r/cut)**3    
-
-cdef double derivative_tanh_cutoff(double r,double cut):
-    if r>cut:
-        return 0
-    else:
-        return (-3.0*tanh(1-r/cut)**2 /
-                (cosh(1-r/cut)**2*cut))
-
-#evaluation of the radial symmetry function and its derivative (tanh_cutoff disabled)
-cdef double eval_radial(double r,double rs,double eta,double cut,double cut_type):
-#    if cut_type==1:
-     return gaussian(r,rs,eta)*cos_cutoff(r,cut)
-#    else:
-#        return gaussian(r,rs,eta)*tanh_cutoff(r,cut)
-
-cdef double eval_derivative_radial(double r,double rs,double eta,double cut,int cut_type):
-
-#    if cut_type==1:
-     return derivative_gaussian(r,rs,eta)*cos_cutoff(r,cut)+gaussian(r,rs,eta)*derivative_cos_cutoff(r,cut)
-#    else:
-#        return derivative_gaussian(r,rs,eta)*tanh_cutoff(r,cut)+gaussian(r,rs,eta)*derivative_tanh_cutoff(r,cut)
-
-#evaluation of the angular symmetry function and its derivative (tanh_cutoff disabled)
-cdef double eval_angular(double rij,double rik,double costheta,double eta,double lamb,double zeta,double cut,int cut_type):
-    #if cut_type==1:
-    return angular(rij,rik,costheta,eta,lamb,zeta)*cos_cutoff(rij,cut)*cos_cutoff(rik,cut)
-    #else:
-    #    return angular(rij,rik,eta,lamb,zeta)*tanh_cutoff(rij,cut)*tanh_cutoff(rik,cut)
     
-cdef double eval_derivative_angular(double rij,double rik,double costheta,double eta,double lamb,double zeta,double cut,int cut_type):
-    #if cut_type==1:
-    return derivative_angular(rij,rik,costheta,eta,lamb,zeta)*cos_cutoff(rij,cut)*cos_cutoff(rik,cut)
-    #else:
-    #    return derivative_angular(rij,rik,costheta,eta,lamb,zeta)*tanh_cutoff(rij,cut)*tanh_cutoff(rik,cut)
+
+
 
 class SymmetryFunctionSet(object):
     
@@ -176,29 +109,66 @@ class SymmetryFunctionSet(object):
         
         #make memory view out of python lists
         cdef:
-            double [:] mem_rs  = self.rs
-            double [:] mem_eta_r = self.eta_r
+#            #input length of functions 
+#            int cut_len=0
+#            int radial_len=0
+#            int angular_len=0
+#            
+            double [:] mem_rs  = self.rs   
+            double [:] mem_eta_r = self.eta_r   
             double [:] mem_cut_r = self.cut_r
-            int [:] mem_cut_type_r = self.cut_type_r
-        
             double [:] mem_eta_a = self.eta_a
             double [:] mem_lamb = self.lamb
             double [:] mem_zeta = self.zeta
             double [:] mem_cut_a = self.cut_a
-            int [:] mem_cut_type_a = self.cut_type_a
+            
+#        if len(self.rs) > 0:
+#            radial_len+=1
+#        if len(self.eta_r)>0:
+#            radial_len+=1
+#        if len(self.cut_r)>0:
+#            cut_len+=2
+#            
+#        if len(self.eta_a)>0:
+#            angular_len+=1
+#        if len(self.lamb)>0:
+#            angular_len+=1
+#        if len(self.zeta)>0:
+#            angular_len+=1         
+#        if len(self.cut_a)>0:
+#            if cut_len==0:
+#                cut_len+=2
+#            
+#        if radial_len>0:
+#            radial_len+=1 #if radial not constant add rij as parameter
+#        
+#        if angular_len>0:
+#            angular_len+=3 #if angular not constant add rij,rik and costheta as parameters
         
-        #create pointers to memory views
+#        #create pointers to memory views
         cdef:
             double* rs_ptr = &mem_rs[0]
             double* eta_r_ptr = &mem_eta_r[0]
             double* cut_r_ptr = &mem_cut_r[0]
-            int* cut_type_r_ptr = &mem_cut_type_r[0]
         
             double* eta_a_ptr = &mem_eta_a[0]
             double* lamb_ptr = &mem_lamb[0]
             double* zeta_ptr = &mem_zeta[0]
             double* cut_a_ptr = &mem_cut_a[0]
-            int* cut_type_a_ptr = &mem_cut_type_a[0]
+
+
+#        cdef:
+#
+#            double [] radial_values = double [radial_len]
+#            double* radial_ptr = &radial_values[0]
+#
+#            double [] angular_values = double [angular_len]
+#            double* angular_ptr = &angular_values[0]
+#
+#            double [] cut_values = double [cut_r]
+#            double* cut_ptr = &cut_values[0]
+
+
         
                         
         if derivative == False:
@@ -211,10 +181,17 @@ class SymmetryFunctionSet(object):
                     # Radial function
                     rij = sqrt((xyzs[i,0]-xyzs[j,0])**2 + (xyzs[i,1]-xyzs[j,1])**2 +
                                    (xyzs[i,2]-xyzs[j,2])**2)
+                    #radial_values[1]= rij
+                    #angular_values[3] = rij
+                    
                     for itj in range(Nt):
                         for ir in range(Nr):                        
                             if itj == tj:
-                                out[i,itj*Nr+ir] += eval_radial(rij,rs_ptr[ir],eta_r_ptr[ir],cut_r_ptr[ir],cut_type_r_ptr[ir])
+                                #radial_values[0] = eta[ia]
+                                #radial_values[2] = rs[ia]
+                                
+                                #out[i,itj*Nr+ir] += eval_radial(radial_ptr)*eval_cutoff(cut_ptr)
+                                out[i,itj*Nr+ir] += eval_radial(eta_r_ptr[ir],rij,rs_ptr[ir])*eval_cutoff(cut_r_ptr[ir],rij)
                                 #out[i,itj*Nr+ir] += (<RadialSymmetryFunction>self.radial_sym_funs[ir]).evaluate(rij) 
                     # Angular functions
                     for k in range(N):
@@ -223,15 +200,24 @@ class SymmetryFunctionSet(object):
                         tk = types[k]
                         rik = sqrt((xyzs[i,0]-xyzs[k,0])**2 + (xyzs[i,1]-xyzs[k,1])**2 +
                                    (xyzs[i,2]-xyzs[k,2])**2)
+                        #angular_values[4] = rik
+                        
                         costheta = ((xyzs[j,0]-xyzs[i,0])*(xyzs[k,0]-xyzs[i,0])+
                                     (xyzs[j,1]-xyzs[i,1])*(xyzs[k,1]-xyzs[i,1])+
                                     (xyzs[j,2]-xyzs[i,2])*(xyzs[k,2]-xyzs[i,2]))/(rij*rik)
+                        #angular_values[0]= costheta
+
+                        
                         ind = 0
                         for itj in range(Nt):
                             for itk in range(itj, Nt):
                                 for ia in range(Na):  
                                     if itj == tj and itk == tk:
-                                        out[i,Nt*Nr+ ind*Na+ ia] += eval_angular(rij,rik,costheta,eta_a_ptr[ia],lamb_ptr[ia],zeta_ptr[ia],cut_a_ptr[ia],cut_type_a_ptr[ia])
+                                        #angular_values[1] = eta[ia]
+                                        #angular_values[2] = lamb[ia]
+                                        #angular_values[5] = zeta[ia]
+                                        #out[i,Nt*Nr+ ind*Na+ ia] += eval_angular(angular_ptr)*eval_cutoff(cut_ptr)
+                                        out[i,Nt*Nr+ ind*Na+ ia] += eval_angular(costheta,eta_a_ptr[ia],lamb_ptr[ia],rij,rik,zeta_ptr[ia])*eval_cutoff(cut_a_ptr[ia],rij)
                                         #out[i,Nt*Nr+ ind*Na+ ia] += (<AngularSymmetryFunction>self.angular_sym_funs[ia]).evaluate(rij,rik,costheta)
                                 ind += 1  
         else:
@@ -244,11 +230,22 @@ class SymmetryFunctionSet(object):
                     # Radial function
                     rij = sqrt((xyzs[i,0]-xyzs[j,0])**2 + (xyzs[i,1]-xyzs[j,1])**2 +
                                    (xyzs[i,2]-xyzs[j,2])**2)
+                    
+                    #radial_values[1]= rij
+                    #angular_values[3] = rij
+                    
                     for itj in range(Nt):
                         for ir in range(Nr):                        
                             if itj == tj:
-                                out[i,itj*2*Nr+2*ir] += eval_radial(rij,rs_ptr[ir],eta_r_ptr[ir],cut_r_ptr[ir],cut_type_r_ptr[ir])
-                                out[i,itj*2*Nr+2*ir+1] += eval_derivative_radial(rij,rs_ptr[ir],eta_r_ptr[ir],cut_r_ptr[ir],cut_type_r_ptr[ir])
+                                #radial_values[0] = eta[ia]
+                                #radial_values[2] = rs[ia]
+                                
+                                #out[i,itj*Nr+ir] += eval_radial(radial_ptr)*eval_cutoff(cut_ptr)
+                                #out[i,itj*2*Nr+2*ir+1] += eval_derivative_radial(radial_ptr)*eval_cutoff(cut_ptr)\
+                                #                          +eval_radial(radial_ptr)*eval_derivative_cutoff(cut_ptr)
+                                out[i,itj*Nr+ir] += eval_radial(eta_r_ptr[ir],rij,rs_ptr[ir])*eval_cutoff(cut_r_ptr[ir],rij)
+                                out[i,itj*2*Nr+2*ir+1] += eval_derivative_radial(eta_r_ptr[ir],rij,rs_ptr[ir])*eval_cutoff(cut_r_ptr[ir],rij)\
+                                                          +eval_radial(eta_r_ptr[ir],rij,rs_ptr[ir])*eval_derivative_cutoff(cut_r_ptr[ir],rij)
                                 #out[i,itj*2*Nr+2*ir] += (<RadialSymmetryFunction>self.radial_sym_funs[ir]).evaluate(rij) 
                                 #out[i,itj*2*Nr+2*ir+1] += (<RadialSymmetryFunction>self.radial_sym_funs[ir]).derivative(rij) 
                     # Angular functions
@@ -258,17 +255,29 @@ class SymmetryFunctionSet(object):
                         tk = types[k]
                         rik = sqrt((xyzs[i,0]-xyzs[k,0])**2 + (xyzs[i,1]-xyzs[k,1])**2 +
                                    (xyzs[i,2]-xyzs[k,2])**2)
+                        #angular_values[4] = rik
+                     
                         costheta = ((xyzs[j,0]-xyzs[i,0])*(xyzs[k,0]-xyzs[i,0])+
                                     (xyzs[j,1]-xyzs[i,1])*(xyzs[k,1]-xyzs[i,1])+
                                     (xyzs[j,2]-xyzs[i,2])*(xyzs[k,2]-xyzs[i,2]))/(rij*rik)
+                        #angular_values[0]= costheta
+                        
                         ind = 0
                         for itj in range(Nt):
                             for itk in range(itj, Nt):
                                 for ia in range(Na):  
                                     if itj == tj and itk == tk:
-                                        out[i,Nt*2*Nr+ ind*2*Na+ 2*ia] += eval_angular(rij,rik,costheta,eta_a_ptr[ia],lamb_ptr[ia],zeta_ptr[ia],cut_a_ptr[ia],cut_type_a_ptr[ia])
-                                        out[i,Nt*2*Nr+ ind*2*Na+ 2*ia + 1] += eval_derivative_angular(rij,rik,costheta,eta_a_ptr[ia],lamb_ptr[ia],zeta_ptr[ia],cut_a_ptr[ia],cut_type_a_ptr[ia])
+                                        #angular_values[1] = eta[ia]
+                                        #angular_values[2] = lamb[ia]
+                                        #angular_values[5] = zeta[ia]
+                                        
+                                        #out[i,Nt*Nr+ ind*Na+ ia] += eval_angular(angular_ptr)*eval_cutoff(cut_ptr)
+                                        #out[i,Nt*2*Nr+ ind*2*Na+ 2*ia + 1] += eval_derivative_angular(angular_ptr)*eval_cutoff(cut_ptr)
+                                        out[i,Nt*Nr+ ind*Na+ ia] += eval_angular(costheta,eta_a_ptr[ia],lamb_ptr[ia],rij,rik,zeta_ptr[ia])*eval_cutoff(cut_a_ptr[ia],rij)
+                                        out[i,Nt*2*Nr+ ind*2*Na+ 2*ia + 1] += eval_derivative_angular(costheta,eta_a_ptr[ia],lamb_ptr[ia],rij,rik,zeta_ptr[ia])*eval_cutoff(cut_a_ptr[ia],rij)
                                         #out[i,Nt*2*Nr+ ind*2*Na+ 2*ia] += (<AngularSymmetryFunction>self.angular_sym_funs[ia]).evaluate(rij,rik,costheta)
                                         #out[i,Nt*2*Nr+ ind*2*Na+ 2*ia + 1] += (<AngularSymmetryFunction>self.angular_sym_funs[ia]).derivative(rij,rik,costheta)
                                 ind += 1  
+        #print(time.time()-start)
         return out
+
