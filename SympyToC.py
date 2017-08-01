@@ -211,7 +211,7 @@ def addToSymmetryFunctions(symname_list, symfunc_list,variables_list):
                     temp_code +="double "+str(symname)+"SymmetryFunction::derivative_"+str(variables_list[i-1])+"(double* r)\n"
                     fun=diff(symfunc,variables_list[i-1])
                     tmpsyms = numbered_symbols("tmp")
-                    symbols, simple = cse(symfunc, symbols=tmpsyms)
+                    symbols, simple = cse(fun, symbols=tmpsyms)
                 temp_code +="{\n"
                 for s in symbols:
                     temp_code +=  "\tdouble " +ccode(s[0]) + " = " + ccode(s[1]) + ";\n"
