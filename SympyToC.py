@@ -34,24 +34,25 @@ def addToSymmetryFunctionSet(symname_list, symfunc_list,variables_list):
                     start_add_idx=start_add_idx+len("//Start of section for adding custom symmetry functions\n")
                     end_add_idx=cpp_code.index("//End of section for adding custom symmetry functions\n")
                     break 
+        #remove old custom add functions
+        cpp_code=cpp_code[:start_add_idx]+cpp_code[end_add_idx:]
+        
         try:
-            start_vec_idx=cpp_code.index("//Start of section custom symmetry functions vector\n")
-            end_vec_idx=cpp_code.index("//End of section custom symmetry functions vector\n")
+            start_vec_idx=cpp_code.index("//Start of custom extern declaration\n")+len("//Start of custom extern declaration\n")
+            end_vec_idx=cpp_code.index("//End of custom extern declaration\n")
         except:
-            semi_idx=[i.start() for i in re.finditer(';', cpp_code)]
-            eval_geom_idx=cpp_code.index("eval_geometry(")
-            for i,idx in enumerate(semi_idx):
-                if idx > eval_geom_idx:
-                    private_idx=cpp_code.index("private:",idx)+len("private:")
-                    start_vec_idx=private_idx+1
+            bracket_idx=[i.start() for i in re.finditer('}', cpp_code)]
+            symfunset_idx=cpp_code.index("return new SymmetryFunctionSet()")
+            for i,idx in enumerate(bracket_idx):
+                if idx > symfunset_idx:
+                    start_vec_idx=idx+1
                     end_vec_idx=start_vec_idx
-                    temp_code="//Start of section custom symmetry functions vector\n"
-                    temp_code+="//End of section custom symmetry functions vector\n"
-                    cpp_code=cpp_code[:start_vec_idx]+temp_code+cpp_code[start_vec_idx]
+                    temp_code="\n//Start of custom extern declaration\n"
+                    temp_code+="//End of custom extern declaration\n"
+                    cpp_code=cpp_code[:start_vec_idx]+temp_code+cpp_code[start_vec_idx:]
                     break 
 
         #remove old custom add functions
-        cpp_code=cpp_code[:start_add_idx]+cpp_code[end_add_idx:]
         cpp_code=cpp_code[:start_vec_idx]+cpp_code[end_vec_idx:]
         #insert new code
 
@@ -63,7 +64,7 @@ def addToSymmetryFunctionSet(symname_list, symfunc_list,variables_list):
                 symbolslist = map(lambda x:str(x), list(symfunc.atoms(Symbol)) )
                 symbolslist.sort()
                 varstring=",".join( " double "+x for x in symbolslist if not(is_variable(x,variables_list)))[1:]
-                argstring=",".join(x for x in symbolslist if not(is_variable(x,variables_list)))[1:]
+                argstring=",".join(x for x in symbolslist if not(is_variable(x,variables_list)))[:]
                 temp_code ="\tvoid add_"+str(symname)+"("+varstring+",int cutoff_type) {\n"
                 temp_code +="\t\t"+str(symname)+"SymFuns.push_back("+str(symname)+"SymmetryFunction("+argstring+",cutoff_type));\n"
                 temp_code +="\t};\n"
@@ -75,16 +76,16 @@ def addToSymmetryFunctionSet(symname_list, symfunc_list,variables_list):
                 cpp_code +="};\n"
                 
             try:
-                start_vec_idx=cpp_code.index("//Start of section custom symmetry functions vector\n")+len("//Start of section custom symmetry functions vector\n")
+                start_vec_idx=cpp_code.index("//Start of custom extern declaration\n")+len("//Start of custom extern declaration\n")
             except:
-                semi_idx=[i.start() for i in re.finditer(';', cpp_code)]
-                eval_geom_idx=cpp_code.index("eval_geometry(")
-                for i,idx in enumerate(semi_idx):
-                    if idx > eval_geom_idx:
-                        private_idx=cpp_code.index("private:",idx)+len("private:")
-                        start_vec_idx=private_idx+1
-                        break 
-            temp_code="\tstd::vector <"+str(symname)+"SymmetryFunction> "+str(symname)+"SymFuns;\n"
+                bracket_idx=[i.start() for i in re.finditer('}', cpp_code)]
+                symfunset_idx=cpp_code.index("return new SymmetryFunctionSet()")
+                for i,idx in enumerate(bracket_idx):
+                    if idx > symfunset_idx:
+                        start_vec_idx=idx+1
+                        break
+            temp_code ="\tvoid SymmetryFunctionSet_add_"+str(symname)+"(SymmetryFunctionSet* symFunSet, "\
+            +varstring+",int cutoff_type){symFunSet->add_"+str(symname)+"("+argstring+",cutoff_type);}\n"
             #add to previous
             cpp_code=cpp_code[:start_vec_idx]+temp_code+cpp_code[start_vec_idx:]
         file.write(cpp_code)
@@ -135,7 +136,7 @@ def addToSymmetryFunctionsHeader(symname_list, symfunc_list,variables_list):
             temp_code +="{\n"
             for symbol in symbolslist:
                 if not(is_variable(symbol,variables_list)):
-                    temp_code +="\t"+str(symbol)+" = "+str(symbol)+"_i;\n"
+                    temp_code +="\tdouble "+str(symbol)+";\n"
             temp_code +="\tCutoffFunction *cutFun\n"
             temp_code +="\tpublic:\n"
             temp_code +="\t\t"+str(symname)+"SymmetryFunction("+conststring+");\n"
