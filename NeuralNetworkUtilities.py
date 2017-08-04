@@ -337,9 +337,9 @@ def train(Session,Optimizer,CostFun,Layers,TrainingData,Epochs,ValidationData=No
         if i % max(int(Epochs/100),1)==0:
             if MakePlot:
                 if i==0:
-                    figure,ax,TrainPlot,ValPlot=initialize_cost_plot(TrainCost,ValidationCost)
+                    figure,ax,TrainPlot,ValPlot,RunningMeanPlot=initialize_cost_plot(TrainCost,ValidationCost)
                 else:
-                    update_cost_plot(figure,ax,TrainPlot,TrainCost,ValPlot,ValidationCost)
+                    update_cost_plot(figure,ax,TrainPlot,TrainCost,ValPlot,ValidationCost,RunningMeanPlot)
             print(str(100*i/Epochs)+" %")
 
         if TrainCost[-1]<CostCriterium:
@@ -694,6 +694,9 @@ def initialize_cost_plot(TrainingData,ValidationData=[]):
         ValidationCostPlot,=ax.semilogy(np.arange(0,len(ValidationData)),ValidationData)
     else:
         ValidationCostPlot=None
+    #add running average plot 
+    running_avg=running_mean(TrainingData,100)
+    RunningMeanPlot,=ax.semilogy(np.arange(0,len(running_avg)),running_avg)
 
     #Need both of these in order to rescale
     ax.relim()
@@ -706,20 +709,60 @@ def initialize_cost_plot(TrainingData,ValidationData=[]):
     fig.canvas.draw()
     fig.canvas.flush_events()
 
-    return fig,ax,TrainingCostPlot,ValidationCostPlot
+    return fig,ax,TrainingCostPlot,ValidationCostPlot,RunningMeanPlot
 
-def update_cost_plot(figure,ax,TrainingCostPlot,TrainingCost,ValidationCostPlot=None,ValidationCost=None):
+def running_mean(x,N):
+    cumsum=np.cumsum(np.insert(x,0,0))
+    return (cumsum[N:]-cumsum[:-N])/N
+
+def update_cost_plot(figure,ax,TrainingCostPlot,TrainingCost,ValidationCostPlot=None,ValidationCost=None,RunningMeanPlot=None):
 
     TrainingCostPlot.set_data(np.arange(0,len(TrainingCost)),TrainingCost)
     if ValidationCostPlot!=None:
         ValidationCostPlot.set_data(np.arange(0,len(ValidationCost)),ValidationCost)
-
+    
+    if RunningMeanPlot != None:
+        running_avg=running_mean(TrainingCost,100)
+        RunningMeanPlot.set_data(np.arange(0,len(running_avg)),running_avg)
     #Need both of these in order to rescale
     ax.relim()
     ax.autoscale_view()
     #We need to draw *and* flush
     figure.canvas.draw()
     figure.canvas.flush_events()
+    
+def initialize_weights_plot(sparse_weights,n_gs):
+    fig=plt.figure()
+    ax = fig.add_subplot(111)
+    weights_plot=ax.bar(np.arange(n_gs),sparse_weights)
+    ax.set_autoscaley_on(True)
+    
+    #Need both of these in order to rescale
+    ax.relim()
+    ax.autoscale_view()
+    ax.set_xlabel("Symmetry function")
+    ax.set_ylabel("Weights")
+    ax.set_title("Weights for symmetry functions")
+    fig.canvas.draw()
+    fig.canvas.flush_events()
+    
+    return fig,weights_plot
+
+def update_weights_plot(fig,weights_plot,sparse_weights):
+    for u,rect in enumerate(weights_plot):
+        rect.set_height(sparse_weights[u])
+    fig.canvas.draw()
+    fig.canvas.flush_events()
+    
+    return fig,weights_plot
+
+def cartesian_to_spherical(xyz):
+    spherical = np.zeros_like(xyz)
+    xy = xyz[:,0]**2 + xyz[:,1]**2
+    spherical[:,0] = np.sqrt(xy + xyz[:,2]**2)
+    spherical[:,1] = np.arctan2(xyz[:,2], np.sqrt(xy))
+    spherical[:,2] = np.arctan2(xyz[:,1], xyz[:,0])
+    return spherical
     
 def get_learning_rate(StartLearningRate,LearningRateType,decay_steps,boundaries=[],values=[]):
     
@@ -821,6 +864,7 @@ class AtomicNeuralNetInstance(object):
         
         #Other
         self.Multiple=False
+        self.FirstWeights=[]
         self.SavingDirectory="save"
 
 
@@ -1045,7 +1089,7 @@ class AtomicNeuralNetInstance(object):
         return Out
 
     
-    def start_batch_training(self):
+    def start_batch_training(self,find_best_symmfuns=False):
         #Clear cost array for multi instance training
         self.OverallTrainingCosts=list()
         self.OverallValidationCosts=list()
@@ -1133,9 +1177,19 @@ class AtomicNeuralNetInstance(object):
                         #print([evaluate_all_atomicnns(self.Session,self.AtomicNNs,self.TrainingInputs),self.TrainingOutputs])
                         if self.MakePlots==True:
                             if i ==0:
-                                fig,ax,TrainingCostPlot,ValidationCostPlot=initialize_cost_plot(self.OverallTrainingCosts,self.OverallValidationCosts)
+                                if find_best_symmfuns:
+                                    sparse_tensor=np.abs(self.Session.run(self.FirstWeights[0]))#only supports force field at the moment
+                                    sparse_weights=np.sum(sparse_tensor,axis=1)
+                                    fig_weights,weights_plot=initialize_weights_plot(sparse_weights,self.SizeOfInputs[0])
+                                else:
+                                    fig,ax,TrainingCostPlot,ValidationCostPlot,RunningMeanPlot=initialize_cost_plot(self.OverallTrainingCosts,self.OverallValidationCosts)
                             else:
-                                update_cost_plot(fig,ax,TrainingCostPlot,self.OverallTrainingCosts,ValidationCostPlot,self.OverallValidationCosts)
+                                if find_best_symmfuns:
+                                    sparse_tensor=np.abs(self.Session.run(self.FirstWeights[0]))#only supports force field at the moment
+                                    sparse_weights=np.sum(sparse_tensor,axis=1)
+                                    fig_weights,weights_plot=update_weights_plot(fig_weights,weights_plot,sparse_weights)
+                                else:
+                                    update_cost_plot(fig,ax,TrainingCostPlot,self.OverallTrainingCosts,ValidationCostPlot,self.OverallValidationCosts,RunningMeanPlot)
                         #Finished percentage output
                         print([str(100*i/self.Epochs)+" %","deltaE = "+str(self.DeltaE)+" ev","Cost = "+str(self.TrainingCosts),"t = "+str(time.time()-start)+" s","global step: "+str(self.Session.run(self.GlobalStep))])
                         #Store variables
@@ -1646,6 +1700,7 @@ class AtomicNeuralNetInstance(object):
                         ForceFieldInputLayer = construct_input_layer(ForceFieldNrInputs)
                         # Connect force field input to first hidden layer
                         ForceFieldFirstWeights = ForceFieldHiddenLayers[0][0]
+                        self.FirstWeights.append(ForceFieldFirstWeights)
                         ForceFieldFirstBiases = ForceFieldHiddenLayers[0][1]
                         ForceFieldNetwork = connect_layers(ForceFieldInputLayer, ForceFieldFirstWeights, ForceFieldFirstBiases, self.ActFun, self.ActFunParam)
                         #Connect force field hidden layers
@@ -1669,6 +1724,7 @@ class AtomicNeuralNetInstance(object):
                         CorrectionInputLayer = construct_input_layer(CorrectionNrInputs)
                         # Connect Correction input to first hidden layer
                         CorrectionFirstWeights = CorrectionHiddenLayers[0][0]
+                        self.FirstWeights.append(CorrectionFirstWeights)
                         CorrectionFirstBiases = CorrectionHiddenLayers[0][1]
                         CorrectionNetwork = connect_layers(CorrectionInputLayer, CorrectionFirstWeights, CorrectionFirstBiases, self.ActFun, self.ActFunParam)
                         #Connect Correction hidden layers
@@ -1871,6 +1927,7 @@ class AtomicNeuralNetInstance(object):
                     InputLayer = construct_input_layer(NrInputs)
                     # Connect input to first hidden layer
                     FirstWeights = HiddenLayers[0][0]
+                    self.FirstWeights.append(FirstWeights)
                     FirstBiases = HiddenLayers[0][1]
                     Network = connect_layers(InputLayer, FirstWeights, FirstBiases, self.ActFun, self.ActFunParam)
     
@@ -1900,113 +1957,6 @@ class AtomicNeuralNetInstance(object):
             self.AtomicNNs=AtomicNNs
             self.VariablesDictionary=AllHiddenLayers
             
-    def find_best_symmetry_functions(self,nr_sample_geometries,training_share,epochs=1000,nr_features=20,nr_hidden=100,lamb_sparse=1.0,make_plots=True):
-        
-        #Create training data
-        print("Creating training data...")
-        samples=[]
-        val_samples=[]
-        training_share=float(training_share)/100
-        training_cost=[]
-        validation_cost=[]
-        for i in range(0,nr_sample_geometries):
-            #Get a random geometry
-            idx=rand.randint(0,len(self.Ds.geometries)-1)
-            this_geometry=self.Ds.geometries[idx]
-            save_types=self.atomtypes
-            self.atomtypes=[self.atomtypes[0]] #reduce only select one atom type for evalution
-            xyzs = np.array([atom[1] for atom in this_geometry], dtype=np.float)
-            n_atoms=len(xyzs[:,0])
-            gs=self.SymmFunSet.eval_geometry(this_geometry)
-            n_gs=len(gs[0])
-            if i % max(int(epochs/100),1)==0:
-                print(str(100*i/nr_sample_geometries)+" %")
-            xyz_batch=np.zeros((n_atoms,n_atoms,3))
-            g_batch=np.zeros((n_atoms,n_gs))
-            for j in range(0,n_atoms):
-                xyz_n=np.zeros_like(xyzs)
-                for k in range(0,n_atoms):
-                    xyz_n[k,0] = xyzs[k,0]-xyzs[j,0]
-                    xyz_n[k,1] = xyzs[k,1]-xyzs[j,1]
-                    xyz_n[k,2] = xyzs[k,2]-xyzs[j,2]
-                xyz_batch[j,:,:]=xyz_n
-                g_batch[j,:]=gs[j]
-
-            if (float(i)/nr_sample_geometries)<training_share:
-                samples.append([g_batch,xyz_batch])
-            else:
-                val_samples.append([g_batch,xyz_batch])
-            
-        self.atomtypes=save_types
-        
-        with tf.Session() as temp_session:
-            print("Creating network ...")
-            
-            print(str(n_atoms)+" atoms")
-            #Create variables
-            input_layer=construct_input_layer(n_gs)
-            sparse_layer_weights,sparse_layer_biases=construct_hidden_layer(n_gs,nr_features,"truncated_normal",MakeAllVariable=True)
-            hidden_layer_weights,hidden_layer_biases=construct_hidden_layer(nr_features,nr_hidden,"truncated_normal",MakeAllVariable=True)
-            xyz_layer_weights,xyz_layer_biases=construct_hidden_layer(nr_hidden,n_atoms,"truncated_normal",MakeAllVariable=True)
-            ref=tf.placeholder(tf.float32, shape=[None, len(xyzs[:,0]),3])
-            #Connect network
-            out=connect_layers(input_layer,sparse_layer_weights,sparse_layer_biases,ActFun="elu")
-            out=connect_layers(out,hidden_layer_weights,hidden_layer_biases,ActFun="elu")
-            out_x=connect_layers(out,xyz_layer_weights,xyz_layer_biases,ActFun="elu")
-            out_y=connect_layers(out,xyz_layer_weights,xyz_layer_biases,ActFun="elu")
-            out_z=connect_layers(out,xyz_layer_weights,xyz_layer_biases,ActFun="elu")
-            out=tf.stack([out_x,out_y,out_z],axis=2)
-            #Optimizer
-            global_step,learning_rate=get_learning_rate(self.LearningRate,self.LearningRateType,self.LearningDecayEpochs)
-            l1_regularizer = tf.contrib.layers.l1_regularizer(scale=lamb_sparse, scope=None)
-            #Normal quadratic loss function
-            cost_fun=tf.reduce_sum(tf.subtract(out, ref) * tf.subtract(out, ref))
-            #Addidtional loss for sparsity of first layer
-            cost_fun += tf.contrib.layers.apply_regularization(l1_regularizer, [sparse_layer_weights])
-            #Create optimizer
-            optimizer=tf.train.AdamOptimizer(learning_rate, beta1=0.9, beta2=0.999, epsilon=1e-08).minimize(cost_fun,global_step=global_step)
-            #initialize network
-            temp_session.run(tf.global_variables_initializer())
-            #Train network
-            print("Started training...")
-            fig=plt.figure()
-            for i in range(0,epochs):
-                for j in range(0,len(samples)):
-                    idx_train=rand.randint(0,len(samples)-1)
-                    idx_val=rand.randint(0,len(val_samples)-1)
-                    cost=train_step(temp_session,optimizer,[input_layer,ref],samples[idx_train],cost_fun)
-                    training_cost.append(cost)
-                    #check validation dataset error
-                    temp_val=validate_step(temp_session,[input_layer,ref],val_samples[idx_val],cost_fun)
-                    validation_cost.append(temp_val)
-                    #Get weights of sparese layer
-                    sparse_tensor=np.abs(temp_session.run(sparse_layer_weights))
-                    
-                
-                    if i % max(int(epochs/100),1)==0  and j==0:
-                        sparse_weights=np.sum(sparse_tensor,axis=1)
-                        if make_plots:
-                            if i==0:
-                                ax = fig.add_subplot(111)
-                                weights_plot=ax.bar(np.arange(n_gs),sparse_weights)
-                                ax.set_autoscaley_on(True)
-                                #Need both of these in order to rescale
-                                ax.relim()
-                                ax.autoscale_view()
-                                ax.set_xlabel("Symmetry function")
-                                ax.set_ylabel("Weights")
-                                ax.set_title("Weights for symmetry functions")
-                                fig.canvas.draw()
-                                fig.canvas.flush_events()
-                            else:
-                                for u,rect in enumerate(weights_plot):
-                                    rect.set_height(sparse_weights[u])
-                                fig.canvas.draw()
-                                fig.canvas.flush_events()
-    
-                        print(str(100*i/epochs)+" %")
-            
-            print("Training finished")
 
             
 class MultipleInstanceTraining(object):
@@ -2094,9 +2044,9 @@ class MultipleInstanceTraining(object):
                 if ct % max(int((self.GlobalEpochs*len(self.TrainingInstances))/50),1)==0 or i==(self.GlobalEpochs-1):
                     if self.MakePlots==True:
                         if ct ==0:
-                            fig,ax,TrainingCostPlot,ValidationCostPlot=initialize_cost_plot(self.GlobalTrainingCosts,self.GlobalValidationCosts)
+                            fig,ax,TrainingCostPlot,ValidationCostPlot,RunningMeanPlot=initialize_cost_plot(self.GlobalTrainingCosts,self.GlobalValidationCosts)
                         else:
-                            update_cost_plot(fig,ax,TrainingCostPlot,self.GlobalTrainingCosts,ValidationCostPlot,self.GlobalValidationCosts)
+                            update_cost_plot(fig,ax,TrainingCostPlot,self.GlobalTrainingCosts,ValidationCostPlot,self.GlobalValidationCosts,RunningMeanPlot)
                     
                     #Finished percentage output
                     print(str(100*ct/(self.GlobalEpochs*len(self.TrainingInstances)))+" %")
