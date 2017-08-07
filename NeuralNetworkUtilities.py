@@ -843,6 +843,7 @@ class AtomicNeuralNetInstance(object):
         self.CurrentEpochNr=0
         self.IsPartitioned=False
         self.CostFunType="squared-difference"
+        self.TotalEnergy=None
         #Data variables
         self.AllGeometries=list()
         self.SizeOfInputs=list()
@@ -1007,13 +1008,7 @@ class AtomicNeuralNetInstance(object):
         
     def calculate_force(self,r):
         
-        F=list()
-        
-        if self.IsPartitioned==True:
-            TotalEnergy,AllEnergies=output_of_all_partitioned_atomic_networks(self.Session,self.AtomicNNs)
-        else:
-            TotalEnergy,AllEnergies=output_of_all_atomic_networks(self.Session,self.AtomicNNs)
-        
+        F=list()    
         dE_dG=list()
         
         Gs,dGs=SymmetryFunctionSet.get_gs_and_derivatives(r)#get G and dG for geometry
@@ -1021,7 +1016,7 @@ class AtomicNeuralNetInstance(object):
             AtomicNet=self.AtomicNNs[i]
             Input=AtomicNet[2]
             ThisGs=Gs[i]
-            dE_dG.append(self.Session.run(tf.gradients(TotalEnergy,Input),ThisGs))
+            dE_dG.append(self.Session.run(tf.gradients(self.TotalEnergy,Input),ThisGs))
             F.append(np.multiply(dE_dG,dGs))
         
         return F
@@ -1421,13 +1416,13 @@ class AtomicNeuralNetInstance(object):
     def atomic_cost_function(self):
         
         if self.IsPartitioned==True:
-            TotalEnergy,AllEnergies=output_of_all_partitioned_atomic_networks(self.Session,self.AtomicNNs)
+            self.TotalEnergy,AllEnergies=output_of_all_partitioned_atomic_networks(self.Session,self.AtomicNNs)
         else:
-            TotalEnergy,AllEnergies=output_of_all_atomic_networks(self.Session,self.AtomicNNs)
+            self.TotalEnergy,AllEnergies=output_of_all_atomic_networks(self.Session,self.AtomicNNs)
             
-        Cost=total_cost_for_network(TotalEnergy,self.OutputLayer,self.CostFunType)
+        Cost=total_cost_for_network(self.TotalEnergy,self.OutputLayer,self.CostFunType)
         
-        self.dE_Fun=tf.abs(TotalEnergy-self.OutputLayer)
+        self.dE_Fun=tf.abs(self.TotalEnergy-self.OutputLayer)
         
         if self.Regularization=="L1":
             trainableVars=tf.trainable_variables()
