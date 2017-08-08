@@ -1890,7 +1890,7 @@ class AtomicNeuralNetInstance(object):
                         else:
                             if j >= len(self.HiddenData[i]) and self.MakeLastLayerConstant == True:
                                 tempWeights, tempBias = construct_hidden_layer(NrIn, NrHidden, self.HiddenType, [], self.BiasType, [],
-                                                                               self.MakeAllVariable, self.InitMean, self.InitStddev)
+                                                                               True, self.InitMean, self.InitStddev)
                                 
                                 indices = []
                                 values = []
