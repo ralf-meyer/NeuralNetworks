@@ -951,10 +951,10 @@ class AtomicNeuralNetInstance(object):
             self.InitStddev=0.01
             self.BiasType="zeros"
             self.MakeAllVariable=MakeAllVariable
-            try:
-                AtomicNeuralNetInstance.make_and_initialize_network(self)
-            except:
-                print("Partitioned network loaded, please set IsPartitioned=True")
+            #try:
+            AtomicNeuralNetInstance.make_and_initialize_network(self)
+            #except:
+            #    print("Partitioned network loaded, please set IsPartitioned=True")
 
     def make_network(self):
 
@@ -1891,18 +1891,18 @@ class AtomicNeuralNetInstance(object):
                             if j >= len(self.HiddenData[i]) and self.MakeLastLayerConstant == True:
                                 tempWeights, tempBias = construct_hidden_layer(NrIn, NrHidden, self.HiddenType, [], self.BiasType, [],
                                                                                self.MakeAllVariable, self.InitMean, self.InitStddev)
-    
+                                
                                 indices = []
                                 values = []
                                 thisShape = tempWeights.get_shape().as_list()
-    
-                                for q in range(0, OldBiasNr):
-                                    indices.append([q, q])
-                                    values += [1.0]
-    
-                                delta = tf.SparseTensor(indices, values, thisShape)
-                                tempWeights = tempWeights + tf.sparse_tensor_to_dense(delta)
-    
+                                if thisShape[0]==thisShape[1]:
+                                    for q in range(0, OldBiasNr):
+                                        indices.append([q, q])
+                                        values += [1.0]
+                                        
+                                    delta = tf.SparseTensor(indices, values, thisShape)
+                                    tempWeights = tempWeights + tf.sparse_tensor_to_dense(delta)
+                                
                                 HiddenLayers.append([tempWeights, tempBias])
                             else:
                                 if len(RawBias) >= j:
