@@ -962,8 +962,8 @@ class AtomicNeuralNetInstance(object):
         if len(self.Structures)==0:
             print("No structures for the specific nets specified!")
             Execute=False
-        if len(self.Structures)-1<len(self.Dropout):
-            print("Dropout can only be between layers so it must be shorter than the Structure!")
+        if len(self.Structures[0])-1<len(self.Dropout):
+            print("Dropout can only be between layers so it must be shorter than the structure,\n but is "+str(len(self.Structures[0]))+" and "+str(len(self.Dropout)))
             Execute=False
         if len(self.NumberOfSameNetworks)==0:
             print("No number of specific nets specified!")
