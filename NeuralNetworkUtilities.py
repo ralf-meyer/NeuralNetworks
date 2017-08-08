@@ -117,7 +117,7 @@ def construct_not_trainable_layer(NrInputs,NrOutputs,Min):
 
     return Weights,Biases
 
-def connect_layers(InputsForLayer,Layer1Weights,Layer1Bias,ActFun=None,FunParam=None):
+def connect_layers(InputsForLayer,Layer1Weights,Layer1Bias,ActFun=None,FunParam=None,Dropout=0):
     #connect the outputs of the layer before to current layer
     if ActFun!=None:
         if ActFun=="sigmoid":
@@ -142,11 +142,15 @@ def connect_layers(InputsForLayer,Layer1Weights,Layer1Bias,ActFun=None,FunParam=
             Out = tf.matmul(InputsForLayer, Layer1Weights) + Layer1Bias
     else:
         Out=tf.nn.sigmoid(tf.matmul(InputsForLayer, Layer1Weights) + Layer1Bias)
+        
+    if Dropout!=0:
+        #Apply dropout between layers   
+        Out=tf.nn.dropout(Out,Dropout)
 
     return Out
 
 
-def make_standard_neuralnetwork(Structure,HiddenType=None,HiddenData=None,BiasType=None,BiasData=None,ActFun=None,ActFunParam=None):
+def make_standard_neuralnetwork(Structure,HiddenType=None,HiddenData=None,BiasType=None,BiasData=None,ActFun=None,ActFunParam=None,Dropout=0):
     #Construct the NN
 
     #Make inputs
@@ -166,7 +170,7 @@ def make_standard_neuralnetwork(Structure,HiddenType=None,HiddenData=None,BiasTy
    #Connect input to first hidden layer
     FirstWeights=HiddenLayers[0][0]
     FirstBiases=HiddenLayers[0][1]
-    InConnection=connect_layers(InputLayer,FirstWeights,FirstBiases,ActFun,ActFunParam)
+    InConnection=connect_layers(InputLayer,FirstWeights,FirstBiases,ActFun,ActFunParam,Dropout)
     LastConnection=InConnection
 
     for j in range(1,len(HiddenLayers)):
@@ -174,11 +178,11 @@ def make_standard_neuralnetwork(Structure,HiddenType=None,HiddenData=None,BiasTy
         if j==1 :
             SecondWeights=HiddenLayers[j][0]
             SecondBiases=HiddenLayers[j][1]
-            LastConnection=connect_layers(InConnection,SecondWeights,SecondBiases,ActFun,ActFunParam)
+            LastConnection=connect_layers(InConnection,SecondWeights,SecondBiases,ActFun,ActFunParam,Dropout)
         else:
             Weights=HiddenLayers[j][0]
             Biases=HiddenLayers[j][1]
-            LastConnection=connect_layers(LastConnection,Weights,Biases,ActFun,ActFunParam)
+            LastConnection=connect_layers(LastConnection,Weights,Biases,ActFun,ActFunParam,Dropout)
 
     return LastConnection,InputLayer,OutputLayer
 
@@ -684,6 +688,10 @@ def guarantee_initialized_variables(session, list_of_variables = None):
 def calc_dE(Session,dE_Fun,Layers,Data):
     return np.nan_to_num(np.mean(evaluate(Session,dE_Fun,Layers,Data)))
 
+def running_mean(x,N):
+    cumsum=np.cumsum(np.insert(x,0,0))
+    return (cumsum[N:]-cumsum[:-N])/N
+
 def initialize_cost_plot(TrainingData,ValidationData=[]):
 
     fig=plt.figure()
@@ -695,7 +703,7 @@ def initialize_cost_plot(TrainingData,ValidationData=[]):
     else:
         ValidationCostPlot=None
     #add running average plot 
-    running_avg=running_mean(TrainingData,100)
+    running_avg=running_mean(TrainingData,1000)
     RunningMeanPlot,=ax.semilogy(np.arange(0,len(running_avg)),running_avg)
 
     #Need both of these in order to rescale
@@ -711,10 +719,6 @@ def initialize_cost_plot(TrainingData,ValidationData=[]):
 
     return fig,ax,TrainingCostPlot,ValidationCostPlot,RunningMeanPlot
 
-def running_mean(x,N):
-    cumsum=np.cumsum(np.insert(x,0,0))
-    return (cumsum[N:]-cumsum[:-N])/N
-
 def update_cost_plot(figure,ax,TrainingCostPlot,TrainingCost,ValidationCostPlot=None,ValidationCost=None,RunningMeanPlot=None):
 
     TrainingCostPlot.set_data(np.arange(0,len(TrainingCost)),TrainingCost)
@@ -722,7 +726,7 @@ def update_cost_plot(figure,ax,TrainingCostPlot,TrainingCost,ValidationCostPlot=
         ValidationCostPlot.set_data(np.arange(0,len(ValidationCost)),ValidationCost)
     
     if RunningMeanPlot != None:
-        running_avg=running_mean(TrainingCost,100)
+        running_avg=running_mean(TrainingCost,1000)
         RunningMeanPlot.set_data(np.arange(0,len(running_avg)),running_avg)
     #Need both of these in order to rescale
     ax.relim()
@@ -838,6 +842,7 @@ class AtomicNeuralNetInstance(object):
         self.MakeAllVariable=True
         self.Regularization="none"
         self.RegularizationParam=0.0
+        self.Dropout=0
         self.DeltaE=0
         self.dE_Fun=None
         self.CurrentEpochNr=0
@@ -1523,15 +1528,15 @@ class AtomicNeuralNetInstance(object):
                         # Connect force field input to first hidden layer
                         ForceFieldFirstWeights = ForceFieldHiddenLayers[0][0]
                         ForceFieldFirstBiases = ForceFieldHiddenLayers[0][1]
-                        ForceFieldNetwork = connect_layers(ForceFieldInputLayer, ForceFieldFirstWeights, ForceFieldFirstBiases, self.ActFun, self.ActFunParam)
+                        ForceFieldNetwork = connect_layers(ForceFieldInputLayer, ForceFieldFirstWeights, ForceFieldFirstBiases, self.ActFun, self.ActFunParam,self.Dropout)
                         #Connect force field hidden layers
                         for l in range(1, len(ForceFieldHiddenLayers)):
                             ForceFieldTempWeights = ForceFieldHiddenLayers[l][0]
                             ForceFieldTempBiases = ForceFieldHiddenLayers[l][1]
                             if l == len(ForceFieldHiddenLayers) - 1:
-                                ForceFieldNetwork = connect_layers(ForceFieldNetwork, ForceFieldTempWeights, ForceFieldTempBiases, "none", self.ActFunParam)
+                                ForceFieldNetwork = connect_layers(ForceFieldNetwork, ForceFieldTempWeights, ForceFieldTempBiases, "none", self.ActFunParam,self.Dropout)
                             else:
-                                ForceFieldNetwork = connect_layers(ForceFieldNetwork, ForceFieldTempWeights, ForceFieldTempBiases, self.ActFun, self.ActFunParam)
+                                ForceFieldNetwork = connect_layers(ForceFieldNetwork, ForceFieldTempWeights, ForceFieldTempBiases, self.ActFun, self.ActFunParam,self.Dropout)
                         
         
                     if len(CorrectionHiddenLayers)>0:
@@ -1543,15 +1548,15 @@ class AtomicNeuralNetInstance(object):
                         # Connect Correction input to first hidden layer
                         CorrectionFirstWeights = CorrectionHiddenLayers[0][0]
                         CorrectionFirstBiases = CorrectionHiddenLayers[0][1]
-                        CorrectionNetwork = connect_layers(CorrectionInputLayer, CorrectionFirstWeights, CorrectionFirstBiases, self.ActFun, self.ActFunParam)
+                        CorrectionNetwork = connect_layers(CorrectionInputLayer, CorrectionFirstWeights, CorrectionFirstBiases, self.ActFun, self.ActFunParam,self.Dropout)
                         #Connect Correction hidden layers
                         for l in range(1, len(CorrectionHiddenLayers)):
                             CorrectionTempWeights = CorrectionHiddenLayers[l][0]
                             CorrectionTempBiases = CorrectionHiddenLayers[l][1]
                             if l == len(CorrectionHiddenLayers) - 1:
-                                CorrectionNetwork = connect_layers(CorrectionNetwork, CorrectionTempWeights, CorrectionTempBiases, "none", self.ActFunParam)
+                                CorrectionNetwork = connect_layers(CorrectionNetwork, CorrectionTempWeights, CorrectionTempBiases, "none", self.ActFunParam,self.Dropout)
                             else:
-                                CorrectionNetwork = connect_layers(CorrectionNetwork, CorrectionTempWeights, CorrectionTempBiases, self.ActFun, self.ActFunParam)
+                                CorrectionNetwork = connect_layers(CorrectionNetwork, CorrectionTempWeights, CorrectionTempBiases, self.ActFun, self.ActFunParam,self.Dropout)
          
                         
                     #Store all networks
@@ -1697,15 +1702,15 @@ class AtomicNeuralNetInstance(object):
                         ForceFieldFirstWeights = ForceFieldHiddenLayers[0][0]
                         self.FirstWeights.append(ForceFieldFirstWeights)
                         ForceFieldFirstBiases = ForceFieldHiddenLayers[0][1]
-                        ForceFieldNetwork = connect_layers(ForceFieldInputLayer, ForceFieldFirstWeights, ForceFieldFirstBiases, self.ActFun, self.ActFunParam)
+                        ForceFieldNetwork = connect_layers(ForceFieldInputLayer, ForceFieldFirstWeights, ForceFieldFirstBiases, self.ActFun, self.ActFunParam,self.Dropout)
                         #Connect force field hidden layers
                         for l in range(1, len(ForceFieldHiddenLayers)):
                             ForceFieldTempWeights = ForceFieldHiddenLayers[l][0]
                             ForceFieldTempBiases = ForceFieldHiddenLayers[l][1]
                             if l == len(ForceFieldHiddenLayers) - 1:
-                                ForceFieldNetwork = connect_layers(ForceFieldNetwork, ForceFieldTempWeights, ForceFieldTempBiases, "none", self.ActFunParam)
+                                ForceFieldNetwork = connect_layers(ForceFieldNetwork, ForceFieldTempWeights, ForceFieldTempBiases, "none", self.ActFunParam,self.Dropout)
                             else:
-                                ForceFieldNetwork = connect_layers(ForceFieldNetwork, ForceFieldTempWeights, ForceFieldTempBiases, self.ActFun, self.ActFunParam)
+                                ForceFieldNetwork = connect_layers(ForceFieldNetwork, ForceFieldTempWeights, ForceFieldTempBiases, self.ActFun, self.ActFunParam,self.Dropout)
                         
     
                     if len(CorrectionHiddenLayers)>0:
@@ -1721,15 +1726,15 @@ class AtomicNeuralNetInstance(object):
                         CorrectionFirstWeights = CorrectionHiddenLayers[0][0]
                         self.FirstWeights.append(CorrectionFirstWeights)
                         CorrectionFirstBiases = CorrectionHiddenLayers[0][1]
-                        CorrectionNetwork = connect_layers(CorrectionInputLayer, CorrectionFirstWeights, CorrectionFirstBiases, self.ActFun, self.ActFunParam)
+                        CorrectionNetwork = connect_layers(CorrectionInputLayer, CorrectionFirstWeights, CorrectionFirstBiases, self.ActFun, self.ActFunParam,self.Dropout)
                         #Connect Correction hidden layers
                         for l in range(1, len(CorrectionHiddenLayers)):
                             CorrectionTempWeights = CorrectionHiddenLayers[l][0]
                             CorrectionTempBiases = CorrectionHiddenLayers[l][1]
                             if l == len(CorrectionHiddenLayers) - 1:
-                                CorrectionNetwork = connect_layers(CorrectionNetwork, CorrectionTempWeights, CorrectionTempBiases, "none", self.ActFunParam)
+                                CorrectionNetwork = connect_layers(CorrectionNetwork, CorrectionTempWeights, CorrectionTempBiases, "none", self.ActFunParam,self.Dropout)
                             else:
-                                CorrectionNetwork = connect_layers(CorrectionNetwork, CorrectionTempWeights, CorrectionTempBiases, self.ActFun, self.ActFunParam)
+                                CorrectionNetwork = connect_layers(CorrectionNetwork, CorrectionTempWeights, CorrectionTempBiases, self.ActFun, self.ActFunParam,self.Dropout)
          
                     
                     #Store all networks
@@ -1799,7 +1804,7 @@ class AtomicNeuralNetInstance(object):
                     # Connect input to first hidden layer
                     FirstWeights = HiddenLayers[0][0]
                     FirstBiases = HiddenLayers[0][1]
-                    Network = connect_layers(InputLayer, FirstWeights, FirstBiases, self.ActFun, self.ActFunParam)
+                    Network = connect_layers(InputLayer, FirstWeights, FirstBiases, self.ActFun, self.ActFunParam,self.Dropout)
         
                     for l in range(1, len(HiddenLayers)):
                         # Connect ouput of in layer to second hidden layer
@@ -1807,11 +1812,11 @@ class AtomicNeuralNetInstance(object):
                         if l == len(HiddenLayers) - 1:
                             Weights = HiddenLayers[l][0]
                             Biases = HiddenLayers[l][1]
-                            Network = connect_layers(Network, Weights, Biases, "none", self.ActFunParam)
+                            Network = connect_layers(Network, Weights, Biases, "none", self.ActFunParam,self.Dropout)
                         else:
                             Weights = HiddenLayers[l][0]
                             Biases = HiddenLayers[l][1]
-                            Network = connect_layers(Network, Weights, Biases, self.ActFun, self.ActFunParam)
+                            Network = connect_layers(Network, Weights, Biases, self.ActFun, self.ActFunParam,self.Dropout)
         
                     if len(self.Gs) != 0:
                         if len(self.Gs) > 0:
@@ -1924,7 +1929,7 @@ class AtomicNeuralNetInstance(object):
                     FirstWeights = HiddenLayers[0][0]
                     self.FirstWeights.append(FirstWeights)
                     FirstBiases = HiddenLayers[0][1]
-                    Network = connect_layers(InputLayer, FirstWeights, FirstBiases, self.ActFun, self.ActFunParam)
+                    Network = connect_layers(InputLayer, FirstWeights, FirstBiases, self.ActFun, self.ActFunParam,self.Dropout)
     
                     for l in range(1, len(HiddenLayers)):
                         # Connect ouput of in layer to second hidden layer
@@ -1932,11 +1937,11 @@ class AtomicNeuralNetInstance(object):
                         if l == len(HiddenLayers) - 1:
                             Weights = HiddenLayers[l][0]
                             Biases = HiddenLayers[l][1]
-                            Network = connect_layers(Network, Weights, Biases, "none", self.ActFunParam)
+                            Network = connect_layers(Network, Weights, Biases, "none", self.ActFunParam,self.Dropout)
                         else:
                             Weights = HiddenLayers[l][0]
                             Biases = HiddenLayers[l][1]
-                            Network = connect_layers(Network, Weights, Biases, self.ActFun, self.ActFunParam)
+                            Network = connect_layers(Network, Weights, Biases, self.ActFun, self.ActFunParam,self.Dropout)
     
                     if len(self.Gs) != 0:
                         if len(self.Gs) > 0:
