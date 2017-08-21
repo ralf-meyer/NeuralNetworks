@@ -65,8 +65,8 @@ def addToSymmetryFunctionSet(symname_list, symfunc_list,variables_list,remove=Tr
                     symbols, simple = cse(symfunc, symbols=tmpsyms)
                     symbolslist = map(lambda x:str(x), list(symfunc.atoms(Symbol)) )
                     symbolslist.sort()
-                    varstring=",".join( " double "+x for x in symbolslist if not(is_variable(x,variables_list)))[1:]
-                    argstring=",".join(x for x in symbolslist if not(is_variable(x,variables_list)))[:]
+                    varstring=",".join( " double "+x for x in symbolslist if not(is_variable(str(x),variables_list)))[1:]
+                    argstring=",".join(x for x in symbolslist if not(is_variable(str(x),variables_list)))[:]
                     temp_code ="\tvoid add_"+str(symname)+"("+varstring+",int cutoff_type) {\n"
                     temp_code +="\t\t"+str(symname)+"SymFuns.push_back("+str(symname)+"SymmetryFunction("+argstring+",cutoff_type));\n"
                     temp_code +="\t};\n"
@@ -136,7 +136,7 @@ def addToSymmetryFunctionsHeader(symname_list, symfunc_list,variables_list,remov
                 zipped_list=zip(symbolslist_str,symbolslist)
                 zipped_list.sort(key=lambda t:t[0])
                 symbolslist_str,symbolslist=map(list,zip(*zipped_list))
-                conststring=",".join( " double "+str(x) for x in symbolslist if not(is_variable(x,variables_list)))[1:]
+                conststring=",".join( " double "+str(x) for x in symbolslist if not(is_variable(str(x),variables_list)))[1:]
                 temp_code ="class "+str(symname)+"SymmetryFunction:: public Symmetry Function\n"
                 temp_code +="{\n"
                 for symbol in symbolslist:
