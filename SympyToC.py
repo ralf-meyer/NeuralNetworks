@@ -9,13 +9,13 @@ def is_variable(symbol,variables_list):
     return out
 
 
-def addToSymmetryFunctionSet(symname_list, symfunc_list,variables_list):
+def addToSymmetryFunctionSet(symname_list, symfunc_list,variables_list,remove=True):
     
-    with open("Git/NeuralNetworks/symmetryFunctionSet.cpp","r") as file:
+    with open("symmetryFunctionSet.cpp","r") as file:
         cpp_code=file.read()
         #find insert position
         file.close()
-    with open("Git/NeuralNetworks/symmetryFunctionSet.cpp","w+") as file:
+    with open("symmetryFunctionSet.cpp","w+") as file:
         try:
             start_add_idx=cpp_code.index("//Start of section for adding custom symmetry functions\n")\
             +len("//Start of section for adding custom symmetry functions\n")
@@ -35,7 +35,8 @@ def addToSymmetryFunctionSet(symname_list, symfunc_list,variables_list):
                     end_add_idx=cpp_code.index("//End of section for adding custom symmetry functions\n")
                     break 
         #remove old custom add functions
-        cpp_code=cpp_code[:start_add_idx]+cpp_code[end_add_idx:]
+        if remove:
+            cpp_code=cpp_code[:start_add_idx]+cpp_code[end_add_idx:]
         
         try:
             start_vec_idx=cpp_code.index("//Start of custom extern declaration\n")+len("//Start of custom extern declaration\n")
@@ -56,48 +57,50 @@ def addToSymmetryFunctionSet(symname_list, symfunc_list,variables_list):
         cpp_code=cpp_code[:start_vec_idx]+cpp_code[end_vec_idx:]
         #insert new code
 
-        for symname,symfunc in zip(symname_list,symfunc_list): 
-            if type(symfunc)!=int and type(symfunc)!=float:
-                #construct code
-                tmpsyms = numbered_symbols("tmp")
-                symbols, simple = cse(symfunc, symbols=tmpsyms)
-                symbolslist = map(lambda x:str(x), list(symfunc.atoms(Symbol)) )
-                symbolslist.sort()
-                varstring=",".join( " double "+x for x in symbolslist if not(is_variable(x,variables_list)))[1:]
-                argstring=",".join(x for x in symbolslist if not(is_variable(x,variables_list)))[:]
-                temp_code ="\tvoid add_"+str(symname)+"("+varstring+",int cutoff_type) {\n"
-                temp_code +="\t\t"+str(symname)+"SymFuns.push_back("+str(symname)+"SymmetryFunction("+argstring+",cutoff_type));\n"
-                temp_code +="\t};\n"
+        for symname,symfuns in zip(symname_list,symfunc_list): 
+            for symfunc in symfuns:
+                if type(symfunc)!=int and type(symfunc)!=float:
+                    #construct code
+                    tmpsyms = numbered_symbols("tmp")
+                    symbols, simple = cse(symfunc, symbols=tmpsyms)
+                    symbolslist = map(lambda x:str(x), list(symfunc.atoms(Symbol)) )
+                    symbolslist.sort()
+                    varstring=",".join( " double "+x for x in symbolslist if not(is_variable(x,variables_list)))[1:]
+                    argstring=",".join(x for x in symbolslist if not(is_variable(x,variables_list)))[:]
+                    temp_code ="\tvoid add_"+str(symname)+"("+varstring+",int cutoff_type) {\n"
+                    temp_code +="\t\t"+str(symname)+"SymFuns.push_back("+str(symname)+"SymmetryFunction("+argstring+",cutoff_type));\n"
+                    temp_code +="\t};\n"
+                    #add to previous
+                    cpp_code=cpp_code[:start_add_idx]+temp_code+cpp_code[start_add_idx:]
+                else:
+                    cpp_code +="\tvoid add_"+str(symname)+"(int cutoff_type) {\n"
+                    cpp_code +="\t\t"+str(symname)+"SymFuns.push_back("+str(symname)+"SymmetryFunction(cutoff_type));\n"
+                    cpp_code +="};\n"
+                    
+                try:
+                    start_vec_idx=cpp_code.index("//Start of custom extern declaration\n")+len("//Start of custom extern declaration\n")
+                except:
+                    bracket_idx=[i.start() for i in re.finditer('}', cpp_code)]
+                    symfunset_idx=cpp_code.index("return new SymmetryFunctionSet()")
+                    for i,idx in enumerate(bracket_idx):
+                        if idx > symfunset_idx:
+                            start_vec_idx=idx+1
+                            break
+                temp_code ="\tvoid SymmetryFunctionSet_add_"+str(symname)+"(SymmetryFunctionSet* symFunSet, "\
+                +varstring+",int cutoff_type){symFunSet->add_"+str(symname)+"("+argstring+",cutoff_type);}\n"
                 #add to previous
-                cpp_code=cpp_code[:start_add_idx]+temp_code+cpp_code[start_add_idx:]
-            else:
-                cpp_code +="\tvoid add_"+str(symname)+"(int cutoff_type) {\n"
-                cpp_code +="\t\t"+str(symname)+"SymFuns.push_back("+str(symname)+"SymmetryFunction(cutoff_type));\n"
-                cpp_code +="};\n"
-                
-            try:
-                start_vec_idx=cpp_code.index("//Start of custom extern declaration\n")+len("//Start of custom extern declaration\n")
-            except:
-                bracket_idx=[i.start() for i in re.finditer('}', cpp_code)]
-                symfunset_idx=cpp_code.index("return new SymmetryFunctionSet()")
-                for i,idx in enumerate(bracket_idx):
-                    if idx > symfunset_idx:
-                        start_vec_idx=idx+1
-                        break
-            temp_code ="\tvoid SymmetryFunctionSet_add_"+str(symname)+"(SymmetryFunctionSet* symFunSet, "\
-            +varstring+",int cutoff_type){symFunSet->add_"+str(symname)+"("+argstring+",cutoff_type);}\n"
-            #add to previous
-            cpp_code=cpp_code[:start_vec_idx]+temp_code+cpp_code[start_vec_idx:]
+                cpp_code=cpp_code[:start_vec_idx]+temp_code+cpp_code[start_vec_idx:]
+                break
         file.write(cpp_code)
         file.close()
         
-def addToSymmetryFunctionsHeader(symname_list, symfunc_list,variables_list):
+def addToSymmetryFunctionsHeader(symname_list, symfunc_list,variables_list,remove=True):
     
-    with open("Git/NeuralNetworks/symmetryFunctions.h","r") as file:
+    with open("symmetryFunctions.h","r") as file:
         h_code=file.read()
         file.close()
         
-    with open("Git/NeuralNetworks/symmetryFunctions.h","w+") as file:
+    with open("symmetryFunctions.h","w+") as file:
         #find insert position
         try:
             start_idx=h_code.index("//Start of section for custom symmetry functions\n")\
@@ -119,45 +122,47 @@ def addToSymmetryFunctionsHeader(symname_list, symfunc_list,variables_list):
                     break 
 
         #remove old custom add functions
-        h_code=h_code[:start_idx]+h_code[end_idx:]
+        if remove:
+            h_code=h_code[:start_idx]+h_code[end_idx:]
         #insert new code
 
-        for symname,symfunc in zip(symname_list,symfunc_list): 
-            #construct code
-            tmpsyms = numbered_symbols("tmp")
-            symbols, simple = cse(symfunc, symbols=tmpsyms)
-            symbolslist_str = map(lambda x:str(x), list(symfunc.atoms(Symbol)))
-            symbolslist = map(lambda x:x, list(symfunc.atoms(Symbol)))
-            zipped_list=zip(symbolslist_str,symbolslist)
-            zipped_list.sort(key=lambda t:t[0])
-            symbolslist_str,symbolslist=map(list,zip(*zipped_list))
-            conststring=",".join( " double "+str(x) for x in symbolslist if not(is_variable(x,variables_list)))[1:]
-            temp_code ="class "+str(symname)+"SymmetryFunction:: public Symmetry Function\n"
-            temp_code +="{\n"
-            for symbol in symbolslist:
-                if not(is_variable(symbol,variables_list)):
-                    temp_code +="\tdouble "+str(symbol)+";\n"
-            temp_code +="\tCutoffFunction *cutFun\n"
-            temp_code +="\tpublic:\n"
-            temp_code +="\t\t"+str(symname)+"SymmetryFunction("+conststring+");\n"
-            temp_code +="\t\tdouble eval(double* r);\n"
-            for i in range(0,len(variables_list)):
-                    temp_code +="\t\tdouble derivative_"+str(variables_list[i])+"(double* r);\n"
-                    
-            temp_code +="};\n"
-            #add to previous
-            h_code=h_code[:start_idx]+temp_code+h_code[start_idx:]
+        for symname,symfuns in zip(symname_list,symfunc_list): 
+            for symfunc in symfuns:
+                #construct code
+                tmpsyms = numbered_symbols("tmp")
+                symbols, simple = cse(symfunc, symbols=tmpsyms)
+                symbolslist_str = map(lambda x:str(x), list(symfunc.atoms(Symbol)))
+                symbolslist = map(lambda x:x, list(symfunc.atoms(Symbol)))
+                zipped_list=zip(symbolslist_str,symbolslist)
+                zipped_list.sort(key=lambda t:t[0])
+                symbolslist_str,symbolslist=map(list,zip(*zipped_list))
+                conststring=",".join( " double "+str(x) for x in symbolslist if not(is_variable(x,variables_list)))[1:]
+                temp_code ="class "+str(symname)+"SymmetryFunction:: public Symmetry Function\n"
+                temp_code +="{\n"
+                for symbol in symbolslist:
+                    if not(is_variable(symbol,variables_list)):
+                        temp_code +="\tdouble "+str(symbol)+";\n"
+                temp_code +="\tCutoffFunction *cutFun\n"
+                temp_code +="\tpublic:\n"
+                temp_code +="\t\t"+str(symname)+"SymmetryFunction("+conststring+");\n"
+                temp_code +="\t\tdouble eval(double* r);\n"
+                for i in range(0,len(variables_list)):
+                        temp_code +="\t\tdouble derivative_"+str(variables_list[i])+"(double* r);\n"
+                        
+                temp_code +="};\n"
+                #add to previous
+                h_code=h_code[:start_idx]+temp_code+h_code[start_idx:]
             #write new file
         file.write(h_code)
         file.close()
     
-def addToSymmetryFunctions(symname_list, symfunc_list,variables_list):
+def addToSymmetryFunctions(symname_list, symfunc_list,variables_list,remove=True):
     
-    with open("Git/NeuralNetworks/symmetryFunctions.cpp","r") as file:
+    with open("symmetryFunctions.cpp","r") as file:
         cpp_code=file.read()
         file.close()
         
-    with open("Git/NeuralNetworks/symmetryFunctions.cpp","w+") as file:
+    with open("symmetryFunctions.cpp","w+") as file:
         #find insert position
         try:
             start_idx=cpp_code.index("//Start of section for custom symmetry functions\n")\
@@ -179,89 +184,93 @@ def addToSymmetryFunctions(symname_list, symfunc_list,variables_list):
                     break 
 
         #remove old custom add functions
-        cpp_code=cpp_code[:start_idx]+cpp_code[end_idx:]
+        if remove:
+            cpp_code=cpp_code[:start_idx]+cpp_code[end_idx:]
         #insert new code
 
-        for symname,symfunc in zip(symname_list,symfunc_list): 
-            #construct code
-            tmpsyms = numbered_symbols("tmp")
-            symbols, simple = cse(symfunc, symbols=tmpsyms)
-            symbolslist_str = map(lambda x:str(x), list(symfunc.atoms(Symbol)))
-            symbolslist = map(lambda x:x, list(symfunc.atoms(Symbol)))
-            zipped_list=zip(symbolslist_str,symbolslist)
-            zipped_list.sort(key=lambda t:t[0])
-            symbolslist_str,symbolslist=map(list,zip(*zipped_list))
-            conststring_i=",".join( " double "+str(x)+"_i" for x in symbolslist if not(is_variable(x,variables_list)))[1:]
-            cutstring="*".join( "cutFun->eval("+str(x)+")" for x in symbolslist if is_variable(x,variables_list) and "costheta" not in str(x))
-            temp_code =str(symname)+"SymmetryFunction::"+str(symname)+"SymmetryFunction("+conststring_i+",int cutoff_type)\n"
-            for symbol in symbolslist:
-                if not(is_variable(symbol,variables_list)):
-                    temp_code +="\t"+str(symbol)+" = "+str(symbol)+"_i;\n"
-            temp_code +="\tif (cutoff_type == 0)\n"
-            temp_code +="\t\tcutFun = new CosCutoffFunction(cutoff);\n"
-            temp_code +="\telse if(cutoff_type == 1)\n"
-            temp_code +="\t\tcutFun = new TanhCutoffFunction(cutoff);\n"
-            temp_code +="\telse\n"
-            temp_code +="\t\tcutFun = 1;\n"
-            temp_code +="};\n"
-            for i in range(0,len(variables_list)+1):
-                if i==0:
-                    temp_code +="double "+str(symname)+"SymmetryFunction::eval(double* r)\n"
-                    fun=symfunc
-                else:
-                    temp_code +="double "+str(symname)+"SymmetryFunction::derivative_"+str(variables_list[i-1])+"(double* r)\n"
-                    fun=diff(symfunc,variables_list[i-1])
-                    tmpsyms = numbered_symbols("tmp")
-                    symbols, simple = cse(fun, symbols=tmpsyms)
-                temp_code +="{\n"
-                for s in symbols:
-                    temp_code +=  "\tdouble " +ccode(s[0]) + " = " + ccode(s[1]) + ";\n"
-                if i>0:
-                    if variables_list[i-1] in fun.free_symbols:   
-                        funstr=str(ccode(simple[0]))
-                    else:
-                        funstr="0"
-                else:
-                    funstr=str(ccode(simple[0]))
-                    
-                if "Heaviside" in funstr:
-                    #get argument of Heaviside function
-                    heavi_idx=funstr.index("Heaviside")
-                    arg_start=funstr.index("(",heavi_idx)
-                    arg_end=funstr.index(")",heavi_idx)
-                    arg=funstr[arg_start+1:arg_end]
-                    temp_code += "\tif(("+ccode(arg)+") < 0) {\n"
-                    temp_code += "\t\treturn = 0.0; }\n"
-                    temp_code += "\telse{"
-                    temp =  "\t\treturn = " + funstr[:heavi_idx-1]+"*"+cutstring+";\n }"
-                    
-                else:
-                    if funstr!="0":
-                        temp =  "\treturn = " + funstr+"*"+cutstring+";\n"
-                    else:
-                        temp =  "\treturn = 0.0;\n"
-                        
-                #replace variables with pointer
-                ct=0
-                for s in symbolslist:
-                    if is_variable(s,variables_list):
-                        temp=temp.replace(str(s),"r["+str(ct)+"]")
-                        ct+=1
-                temp_code += temp
+        for symname,symfuns in zip(symname_list,symfunc_list): 
+            for symfunc in symfuns:
+                #construct code
+                tmpsyms = numbered_symbols("tmp")
+                symbols, simple = cse(symfunc, symbols=tmpsyms)
+                symbolslist_str = map(lambda x:str(x), list(symfunc.atoms(Symbol)))
+                symbolslist = map(lambda x:x, list(symfunc.atoms(Symbol)))
+                zipped_list=zip(symbolslist_str,symbolslist)
+                zipped_list.sort(key=lambda t:t[0])
+                symbolslist_str,symbolslist=map(list,zip(*zipped_list))
+                conststring_i=",".join( " double "+str(x)+"_i" for x in symbolslist if not(is_variable(str(x),variables_list)))[1:]
+                cutstring="*".join( "cutFun->eval("+str(x)+")" for x in symbolslist if is_variable(x,variables_list) and "costheta" not in str(x))
+                temp_code ="double "+str(symname)+"SymmetryFunction::"+str(symname)+"SymmetryFunction("+conststring_i+",int cutoff_type)\n"
+                for symbol in symbolslist:
+                    if not(is_variable(str(symbol),variables_list)):
+                        temp_code +="\t"+str(symbol)+" = "+str(symbol)+"_i;\n"
+                temp_code +="\tif (cutoff_type == 0)\n"
+                temp_code +="\t\tcutFun = new CosCutoffFunction(cutoff);\n"
+                temp_code +="\telse if(cutoff_type == 1)\n"
+                temp_code +="\t\tcutFun = new TanhCutoffFunction(cutoff);\n"
+                temp_code +="\telse\n"
+                temp_code +="\t\tcutFun = 1;\n"
                 temp_code +="};\n"
-
-            #add to previous
-            cpp_code=cpp_code[:start_idx]+temp_code+cpp_code[start_idx:]
+                for i in range(0,len(variables_list)+1):
+                    if i==0:
+                        temp_code +="double "+str(symname)+"SymmetryFunction::eval(double* r)\n"
+                        fun=symfunc
+                    else:
+                        temp_code +="double "+str(symname)+"SymmetryFunction::derivative_"+str(variables_list[i-1])+"(double* r)\n"
+                        fun=diff(symfunc,variables_list[i-1])
+                        tmpsyms = numbered_symbols("tmp")
+                        symbols, simple = cse(fun, symbols=tmpsyms)
+                    temp_code +="{\n"
+                    temp=""
+                    for s in symbols:
+                        temp +=  "\tdouble " +ccode(s[0]) + " = " + ccode(s[1]) + ";\n"
+                    if i>0:
+                        try:   
+                            const=float(ccode(simple[0]))
+                            funstr=str(const)
+                        except:
+                            funstr=str(ccode(simple[0]))
+                    else:
+                        funstr=str(ccode(simple[0]))
+                        
+                    if "Heaviside" in funstr:
+                        #get argument of Heaviside function
+                        heavi_idx=funstr.index("Heaviside")
+                        arg_start=funstr.index("(",heavi_idx)
+                        arg_end=funstr.index(")",heavi_idx)
+                        arg=funstr[arg_start+1:arg_end]
+                        temp += "\tif(("+ccode(arg)+") < 0) {\n"
+                        temp += "\t\treturn = 0.0; }\n"
+                        temp += "\telse{"
+                        temp +=  "\t\treturn = " + funstr[:heavi_idx-1]+"*"+cutstring+";\n }"
+                        
+                    else:
+                        if funstr!="0":
+                            temp +=  "\treturn = " + funstr+";\n"
+                        else:
+                            temp +=  "\treturn = 0.0;\n"
+                            
+                    #replace variables with pointer
+                    ct=0
+                    for s in symbolslist:
+                        if is_variable(str(s),variables_list):
+                            temp=temp.replace(str(s),"r["+str(ct)+"]")
+                            ct+=1
+                    temp_code += temp
+                    temp_code +="};\n"
+    
+                #add to previous
+                cpp_code=cpp_code[:start_idx]+temp_code+cpp_code[start_idx:]
             #write new file
         file.write(cpp_code)
         file.close()
         
-def sympyToCpp(symname_list,symfunc_list,variables_list):
+def sympyToCpp(symname_list,symfunc_list,variables_list,remove=True):
     
     if len(symname_list)==len(symfunc_list):
-        addToSymmetryFunctionSet(symname_list, symfunc_list,variables_list)
-        addToSymmetryFunctions(symname_list, symfunc_list,variables_list)
-        addToSymmetryFunctionsHeader(symname_list, symfunc_list,variables_list)
+        addToSymmetryFunctionSet(symname_list, symfunc_list,variables_list,remove)
+        addToSymmetryFunctions(symname_list, symfunc_list,variables_list,remove)
+        addToSymmetryFunctionsHeader(symname_list, symfunc_list,variables_list,remove)
     else:
         print("Number of names "+str(len(symname_list))\
               +" does not match number of symmetry functions "+str(len(symname_list))+" specified!")
