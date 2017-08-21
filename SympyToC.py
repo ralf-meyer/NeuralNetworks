@@ -140,7 +140,7 @@ def addToSymmetryFunctionsHeader(symname_list, symfunc_list,variables_list,remov
                 temp_code ="class "+str(symname)+"SymmetryFunction:: public Symmetry Function\n"
                 temp_code +="{\n"
                 for symbol in symbolslist:
-                    if not(is_variable(symbol,variables_list)):
+                    if not(is_variable(str(symbol),variables_list)):
                         temp_code +="\tdouble "+str(symbol)+";\n"
                 temp_code +="\tCutoffFunction *cutFun\n"
                 temp_code +="\tpublic:\n"
