@@ -867,6 +867,7 @@ class AtomicNeuralNetInstance(object):
         self.MinOfOut=None
         self.VarianceOfDs=[]
         self.InputDerivatives=False
+        self.EvalData=[]
         
         #Other
         self.Multiple=False
@@ -1080,8 +1081,15 @@ class AtomicNeuralNetInstance(object):
 
     def start_evaluation(self):
 
-        self.Session,self.AtomicNNs=AtomicNeuralNetInstance.expand_neuralnet(self)
-        AtomicNeuralNetInstance.initialize_network(self)
+        AtomicNeuralNetInstance.expand_existing_net(self)
+        for data in self.EvalData:
+            Out=0
+            if self.IsPartitioned==False:
+                Out=evaluate_all_atomicnns(self.Session,self.AtomicNNs,data)
+            else:
+                Out=evaluate_all_partitioned_atomicnns(self.Session,self.AtomicNNs,data,self.TotalNrOfRadialFuns)
+                
+        return Out
 
     def eval_step(self):
         Out=0
@@ -1277,14 +1285,15 @@ class AtomicNeuralNetInstance(object):
             self.MeansOfDs.append(np.mean(InputsForNetX,axis=0))
             self.VarianceOfDs.append(np.var(InputsForNetX,axis=0))
         #Output statistics
-        NormalizedEnergy=np.divide(self.Ds.energies,NrAtoms)
-        if self.MinOfOut== None:
-            TakeAsReference=True
-        else:
-            if self.MinOfOut>np.min(NormalizedEnergy):
+        if len(self.Ds.energies)>0:
+            NormalizedEnergy=np.divide(self.Ds.energies,NrAtoms)
+            if self.MinOfOut== None:
                 TakeAsReference=True
-        if TakeAsReference==True:
-            self.MinOfOut=np.min(NormalizedEnergy)*2 #factor of two is to make sure that there is room for lower energies
+            else:
+                if self.MinOfOut>np.min(NormalizedEnergy):
+                    TakeAsReference=True
+            if TakeAsReference==True:
+                self.MinOfOut=np.min(NormalizedEnergy)*2 #factor of two is to make sure that there is room for lower energies
 
 
     def read_files(self,TakeAsReference=True,LoadGeometries=True):
@@ -1318,14 +1327,19 @@ class AtomicNeuralNetInstance(object):
         if LoadGeometries:
             AtomicNeuralNetInstance.calculate_statistics_for_dataset(self,TakeAsReference)
 
-    def init_qe_dataset(self,qe_reader,TakeAsReference=True):
+    def init_dataset(self,geometries,energies=[],TakeAsReference=True):
         self.Ds=DataSet.DataSet()
         self.SymmFunSet=SymmetryFunctionSet.SymmetryFunctionSet(self.atomtypes)
-        self.Ds.energies=qe_reader.e_pot_rel
-        self.Ds.geometries=qe_reader.geometries
+        self.Ds.energies=energies
+        self.Ds.geometries=geometries
         self.SymmFunSet.add_radial_functions_evenly(self.NumberOfRadialFunctions)
         self.SymmFunSet.add_angular_functions(self.Etas,self.Zetas,self.Lambs)
         AtomicNeuralNetInstance.calculate_statistics_for_dataset(self,TakeAsReference)
+        
+    def create_eval_data(self,geometries,NoBatches=True):
+        AtomicNeuralNetInstance.init_dataset(self,geometries)
+        self.EvalData=AtomicNeuralNetInstance.get_data(NoBatches=True)
+        
     
     def get_data_batch(self,BatchSize=100,NoBatches=False):
 
@@ -1411,6 +1425,8 @@ class AtomicNeuralNetInstance(object):
                         print(str(100*i/NrOfBatches)+" %")
 
             return Batches
+        
+
 
     def make_training_and_validation_data(self,BatchSize=100,TrainingSetInPercent=70,ValidationSetInPercent=30,NoBatches=False):
 
