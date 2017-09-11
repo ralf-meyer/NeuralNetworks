@@ -318,18 +318,24 @@ def read_geometries(my_file):
     
     all_geometries=[]
     pos=None
+    pos3d=[]
     #get values
     if len(start_idx)==len(end_idx):
         for i in range(0,len(start_idx)):
             geom=[]
             values=my_file[start_idx[i]+1:end_idx[i]].split()
+
             for val in values:
                 try:
                     num=float(val)
-                    pos=pos+(num,)
-                    if len(pos)==4:
-                        geom.append(pos)
+                    #pos=pos+(num,)
+                    if len(pos3d)<3:
+                        pos3d.append(num)
+                        if len(pos3d)==3:
+                            pos=pos+(np.array(pos3d),)
+                            geom.append(pos)
                 except:
+                    pos3d=[]
                     a_type=val
                     pos=(a_type,)
                     
