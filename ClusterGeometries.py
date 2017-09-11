@@ -100,13 +100,13 @@ def create_unique_geometries(n_layers,atom_types=["Ni","Au"],lattice_const=1):
     return create_QE_configurations(unique_configs,xyzs,atom_types)
 
 
-def make_files(geometries,randomization_factor=0,path=''):
+def make_files(geometries,randomization_factor=0,path='',Name='NiAu'):
     
-    header="&CONTROL\n  calculation  = 'scf'\n  prefix       = 'geom_opt',\n  pseudo_dir   = '/usr/share/espresso/pseudo',\n outdir       = '/home/afuchs/.tempdir'\n/\n&SYSTEM\n ibrav     = 1,\n celldm(1) = 40\n  nat       = $natom$,\n  ntyp      = 2,\n  ecutwfc   = 25.D0,\n  ecutrho   = 100.D0,\n occupations='smearing', smearing='methfessel-paxton',degauss=0.01\n/\n&ELECTRONS\n  conv_thr    = 1.D-5,\n  mixing_beta = 0.15D0,\n  electron_maxstep = 250\n/\nATOMIC_SPECIES\nNi 58.69 Ni.pbe-n-kjpaw_psl.0.1.UPF\nAu 197.00 Au.pbe-dn-kjpaw_psl.0.1.UPF\nATOMIC_POSITIONS {angstrom}\n"
+    header="&CONTROL\n  calculation  = 'scf'\n  prefix       = 'geom_opt',\n  pseudo_dir   = '/usr/share/espresso/pseudo',\n outdir       = '/home/afuchs/.tempdir'\n/\n&SYSTEM\n ibrav     = 1,\n celldm(1) = 16\n  nat       = $natom$,\n  ntyp      = 2,\n  ecutwfc   = 30.D0,\n  ecutrho   = 120.D0,\n  assume_isolated = 'martyna-tuckerman'\n/\n&ELECTRONS\n  conv_thr    = 1.D-7,\n  mixing_beta = 0.7D0,\n  electron_maxstep = 50\n/\nATOMIC_SPECIES\nO  1.00  O.pbe-kjpaw.UPF\nH  1.00  H.pbe-kjpaw.UPF\nATOMIC_POSITIONS {bohr}\n"
     n_atoms=len(geometries[0])
     header=header.replace("$natom$",str(n_atoms))
     for i,geom in enumerate(geometries):
-        with open(path+'NiAu_'+str(i)+".in",'w') as file:
+        with open(path+Name+'_'+str(i)+".in",'w') as file:
             file.write(header)
             for j in range(0,len(geom)):
                 rnd=np.random.rand(3)*randomization_factor
