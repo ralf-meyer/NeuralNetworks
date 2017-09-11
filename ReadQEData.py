@@ -436,7 +436,7 @@ class QE_SCF_Reader(object):
         for this in self.files:
             eq_idx=[i.start() for i in re.finditer('=', this)]
             temp_idx=[j.start() for j in re.finditer('Ry',this)]
-            temp_tot.append(read_total_energy(this))
+            temp_tot.append(read_total_energy(this,eq_idx,temp_idx))
             temp_harris.append(read_harris_foulkes_estimate(this,eq_idx,temp_idx))
             temp_scf_a.append(read_scf_accuracy(this))
             temp_ecut.append(get_ecut(this))
