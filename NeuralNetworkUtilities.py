@@ -1318,7 +1318,15 @@ class AtomicNeuralNetInstance(object):
         if LoadGeometries:
             AtomicNeuralNetInstance.calculate_statistics_for_dataset(self,TakeAsReference)
 
-
+    def init_qe_dataset(self,qe_reader,TakeAsReference=True):
+        self.Ds=DataSet.DataSet()
+        self.SymmFunSet=SymmetryFunctionSet.SymmetryFunctionSet(self.atomtypes)
+        self.Ds.energies=qe_reader.e_pot_rel
+        self.Ds.geometries=qe_reader.geometries
+        self.SymmFunSet.add_radial_functions_evenly(self.NumberOfRadialFunctions)
+        self.SymmFunSet.add_angular_functions(self.Etas,self.Zetas,self.Lambs)
+        AtomicNeuralNetInstance.calculate_statistics_for_dataset(self,TakeAsReference)
+    
     def get_data_batch(self,BatchSize=100,NoBatches=False):
 
         AllData=list()
