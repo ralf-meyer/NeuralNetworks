@@ -1084,10 +1084,12 @@ class AtomicNeuralNetInstance(object):
         AtomicNeuralNetInstance.expand_existing_net(self)
         for data in self.EvalData:
             Out=0
+            indata=data[0]
+            print(indata[0].shape)
             if self.IsPartitioned==False:
-                Out=evaluate_all_atomicnns(self.Session,self.AtomicNNs,data)
+                Out=evaluate_all_atomicnns(self.Session,self.AtomicNNs,indata)
             else:
-                Out=evaluate_all_partitioned_atomicnns(self.Session,self.AtomicNNs,data,self.TotalNrOfRadialFuns)
+                Out=evaluate_all_partitioned_atomicnns(self.Session,self.AtomicNNs,indata,self.TotalNrOfRadialFuns)
                 
         return Out
 
@@ -1327,7 +1329,7 @@ class AtomicNeuralNetInstance(object):
         if LoadGeometries:
             AtomicNeuralNetInstance.calculate_statistics_for_dataset(self,TakeAsReference)
 
-    def init_dataset(self,geometries,energies=[],TakeAsReference=True):
+    def init_dataset(self,geometries,energies,TakeAsReference=True):
         self.Ds=DataSet.DataSet()
         self.SymmFunSet=SymmetryFunctionSet.SymmetryFunctionSet(self.atomtypes)
         self.Ds.energies=energies
@@ -1336,9 +1338,11 @@ class AtomicNeuralNetInstance(object):
         self.SymmFunSet.add_angular_functions(self.Etas,self.Zetas,self.Lambs)
         AtomicNeuralNetInstance.calculate_statistics_for_dataset(self,TakeAsReference)
         
+        
     def create_eval_data(self,geometries,NoBatches=True):
-        AtomicNeuralNetInstance.init_dataset(self,geometries)
-        self.EvalData=AtomicNeuralNetInstance.get_data(NoBatches=True)
+        dummy_energies=[0]*len(geometries)
+        AtomicNeuralNetInstance.init_dataset(self,geometries,dummy_energies)
+        self.EvalData=AtomicNeuralNetInstance.get_data(self,NoBatches=True)
         
     
     def get_data_batch(self,BatchSize=100,NoBatches=False):
@@ -1359,12 +1363,15 @@ class AtomicNeuralNetInstance(object):
             Execute=False
 
         if Execute==True:
+            if NoBatches:
+                BatchSize=len(self.Ds.geometries)
 
             OutputData=np.empty((BatchSize,1))
             if NoBatches==False:
                 if BatchSize>len(self.AllGeometries)/10:
                     BatchSize=int(BatchSize/10)
                     print("Shrunk batches to size:"+str(BatchSize))
+
 
             #Create a list with all possible random values
             ValuesForDrawingSamples=list(range(0,len(self.Ds.geometries)))
