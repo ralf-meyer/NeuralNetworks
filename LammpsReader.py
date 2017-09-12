@@ -80,7 +80,7 @@ def make_files(geoms):
         
 
 
-def make_rand_lammps_geoms(N_geom):
+def make_rand_lammps_geoms(N_geom,SavePath="",Atoms=["Ni","Au"]):
     Geometries=[]
     ct=0
     tot_ct=0
@@ -90,7 +90,7 @@ def make_rand_lammps_geoms(N_geom):
             all_str=str(file1.read())#
             all_str=all_str.replace("999",str(random.randint(0,999999)))
             all_str=all_str.replace("888",str(random.randint(0,999999)))
-            with open('temp_'+str(ct)+'.md','w') as file2:
+            with open(SavePath+'/temp_'+str(ct)+'.md','w') as file2:
                 file2.write(all_str)
         file1.close()
         file2.close()
@@ -108,7 +108,7 @@ def make_rand_lammps_geoms(N_geom):
         
     
         a_type_int=np.asarray(lmp.extract_variable("type","all",1),dtype=np.int32)
-        a_type=give_atom_type(a_type_int,["Ni","Au"])
+        a_type=give_atom_type(a_type_int,Atoms)
         fx = np.asarray(lmp.extract_variable("fx","all",1))
         fy = np.asarray(lmp.extract_variable("fy","all",1))
         fz = np.asarray(lmp.extract_variable("fz","all",1))
