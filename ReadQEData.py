@@ -409,6 +409,24 @@ class QE_SCF_Reader(object):
         self.ewald_contrib=[]
         self.one_center_paw_contrib=[]
         self.smearing_contrib=[]
+        self.e_tot_rel=[]
+        self.Calibration=[]
+        
+    def calibrate_energy(self):
+        e_cal=0
+        for cal in self.Calibration:
+            QE_SCF_Reader.files=[]
+            folder=cal[0]
+            NrAtoms=cal[1]
+            for dirpath, dirnames, filenames in os.walk(folder):
+                for filename in [f for f in filenames if f.endswith(".out")]:
+                    temp=open(os.path.join(dirpath, filename),"r").read()
+                    if 'JOB DONE' in temp:
+                        QE_SCF_Reader.files=[temp]
+                        QE_SCF_Reader.read_all_files()
+                        e_cal+=QE_SCF_Reader.total_energies[0][-1]*NrAtoms
+                        
+        self.e_tot_rel=np.subtract(self.total_energies,e_cal)
         
     def get_files(self,folder):
         for dirpath, dirnames, filenames in os.walk(folder):
