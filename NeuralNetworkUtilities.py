@@ -1079,9 +1079,9 @@ class AtomicNeuralNetInstance(object):
         
         return train_stat,val_stat
 
-    def start_evaluation(self):
+    def start_evaluation(self,nAtoms,ModelName="save/trained_variables"):
 
-        AtomicNeuralNetInstance.expand_existing_net(self)
+        AtomicNeuralNetInstance.expand_trained_net(self,nAtoms,ModelName)
         for data in self.EvalData:
             Out=0
             indata=data[0]
