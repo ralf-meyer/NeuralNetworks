@@ -398,6 +398,7 @@ class QE_SCF_Reader(object):
         
         self.files=[]
         self.total_energies=[]
+        self.e_tot=[]
         self.harris_foulkes_energies=[]
         self.scf_accuracies=[]
         self.e_cutoffs=[]
@@ -413,20 +414,26 @@ class QE_SCF_Reader(object):
         self.Calibration=[]
         
     def calibrate_energy(self):
+        reader=QE_SCF_Reader()
         e_cal=0
         for cal in self.Calibration:
-            QE_SCF_Reader.files=[]
+            reader.files=[]
             folder=cal[0]
             NrAtoms=cal[1]
             for dirpath, dirnames, filenames in os.walk(folder):
                 for filename in [f for f in filenames if f.endswith(".out")]:
                     temp=open(os.path.join(dirpath, filename),"r").read()
                     if 'JOB DONE' in temp:
-                        QE_SCF_Reader.files=[temp]
-                        QE_SCF_Reader.read_all_files()
-                        e_cal+=QE_SCF_Reader.total_energies[0][-1]*NrAtoms
+                        reader.files=[temp]
+                        reader.read_all_files()
+                        e_cal+=reader.total_energies[0][-1]*NrAtoms
                         
-        self.e_tot_rel=np.subtract(self.total_energies,e_cal)
+        self.e_tot_rel=np.subtract(self.e_tot,e_cal)
+        
+    def get_converged_energies(self):
+        for es in self.total_energies:
+            self.e_tot.append(es[-1])
+
         
     def get_files(self,folder):
         for dirpath, dirnames, filenames in os.walk(folder):
@@ -477,7 +484,7 @@ class QE_SCF_Reader(object):
         self.ewald_contrib,self.one_center_paw_contrib,\
         self.smearing_contrib= map(list,zip(*all_data))
             
-        
+        QE_SCF_Reader.get_converged_energies(self)
         
         
         
