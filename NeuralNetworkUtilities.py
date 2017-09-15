@@ -219,13 +219,13 @@ def cost_for_atomic_network(TotalEnergy,ReferenceValue,Ei):
 def total_cost_for_network(TotalEnergy,ReferenceValue,Type):
    
     if Type=="squared-difference":
-        Cost=(TotalEnergy-ReferenceValue)**2
+        Cost=0.5*tf.reduce_sum((TotalEnergy-ReferenceValue)**2)
     elif Type=="Adaptive_1":
         epsilon=10e-9
-        Cost=(TotalEnergy-ReferenceValue)**2*(tf.sigmoid(tf.abs(TotalEnergy-ReferenceValue+epsilon))-0.5)+(0.5+tf.sigmoid(tf.abs(TotalEnergy-ReferenceValue+epsilon)))*tf.pow(tf.abs(TotalEnergy-ReferenceValue+epsilon),1.25)
+        Cost=0.5*tf.reduce_sum((TotalEnergy-ReferenceValue)**2*(tf.sigmoid(tf.abs(TotalEnergy-ReferenceValue+epsilon))-0.5)+(0.5+tf.sigmoid(tf.abs(TotalEnergy-ReferenceValue+epsilon)))*tf.pow(tf.abs(TotalEnergy-ReferenceValue+epsilon),1.25))
     elif Type=="Adaptive_2":
         epsilon=10e-9
-        Cost=(TotalEnergy-ReferenceValue)**2*(tf.sigmoid(tf.abs(TotalEnergy-ReferenceValue+epsilon))-0.5)+(0.5+tf.sigmoid(tf.abs(TotalEnergy-ReferenceValue+epsilon)))*tf.abs(TotalEnergy-ReferenceValue+epsilon)
+        Cost=0.5*tf.reduce_sum((TotalEnergy-ReferenceValue)**2*(tf.sigmoid(tf.abs(TotalEnergy-ReferenceValue+epsilon))-0.5)+(0.5+tf.sigmoid(tf.abs(TotalEnergy-ReferenceValue+epsilon)))*tf.abs(TotalEnergy-ReferenceValue+epsilon))
     return Cost
 
 def cost_function(Network,Output,CostFunType=None,RegType=None,RegParam=None):
@@ -669,11 +669,13 @@ def train_atomic_network_batch(Session,Optimizer,Layers,TrainingData,ValidationD
     TrainingCost=0
     ValidationCost=0
     #train batch
-    TrainingCost=sum(train_step(Session,Optimizer,Layers,TrainingData,CostFun))[0]
+    #TrainingCost=sum(train_step(Session,Optimizer,Layers,TrainingData,CostFun))[0]
+    TrainingCost=train_step(Session,Optimizer,Layers,TrainingData,CostFun)
 
     #check validation dataset error
     if ValidationData!=None:
-        ValidationCost=sum(validate_step(Session,Layers,ValidationData,CostFun))[0]
+        #ValidationCost=sum(validate_step(Session,Layers,ValidationData,CostFun))[0]
+        ValidationCost=validate_step(Session,Layers,ValidationData,CostFun)
 
     return TrainingCost,ValidationCost
 
@@ -1909,7 +1911,7 @@ class AtomicNeuralNetInstance(object):
                 HiddenLayers = list()
                 Structure = self.Structures[i]
                 if len(self.HiddenData) != 0:
-                    
+
                     RawBias = self.BiasData[i]
     
                     for j in range(1, len(Structure)):
