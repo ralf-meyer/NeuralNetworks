@@ -248,31 +248,6 @@ def validate_step(Session,Layers,Data,CostFun):
     Cost=Session.run(CostFun,feed_dict={i: np.array(d) for i, d in zip(Layers,Data)})
     return Cost
 
-
-def make_layers(InputLayer,OutputLayer=None):
-
-    Layers=list()
-    Layers.append(InputLayer)
-    if OutputLayer!=None:
-        Layers.append(OutputLayer)
-    return Layers
-
-def make_data(InData,OutData=None):
-
-    Data=list()
-    Data.append(InData)
-    if OutData!=None:
-        Data.append(OutData)
-
-    return Data
-
-def prepare_data_environment(InputLayer,InData,OutputLayer=None,OutData=None):
-
-    Layers=make_layers(InputLayer,OutputLayer)
-    Data=make_data(InData,OutData)
-
-    return Layers,Data
-
 def make_layers_for_atomicNNs(AtomicNNs,OutputLayer=None):
 
     Layers=list()
@@ -386,41 +361,6 @@ def transform_permuted_data(PermutationData):
     OutPermutedData.append(OutPermutation)
 
     return OutPermutedData
-
-def output_of_all_partitioned_atomic_networks(Session,AtomicNNs):
-
-    TotalEnergy=0
-    AllEnergies=list()
-    for i in range(0,len(AtomicNNs)):
-        #Get network data
-        AtomicNetwork=AtomicNNs[i]
-        Networks=AtomicNetwork[1]
-        for j in range(0,2):
-            SubNet=Networks[j]
-            if SubNet!=j:
-                #Get input data for network
-                AllEnergies.append(SubNet)
-
-    TotalEnergy=tf.add_n(AllEnergies)
-
-
-    return TotalEnergy,AllEnergies
-
-def output_of_all_atomic_networks(Session,AtomicNNs):
-
-    TotalEnergy=0
-    AllEnergies=list()
-
-    for i in range(0,len(AtomicNNs)):
-        #Get network data
-        AtomicNetwork=AtomicNNs[i]
-        Network=AtomicNetwork[1]
-        #Get input data for network
-        AllEnergies.append(Network)
-    
-    TotalEnergy=tf.add_n(AllEnergies)
-
-    return TotalEnergy,AllEnergies
 
 
 def get_all_input_layers_as_single_input(AtomicNNs):
@@ -792,6 +732,77 @@ def get_learning_rate(StartLearningRate,LearningRateType,decay_steps,boundaries=
         return global_step,tf.train.polynomial_decay(StartLearningRate, global_step, decay_steps, end_learning_rate=0.00001, power=2.0, cycle=False)
 
 
+def calc_distance_to_all_atoms(xyz1,geom):
+    distances=[]
+    for atom2 in geom:
+        xyz2=atom2[1]
+        distances.append(np.linalg.norm(xyz2-xyz1))
+    
+    return distances
+    
+def create_zero_diff_geometries(in_geoms,r_min,r_max,N):
+    
+    out_geoms=[]
+    for i in range(N):
+
+        #get reference geometry and change one atom
+        ref_geom_idx=rand.randint(0,len(in_geoms)-1)
+        ref_geom=in_geoms[ref_geom_idx]
+        ref_atom_idx=rand.randint(0,len(ref_geom)-1)
+        ref_atom=ref_geom[ref_atom_idx]
+        ref_type=ref_atom[0]
+        run=True
+        geom=ref_geom
+        #try to get valid position for atom
+        while(run):
+            #calucalte random position of atom
+            r=rand.uniform(0,5*r_max)
+            phi=rand.uniform(0,2*np.pi)
+            theta=rand.uniform(0,np.pi)
+            x=r*np.cos(theta)*np.cos(phi)
+            y=r*np.cos(theta)*np.sin(phi)
+            z=r*np.sin(theta)
+            
+            all_dists=calc_distance_to_all_atoms(np.asarray([x,y,z]),ref_geom)
+            
+            if np.min(all_dists)>r_max or np.max(all_dists)<r_min:
+                atom=(ref_type,np.asarray([x,y,z]))
+                geom[ref_atom_idx]=atom
+                run=False
+
+        out_geoms.append(geom)
+        
+    return out_geoms
+
+#parsing q-chem format to NN compatible format
+def parse_qchem_geometries(in_geoms):
+    out_geoms=[]
+    for in_geom in in_geoms:
+        atoms_list=in_geom.list_of_atoms
+        out_geom=[]
+        for atom in atoms_list:
+            xyz=[float(atom[1]),float(atom[2]),float(atom[3])]
+            my_tuple=(atom[0],np.asarray(xyz))
+            out_geom.append(my_tuple)
+        out_geoms.append(out_geom)
+                
+    return out_geoms
+
+
+def get_ds_r_min_r_max(geoms):
+    r_min=10e10
+    r_max=0
+    for geom in geoms:
+        for atom in geom:
+            xyz=atom[1]
+            r=np.sqrt(xyz[0]**2+xyz[1]**2+xyz[2]**2)
+            if r<r_min:
+                r_min=r
+            if r>r_max:
+                r_max=r
+    return r_min,r_max
+
+
 class AtomicNeuralNetInstance(object):
 
     def __init__(self):
@@ -837,6 +848,7 @@ class AtomicNeuralNetInstance(object):
         self.CostFun=None
         self.Optimizer=None
         self.OutputLayer=None
+        self.OutputForce=None
         self.MakePlots=False
         self.InitMean=0.0
         self.InitStddev=1.0
@@ -851,6 +863,7 @@ class AtomicNeuralNetInstance(object):
         self.IsPartitioned=False
         self.CostFunType="squared-difference"
         self.TotalEnergy=None
+        self.TotalForce=None
         #Data variables
         self.AllGeometries=list()
         self.SizeOfInputs=list()
@@ -873,6 +886,7 @@ class AtomicNeuralNetInstance(object):
         
         #Other
         self.Multiple=False
+        self.UseForce=False
         self.FirstWeights=[]
         self.SavingDirectory="save"
 
@@ -941,6 +955,7 @@ class AtomicNeuralNetInstance(object):
             self.MinOfOut=ModelData[1]
             Success=1
         if Success==1:
+            print("Model successfully loaded!")
             if self.IsPartitioned==False:
                 self.HiddenData,self.BiasData=get_weights_biases_from_data(self.TrainedVariables)
             else:
@@ -965,9 +980,10 @@ class AtomicNeuralNetInstance(object):
         if len(self.Structures)==0:
             print("No structures for the specific nets specified!")
             Execute=False
-        if len(self.Structures[0])-1<len(self.Dropout):
-            print("Dropout can only be between layers so it must be shorter than the structure,\n but is "+str(len(self.Structures[0]))+" and "+str(len(self.Dropout)))
-            Execute=False
+        if self.IsPartitioned==False:
+            if len(self.Structures[0])-1<len(self.Dropout):
+                print("Dropout can only be between layers so it must be shorter than the structure,\n but is "+str(len(self.Structures[0]))+" and "+str(len(self.Dropout)))
+                Execute=False
         if len(self.NumberOfSameNetworks)==0:
             print("No number of specific nets specified!")
             Execute=False
@@ -1016,21 +1032,6 @@ class AtomicNeuralNetInstance(object):
         self.NumberOfSameNetworks=nAtoms
         AtomicNeuralNetInstance.expand_existing_net(self,ModelName)
         
-        
-    def calculate_force(self,r):
-        
-        F=list()    
-        dE_dG=list()
-        
-        Gs,dGs=SymmetryFunctionSet.get_gs_and_derivatives(r)#get G and dG for geometry
-        for i in range(0,len(self.AtomicNNs)):
-            AtomicNet=self.AtomicNNs[i]
-            Input=AtomicNet[2]
-            ThisGs=Gs[i]
-            dE_dG.append(self.Session.run(tf.gradients(self.TotalEnergy,Input),ThisGs))
-            F.append(np.multiply(dE_dG,dGs))
-        
-        return F
     
     def dE_stat(self,Layers):
         
@@ -1080,18 +1081,25 @@ class AtomicNeuralNetInstance(object):
         val_stat=[val_mean,val_var]
         
         return train_stat,val_stat
-
+    
+    def eval_dataset(self,dataset):
+        
+        Out=0
+        indata=dataset[0]
+        
+        if self.IsPartitioned==False:
+            Out=evaluate_all_atomicnns(self.Session,self.AtomicNNs,indata)
+        else:
+            Out=evaluate_all_partitioned_atomicnns(self.Session,self.AtomicNNs,indata,self.TotalNrOfRadialFuns)
+        
+        return Out
+    
     def start_evaluation(self,nAtoms,ModelName="save/trained_variables"):
-
+        
+        Out=0
         AtomicNeuralNetInstance.expand_trained_net(self,nAtoms,ModelName)
         for data in self.EvalData:
-            Out=0
-            indata=data[0]
-            print(indata[0].shape)
-            if self.IsPartitioned==False:
-                Out=evaluate_all_atomicnns(self.Session,self.AtomicNNs,indata)
-            else:
-                Out=evaluate_all_partitioned_atomicnns(self.Session,self.AtomicNNs,indata,self.TotalNrOfRadialFuns)
+            Out=AtomicNeuralNetInstance.eval_dataset(self,data)
                 
         return Out
 
@@ -1139,7 +1147,7 @@ class AtomicNeuralNetInstance(object):
                     rnd=rand.randint(0,NrOfTrainingBatches-1)
                     self.TrainingInputs=self.TrainingBatches[rnd][0]
                     self.TrainingOutputs=self.TrainingBatches[rnd][1]
-
+                    
                     BatchSize=self.TrainingInputs[0].shape[0]
                     if self.ValidationBatches:
                         rnd=rand.randint(0,NrOfValidationBatches-1)
@@ -1207,6 +1215,11 @@ class AtomicNeuralNetInstance(object):
                                     update_cost_plot(fig,ax,TrainingCostPlot,self.OverallTrainingCosts,ValidationCostPlot,self.OverallValidationCosts,RunningMeanPlot)
                         #Finished percentage output
                         print([str(100*i/self.Epochs)+" %","deltaE = "+str(self.DeltaE)+" ev","Cost = "+str(self.TrainingCosts),"t = "+str(time.time()-start)+" s","global step: "+str(self.Session.run(self.GlobalStep))])
+                        Prediction=AtomicNeuralNetInstance.eval_dataset(self,[self.TrainingInputs,None])
+                        print("Data:")
+                        print(self.TrainingOutputs)
+                        print("Prediction:")
+                        print(Prediction)
                         #Store variables
                         if self.IsPartitioned==False:
                             self.TrainedVariables=get_trained_variables(self.Session,self.VariablesDictionary)
@@ -1454,14 +1467,74 @@ class AtomicNeuralNetInstance(object):
             self.ValidationInputs=temp[0][0]
             self.ValidationOutputs=temp[0][0]
             
+            
+    def energy_of_all_atomic_networks(self):
+
+        TotalEnergy=0
+        AllEnergies=list()
+    
+        for i in range(0,len(self.AtomicNNs)):
+            #Get network data
+            AtomicNetwork=self.AtomicNNs[i]
+            Network=AtomicNetwork[1]
+            #Get input data for network
+            AllEnergies.append(Network)
+        
+        TotalEnergy=tf.add_n(AllEnergies)
+    
+        return TotalEnergy,AllEnergies
+    
+    def energy_of_all_partitioned_atomic_networks(self):
+    
+        TotalEnergy=0
+        AllEnergies=list()
+        for i in range(0,len(self.AtomicNNs)):
+            #Get network data
+            AtomicNetwork=self.AtomicNNs[i]
+            Networks=AtomicNetwork[1]
+            for j in range(0,2):
+                SubNet=Networks[j]
+                if SubNet!=j:
+                    #Get input data for network
+                    AllEnergies.append(SubNet)
+    
+        TotalEnergy=tf.add_n(AllEnergies)
+    
+    
+        return TotalEnergy,AllEnergies
+    
+    def force_of_all_atomic_networks(self):
+        
+        F=[]
+        Fi=[]
+        for i in range(0,len(self.AtomicNNs)):
+            AtomicNet=self.AtomicNNs[i]
+            G_Input=AtomicNet[2]
+            dGi_dxj=AtomicNet[3]
+            dE_Gi=tf.gradients(self.TotalEnergy,G_Input)
+            if i==0:
+                F=tf.matmul(dE_Gi,dGi_dxj)
+            else:
+                F=tf.concat([F,tf.matmul(dE_Gi,dGi_dxj)],0)
+            Fi.append(tf.matmul(dE_Gi,dGi_dxj))
+        
+        return F,Fi
+            
     def atomic_cost_function(self):
         
         if self.IsPartitioned==True:
-            self.TotalEnergy,AllEnergies=output_of_all_partitioned_atomic_networks(self.Session,self.AtomicNNs)
+            self.TotalEnergy,AllEnergies=AtomicNeuralNetInstance.energy_of_all_partitioned_atomic_networks(self)
         else:
-            self.TotalEnergy,AllEnergies=output_of_all_atomic_networks(self.Session,self.AtomicNNs)
+            self.TotalEnergy,AllEnergies=AtomicNeuralNetInstance.energy_of_all_atomic_networks(self)
             
         Cost=total_cost_for_network(self.TotalEnergy,self.OutputLayer,self.CostFunType)
+        #add force cost
+        if self.UseForce==True:
+            if self.IsPartitioned==True:
+                raise(NotImplementedError)
+            else:
+                self.OutputForce,AllForces=AtomicNeuralNetInstance.force_of_all_atomic_networks(self)
+                Cost+=total_cost_for_network(self.TotalForce,self.OutputForce,self.CostFunType)
         
         self.dE_Fun=tf.abs(self.TotalEnergy-self.OutputLayer)
         
@@ -1490,6 +1563,19 @@ class AtomicNeuralNetInstance(object):
                     Inputs[i][j][L]=np.divide(np.subtract(AllData[j][i][L],self.MeansOfDs[i][L]),np.sqrt(self.VarianceOfDs[i][L]))
 
         return Inputs
+    
+    def init_correction_network_data(self,forcefield,geoms,energies,types,N_zero_geoms=10000):
+        #get coverage of dataset
+        ds_r_min,ds_r_max=get_ds_r_min_r_max(geoms)
+        #create geometries outside of dataset
+        zero_ds_geoms=create_zero_diff_geometries(geoms,ds_r_min,ds_r_max,N_zero_geoms)
+        all_geoms=geoms+zero_ds_geoms
+        #eval geometries with FF network to make energy difference zero
+        forcefield.create_eval_data(geoms)
+        zero_ds_energies=[energy for element in forcefield.eval_dataset(forcefield.EvalData[0]) for energy in element]
+        
+        all_energies=energies+zero_ds_energies
+        self.init_dataset(all_geoms,all_energies)
     
     def make_parallel_partitioned_atomic_networks(self):
 
@@ -1870,13 +1956,9 @@ class AtomicNeuralNetInstance(object):
                             Biases = HiddenLayers[l][1]
                             Network = connect_layers(Network, Weights, Biases, self.ActFun, self.ActFunParam,Dropout)
         
-                    if len(self.Gs) != 0:
-                        if len(self.Gs) > 0:
-                            AtomicNNs.append(
-                                [self.NumberOfSameNetworks[i], Network, InputLayer,self.Gs[i]])
-                        else:
-                            AtomicNNs.append(
-                                [self.NumberOfSameNetworks[i], Network, InputLayer])
+                    if self.UseForce:
+                        InputForce=tf.placeholder(tf.float32, shape=[None, NrInputs,3])
+                        AtomicNNs.append([self.NumberOfSameNetworks[i], Network, InputLayer,InputForce])
                     else:
                         AtomicNNs.append(
                             [self.NumberOfSameNetworks[i], Network, InputLayer])
@@ -1900,7 +1982,7 @@ class AtomicNeuralNetInstance(object):
         if isinstance(self.Structures[0],PartitionedStructure):
             raise ValueError("Please set IsPartitioned = True !")
         else:
-            # make all the networks for the different atom types
+            # create layers for the different atom types
             for i in range(0, len(self.Structures)):
                 if len(self.Dropout)>i:
                     Dropout=self.Dropout[i]
@@ -1911,7 +1993,7 @@ class AtomicNeuralNetInstance(object):
                 HiddenLayers = list()
                 Structure = self.Structures[i]
                 if len(self.HiddenData) != 0:
-
+                    
                     RawBias = self.BiasData[i]
     
                     for j in range(1, len(Structure)):
@@ -1960,7 +2042,7 @@ class AtomicNeuralNetInstance(object):
                                         construct_hidden_layer(NrIn, NrHidden, self.HiddenType, ThisWeightData, self.BiasType,
                                                                ThisBiasData, self.MakeAllVariable))
                                 else:
-                                    raise ValueError("Number of layers doesn't match, MakeLastLayerConstant has to be set to True!")
+                                    raise ValueError("Number of layers doesn't match["+str(len(RawBias))+str(len(Structure))+"], MakeLastLayerConstant has to be set to True!")
     
     
                 else:
@@ -1973,7 +2055,7 @@ class AtomicNeuralNetInstance(object):
                             HiddenLayers.append(construct_hidden_layer(NrIn, NrHidden, self.HiddenType, [], self.BiasType))
     
                 AllHiddenLayers.append(HiddenLayers)
-    
+                #create network for each atom
                 for k in range(0, self.NumberOfSameNetworks[i]):
                     # Make input layer
                     if len(self.HiddenData) != 0:
@@ -1989,7 +2071,7 @@ class AtomicNeuralNetInstance(object):
                     Network = connect_layers(InputLayer, FirstWeights, FirstBiases, self.ActFun, self.ActFunParam,Dropout)
     
                     for l in range(1, len(HiddenLayers)):
-                        # Connect ouput of in layer to second hidden layer
+                        # Connect layers
     
                         if l == len(HiddenLayers) - 1:
                             Weights = HiddenLayers[l][0]
@@ -2000,13 +2082,9 @@ class AtomicNeuralNetInstance(object):
                             Biases = HiddenLayers[l][1]
                             Network = connect_layers(Network, Weights, Biases, self.ActFun, self.ActFunParam,Dropout)
     
-                    if len(self.Gs) != 0:
-                        if len(self.Gs) > 0:
-                            AtomicNNs.append(
-                                [self.NumberOfSameNetworks[i], Network, InputLayer, self.Gs[i]])
-                        else:
-                            AtomicNNs.append(
-                                [self.NumberOfSameNetworks[i], Network, InputLayer])
+                    if self.UseForce:
+                        InputForce=tf.placeholder(tf.float32, shape=[None, NrInputs,3])
+                        AtomicNNs.append([self.NumberOfSameNetworks[i], Network, InputLayer,InputForce])
                     else:
                         AtomicNNs.append([self.NumberOfSameNetworks[i], Network, InputLayer])
     
