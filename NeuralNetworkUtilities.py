@@ -202,22 +202,8 @@ def get_my_variables(partial_dict):
     return OutVars
             
 
-def cost_per_atomic_network(TotalEnergy,AllEnergies,ReferenceValue):
-
-    Costs=list()
-    for Energy in AllEnergies:
-        Costs.append((TotalEnergy-ReferenceValue)*Energy/TotalEnergy)
-
-    return Costs
-
-def cost_for_atomic_network(TotalEnergy,ReferenceValue,Ei):
-
-    Cost=(TotalEnergy-ReferenceValue)**2*Ei/TotalEnergy
-
-    return Cost
-
 def total_cost_for_network(TotalEnergy,ReferenceValue,Type):
-   
+    #define a cost function for the NN
     if Type=="squared-difference":
         Cost=0.5*tf.reduce_sum((TotalEnergy-ReferenceValue)**2)
     elif Type=="Adaptive_1":
@@ -240,30 +226,38 @@ def cost_function(Network,Output,CostFunType=None,RegType=None,RegParam=None):
 
 
 def train_step(Session,Optimizer,Layers,Data,CostFun):
+    #Train the network for one step
     _,Cost=Session.run([Optimizer,CostFun],feed_dict={i: np.array(d) for i, d in zip(Layers,Data)})
     return Cost
 
 def validate_step(Session,Layers,Data,CostFun):
-
+    #Evaluate cost function without changing the network
     Cost=Session.run(CostFun,feed_dict={i: np.array(d) for i, d in zip(Layers,Data)})
     return Cost
 
 def make_layers_for_atomicNNs(AtomicNNs,OutputLayer=None):
-
+    #Create list of placeholders for feeding in correct order
     Layers=list()
     for AtomicNetwork in AtomicNNs:
         Layers.append(AtomicNetwork[2])
+        if len(AtomicNetwork)>3:
+            Layers.append(AtomicNetwork[3])
     if OutputLayer!=None:
         Layers.append(OutputLayer)
 
     return Layers
 
 
-def make_data_for_atomicNNs(InData,OutData=[]):
-
+def make_data_for_atomicNNs(InData,OutData=[],dG_dx_data=None):
+    #Sort data matching the placeholders
     CombinedData=list()
-    for Data in InData:
-        CombinedData.append(Data)
+    if dG_dx_data!=None:
+        for e,f in zip(InData,dG_dx_data):
+            CombinedData.append(e)
+            CombinedData.append(f)
+    else:
+        for Data in InData:
+            CombinedData.append(Data)
     if len(OutData)!=0:
         CombinedData.append(OutData)
 
@@ -292,10 +286,10 @@ def prepare_data_environment_for_partitioned_atomicNNs(AtomicNNs,InData,NumberOf
         
     return Layers,CombinedData
 
-def prepare_data_environment_for_atomicNNs(AtomicNNs,InData,OutputLayer=[],OutData=[]):
-
+def prepare_data_environment_for_atomicNNs(AtomicNNs,InData,OutputLayer=[],OutData=[],dG_dx_data=None):
+    #Put data and placeholders in correct order for feeding
     Layers=make_layers_for_atomicNNs(AtomicNNs,OutputLayer)
-    Data=make_data_for_atomicNNs(InData,OutData)
+    Data=make_data_for_atomicNNs(InData,OutData,dG_dx_data)
 
     return Layers,Data
 
@@ -732,45 +726,50 @@ def get_learning_rate(StartLearningRate,LearningRateType,decay_steps,boundaries=
         return global_step,tf.train.polynomial_decay(StartLearningRate, global_step, decay_steps, end_learning_rate=0.00001, power=2.0, cycle=False)
 
 
-def calc_distance_to_all_atoms(xyz1,geom):
-    distances=[]
-    for atom2 in geom:
-        xyz2=atom2[1]
-        distances.append(np.linalg.norm(xyz2-xyz1))
+def calc_distance_to_all_atoms(xyz):
+    
+    Ngeom=len(xyz[:,0])
+    distances=np.zeros((Ngeom,Ngeom))
+    for i in range(Ngeom):
+        distances[i,:]=np.linalg.norm(xyz-xyz[i,:])
     
     return distances
     
-def create_zero_diff_geometries(in_geoms,r_min,r_max,N):
+def create_zero_diff_geometries(r_min,r_max,types,N_atoms_per_type,N):
     
     out_geoms=[]
+    Natoms=sum(N_atoms_per_type)
+    np_geom=np.zeros((Natoms,3))
+    np_dist=np.zeros((Natoms,Natoms))
     for i in range(N):
-
-        #get reference geometry and change one atom
-        ref_geom_idx=rand.randint(0,len(in_geoms)-1)
-        ref_geom=in_geoms[ref_geom_idx]
-        ref_atom_idx=rand.randint(0,len(ref_geom)-1)
-        ref_atom=ref_geom[ref_atom_idx]
-        ref_type=ref_atom[0]
-        run=True
-        geom=ref_geom
         #try to get valid position for atom
+        run=True
         while(run):
             #calucalte random position of atom
-            r=rand.uniform(0,5*r_max)
-            phi=rand.uniform(0,2*np.pi)
-            theta=rand.uniform(0,np.pi)
-            x=r*np.cos(theta)*np.cos(phi)
-            y=r*np.cos(theta)*np.sin(phi)
-            z=r*np.sin(theta)
-            
-            all_dists=calc_distance_to_all_atoms(np.asarray([x,y,z]),ref_geom)
-            
-            if np.min(all_dists)>r_max or np.max(all_dists)<r_min:
-                atom=(ref_type,np.asarray([x,y,z]))
-                geom[ref_atom_idx]=atom
+            geom=[]
+            ct=0
+            for j in range(len(N_atoms_per_type)):
+                for k in range(N_atoms_per_type[j]):
+                    r=rand.uniform(0,5*r_max)
+                    phi=rand.uniform(0,2*np.pi)
+                    theta=rand.uniform(0,np.pi)
+                    x=r*np.cos(theta)*np.cos(phi)
+                    y=r*np.cos(theta)*np.sin(phi)
+                    z=r*np.sin(theta)
+                    xyz=[x,y,z]
+                    a_type=types[j]
+                    atom=(a_type,np.asarray(xyz))
+                    np_geom[ct,:]=xyz
+                    ct+=1
+                    geom.append(atom)
+                
+            np_dist=calc_distance_to_all_atoms(np_geom)
+            L=np_dist!=0
+            if np.all(np_dist[L])>r_max or np.all(np_dist[L])<r_min:
+                out_geoms.append(geom)
                 run=False
 
-        out_geoms.append(geom)
+       
         
     return out_geoms
 
@@ -793,13 +792,21 @@ def get_ds_r_min_r_max(geoms):
     r_min=10e10
     r_max=0
     for geom in geoms:
-        for atom in geom:
+        np_geom=np.zeros((len(geom),3))
+        np_dist=np.zeros((len(geom),len(geom)))
+        for i,atom in enumerate(geom):
             xyz=atom[1]
-            r=np.sqrt(xyz[0]**2+xyz[1]**2+xyz[2]**2)
-            if r<r_min:
-                r_min=r
-            if r>r_max:
-                r_max=r
+            np_geom[i,:]=xyz
+        np_dist=calc_distance_to_all_atoms(np_geom)
+        L=np_dist!=0
+        r_min_tmp=np.min(np_dist[L])
+        r_max_tmp=np.max(np_dist)
+        if r_min_tmp<r_min:
+            r_min= r_min_tmp
+
+        if r_max_tmp>r_max:
+            r_max=r_max_tmp
+            
     return r_min,r_max
 
 
@@ -1564,11 +1571,12 @@ class AtomicNeuralNetInstance(object):
 
         return Inputs
     
-    def init_correction_network_data(self,forcefield,geoms,energies,types,N_zero_geoms=10000):
+    def init_correction_network_data(self,forcefield,geoms,energies,N_zero_geoms=10000):
         #get coverage of dataset
         ds_r_min,ds_r_max=get_ds_r_min_r_max(geoms)
         #create geometries outside of dataset
-        zero_ds_geoms=create_zero_diff_geometries(geoms,ds_r_min,ds_r_max,N_zero_geoms)
+
+        zero_ds_geoms=create_zero_diff_geometries(ds_r_min,ds_r_max,self.atomtypes,self.NumberOfSameNetworks,N_zero_geoms)
         all_geoms=geoms+zero_ds_geoms
         #eval geometries with FF network to make energy difference zero
         forcefield.create_eval_data(geoms)
