@@ -1352,13 +1352,16 @@ class AtomicNeuralNetInstance(object):
             AtomicNeuralNetInstance.calculate_statistics_for_dataset(self,TakeAsReference)
 
     def init_dataset(self,geometries,energies,TakeAsReference=True):
-        self.Ds=DataSet.DataSet()
-        self.SymmFunSet=SymmetryFunctionSet.SymmetryFunctionSet(self.atomtypes)
-        self.Ds.energies=energies
-        self.Ds.geometries=geometries
-        self.SymmFunSet.add_radial_functions_evenly(self.NumberOfRadialFunctions)
-        self.SymmFunSet.add_angular_functions(self.Etas,self.Zetas,self.Lambs)
-        AtomicNeuralNetInstance.calculate_statistics_for_dataset(self,TakeAsReference)
+        if len(geometries)==len(energies):
+            self.Ds=DataSet.DataSet()
+            self.SymmFunSet=SymmetryFunctionSet.SymmetryFunctionSet(self.atomtypes)
+            self.Ds.energies=energies
+            self.Ds.geometries=geometries
+            self.SymmFunSet.add_radial_functions_evenly(self.NumberOfRadialFunctions)
+            self.SymmFunSet.add_angular_functions(self.Etas,self.Zetas,self.Lambs)
+            AtomicNeuralNetInstance.calculate_statistics_for_dataset(self,TakeAsReference)
+        else:
+            print("Number of energies: "+str(len(energies))+" does not match number of geometries: "+str(len(geometries)))
         
         
     def create_eval_data(self,geometries,NoBatches=True):
