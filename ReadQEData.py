@@ -10,16 +10,17 @@ import os
 import matplotlib.pyplot as plt
 import numpy as np
 
-def get_ecut(my_file):
+def get_ecut(my_file,E_conv_factor):
     
     try:
         start=my_file.index("ecut=")
         end=my_file.index("Ry",start)
         temp=my_file[start+5:end]
+        return float(temp)*E_conv_factor
     except:
         temp=None
         
-    return float(temp)
+    return temp
 
 def read_cpu_time(my_file):
     
@@ -49,7 +50,7 @@ def calc_avg_cpu_time(times):
         
     return avg
 
-def read_ekin_temp_etot(my_file):
+def read_ekin_temp_etot(my_file,E_conv_factor):
     #find total energies in file
     kin_idx=[i.start() for i in re.finditer('kinetic energy', my_file)]
     eq_idx=[i.start() for i in re.finditer('=', my_file)]
@@ -74,7 +75,7 @@ def read_ekin_temp_etot(my_file):
 
     if len(kin_start_idx)==len(kin_end_idx):
         for i in range(0,len(kin_start_idx)):
-            e_kin.append(float(my_file[kin_start_idx[i]+1:kin_end_idx[i]]))
+            e_kin.append(float(my_file[kin_start_idx[i]+1:kin_end_idx[i]])*E_conv_factor)
             
     temp=[]
     if len(temp_start_idx)==len(temp_end_idx):
@@ -83,11 +84,11 @@ def read_ekin_temp_etot(my_file):
     e_tot=[]
     if len(tot_start_idx)==len(tot_end_idx):
         for i in range(0,len(tot_start_idx)):
-            e_tot.append(float(my_file[tot_start_idx[i]+1:tot_end_idx[i]]))
+            e_tot.append(float(my_file[tot_start_idx[i]+1:tot_end_idx[i]])*E_conv_factor)
                
     return e_kin,temp,e_tot
 
-def read_total_energy(my_file,eq_idx,temp_idx):
+def read_total_energy(my_file,eq_idx,temp_idx,E_conv_factor):
     
     #find total energies in file
     tot_idx=[i.start() for i in re.finditer('total energy', my_file)]
@@ -107,12 +108,12 @@ def read_total_energy(my_file,eq_idx,temp_idx):
     values=[]
     if len(start_idx)==len(end_idx):
         for i in range(0,len(start_idx)):
-            values.append(float(my_file[start_idx[i]+1:end_idx[i]]))
+            values.append(float(my_file[start_idx[i]+1:end_idx[i]])*E_conv_factor)
                
     return values
 
 
-def read_harris_foulkes_estimate(my_file,eq_idx,temp_idx):
+def read_harris_foulkes_estimate(my_file,eq_idx,temp_idx,E_conv_factor):
     
     #find harris foulkes estimates in file
     tot_idx=[i.start() for i in re.finditer('Harris-Foulkes estimate', my_file)]
@@ -130,11 +131,11 @@ def read_harris_foulkes_estimate(my_file,eq_idx,temp_idx):
     values=[]
     if len(start_idx)==len(end_idx):
         for i in range(0,len(start_idx)):
-            values.append(float(my_file[start_idx[i]+1:end_idx[i]]))
+            values.append(float(my_file[start_idx[i]+1:end_idx[i]])*E_conv_factor)
                
     return values
     
-def read_one_electron_contrib(my_file,eq_idx,temp_idx):
+def read_one_electron_contrib(my_file,eq_idx,temp_idx,E_conv_factor):
     
     #find harris foulkes estimates in file
     tot_idx=[i.start() for i in re.finditer('one-electron contribution', my_file)]
@@ -150,14 +151,14 @@ def read_one_electron_contrib(my_file,eq_idx,temp_idx):
     values=[]
     if len(start_idx)==len(end_idx):
         for i in range(0,len(start_idx)):
-            values.append(float(my_file[start_idx[i]+1:end_idx[i]]))
+            values.append(float(my_file[start_idx[i]+1:end_idx[i]])*E_conv_factor)
     
     if len(values)>1 or len(values)==0:
         return values
     else:
         return values[0]
 
-def read_hartree_contribution(my_file,eq_idx,temp_idx):
+def read_hartree_contribution(my_file,eq_idx,temp_idx,E_conv_factor):
     
     #find harris foulkes estimates in file
     tot_idx=[i.start() for i in re.finditer('hartree contribution', my_file)]
@@ -175,14 +176,14 @@ def read_hartree_contribution(my_file,eq_idx,temp_idx):
     values=[]
     if len(start_idx)==len(end_idx):
         for i in range(0,len(start_idx)):
-            values.append(float(my_file[start_idx[i]+1:end_idx[i]]))
+            values.append(float(my_file[start_idx[i]+1:end_idx[i]])*E_conv_factor)
                
     if len(values)>1 or len(values)==0:
         return values
     else:
         return values[0]
 
-def read_xc_contribution(my_file,eq_idx,temp_idx):
+def read_xc_contribution(my_file,eq_idx,temp_idx,E_conv_factor):
     
     #find harris foulkes estimates in file
     tot_idx=[i.start() for i in re.finditer('xc contribution', my_file)]
@@ -200,14 +201,14 @@ def read_xc_contribution(my_file,eq_idx,temp_idx):
     values=[]
     if len(start_idx)==len(end_idx):
         for i in range(0,len(start_idx)):
-            values.append(float(my_file[start_idx[i]+1:end_idx[i]]))
+            values.append(float(my_file[start_idx[i]+1:end_idx[i]])*E_conv_factor)
                
     if len(values)>1 or len(values)==0:
         return values
     else:
         return values[0]
 
-def read_ewald_contribution(my_file,eq_idx,temp_idx):
+def read_ewald_contribution(my_file,eq_idx,temp_idx,E_conv_factor):
     
     #find harris foulkes estimates in file
     tot_idx=[i.start() for i in re.finditer('ewald contribution', my_file)]
@@ -225,13 +226,13 @@ def read_ewald_contribution(my_file,eq_idx,temp_idx):
     values=[]
     if len(start_idx)==len(end_idx):
         for i in range(0,len(start_idx)):
-            values.append(float(my_file[start_idx[i]+1:end_idx[i]]))
+            values.append(float(my_file[start_idx[i]+1:end_idx[i]])*E_conv_factor)
                
     if len(values)>1 or len(values)==0:
         return values
     else:
         return values[0]
-def read_one_center_paw_contrib(my_file,eq_idx,temp_idx):
+def read_one_center_paw_contrib(my_file,eq_idx,temp_idx,E_conv_factor):
     
     #find harris foulkes estimates in file
     tot_idx=[i.start() for i in re.finditer('one-center paw contrib', my_file)]
@@ -249,14 +250,14 @@ def read_one_center_paw_contrib(my_file,eq_idx,temp_idx):
     values=[]
     if len(start_idx)==len(end_idx):
         for i in range(0,len(start_idx)):
-            values.append(float(my_file[start_idx[i]+1:end_idx[i]]))
+            values.append(float(my_file[start_idx[i]+1:end_idx[i]])*E_conv_factor)
                
     if len(values)>1 or len(values)==0:
         return values
     else:
         return values[0]
 
-def read_smearing_contrib(my_file,eq_idx,temp_idx):
+def read_smearing_contrib(my_file,eq_idx,temp_idx,E_conv_factor):
     
     #find harris foulkes estimates in file
     tot_idx=[i.start() for i in re.finditer('smearing contrib', my_file)]
@@ -272,7 +273,7 @@ def read_smearing_contrib(my_file,eq_idx,temp_idx):
     values=[]
     if len(start_idx)==len(end_idx):
         for i in range(0,len(start_idx)):
-            values.append(float(my_file[start_idx[i]+1:end_idx[i]]))
+            values.append(float(my_file[start_idx[i]+1:end_idx[i]])*E_conv_factor)
                
     if len(values)>1 or len(values)==0:
         return values
@@ -280,7 +281,7 @@ def read_smearing_contrib(my_file,eq_idx,temp_idx):
         return values[0]
 
 
-def read_scf_accuracy(my_file):
+def read_scf_accuracy(my_file,E_conv_factor):
     
     #find scf accuracies in file
     tot_idx=[i.start() for i in re.finditer('estimated scf accuracy', my_file)]
@@ -298,11 +299,69 @@ def read_scf_accuracy(my_file):
     values=[]
     if len(start_idx)==len(end_idx):
         for i in range(0,len(start_idx)):
-            values.append(float(my_file[start_idx[i]+1:end_idx[i]]))
+            values.append(float(my_file[start_idx[i]+1:end_idx[i]])*E_conv_factor)
                
     return values
 
-def read_geometries(my_file):
+def is_numeric(string):
+    try:
+        f=float(string)
+        out=True
+    except:
+        out=False
+    return out
+
+def read_geometry_scf(my_file,Geom_conv_factor):
+    #get lattice constant for scaling
+    a_idx=[i.start() for i in re.finditer('alat', my_file)]
+
+    a_idx_start=my_file.index("=",a_idx[0])+1
+    a_idx_end=my_file.index("a",a_idx_start)
+    a=float(my_file[a_idx_start:a_idx_end])
+    #get postitions
+    geom_start_idx=my_file.index("\n",a_idx[-2])
+    geom_end_idx=my_file.index("number of k points")
+    geom=my_file[geom_start_idx:geom_end_idx]
+    
+    lines=geom.split('\n')
+    sites=[]
+    types=[]
+    x=[]
+    y=[]
+    z=[]
+    eq_i=10e10
+    for line in lines:
+        parts=line.replace("\t"," ").split(" ")
+        ct=0
+        ct2=0
+        for i,part in enumerate(parts):
+            if len(part)>0:
+                ct2+=1
+                
+            if ct2==1 and part!='':
+                sites.append(part)
+            elif ct2==2 and part!='':
+                types.append(part)
+                
+            if "=" in part:
+                eq_i=i
+            elif is_numeric(part) and i>eq_i:
+                if ct==0:
+                    x.append(float(part)*Geom_conv_factor)
+                elif ct==1:
+                    y.append(float(part)*Geom_conv_factor)
+                elif ct==2:
+                    z.append(float(part)*Geom_conv_factor)
+                ct=ct+1
+    geometry=[]
+    for i in range(len(x)):
+        xyz=[x[i]*a,y[i]*a,z[i]*a]
+        atom=(types[i],np.asarray(xyz))
+        geometry.append(atom)
+
+    return geometry
+    
+def read_geometries(my_file,Geom_conv_factor):
         
     #find scf accuracies in file
     pos_idx=[i.start() for i in re.finditer('ATOMIC_POSITIONS', my_file)]
@@ -327,7 +386,7 @@ def read_geometries(my_file):
 
             for val in values:
                 try:
-                    num=float(val)
+                    num=float(val)*Geom_conv_factor
                     #pos=pos+(num,)
                     if len(pos3d)<3:
                         pos3d.append(num)
@@ -355,6 +414,8 @@ class QE_MD_Reader(object):
         self.temperature=[]
         self.geometries=[]
         self.Calibration=[] #list of tuples ,includes ("path to file",Nr of Atoms of this type)
+        self.E_conv_factor=1
+        self.Geom_conv_factor=1
         
     def get_files(self,folder):
         for dirpath, dirnames, filenames in os.walk(folder):
@@ -367,11 +428,11 @@ class QE_MD_Reader(object):
     def read_all_files(self):
         
         for this in self.files:
-            e_kin,temperature,e_tot=read_ekin_temp_etot(this)
+            e_kin,temperature,e_tot=read_ekin_temp_etot(this,self.E_conv_factor)
             self.e_kin+=e_kin
             self.temperature+=temperature
             self.e_tot+=e_tot
-            self.geometries+=read_geometries(this)
+            self.geometries+=read_geometries(this,self.Geom_conv_factor)
             
         self.e_pot=np.subtract(self.e_tot,self.e_kin)
         
@@ -388,7 +449,7 @@ class QE_MD_Reader(object):
                     if 'JOB DONE' in temp:
                         reader.files=[temp]
                         reader.read_all_files()
-                        e_cal+=reader.total_energies[0][-1]*NrAtoms
+                        e_cal+=reader.total_energies[0][-1]*NrAtoms*self.E_conv_factor
                         
         self.e_pot_rel=np.subtract(self.e_pot,e_cal)
 
@@ -412,6 +473,9 @@ class QE_SCF_Reader(object):
         self.smearing_contrib=[]
         self.e_tot_rel=[]
         self.Calibration=[]
+        self.geometries=[]
+        self.E_conv_factor=1
+        self.Geom_conv_factor=1
         
     def calibrate_energy(self):
         reader=QE_SCF_Reader()
@@ -457,32 +521,34 @@ class QE_SCF_Reader(object):
         temp_ewald=[]
         temp_one_center=[]
         temp_smearing=[]
+        temp_geoms=[]
         
         for this in self.files:
             eq_idx=[i.start() for i in re.finditer('=', this)]
             temp_idx=[j.start() for j in re.finditer('Ry',this)]
-            temp_tot.append(read_total_energy(this,eq_idx,temp_idx))
-            temp_harris.append(read_harris_foulkes_estimate(this,eq_idx,temp_idx))
-            temp_scf_a.append(read_scf_accuracy(this))
-            temp_ecut.append(get_ecut(this))
+            temp_tot.append(read_total_energy(this,eq_idx,temp_idx,self.E_conv_factor))
+            temp_harris.append(read_harris_foulkes_estimate(this,eq_idx,temp_idx,self.E_conv_factor))
+            temp_scf_a.append(read_scf_accuracy(this,self.E_conv_factor))
+            temp_ecut.append(get_ecut(this,self.E_conv_factor))
             temp_cpu_t.append(read_cpu_time(this))
             temp_avg_t.append(calc_avg_cpu_time(temp_cpu_t[-1]))
-            temp_one_e.append(read_one_electron_contrib(this,eq_idx,temp_idx))
-            temp_hartree.append(read_hartree_contribution(this,eq_idx,temp_idx))
-            temp_xc.append(read_xc_contribution(this,eq_idx,temp_idx))
-            temp_ewald.append(read_ewald_contribution(this,eq_idx,temp_idx))
-            temp_one_center.append(read_one_center_paw_contrib(this,eq_idx,temp_idx))
-            temp_smearing.append(read_smearing_contrib(this,eq_idx,temp_idx))
+            temp_one_e.append(read_one_electron_contrib(this,eq_idx,temp_idx,self.E_conv_factor))
+            temp_hartree.append(read_hartree_contribution(this,eq_idx,temp_idx,self.E_conv_factor))
+            temp_xc.append(read_xc_contribution(this,eq_idx,temp_idx,self.E_conv_factor))
+            temp_ewald.append(read_ewald_contribution(this,eq_idx,temp_idx,self.E_conv_factor))
+            temp_one_center.append(read_one_center_paw_contrib(this,eq_idx,temp_idx,self.E_conv_factor))
+            temp_smearing.append(read_smearing_contrib(this,eq_idx,temp_idx,self.E_conv_factor))
+            temp_geoms.append(read_geometry_scf(this,self.Geom_conv_factor))
             
         all_data=zip(temp_ecut,temp_tot,temp_harris,temp_scf_a,temp_cpu_t,\
                      temp_avg_t,temp_one_e,temp_hartree,temp_xc,temp_ewald,\
-                     temp_one_center,temp_smearing)
+                     temp_one_center,temp_smearing,temp_geoms)
         all_data.sort(key=lambda t:t[0])
         self.e_cutoffs,self.total_energies,self.harris_foulkes_energies,\
         self.scf_accuracies,self.cpu_times,self.avg_cpu_times,\
         self.one_e_contrib,self.hartree_contrib,self.xc_contrib,\
         self.ewald_contrib,self.one_center_paw_contrib,\
-        self.smearing_contrib= map(list,zip(*all_data))
+        self.smearing_contrib,self.geometries= map(list,zip(*all_data))
             
         QE_SCF_Reader.get_converged_energies(self)
         
