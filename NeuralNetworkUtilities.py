@@ -289,8 +289,9 @@ def prepare_data_environment_for_partitioned_atomicNNs(AtomicNNs,InData,NumberOf
 def prepare_data_environment_for_atomicNNs(AtomicNNs,InData,OutputLayer=[],OutData=[],dG_dx_data=None):
     #Put data and placeholders in correct order for feeding
     Layers=make_layers_for_atomicNNs(AtomicNNs,OutputLayer)
+    
     Data=make_data_for_atomicNNs(InData,OutData,dG_dx_data)
-
+    
     return Layers,Data
 
 
@@ -376,9 +377,9 @@ def get_data_for_specifc_networks(AtomicNNs,InData):
 
     for i in range(0,len(AtomicNNs)):
         AtomicNetwork=AtomicNNs[i]
-        NumberOfSameNetworks=AtomicNetwork[0]
-        tempData=InData[offset:offset+NumberOfSameNetworks]
-        offset+=NumberOfSameNetworks
+        NumberOfAtomsPerType=AtomicNetwork[0]
+        tempData=InData[offset:offset+NumberOfAtomsPerType]
+        offset+=NumberOfAtomsPerType
         OutData.append(tempData)
 
     return OutData
@@ -815,7 +816,7 @@ class AtomicNeuralNetInstance(object):
     def __init__(self):
         #Training variables
         self.Structures=list()
-        self.NumberOfSameNetworks=list()
+        self.NumberOfAtomsPerType=list()
         self.AtomicNNs=list()
         self.TrainingInputs=list()
         self.TrainingOutputs=list()
@@ -991,7 +992,7 @@ class AtomicNeuralNetInstance(object):
             if len(self.Structures[0])-1<len(self.Dropout):
                 print("Dropout can only be between layers so it must be shorter than the structure,\n but is "+str(len(self.Structures[0]))+" and "+str(len(self.Dropout)))
                 Execute=False
-        if len(self.NumberOfSameNetworks)==0:
+        if len(self.NumberOfAtomsPerType)==0:
             print("No number of specific nets specified!")
             Execute=False
 
@@ -1036,7 +1037,7 @@ class AtomicNeuralNetInstance(object):
 
     def expand_trained_net(self, nAtoms,ModelName=None):
 
-        self.NumberOfSameNetworks=nAtoms
+        self.NumberOfAtomsPerType=nAtoms
         AtomicNeuralNetInstance.expand_existing_net(self,ModelName)
         
     
@@ -1133,8 +1134,8 @@ class AtomicNeuralNetInstance(object):
             print("No training batches specified!")
             Execute=False
 
-        if sum(self.NumberOfSameNetworks)!= len(self.TrainingBatches[0][0]):
-            print([self.NumberOfSameNetworks,len(self.TrainingBatches[0][0])])
+        if sum(self.NumberOfAtomsPerType)!= len(self.TrainingBatches[0][0]):
+            print([self.NumberOfAtomsPerType,len(self.TrainingBatches[0][0])])
             print("Input does not match number of specified networks!")
             Execute=False
 
@@ -1579,7 +1580,7 @@ class AtomicNeuralNetInstance(object):
         ds_r_min,ds_r_max=get_ds_r_min_r_max(geoms)
         #create geometries outside of dataset
 
-        zero_ds_geoms=create_zero_diff_geometries(ds_r_min,ds_r_max,self.atomtypes,self.NumberOfSameNetworks,N_zero_geoms)
+        zero_ds_geoms=create_zero_diff_geometries(ds_r_min,ds_r_max,self.atomtypes,self.NumberOfAtomsPerType,N_zero_geoms)
         all_geoms=geoms+zero_ds_geoms
         #eval geometries with FF network to make energy difference zero
         forcefield.create_eval_data(geoms)
@@ -1593,7 +1594,8 @@ class AtomicNeuralNetInstance(object):
         AtomicNNs = list()
         # Start Session
         self.Session=tf.Session()
-        
+        if len(self.Structures)!= len(self.NumberOfAtomsPerType):
+            raise ValueError("Length of Structures does not match length of NumberOfAtomsPerType")
         if len(self.HiddenData) != 0:    
             # make all the networks for the different atom types
             for i in range(0, len(self.Structures)):
@@ -1602,7 +1604,7 @@ class AtomicNeuralNetInstance(object):
                 else:
                     Dropout=self.Dropout[-1]
                     
-                for k in range(0, self.NumberOfSameNetworks[i]):
+                for k in range(0, self.NumberOfAtomsPerType[i]):
                     
                     ForceFieldHiddenLayers=list()
                     CorrectionHiddenLayers=list()
@@ -1714,13 +1716,13 @@ class AtomicNeuralNetInstance(object):
                     if len(self.Gs) != 0:
                         if len(self.Gs) > 0:
                             AtomicNNs.append(
-                                [self.NumberOfSameNetworks[i], Network, InputLayer,self.Gs[i]])
+                                [self.NumberOfAtomsPerType[i], Network, InputLayer,self.Gs[i]])
                         else:
                             AtomicNNs.append(
-                                [self.NumberOfSameNetworks[i], Network, InputLayer])
+                                [self.NumberOfAtomsPerType[i], Network, InputLayer])
                     else:
                         AtomicNNs.append(
-                            [self.NumberOfSameNetworks[i], Network, InputLayer])
+                            [self.NumberOfAtomsPerType[i], Network, InputLayer])
         else:
             print("No network data found!")
         
@@ -1734,7 +1736,8 @@ class AtomicNeuralNetInstance(object):
         if self.Multiple==False:
             self.Session=tf.Session(config=tf.ConfigProto(
   intra_op_parallelism_threads=multiprocessing.cpu_count()))
-            
+        if len(self.Structures)!= len(self.NumberOfAtomsPerType):
+            raise ValueError("Length of Structures does not match length of NumberOfAtomsPerType")
         if not(isinstance(self.Structures[0],PartitionedStructure)):
             raise ValueError("Please set IsPartitioned = False !")
             
@@ -1830,7 +1833,7 @@ class AtomicNeuralNetInstance(object):
                     
                 AllHiddenLayers.append(NetworkHiddenLayers)
     
-                for k in range(0, self.NumberOfSameNetworks[i]):
+                for k in range(0, self.NumberOfAtomsPerType[i]):
                     
                     
                     if len(ForceFieldHiddenLayers)>0:
@@ -1898,13 +1901,13 @@ class AtomicNeuralNetInstance(object):
                     if len(self.Gs) != 0:
                         if len(self.Gs) > 0:
                             AtomicNNs.append(
-                                [self.NumberOfSameNetworks[i], Network, InputLayer,self.Gs[i]])
+                                [self.NumberOfAtomsPerType[i], Network, InputLayer,self.Gs[i]])
                         else:
                             AtomicNNs.append(
-                                [self.NumberOfSameNetworks[i], Network, InputLayer])
+                                [self.NumberOfAtomsPerType[i], Network, InputLayer])
                     else:
                         AtomicNNs.append(
-                            [self.NumberOfSameNetworks[i], Network, InputLayer])
+                            [self.NumberOfAtomsPerType[i], Network, InputLayer])
     
             
             self.AtomicNNs=AtomicNNs
@@ -1916,6 +1919,8 @@ class AtomicNeuralNetInstance(object):
         # Start Session
         self.Session=tf.Session()    
         # make all layers
+        if len(self.Structures)!= len(self.NumberOfAtomsPerType):
+            raise ValueError("Length of Structures does not match length of NumberOfAtomsPerType")
         if len(self.HiddenData) != 0:
             for i in range(0, len(self.Structures)):
                 if len(self.Dropout)>i:
@@ -1923,7 +1928,7 @@ class AtomicNeuralNetInstance(object):
                 else:
                     Dropout=self.Dropout[-1]
                     
-                for k in range(0, self.NumberOfSameNetworks[i]):
+                for k in range(0, self.NumberOfAtomsPerType[i]):
                
                     # Make hidden layers
                     HiddenLayers = list()
@@ -1969,10 +1974,10 @@ class AtomicNeuralNetInstance(object):
         
                     if self.UseForce:
                         InputForce=tf.placeholder(tf.float32, shape=[None, NrInputs,3])
-                        AtomicNNs.append([self.NumberOfSameNetworks[i], Network, InputLayer,InputForce])
+                        AtomicNNs.append([self.NumberOfAtomsPerType[i], Network, InputLayer,InputForce])
                     else:
                         AtomicNNs.append(
-                            [self.NumberOfSameNetworks[i], Network, InputLayer])
+                            [self.NumberOfAtomsPerType[i], Network, InputLayer])
         else:
             print("No network data found!")
             
@@ -1990,6 +1995,8 @@ class AtomicNeuralNetInstance(object):
             
         OldBiasNr = 0
         OldShape = None
+        if len(self.Structures)!= len(self.NumberOfAtomsPerType):
+            raise ValueError("Length of Structures does not match length of NumberOfAtomsPerType")
         if isinstance(self.Structures[0],PartitionedStructure):
             raise ValueError("Please set IsPartitioned = True !")
         else:
@@ -2067,7 +2074,7 @@ class AtomicNeuralNetInstance(object):
     
                 AllHiddenLayers.append(HiddenLayers)
                 #create network for each atom
-                for k in range(0, self.NumberOfSameNetworks[i]):
+                for k in range(0, self.NumberOfAtomsPerType[i]):
                     # Make input layer
                     if len(self.HiddenData) != 0:
                         NrInputs = self.HiddenData[i][0].shape[0]
@@ -2095,9 +2102,9 @@ class AtomicNeuralNetInstance(object):
     
                     if self.UseForce:
                         InputForce=tf.placeholder(tf.float32, shape=[None, NrInputs,3])
-                        AtomicNNs.append([self.NumberOfSameNetworks[i], Network, InputLayer,InputForce])
+                        AtomicNNs.append([self.NumberOfAtomsPerType[i], Network, InputLayer,InputForce])
                     else:
-                        AtomicNNs.append([self.NumberOfSameNetworks[i], Network, InputLayer])
+                        AtomicNNs.append([self.NumberOfAtomsPerType[i], Network, InputLayer])
     
             
             self.AtomicNNs=AtomicNNs
