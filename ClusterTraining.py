@@ -19,11 +19,13 @@ Training=NN.AtomicNeuralNetInstance()
 Training.XYZfile="2ClusterNiAu_data.xyz"
 Training.Logfile="2cluster.md"
 Training.atomtypes=["1","2"]
-Training.NumberOfRadialFunctions=6
+Training.NumberOfRadialFunctions=7
 #angular symmetry function settings
 Training.Lambs=[1.0,-1.0]
-Training.Zetas=[0.025,0.045,0.075,0.1,0.15,0.2,0.3,0.5,0.7,1,1.5,2,3,5,10,18,36,100]
-Training.Etas=[0.1]
+#Training.Zetas=[0.025,0.045,0.075,0.1,0.15,0.2,0.3,0.5,0.7,1,1.5,2,3,5,10,18,36,100]
+Training.Zetas=[0.075,0.1,0.15,0.2,0.3,0.5,0.7,1,1.5,2,3]
+Training.Etas=[0.1]#,0.2,0.5,1,2]
+#Training.Rs=[0,1,1,1.5,2,2.5,3,3.5,4,5,6]
 
 Training.read_files(True)
 Training.make_training_and_validation_data(100,70,30)
@@ -33,9 +35,9 @@ NrNi=12
 NrAu=14
 
 Training.Structures.append([Training.SizeOfInputs[0],80,80,15,1])
-Training.NumberOfSameNetworks.append(NrNi)
+Training.NumberOfAtomsPerType.append(NrNi)
 Training.Structures.append([Training.SizeOfInputs[1],80,80,15,1])
-Training.NumberOfSameNetworks.append(NrAu)
+Training.NumberOfAtomsPerType.append(NrAu)
 Training.HiddenType="truncated_normal"
 Training.HiddenData=list()
 Training.BiasData=list()

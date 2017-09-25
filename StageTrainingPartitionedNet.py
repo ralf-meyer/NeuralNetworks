@@ -52,9 +52,9 @@ NrNi=1
 MyStructure=NN.PartitionedStructure()
 MyStructure.ForceFieldNetworkStructure=[Training.SizeOfInputs[0],10,10,1]
 Training.Structures.append(MyStructure)
-Training.NumberOfSameNetworks.append(NrNi)
+Training.NumberOfAtomsPerType.append(NrNi)
 Training.Structures.append(MyStructure)
-Training.NumberOfSameNetworks.append(NrAu)
+Training.NumberOfAtomsPerType.append(NrAu)
 Training.LearningRate=0.001
 Training.CostFunType="Adaptive_2"
 Training.dE_Criterium=0.03
@@ -97,8 +97,8 @@ Training2.LearningRateDecaySteps=1000
 Training2.SavingDirectory="save_stage_2"
 NrAu=1
 NrNi=2
-Training2.NumberOfSameNetworks.append(NrNi)
-Training2.NumberOfSameNetworks.append(NrAu)
+Training2.NumberOfAtomsPerType.append(NrNi)
+Training2.NumberOfAtomsPerType.append(NrAu)
 Training2.expand_existing_net(ModelName="save_stage_1/trained_variables")
 
 Training2.start_batch_training()

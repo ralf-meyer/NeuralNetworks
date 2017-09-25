@@ -17,51 +17,49 @@ plt.close("all")
 Training=NN.AtomicNeuralNetInstance()
 Training2=NN.AtomicNeuralNetInstance()
 
-Training.XYZfile="curve.xyz"
-Training.Logfile="md.curve"
+Training.XYZfile="2ClusterNiAu_data.xyz"
+Training.Logfile="2cluster.md"
 Training.atomtypes=["1","2"]
-Training.NumberOfRadialFunctions=5
+Training.NumberOfRadialFunctions=7
+#angular symmetry function settings
 Training.Lambs=[1.0,-1.0]
-Training.Zetas=np.arange(0.1,5,0.5).tolist()
+Training.Zetas=[0.025,0.045,0.075,0.1,0.15,0.2,0.3,0.5,0.7,1,1.5,2,3,5,10,18,36,100]
+Training.Etas=[0.1]
 
 Training.read_files(True)
+
 Training.make_training_and_validation_data(100,70,30)
 
 
 
 #Load second trainings data
 
-Training2.XYZfile="NiAu_data_2AU1Ni.xyz"
-Training2.Logfile="log.3atoms"
-Training2.atomtypes=["1","2"]
-Training2.NumberOfRadialFunctions=5
-Training2.Lambs=[1.0,-1.0]
-Training2.Zetas=np.arange(0.1,5,0.5).tolist()
-
-Training2.read_files()
-Training2.make_training_and_validation_data(100,70,30)
+Training2.TrainingBatches=Training.TrainingBatches
+Training2.ValidationBatches=Training.ValidationBatches
 
 
 #Train with first data 
-NrAu=1
-NrNi=1
+NrAu=12
+NrNi=14
 
-Training.Structures.append([Training.SizeOfInputs[0],10,1])
-Training.NumberOfSameNetworks.append(NrNi)
-Training.Structures.append([Training.SizeOfInputs[1],10,1])
-Training.NumberOfSameNetworks.append(NrAu)
+Training.Structures.append([Training.SizeOfInputs[0],100,80,1])
+Training.Dropout=[0.25,0.1,0]
+Training.NumberOfAtomsPerType.append(NrNi)
+Training.Structures.append([Training.SizeOfInputs[1],100,80,1])
+Training.NumberOfAtomsPerType.append(NrAu)
 Training.HiddenType="truncated_normal"
 Training.HiddenData=list()
 Training.BiasData=list()
-Training.ActFun="relu"
+Training.ActFun="elu"
 Training.ActFunParam=None
 Training.LearningRate=0.001
-Training.CostCriterium=0.001
-Training.Epochs=1000
+Training.CostCriterium=0
+Training.Epochs=5000
 Training.MakePlots=True
 Training.OptimizerType="Adam"
 Training.Regularization="L2"
 Training.RegularizationParam=0.0001
+Training.MakeLastLayerConstant=True
 Training.make_and_initialize_network()
 
 #Start first training
@@ -71,36 +69,22 @@ Training.start_batch_training()
 
 #Train with second data
 
-Training2.Structures.append([Training.SizeOfInputs[0],100,100,1])#the first to parameters can be anything
-Training2.Structures.append([Training.SizeOfInputs[1],100,100,1])
-
-Training2.LearningRate=0.00001
-Training2.CostCriterium=0.001
-Training2.Epochs=1500
+Training2.Structures.append([Training.SizeOfInputs[0],100,80,20,1])#the first to parameters can be anything
+Training2.Structures.append([Training.SizeOfInputs[1],100,80,20,1])
+Training2.Dropout=[0,0,0]
+Training2.LearningRate=0.001
+Training2.CostCriterium=0
+Training2.Epochs=1000
 Training2.MakePlots=True
-Training2.ActFun="relu"
+Training2.ActFun="elu"
 Training2.OptimizerType="Adam"
+Training2.MakeLastLayerConstant=True
+Training2.MakeAllVariable=False
 
 #Evaluate quality of learning transfer
-NrAu=1
-NrNi=1
-Training2.NumberOfSameNetworks.append(NrNi)
-Training2.NumberOfSameNetworks.append(NrAu)
+NrAu=12
+NrNi=14
+Training2.NumberOfAtomsPerType.append(NrNi)
+Training2.NumberOfAtomsPerType.append(NrAu)
 Training2.expand_existing_net()
-plt.ioff()
-figure=plt.figure()
-Batch=Training.get_data(1,100,True)
-Training.TrainingInputs=Batch[-1][0]
-Training2.TrainingInputs=Batch[-1][0]
-plt.plot(Training.eval_step())
-plt.plot(Training2.eval_step())
-plt.show(block=False)
-plt.ion()
-#Train with second data
-NrAu=1
-NrNi=2
-Training2.NumberOfSameNetworks[0]=NrNi
-Training2.NumberOfSameNetworks[1]=NrAu
-Training2.expand_existing_net()
-
 Training2.start_batch_training()
