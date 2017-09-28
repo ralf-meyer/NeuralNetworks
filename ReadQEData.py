@@ -75,16 +75,25 @@ def read_ekin_temp_etot(my_file,E_conv_factor):
 
     if len(kin_start_idx)==len(kin_end_idx):
         for i in range(0,len(kin_start_idx)):
-            e_kin.append(float(my_file[kin_start_idx[i]+1:kin_end_idx[i]])*E_conv_factor)
+            try:
+                e_kin.append(float(my_file[kin_start_idx[i]+1:kin_end_idx[i]])*E_conv_factor)
+            except:
+                print("Detected wrong value in file: "+str(my_file[kin_start_idx[i]+1:kin_end_idx[i]]))
             
     temp=[]
     if len(temp_start_idx)==len(temp_end_idx):
         for i in range(0,len(temp_start_idx)):
-            temp.append(float(my_file[temp_start_idx[i]+1:temp_end_idx[i]]))
+            try:
+                temp.append(float(my_file[temp_start_idx[i]+1:temp_end_idx[i]]))
+            except:
+                print("Detected wrong value in file: "+str(my_file[temp_start_idx[i]+1:temp_end_idx[i]]))
     e_tot=[]
     if len(tot_start_idx)==len(tot_end_idx):
         for i in range(0,len(tot_start_idx)):
-            e_tot.append(float(my_file[tot_start_idx[i]+1:tot_end_idx[i]])*E_conv_factor)
+            try:
+                e_tot.append(float(my_file[tot_start_idx[i]+1:tot_end_idx[i]])*E_conv_factor)
+            except:
+                print("Detected wrong value in file: "+str(my_file[tot_start_idx[i]+1:tot_end_idx[i]]))
                
     return e_kin,temp,e_tot
 
