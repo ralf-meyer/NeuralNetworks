@@ -442,8 +442,10 @@ class QE_MD_Reader(object):
             self.temperature+=temperature
             self.e_tot+=e_tot
             self.geometries+=read_geometries(this,self.Geom_conv_factor)
-            
-        self.e_pot=np.subtract(self.e_tot,self.e_kin)
+        if(len(self.e_kin)==len(self.e_tot)):
+            self.e_pot=np.subtract(self.e_tot,self.e_kin)
+        else:
+            self.e_pot=e_tot
         
     def calibrate_energy(self):
         reader=QE_SCF_Reader()
