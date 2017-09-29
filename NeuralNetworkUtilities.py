@@ -942,6 +942,24 @@ class AtomicNeuralNetInstance(object):
             print("Evaluation only no training supported if all networks are constant!")
         #Initialize session
         self.Session.run(tf.global_variables_initializer())
+        
+        
+    def load_pretraining(self,ModelName="save/trained_variables"):
+        
+        nrNets=len(self.Structures)
+        
+        if ".npy" not in ModelName:
+            ModelName=ModelName+".npy"
+            rare_model=np.load(ModelName)
+        #Copy pretrained model structure N times for each atom species in new net
+        for i in range(nrNets):
+            temp=rare_model[0].append(rare_model[0][0])
+        
+        self.TrainedVariables=temp[0]
+        self.MinOfOut=temp[1]
+
+
+        return 1
 
     def load_model(self,ModelName="save/trained_variables"):
 
