@@ -46,6 +46,16 @@ def read_atom_types(my_file):
 
     return types
 
+def get_nr_atoms_per_type(types,geometry):
+    nr_atoms=np.zeros((len(types)))
+    for atom in geometry:
+        this_type=atom[0]
+        for i in range(len(types)):
+            if types[i]==this_type:
+                nr_atoms[i]+=1#
+    
+    return list(nr_atoms)
+
 def read_cpu_time(my_file):
     
     #find cpu time in file
@@ -484,13 +494,21 @@ class QE_MD_Reader(object):
         self.Calibration=[] #list of tuples ,includes ("path to file",Nr of Atoms of this type)
         self.E_conv_factor=1
         self.Geom_conv_factor=1
+        self.nr_atoms_per_type=[]
         
     def get_files(self,folder):
-        for dirpath, dirnames, filenames in os.walk(folder):
-            for filename in [f for f in filenames if f.endswith(".out")]:
-                temp=open(os.path.join(dirpath, filename),"r").read()
-                if 'JOB DONE' in temp:
-                    self.files.append(temp)
+        if ".out" in folder:
+            dirpath=os.getcwd()
+            filename=folder.split("/")[-1]
+            temp=open(os.path.join(dirpath, filename),"r").read()
+            if 'JOB DONE' in temp:
+                self.files.append(temp)
+        else:
+            for dirpath, dirnames, filenames in os.walk(folder):
+                for filename in [f for f in filenames if f.endswith(".out")]:
+                    temp=open(os.path.join(dirpath, filename),"r").read()
+                    if 'JOB DONE' in temp:
+                        self.files.append(temp)
         return 1
     
     def read_all_files(self):
@@ -510,6 +528,7 @@ class QE_MD_Reader(object):
             self.e_pot=np.subtract(self.e_tot,self.e_kin)
         else:
             self.e_pot=e_tot
+        self.nr_atoms_per_type=get_nr_atoms_per_type(self.atom_types,self.geometries[0])
         
     def calibrate_energy(self):
         reader=QE_SCF_Reader()
@@ -530,6 +549,7 @@ class QE_MD_Reader(object):
             e_cal=min(self.e_pot)
                         
         self.e_pot_rel=np.subtract(self.e_pot,e_cal)
+        
 
 class QE_SCF_Reader(object):
 
@@ -631,7 +651,7 @@ class QE_SCF_Reader(object):
         self.one_e_contrib,self.hartree_contrib,self.xc_contrib,\
         self.ewald_contrib,self.one_center_paw_contrib,\
         self.smearing_contrib,self.geometries= map(list,zip(*all_data))
-            
+        self.nr_atoms_per_type=get_nr_atoms_per_type(self.atom_types,self.geometries[0])    
         QE_SCF_Reader.get_converged_energies(self)
         
         
