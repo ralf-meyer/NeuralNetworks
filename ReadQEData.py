@@ -22,6 +22,30 @@ def get_ecut(my_file,E_conv_factor):
         
     return temp
 
+def read_atom_types(my_file):
+    
+    types=[]
+    searchstr='atomic species   valence    mass     pseudopotential'
+    start_idx=my_file.index('\n',my_file.index(searchstr))+1
+    run=True
+    types_len=0
+    ct=0
+    while(run):
+        end_idx=my_file.index('\n',start_idx)
+        line=my_file[start_idx:end_idx].split(' ')
+        start_idx=end_idx+1
+
+        for element in line:
+            if element !='':
+                types.append(element)
+                types_len=len(types)
+                break
+        ct+=1
+        if types_len!= ct:
+            run=False
+
+    return types
+
 def read_cpu_time(my_file):
     
     #find cpu time in file
@@ -448,6 +472,7 @@ class QE_MD_Reader(object):
 
     def __init__(self):
         
+        self.atom_types=[]
         self.files=[]
         self.e_tot=[]
         self.e_pot=[]
@@ -470,6 +495,10 @@ class QE_MD_Reader(object):
     
     def read_all_files(self):
         
+        if len(self.files)>0:
+            self.atom_types=read_atom_types(self.files[0])
+        else:
+            print("No files loaded!")
         for this in self.files:
             e_kin,temperature,e_tot,forces=read_ekin_temp_etot_force(this,self.E_conv_factor)
             self.forces+=forces
@@ -485,17 +514,20 @@ class QE_MD_Reader(object):
     def calibrate_energy(self):
         reader=QE_SCF_Reader()
         e_cal=0
-        for cal in self.Calibration:
-            reader.files=[]
-            folder=cal[0]
-            NrAtoms=cal[1]
-            for dirpath, dirnames, filenames in os.walk(folder):
-                for filename in [f for f in filenames if f.endswith(".out")]:
-                    temp=open(os.path.join(dirpath, filename),"r").read()
-                    if 'JOB DONE' in temp:
-                        reader.files=[temp]
-                        reader.read_all_files()
-                        e_cal+=reader.total_energies[0][-1]*NrAtoms*self.E_conv_factor
+        if len(self.Calibration)>0: #With calibration files it gives the total energy minus the single atom energies
+            for cal in self.Calibration:
+                reader.files=[]
+                folder=cal[0]
+                NrAtoms=cal[1]
+                for dirpath, dirnames, filenames in os.walk(folder):
+                    for filename in [f for f in filenames if f.endswith(".out")]:
+                        temp=open(os.path.join(dirpath, filename),"r").read()
+                        if 'JOB DONE' in temp:
+                            reader.files=[temp]
+                            reader.read_all_files()
+                            e_cal+=reader.total_energies[0][-1]*NrAtoms*self.E_conv_factor
+        else: #Sets minimum as zero point 
+            e_cal=min(self.e_pot)
                         
         self.e_pot_rel=np.subtract(self.e_pot,e_cal)
 
@@ -506,6 +538,7 @@ class QE_SCF_Reader(object):
         self.files=[]
         self.total_energies=[]
         self.e_tot=[]
+        self.atom_types=[]
         self.harris_foulkes_energies=[]
         self.scf_accuracies=[]
         self.e_cutoffs=[]
@@ -568,7 +601,10 @@ class QE_SCF_Reader(object):
         temp_one_center=[]
         temp_smearing=[]
         temp_geoms=[]
-        
+        if len(self.files)>0:
+            self.atom_types=read_atom_types(self.files[0])
+        else:
+            print("No files loaded!")
         for this in self.files:
             eq_idx=[i.start() for i in re.finditer('=', this)]
             temp_idx=[j.start() for j in re.finditer('Ry',this)]
