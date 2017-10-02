@@ -84,58 +84,103 @@ def calc_avg_cpu_time(times):
         
     return avg
 
+def search_idx(idx,idx_dataset,last_idx):
+    for i,x in enumerate(idx_dataset[last_idx:]):
+        if x>idx:
+         return x,i
+     
+    return None,None
+         
+
 def read_ekin_temp_etot_force(my_file,E_conv_factor):
     #find total energies in file
     ex_idx=[i.start() for i in re.finditer('!', my_file)]
     kin_idx=[i.start() for i in re.finditer('kinetic energy', my_file)]
-    eq_idx=[i.start() for i in re.finditer('=', my_file)]
-    k_idx=[i.start() for i in re.finditer('K', my_file)]
-    ry_idx=[j.start() for j in re.finditer('Ry', my_file)]
-    f_idx=[j.start() for j in re.finditer('force', my_file)]
-    bs_idx=[j.start() for j in re.finditer('\n', my_file)]
+    const_idx=[i.start() for i in re.finditer('(const)', my_file)]
+    f1_idx=[j.start() for j in re.finditer('Forces acting on atoms', my_file)]
+    f2_idx=[j.start() for j in re.finditer('Total SCF correction', my_file)]
     kin_start_idx=[]
     kin_end_idx=[]
     temp_start_idx=[]
     temp_end_idx=[]
     tot_start_idx=[]
     tot_end_idx=[]
+    e_tot=[]
+    e_kin=[]
+    temperature=[]
     #Match start and end indices
     #Read total energy
-    for idx in ex_idx:
-        tot_start_idx.append(eq_idx[next(x[0] for x in enumerate(eq_idx) if x[1] > idx)])
-        tot_end_idx.append(ry_idx[next(x[0] for x in enumerate(ry_idx) if x[1] > idx)])
+
+    for i,idx in enumerate(ex_idx):
+        if i %int(len(ex_idx)/33)==0:
+            print("..."+str(float(i)*100*0.33/len(ex_idx))+"%")
+            
+        part=my_file[idx:f1_idx[i]]
+        tot_start_idx=part.index('=')
+        tot_end_idx=part.index('Ry')
+        try:
+            e_tot.append(float(part[tot_start_idx+1:tot_end_idx])*E_conv_factor)
+        except:
+            print("Detected wrong value in file: "+str(part[tot_start_idx+1:tot_end_idx]))
+
     #Read forces 
     forces=[]
     f_i_clean=[]
     f_clean=[]
-    for idx in f_idx:
-        
-        f_i_start=eq_idx[next(x[0] for x in enumerate(eq_idx) if x[1] > idx)]+1
-        f_i_end=bs_idx[next(x[0] for x in enumerate(bs_idx) if x[1] > idx)]
-        try:
-            f_i=my_file[f_i_start:f_i_end].split(' ')
-            
-            if 'Total' in f_i:
-                if len(f_i_clean)>0:
-                    f_i_clean=[float(val) for val in f_i_clean ]
-                    forces.append(f_clean)
-                    f_clean=[]
-            else:
-                f_i_clean=[]
-                for fi_temp in f_i:
-                    if fi_temp!='':
-                        f_i_clean.append(fi_temp)
-                f_clean.append(f_i_clean)
+    for j,idx in enumerate(f1_idx):
+        if j %int(len(f1_idx)/33)==0:
+            print("..."+str(34+float(j)*100*0.33/len(f1_idx))+"%")
+        part=my_file[idx:f2_idx[j]]
+        part_eq_idx=[i.start() for i in re.finditer('=', part)]
+        part_bs_idx=[j.start() for j in re.finditer('\n',part)]
+        part_f_idx=[j.start() for j in re.finditer('force',part)]
+        last_eq=0
+        last_bs=0
+        for part_idx in part_f_idx:
+            f_i_start,last_eq= search_idx(part_idx,part_eq_idx,last_eq)
+            f_i_start+=1
+            f_i_end,last_bs= search_idx(part_idx,part_bs_idx,last_bs)
+            try:
+                f_i=part[f_i_start:f_i_end].split(' ')
                 
-        except:
-            print("Detected wrong value in file: "+str(my_file[f_i_start:f_i_end]))
+                if 'Total' in f_i:
+                    if len(f_i_clean)>0:
+                        f_i_clean=[float(val) for val in f_i_clean ]
+                        forces.append(f_clean)
+                        f_clean=[]
+                else:
+                    f_i_clean=[]
+    #                L=f_i!=''
+    #                f_i_clean=f_i[L]
+                    for fi_temp in f_i:
+                        if fi_temp!='':
+                            f_i_clean.append(fi_temp)
+                    f_clean.append(f_i_clean)
+                    
+            except:
+                print("Detected wrong value in file: "+str(my_file[f_i_start:f_i_end]))
+                break
                 
     #Read kinetic energy and temperature
-    for idx in kin_idx:
-        kin_start_idx.append(eq_idx[next(x[0] for x in enumerate(eq_idx) if x[1] > idx)])
-        kin_end_idx.append(ry_idx[next(x[0] for x in enumerate(ry_idx) if x[1] > idx)])
-        temp_start_idx.append(eq_idx[next(x[0] for x in enumerate(eq_idx) if x[1] > kin_end_idx[-1])])
-        temp_end_idx.append(k_idx[next(x[0] for x in enumerate(k_idx) if x[1] > idx)])
+    for i,idx in enumerate(kin_idx):
+        if i %int(len(kin_idx)/33)==0:
+            print("..."+str(66+float(i)*100*0.33/len(kin_idx))+"%")
+
+        part=my_file[idx:const_idx[i]]
+        part_eq_idx=[i.start() for i in re.finditer('=', part)]
+        part_ry_idx=part.index("Ry")
+        part_k_idx=part.index("K")
+        try:
+            e_kin.append(float(part[part_eq_idx[0]+1:part_ry_idx])*E_conv_factor)
+        except:
+            e_kin.append(0)
+            print("Detected wrong value in file: "+str(part[part_eq_idx[0]+1:part_ry_idx]))
+        try:
+            temperature.append(float(part[part_eq_idx[1]+1:part_k_idx]))
+        except:
+            temperature.append(0)
+            print("Detected wrong value in file: "+str(part[part_eq_idx[1]+1:part_k_idx]))
+
 
     #get values
     e_kin=[]
@@ -154,15 +199,9 @@ def read_ekin_temp_etot_force(my_file,E_conv_factor):
                 temp.append(float(my_file[temp_start_idx[i]+1:temp_end_idx[i]]))
             except:
                 print("Detected wrong value in file: "+str(my_file[temp_start_idx[i]+1:temp_end_idx[i]]))
-    e_tot=[]
-    if len(tot_start_idx)==len(tot_end_idx):
-        for i in range(0,len(tot_start_idx)):
-            try:
-                e_tot.append(float(my_file[tot_start_idx[i]+1:tot_end_idx[i]])*E_conv_factor)
-            except:
-                print("Detected wrong value in file: "+str(my_file[tot_start_idx[i]+1:tot_end_idx[i]]))
+
                
-    return e_kin,temp,e_tot,forces
+    return e_kin,temperature,e_tot,forces
 
 def read_total_energy(my_file,eq_idx,temp_idx,E_conv_factor):
     
@@ -447,9 +486,15 @@ def read_geometries(my_file,Geom_conv_factor):
     start_idx=[]
     end_idx=[]
     #Match start and end indices
-    for idx in pos_idx:
-        start_idx.append(ket_idx[next(x[0] for x in enumerate(ket_idx) if x[1] > idx)])
-        end_idx.append(temp_idx[next(x[0] for x in enumerate(temp_idx) if x[1] > idx)])
+    last_ket=0
+    last_temp=0
+    for i,idx in enumerate(pos_idx):
+        if i %int(len(pos_idx)/33)==0:
+            print("..."+str(float(i)*100*0.33/len(pos_idx))+"%")
+        temp,last_ket=search_idx(idx,ket_idx,last_ket)
+        start_idx.append(temp)
+        temp,last_ket=search_idx(idx,temp_idx,last_temp)
+        end_idx.append(temp)
     
     all_geometries=[]
     pos=None
@@ -457,6 +502,8 @@ def read_geometries(my_file,Geom_conv_factor):
     #get values
     if len(start_idx)==len(end_idx):
         for i in range(0,len(start_idx)):
+            if i %int(len(pos_idx)/67)==0:
+                print("..."+str(34+float(i)*100*0.66/len(pos_idx))+"%")
             geom=[]
             values=my_file[start_idx[i]+1:end_idx[i]].split()
 
@@ -498,9 +545,7 @@ class QE_MD_Reader(object):
         
     def get_files(self,folder):
         if ".out" in folder:
-            dirpath=os.getcwd()
-            filename=folder.split("/")[-1]
-            temp=open(os.path.join(dirpath, filename),"r").read()
+            temp=open(folder,"r").read()
             if 'JOB DONE' in temp:
                 self.files.append(temp)
         else:
@@ -517,13 +562,17 @@ class QE_MD_Reader(object):
             self.atom_types=read_atom_types(self.files[0])
         else:
             print("No files loaded!")
+        ct=1
         for this in self.files:
+            print("Reading energies file "+str(ct)+"...")
             e_kin,temperature,e_tot,forces=read_ekin_temp_etot_force(this,self.E_conv_factor)
             self.forces+=forces
             self.e_kin+=e_kin
             self.temperature+=temperature
             self.e_tot+=e_tot
+            print("Reading geometries file "+str(ct)+"...")
             self.geometries+=read_geometries(this,self.Geom_conv_factor)
+            ct+=1
         if(len(self.e_kin)==len(self.e_tot)):
             self.e_pot=np.subtract(self.e_tot,self.e_kin)
         else:
