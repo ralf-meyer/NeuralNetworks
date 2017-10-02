@@ -50,12 +50,15 @@ def calc_avg_cpu_time(times):
         
     return avg
 
-def read_ekin_temp_etot(my_file,E_conv_factor):
+def read_ekin_temp_etot_force(my_file,E_conv_factor):
     #find total energies in file
+    ex_idx=[i.start() for i in re.finditer('!', my_file)]
     kin_idx=[i.start() for i in re.finditer('kinetic energy', my_file)]
     eq_idx=[i.start() for i in re.finditer('=', my_file)]
     k_idx=[i.start() for i in re.finditer('K', my_file)]
     ry_idx=[j.start() for j in re.finditer('Ry', my_file)]
+    f_idx=[j.start() for j in re.finditer('force', my_file)]
+    bs_idx=[j.start() for j in re.finditer('\n', my_file)]
     kin_start_idx=[]
     kin_end_idx=[]
     temp_start_idx=[]
@@ -63,13 +66,43 @@ def read_ekin_temp_etot(my_file,E_conv_factor):
     tot_start_idx=[]
     tot_end_idx=[]
     #Match start and end indices
+    #Read total energy
+    for idx in ex_idx:
+        tot_start_idx.append(eq_idx[next(x[0] for x in enumerate(eq_idx) if x[1] > idx)])
+        tot_end_idx.append(ry_idx[next(x[0] for x in enumerate(ry_idx) if x[1] > idx)])
+    #Read forces 
+    forces=[]
+    f_i_clean=[]
+    f_clean=[]
+    for idx in f_idx:
+        
+        f_i_start=eq_idx[next(x[0] for x in enumerate(eq_idx) if x[1] > idx)]+1
+        f_i_end=bs_idx[next(x[0] for x in enumerate(bs_idx) if x[1] > idx)]
+        try:
+            f_i=my_file[f_i_start:f_i_end].split(' ')
+            
+            if 'Total' in f_i:
+                if len(f_i_clean)>0:
+                    f_i_clean=[float(val) for val in f_i_clean ]
+                    forces.append(f_clean)
+                    f_clean=[]
+            else:
+                f_i_clean=[]
+                for fi_temp in f_i:
+                    if fi_temp!='':
+                        f_i_clean.append(fi_temp)
+                f_clean.append(f_i_clean)
+                
+        except:
+            print("Detected wrong value in file: "+str(my_file[f_i_start:f_i_end]))
+                
+    #Read kinetic energy and temperature
     for idx in kin_idx:
         kin_start_idx.append(eq_idx[next(x[0] for x in enumerate(eq_idx) if x[1] > idx)])
         kin_end_idx.append(ry_idx[next(x[0] for x in enumerate(ry_idx) if x[1] > idx)])
         temp_start_idx.append(eq_idx[next(x[0] for x in enumerate(eq_idx) if x[1] > kin_end_idx[-1])])
         temp_end_idx.append(k_idx[next(x[0] for x in enumerate(k_idx) if x[1] > idx)])
-        tot_start_idx.append(eq_idx[next(x[0] for x in enumerate(eq_idx) if x[1] > temp_end_idx[-1])])
-        tot_end_idx.append(ry_idx[next(x[0] for x in enumerate(ry_idx) if x[1] > temp_end_idx[-1])])
+
     #get values
     e_kin=[]
 
@@ -95,7 +128,7 @@ def read_ekin_temp_etot(my_file,E_conv_factor):
             except:
                 print("Detected wrong value in file: "+str(my_file[tot_start_idx[i]+1:tot_end_idx[i]]))
                
-    return e_kin,temp,e_tot
+    return e_kin,temp,e_tot,forces
 
 def read_total_energy(my_file,eq_idx,temp_idx,E_conv_factor):
     
@@ -419,6 +452,7 @@ class QE_MD_Reader(object):
         self.e_tot=[]
         self.e_pot=[]
         self.e_kin=[]
+        self.forces=[]
         self.e_pot_rel=[]
         self.temperature=[]
         self.geometries=[]
@@ -437,7 +471,8 @@ class QE_MD_Reader(object):
     def read_all_files(self):
         
         for this in self.files:
-            e_kin,temperature,e_tot=read_ekin_temp_etot(this,self.E_conv_factor)
+            e_kin,temperature,e_tot,forces=read_ekin_temp_etot_force(this,self.E_conv_factor)
+            self.forces+=forces
             self.e_kin+=e_kin
             self.temperature+=temperature
             self.e_tot+=e_tot
