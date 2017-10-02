@@ -944,38 +944,31 @@ class AtomicNeuralNetInstance(object):
         self.Session.run(tf.global_variables_initializer())
         
         
-    def load_pretraining(self,ModelName="save/trained_variables"):
+    def load_model(self,ModelName="save/trained_variables",Pretraining=False):
         
         nrNets=len(self.Structures)
         
         if ".npy" not in ModelName:
             ModelName=ModelName+".npy"
             rare_model=np.load(ModelName)
-        #Copy pretrained model structure N times for each atom species in new net
-        for i in range(nrNets):
-            temp=rare_model[0].append(rare_model[0][0])
-        
+                                   
+        if Pretraining:
+            #Copy pretrained model structure N times for each atom species in new net
+            for i in range(nrNets):
+                temp=rare_model[0].append(rare_model[0][0])
+        else:
+            temp=rare_model
+            
         self.TrainedVariables=temp[0]
         self.MinOfOut=temp[1]
 
 
         return 1
 
-    def load_model(self,ModelName="save/trained_variables"):
-
-        if ".npy" not in ModelName:
-            ModelName=ModelName+".npy"
-            temp=np.load(ModelName)
-        self.TrainedVariables=temp[0]
-        self.MinOfOut=temp[1]
-
-
-        return 1
-
-    def expand_existing_net(self,ModelName="save/trained_variables",MakeAllVariable=True,ModelData=None,ConvertToPartitioned=False):
+    def expand_existing_net(self,ModelName="save/trained_variables",MakeAllVariable=True,ModelData=None,ConvertToPartitioned=False,Pretraining=False):
         
         if ModelData==None:
-            Success=AtomicNeuralNetInstance.load_model(self,ModelName)
+            Success=AtomicNeuralNetInstance.load_model(self,ModelName,Pretraining)
         else:
             self.TrainedVariables=ModelData[0]
             self.MinOfOut=ModelData[1]
@@ -1243,9 +1236,9 @@ class AtomicNeuralNetInstance(object):
                         print([str(100*i/self.Epochs)+" %","deltaE = "+str(self.DeltaE)+" ev","Cost = "+str(self.TrainingCosts),"t = "+str(time.time()-start)+" s","global step: "+str(self.Session.run(self.GlobalStep))])
                         Prediction=AtomicNeuralNetInstance.eval_dataset(self,[self.TrainingInputs,None])
                         print("Data:")
-                        print(self.TrainingOutputs)
+                        print(self.TrainingOutputs[0:int(len(self.TrainingOutputs)/20)])
                         print("Prediction:")
-                        print(Prediction)
+                        print(Prediction[0:int(len(Prediction)/20)])
                         #Store variables
                         if self.IsPartitioned==False:
                             self.TrainedVariables=get_trained_variables(self.Session,self.VariablesDictionary)
