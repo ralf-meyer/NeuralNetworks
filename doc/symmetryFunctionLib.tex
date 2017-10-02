@@ -1,0 +1,60 @@
+\documentclass[a4paper,10pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{geometry}
+
+%opening
+\title{}
+\author{}
+
+\begin{document}
+
+\section{Derivatives}
+\subsection{TwoBodySymmetryFunctions}
+
+\subsection{ThreeBodySymmetryFunctions}
+The current implementation demands that a ThreeBodySymmetryFunction implements method to calculate the derivatives $\frac{\partial G}{\partial r_{ij}}$, $\frac{\partial G}{\partial r_{ik}}$ and $\frac{\partial G}{\partial \theta}$. The sought after derivative $\frac{\partial G_j}{\partial x_i}$ is then calculated as:
+\begin{equation}
+ \frac{\partial G_j}{\partial x_i} = \frac{\partial G}{\partial r_{ij}}\frac{\partial r_{ij}}{\partial x_i} + \frac{\partial G}{\partial r_{ik}}\frac{\partial r_{ik}}{\partial x_i}+\frac{\partial G}{\partial \theta}\frac{\partial \theta}{\partial x_i}
+\end{equation}
+While the first two terms have the same character as for TwoBodySymmetryFunctions the third term takes on a new form:
+\begin{equation}
+ \theta = \tan^{-1}(f,g)
+\end{equation}
+with
+\begin{equation}
+ f = \sqrt{(a_y b_z - a_z b_y)^2 + (a_z b_x - a_x b_z)^2 + (a_x b_y - a_y b_x)^2}
+\end{equation}
+and
+\begin{equation}
+ g = a_x b_x + a_y b_y + a_z b_z
+\end{equation}
+\begin{equation}
+\begin{split}
+ &\frac{\partial \theta}{\partial a_x} = \frac{f \frac{\partial g}{\partial a_x} - g \frac{\partial f}{\partial a_x}}{f^2+g^2} = \\
+ &\frac{}{(a_y b_z - a_z b_y)^2 + (a_z b_x - a_x b_z)^2 + (a_x b_y - a_y b_x)^2 + (a_x b_x + a_y b_y + a_z b_z)^2} =\\
+ &\frac{}{(a_y b_z)^2-2 a_y b_z a_z b_y + (a_z b_y)^2+(a_z b_x)^2-2a_z b_x a_x b_z+(a_x b_z)^2 + (a_x b_y)^2 - 2 a_x b_y a_y b_x (a_y b_x)^2 }
+ \end{split} 
+\end{equation}
+
+\begin{equation}
+\begin{split}
+ (a_y b_z)^2-2 a_y b_z a_z b_y + (a_z b_y)^2+(a_z b_x)^2-2a_z b_x a_x b_z+(a_x b_z)^2 + (a_x b_y)^2 - 2 a_x b_y a_y b_x + (a_y b_x)^2 + \\
+ (a_x b_x)^2 + (a_y b_y)^2 + (a_z b_z)^2 + 2 a_x b_x a_y b_y + 2 a_x b_x a_z b_z + 2 a_y b_y a_z b_z = \\
+ (a_x b_x)^2 + (a_x b_y)^2 + (a_x b_z)^2 + (a_y b_x)^2 + (a_y b_y)^2 + (a_y b_z)^2
+ \end{split} 
+\end{equation}
+
+\begin{equation}
+-\frac{\left(-ri_{x}+rk_{x}\right)\sqrt{\left(a_{x}b_{y}-b_{x}\left(ri_{y}-rj_{y}\right)\right)^{2}+\left(-a_{x}\left(ri_{z}-rk_{z}\right)+b_{x}\left(ri_{z}-rj_{z}\right)\right)^{2}+\left(\left(ri_{y}-rj_{y}\right)\left(ri_{z}-rk_{z}\right)-b_{y}\left(ri_{z}-rj_{z}\right)\right)^{2}}}{\left(a_{x}b_{y}-b_{x}\left(ri_{y}-rj_{y}\right)\right)^{2}+\left(-a_{x}\left(ri_{z}-rk_{z}\right)+b_{x}\left(ri_{z}-rj_{z}\right)\right)^{2}+\left(\left(ri_{y}-rj_{y}\right)\left(ri_{z}-rk_{z}\right)-b_{y}\left(ri_{z}-rj_{z}\right)\right)^{2}+\left(a_{x}b_{x}+\left(ri_{y}-rj_{y}\right)b_{y}+\left(ri_{z}-rj_{z}\right)\left(ri_{z}-rk_{z}\right)\right)^{2}}+\frac{\left(\frac{1}{2} \left(-2ri_{y}+2rk_{y}\right)\left(a_{x}b_{y}-b_{x}\left(ri_{y}-rj_{y}\right)\right)+\frac{1}{2}\left(2ri_{z}-2rk_{z}\right)\left(-\left(ri_{x}-r
+j_{x}\right)\left(ri_{z}-rk_{z}\right)+b_{x}\left(ri_{z}-rj_{z}\right)\right)\right)\left(a_{x}b_{x}+\left(ri_{y}-rj_{y}\right)b_{y}+\left(ri_{z}-rj_{z}\right)\left(ri_{z}-rk_{z}\right)\right)}{\sqrt{\left(a_{x}b_{y}-b_{x}\left(ri_{y}-rj_{y} \right)\right)^{2}+\left(-a_{x}\left(ri_{z}-rk_{z}\right)+b_{x}\left(ri_{z}-rj_{z}\right)\right)^{2}+\left(\left(ri_{y}-rj_{y}\right)\left(ri_{z}-rk_{z}\right)-b_{y}\left(ri_{z}-rj_{z}\right)\right)^{2}}\left(\left(a_{x}b_{y}-b_{x}\left(ri_{y}-rj_{y}\right)\right)^{2}+\left(-a_{x}\left(ri_{z}-rk_{z}\right)+b_{x}\left(ri_{z}-rj_{z}\right)\right)^{2}+\left(\left(ri_{y}-rj_{y}\right)\left(ri_{z}-rk_{z}\right)-b_{y}\left(ri_{z}-rj_{z}\right)\right)^{2}+\left(a_{x}b_{x}+\left(ri_{y}-rj_{y}\right)b_{y}+\left(ri_{z}-rj_{z}\right)\left(ri_{z}-rk_{z}\right)\right)^{2}\right)}
+\end{equation}
+
+
+
+
+
+
+
+
+\end{document}

@@ -1,4 +1,5 @@
 #include "cutoffFunctions.h"
+#include <stdio.h>
 #include <math.h>
 
 CutoffFunction::CutoffFunction(double cutoff_i)
@@ -7,6 +8,8 @@ CutoffFunction::CutoffFunction(double cutoff_i)
 };
 
 CutoffFunction::CutoffFunction(){};
+
+CutoffFunction::~CutoffFunction(){};
 
 double CutoffFunction::eval(double r)
 {

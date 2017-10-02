@@ -4,32 +4,76 @@
 class SymmetryFunction
 {
     public:
-        SymmetryFunction(double* pmrs_i, CutoffFunction cutfun_i);
-        double eval(double* args);
-        double derivative(double* args);
+        SymmetryFunction(int num_prms, double* pmrs_i, CutoffFunction* cutfun_i);
+        ~SymmetryFunction();
     protected:
         double* prms;
-        CutoffFunction cutfun;
+        CutoffFunction* cutfun;
 };
 
 class TwoBodySymmetryFunction: public SymmetryFunction
 {
     public:
-        double eval(double r);
-        double derivative(double r);
+        TwoBodySymmetryFunction(int num_prms, double* prms_i, CutoffFunction* cutfun_i):
+          SymmetryFunction(num_prms, prms_i, cutfun_i){};
+        virtual double eval(double rij) = 0;
+        virtual double drij(double rij) = 0;
 };
 
-class ThreeBodySymmetryFunction: public SymmetryFunction
-{
-    public:
-        double eval(double rij, double rik, double theta);
-        double derivative(double rij, double rik, double theta);
-};
+// Start of custom TwoBodySymFuns
 
 class BehlerG2: public TwoBodySymmetryFunction
 {
     public:
-        //BehlerG2(double* prms_i, CutoffFunction cutfun_i);
-        double eval(double r);
-        double derivative(double r);
+        BehlerG2(int num_prms, double* prms_i, CutoffFunction* cutfun_i):
+          TwoBodySymmetryFunction(num_prms, prms_i, cutfun_i){};
+        double eval(double rij);
+        double drij(double rij);
 };
+// End of custom TwoBodySymFuns
+
+class ThreeBodySymmetryFunction: public SymmetryFunction
+{
+    public:
+      ThreeBodySymmetryFunction(int num_prms, double* prms, CutoffFunction* cutfun_i):
+        SymmetryFunction(num_prms, prms, cutfun_i){};
+      virtual double eval(double rij, double rik, double theta) = 0;
+      virtual double drij(double rij, double rik, double theta) = 0;
+      virtual double drik(double rij, double rik, double theta) = 0;
+      virtual double dtheta(double rij, double rik, double theta) = 0;
+};
+
+// Start of custom ThreeBodySymFuns
+
+class BehlerG4: public ThreeBodySymmetryFunction
+{
+  public:
+    BehlerG4(int num_prms, double* prms, CutoffFunction* cutfun_i):
+      ThreeBodySymmetryFunction(num_prms, prms, cutfun_i){};
+    double eval(double rij, double rik, double theta);
+    double drij(double rij, double rik, double theta);
+    double drik(double rij, double rik, double theta);
+    double dtheta(double rij, double rik, double theta);
+};
+// End of custom ThreeBodySymFuns
+
+/*class BehlerG2: public TwoBodySymmetryFunction
+{
+    public:
+        //BehlerG2(double* prms_i, CutoffFunction cutfun_i);
+        BehlerG2(int num_prms, double* prms_i, CutoffFunction* cutfun_i):
+          TwoBodySymmetryFunction(num_prms, prms_i, cutfun_i){};
+        double eval(double rij);
+        double drij(double rij);
+};
+
+class BehlerG4: public ThreeBodySymmetryFunction
+{
+  public:
+    BehlerG4(int num_prms, double* prms, CutoffFunction* cutfun_i):
+      ThreeBodySymmetryFunction(num_prms, prms, cutfun_i){};
+    double eval(double rij, double rik, double theta);
+    double drij(double rij, double rik, double theta);
+    double drik(double rij, double rik, double theta);
+    double dtheta(double rij, double rik, double theta);
+};*/

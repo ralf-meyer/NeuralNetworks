@@ -1,13 +1,13 @@
-/* TODO figure out why abstract classes do not seem to work with the ctypes implementation*/
 class CutoffFunction
 {
     public:
-        CutoffFunction(double cutoff_i);
-        CutoffFunction();
-        double eval(double r);
-        double derivative(double r);
+      CutoffFunction(double cutoff_i);
+      CutoffFunction();
+      virtual ~CutoffFunction();
+      virtual double eval(double r) = 0;
+      virtual double derivative(double r) = 0;
     protected:
-        double cutoff;
+      double cutoff;
 };
 
 class ConstCutoffFunction: public CutoffFunction

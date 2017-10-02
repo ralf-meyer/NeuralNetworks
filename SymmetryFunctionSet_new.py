@@ -1,49 +1,83 @@
+from itertools import product
 import SymmetryFunctions as SFs
 import numpy as _np
 import ctypes as _ct
 from scipy.spatial.distance import pdist, squareform
 from scipy.misc import comb
-lib = _ct.cdll.LoadLibrary("./symmetryFunctions/symmetryFunctionSet.so")
+
+try:
+    lib = _ct.cdll.LoadLibrary("./symmetryFunctions/symmetryFunctionSet.so")
+    lib.SymmetryFunctionSet_add_TwoBodySymmetryFunction.argtypes = (
+        _ct.c_void_p, _ct.c_int, _ct.c_int, _ct.c_int, _ct.c_int,
+        _ct.POINTER(_ct.c_double), _ct.c_int, _ct.c_double)
+    lib.SymmetryFunctionSet_add_ThreeBodySymmetryFunction.argtypes = (
+        _ct.c_void_p, _ct.c_int, _ct.c_int, _ct.c_int, _ct.c_int, _ct.c_int,
+        _ct.POINTER(_ct.c_double), _ct.c_int, _ct.c_double)
+    lib.SymmetryFunctionSet_eval.argtypes = (
+        _ct.c_void_p, _ct.c_int, _ct.POINTER(_ct.c_int),
+        _np.ctypeslib.ndpointer(dtype=_np.float64, ndim = 2, flags = "C_CONTIGUOUS"),
+        _np.ctypeslib.ndpointer(dtype=_np.float64, ndim = 1, flags = "C_CONTIGUOUS"))
+    lib.SymmetryFunctionSet_eval_derivatives.argtypes = (
+        _ct.c_void_p, _ct.c_int, _ct.POINTER(_ct.c_int),
+        _np.ctypeslib.ndpointer(dtype=_np.float64, ndim = 2, flags = "C_CONTIGUOUS"),
+        _np.ctypeslib.ndpointer(dtype=_np.float64, ndim = 2, flags = "C_CONTIGUOUS"))
+    lib.SymmetryFunctionSet_get_G_vector_size.argtypes = (
+        _ct.c_void_p, _ct.c_int, _ct.POINTER(_ct.c_int))
+except OSError as e:
+    # Possibly switch to a python based implementation if loading the dll fails
+    raise OSError(e.message)
 
 class SymmetryFunctionSet_new(object):
-     def __init__(self):
-         self.obj = lib.create_SymmetryFunctionSet()
+    def __init__(self, atomtypes, cutoff = 7.0):
+        self.cutoff = cutoff
+        self.atomtypes = atomtypes
+        self.type_dict = {}
+        for i, t in enumerate(atomtypes):
+            self.type_dict[t] = i
+        self.obj = lib.create_SymmetryFunctionSet(_ct.c_int(len(atomtypes)))
 
-     def test(self):
-         lib.SymmetryFunctionSet_foo(self.obj)
+    def add_TwoBodySymmetryFunction(self, type1, type2, funtype, prms, cuttype, cutoff):
+        ptr = (_ct.c_double*len(prms))(*prms)
+        lib.SymmetryFunctionSet_add_TwoBodySymmetryFunction(self.obj,
+            type1, type2, funtype, len(prms), ptr, cuttype, cutoff)
 
-     def add(self, a, b):
-         lib.SymmetryFunctionSet_add.restype = _ct.c_double
-         return lib.SymmetryFunctionSet_add(self.obj, _ct.c_double(a), _ct.c_double(b))
+    def add_ThreeBodySymmetryFunction(self, type1, type2, type3, funtype, prms,
+        cuttype, cutoff):
+        ptr = (_ct.c_double*len(prms))(*prms)
+        lib.SymmetryFunctionSet_add_ThreeBodySymmetryFunction(self.obj, type1,
+            type2, type3, funtype, len(prms), ptr, cuttype, cutoff)
 
-     def add_TwoBodySymmetryFunction(self, type1, type2, prms, funtype = "BehlerG2"):
-         ptr = (_ct.c_double*len(prms))(*prms)
-         lib.SymmetryFunctionSet_add_TwoBodySymmetryFunction(self.obj, _ct.c_int(type1), _ct.c_int(type2), funtype, ptr);
+    def add_radial_functions(self, rss, etas):
+        for rs in rss:
+            for eta in etas:
+                for p in product(self.atomtypes, repeat = 2):
+                    self.add_TwoBodySymmetryFunction(self.type_dict[p[0]],
+                        self.type_dict[p[1]], 0, [eta, rs], 1, self.cutoff)
 
-     def add_radial_function(self, rs, eta, cutoff):
-         lib.SymmetryFunctionSet_add_radial_function(self.obj, _ct.c_double(rs), _ct.c_double(eta), _ct.c_double(cutoff))
-
-     def add_radial_functions_evenly(self, N):
+    def add_radial_functions_evenly(self, N):
         rss = _np.linspace(0.,self.cutoff,N)
         etas = [2./(self.cutoff/(N-1))**2]*N
         for rs, eta in zip(rss, etas):
             add_radial_function(self, rs, eta, self.cutoff)
 
-     def add_angular_function(self, eta, zeta, lamb, cutoff):
-         lib.SymmetryFunctionSet_add_angular_function(self.obj, _ct.c_double(eta), _ct.c_double(zeta), _ct.c_double(lamb), _ct.c_double(cutoff))
+    def add_angular_function(self, eta, zeta, lamb, cutoff):
+        lib.SymmetryFunctionSet_add_angular_function(self.obj, _ct.c_double(eta),
+            _ct.c_double(zeta), _ct.c_double(lamb), _ct.c_double(cutoff))
 
-     def eval_geometry(self, geometry, derivative = False):
-        N = len(geometry) # Number of atoms
-        Nt = len(self.atomtypes) # Number of atomtypes
-        Nr = len(self.radial_sym_funs) # Number of radial symmetry functions
-        Na = len(self.angular_sym_funs) # Number of angular symmetry functions
+    def eval(self, types, xyzs):
+        types_ptr = (_ct.c_int*len(types))(*types)
+        len_G_vector = lib.SymmetryFunctionSet_get_G_vector_size(self.obj,
+            len(types), types_ptr)
+        out = _np.zeros(len_G_vector)
+        lib.SymmetryFunctionSet_eval(self.obj, len(types), types_ptr, xyzs, out)
+        return out
 
-        if derivative == False:
-            out = _np.zeros((N, Nr*Nt + comb(Nt, 2, exact = True, repetition = True)*Na), dtype=_np.float)
-            lib.SymmetryFunctionSet_eval_geometry(self.obj, out.ctypes)
-        else:
-            out = _np.zeros((N, 2*(Nr*Nt + comb(Nt, 2, exact = True, repetition = True)*Na)), dtype=_np.float)
-            lib.SymmetryFunctionSet_eval_geometry(self.obj, out.ctypes)
+    def eval_derivatives(self, types, xyzs):
+        types_ptr = (_ct.c_int*len(types))(*types)
+        len_G_vector = lib.SymmetryFunctionSet_get_G_vector_size(self.obj,
+            len(types), types_ptr)
+        out = _np.zeros((len_G_vector, 3*len(types)))
+        lib.SymmetryFunctionSet_eval_derivatives(self.obj, len(types), types_ptr, xyzs, out)
         return out
 
 class SymmetryFunctionSet(object):
