@@ -489,8 +489,8 @@ def read_geometries(my_file,Geom_conv_factor):
     last_ket=0
     last_temp=0
     for i,idx in enumerate(pos_idx):
-        if i %int(len(pos_idx)/33)==0:
-            print("..."+str(float(i)*100*0.33/len(pos_idx))+"%")
+        if i %int(len(pos_idx)/67)==0:
+            print("..."+str(float(i)*100*0.66/len(pos_idx))+"%")
         temp,last_ket=search_idx(idx,ket_idx,last_ket)
         start_idx.append(temp)
         temp,last_ket=search_idx(idx,temp_idx,last_temp)
@@ -502,8 +502,8 @@ def read_geometries(my_file,Geom_conv_factor):
     #get values
     if len(start_idx)==len(end_idx):
         for i in range(0,len(start_idx)):
-            if i %int(len(pos_idx)/67)==0:
-                print("..."+str(34+float(i)*100*0.66/len(pos_idx))+"%")
+            if i %int(len(pos_idx)/33)==0:
+                print("..."+str(67+float(i)*100*0.33/len(pos_idx))+"%")
             geom=[]
             values=my_file[start_idx[i]+1:end_idx[i]].split()
 
