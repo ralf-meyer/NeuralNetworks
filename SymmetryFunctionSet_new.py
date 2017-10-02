@@ -1,3 +1,5 @@
+from os.path import dirname, abspath, join
+from inspect import getsourcefile
 from itertools import product
 import SymmetryFunctions as SFs
 import numpy as _np
@@ -6,7 +8,8 @@ from scipy.spatial.distance import pdist, squareform
 from scipy.misc import comb
 
 try:
-    lib = _ct.cdll.LoadLibrary("./symmetryFunctions/symmetryFunctionSet.so")
+    module_path = dirname(abspath(getsourcefile(lambda:0)))
+    lib = _ct.cdll.LoadLibrary(join(module_path,"symmetryFunctions/symmetryFunctionSet.so"))
     lib.SymmetryFunctionSet_add_TwoBodySymmetryFunction.argtypes = (
         _ct.c_void_p, _ct.c_int, _ct.c_int, _ct.c_int, _ct.c_int,
         _ct.POINTER(_ct.c_double), _ct.c_int, _ct.c_double)
