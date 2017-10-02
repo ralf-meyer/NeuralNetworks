@@ -47,7 +47,7 @@ def read_atom_types(my_file):
     return types
 
 def get_nr_atoms_per_type(types,geometry):
-    nr_atoms=np.zeros((len(types)))
+    nr_atoms=np.zeros((len(types))).astype(np.int32)
     for atom in geometry:
         this_type=atom[0]
         for i in range(len(types)):
