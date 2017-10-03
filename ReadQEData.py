@@ -112,7 +112,7 @@ def read_ekin_temp_etot_force(my_file,E_conv_factor):
     #Read total energy
 
     for i,idx in enumerate(ex_idx):
-        if i %int(len(ex_idx)/33)==0:
+        if i %int(len(ex_idx)/3)==0:
             print("..."+str(float(i)*100*0.33/len(ex_idx))+"%")
             
         part=my_file[idx:f1_idx[i]]
@@ -128,7 +128,7 @@ def read_ekin_temp_etot_force(my_file,E_conv_factor):
     f_i_clean=[]
     f_clean=[]
     for j,idx in enumerate(f1_idx):
-        if j %int(len(f1_idx)/33)==0:
+        if j %int(len(f1_idx)/3)==0:
             print("..."+str(34+float(j)*100*0.33/len(f1_idx))+"%")
         part=my_file[idx:f2_idx[j]]
         part_eq_idx=[i.start() for i in re.finditer('=', part)]
@@ -163,7 +163,7 @@ def read_ekin_temp_etot_force(my_file,E_conv_factor):
                 
     #Read kinetic energy and temperature
     for i,idx in enumerate(kin_idx):
-        if i %int(len(kin_idx)/33)==0:
+        if i %int(len(kin_idx)/3)==0:
             print("..."+str(66+float(i)*100*0.33/len(kin_idx))+"%")
 
         part=my_file[idx:const_idx[i]]
@@ -489,7 +489,7 @@ def read_geometries(my_file,Geom_conv_factor):
     last_ket=0
     last_temp=0
     for i,idx in enumerate(pos_idx):
-        if i %int(len(pos_idx)/67)==0:
+        if i %int(len(pos_idx)/6)==0:
             print("..."+str(float(i)*100*0.66/len(pos_idx))+"%")
         temp,last_ket=search_idx(idx,ket_idx,last_ket)
         start_idx.append(temp)
@@ -502,7 +502,7 @@ def read_geometries(my_file,Geom_conv_factor):
     #get values
     if len(start_idx)==len(end_idx):
         for i in range(0,len(start_idx)):
-            if i %int(len(pos_idx)/33)==0:
+            if i %int(len(pos_idx)/3)==0:
                 print("..."+str(67+float(i)*100*0.33/len(pos_idx))+"%")
             geom=[]
             values=my_file[start_idx[i]+1:end_idx[i]].split()
