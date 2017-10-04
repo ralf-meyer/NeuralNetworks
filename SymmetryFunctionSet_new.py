@@ -1,6 +1,6 @@
 from os.path import dirname, abspath, join
 from inspect import getsourcefile
-from itertools import product
+from itertools import product, combinations_with_replacement
 import SymmetryFunctions as SFs
 import numpy as _np
 import ctypes as _ct
@@ -9,7 +9,7 @@ from scipy.misc import comb
 
 try:
     module_path = dirname(abspath(getsourcefile(lambda:0)))
-    lib = _ct.cdll.LoadLibrary(join(module_path,"symmetryFunctions/symmetryFunctionSet.so"))
+    lib = _ct.cdll.LoadLibrary(join(module_path,"symmetryFunctions/libSymFunSet.so"))
     lib.SymmetryFunctionSet_add_TwoBodySymmetryFunction.argtypes = (
         _ct.c_void_p, _ct.c_int, _ct.c_int, _ct.c_int, _ct.c_int,
         _ct.POINTER(_ct.c_double), _ct.c_int, _ct.c_double)
@@ -20,7 +20,15 @@ try:
         _ct.c_void_p, _ct.c_int, _ct.POINTER(_ct.c_int),
         _np.ctypeslib.ndpointer(dtype=_np.float64, ndim = 2, flags = "C_CONTIGUOUS"),
         _np.ctypeslib.ndpointer(dtype=_np.float64, ndim = 1, flags = "C_CONTIGUOUS"))
+    lib.SymmetryFunctionSet_eval_new.argtypes = (
+        _ct.c_void_p, _ct.c_int, _ct.POINTER(_ct.c_int),
+        _np.ctypeslib.ndpointer(dtype=_np.float64, ndim = 2, flags = "C_CONTIGUOUS"),
+        _np.ctypeslib.ndpointer(dtype=_np.float64, ndim = 1, flags = "C_CONTIGUOUS"))
     lib.SymmetryFunctionSet_eval_derivatives.argtypes = (
+        _ct.c_void_p, _ct.c_int, _ct.POINTER(_ct.c_int),
+        _np.ctypeslib.ndpointer(dtype=_np.float64, ndim = 2, flags = "C_CONTIGUOUS"),
+        _np.ctypeslib.ndpointer(dtype=_np.float64, ndim = 2, flags = "C_CONTIGUOUS"))
+    lib.SymmetryFunctionSet_eval_derivatives_new.argtypes = (
         _ct.c_void_p, _ct.c_int, _ct.POINTER(_ct.c_int),
         _np.ctypeslib.ndpointer(dtype=_np.float64, ndim = 2, flags = "C_CONTIGUOUS"),
         _np.ctypeslib.ndpointer(dtype=_np.float64, ndim = 2, flags = "C_CONTIGUOUS"))
@@ -37,25 +45,28 @@ class SymmetryFunctionSet_new(object):
         self.type_dict = {}
         for i, t in enumerate(atomtypes):
             self.type_dict[t] = i
+            self.type_dict[i] = i
         self.obj = lib.create_SymmetryFunctionSet(_ct.c_int(len(atomtypes)))
 
     def add_TwoBodySymmetryFunction(self, type1, type2, funtype, prms, cuttype, cutoff):
         ptr = (_ct.c_double*len(prms))(*prms)
         lib.SymmetryFunctionSet_add_TwoBodySymmetryFunction(self.obj,
-            type1, type2, funtype, len(prms), ptr, cuttype, cutoff)
+            self.type_dict[type1], self.type_dict[type2], funtype, len(prms),
+            ptr, cuttype, cutoff)
 
     def add_ThreeBodySymmetryFunction(self, type1, type2, type3, funtype, prms,
         cuttype, cutoff):
         ptr = (_ct.c_double*len(prms))(*prms)
-        lib.SymmetryFunctionSet_add_ThreeBodySymmetryFunction(self.obj, type1,
-            type2, type3, funtype, len(prms), ptr, cuttype, cutoff)
+        lib.SymmetryFunctionSet_add_ThreeBodySymmetryFunction(self.obj,
+            self.type_dict[type1], self.type_dict[type2], self.type_dict[type3],
+            funtype, len(prms), ptr, cuttype, cutoff)
 
     def add_radial_functions(self, rss, etas):
         for rs in rss:
             for eta in etas:
-                for p in product(self.atomtypes, repeat = 2):
-                    self.add_TwoBodySymmetryFunction(self.type_dict[p[0]],
-                        self.type_dict[p[1]], 0, [eta, rs], 1, self.cutoff)
+                for (ti, tj) in product(self.atomtypes, repeat = 2):
+                    self.add_TwoBodySymmetryFunction(ti, tj, 0, [eta, rs],
+                        1, self.cutoff)
 
     def add_radial_functions_evenly(self, N):
         rss = _np.linspace(0.,self.cutoff,N)
@@ -63,24 +74,65 @@ class SymmetryFunctionSet_new(object):
         for rs, eta in zip(rss, etas):
             add_radial_function(self, rs, eta, self.cutoff)
 
-    def add_angular_function(self, eta, zeta, lamb, cutoff):
-        lib.SymmetryFunctionSet_add_angular_function(self.obj, _ct.c_double(eta),
-            _ct.c_double(zeta), _ct.c_double(lamb), _ct.c_double(cutoff))
+    def add_angular_functions(self, etas, zetas, lambs):
+        for eta in etas:
+            for zeta in zetas:
+                for lamb in lambs:
+                    for ti in self.atomtypes:
+                        for (tj, tk) in combinations_with_replacement(self.atomtypes, 2):
+                            self.add_ThreeBodySymmetryFunction(ti, tj, tk, 0,
+                                [lamb, zeta, eta], 1, self.cutoff)
+
+    def print_symFuns(self):
+        lib.SymmetryFunctionSet_print_symFuns(self.obj)
+
+    def available_symFuns(self):
+        lib.SymmetryFunctionSet_available_symFuns(self.obj)
 
     def eval(self, types, xyzs):
-        types_ptr = (_ct.c_int*len(types))(*types)
+        int_types = [self.type_dict[ti] for ti in types]
+        types_ptr = (_ct.c_int*len(types))(*int_types)
         len_G_vector = lib.SymmetryFunctionSet_get_G_vector_size(self.obj,
             len(types), types_ptr)
         out = _np.zeros(len_G_vector)
         lib.SymmetryFunctionSet_eval(self.obj, len(types), types_ptr, xyzs, out)
         return out
 
+    def eval_new(self, types, xyzs):
+        int_types = [self.type_dict[ti] for ti in types]
+        types_ptr = (_ct.c_int*len(types))(*int_types)
+        len_G_vector = lib.SymmetryFunctionSet_get_G_vector_size(self.obj,
+            len(types), types_ptr)
+        out = _np.zeros(len_G_vector)
+        lib.SymmetryFunctionSet_eval_new(self.obj, len(types), types_ptr, xyzs, out)
+        return out
+
+    def eval_geometry(self, geo):
+        types = [a[0] for a in geo]
+        xyzs = _np.array([a[1] for a in geo])
+        return self.eval(types, xyzs)
+
+    def eval_geometry_new(self, geo):
+        types = [a[0] for a in geo]
+        xyzs = _np.array([a[1] for a in geo])
+        return self.eval_new(types, xyzs)
+
     def eval_derivatives(self, types, xyzs):
-        types_ptr = (_ct.c_int*len(types))(*types)
+        int_types = [self.type_dict[ti] for ti in types]
+        types_ptr = (_ct.c_int*len(types))(*int_types)
         len_G_vector = lib.SymmetryFunctionSet_get_G_vector_size(self.obj,
             len(types), types_ptr)
         out = _np.zeros((len_G_vector, 3*len(types)))
         lib.SymmetryFunctionSet_eval_derivatives(self.obj, len(types), types_ptr, xyzs, out)
+        return out
+
+    def eval_derivatives_new(self, types, xyzs):
+        int_types = [self.type_dict[ti] for ti in types]
+        types_ptr = (_ct.c_int*len(types))(*int_types)
+        len_G_vector = lib.SymmetryFunctionSet_get_G_vector_size(self.obj,
+            len(types), types_ptr)
+        out = _np.zeros((len_G_vector, 3*len(types)))
+        lib.SymmetryFunctionSet_eval_derivatives_new(self.obj, len(types), types_ptr, xyzs, out)
         return out
 
 class SymmetryFunctionSet(object):
@@ -139,7 +191,7 @@ class SymmetryFunctionSet(object):
         rjk = _np.tile(dist_mat.reshape((1,N,N)),(N,1,1))
         costheta = (rij**2+rik**2-rjk**2)
         costheta[rij*rik > 0] = costheta[rij*rik > 0] / ((2*rij*rik)[rij*rik > 0])
-	costheta[rij*rik == 0] = 0.0
+        costheta[rij*rik == 0] = 0.0
         # (1-eye) to satify the j != i condition of the sum
         kron_ij = (1.-_np.eye(N))
         # Similar for the condition j != i, k != j in the angular sum
@@ -162,8 +214,12 @@ class SymmetryFunctionSet(object):
                     # Second mask because two atom types are involved
                     mask2 = [a[0] == atype2 for a in geometry]
                     for j, ang_fun in enumerate(self.angular_sym_funs):
-                        out[:,Nt*Nr+ind*Na+j] = (kron_ijk *
-                            ang_fun(rij, rik, costheta)).dot(mask).dot(mask2)
+                        if (atype == atype2):
+                            out[:,Nt*Nr+ind*Na+j] = (kron_ijk *
+                                ang_fun(rij, rik, costheta)).dot(mask).dot(mask2)
+                        else:
+                            out[:,Nt*Nr+ind*Na+j] = 0.5*(kron_ijk *
+                                ang_fun(rij, rik, costheta)).dot(mask).dot(mask2)
                     ind += 1
 
         else: # derivative = True: doubles the size of the output matrix

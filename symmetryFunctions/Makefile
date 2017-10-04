@@ -8,7 +8,7 @@ SOURCES = $(shell echo *.cpp)
 HEADERS = $(shell echo *.h)
 OBJECTS=$(SOURCES:.cpp=.o)
 
-TARGET=symmetryFunctionSet.so
+TARGET=libSymFunSet.so
 
 all: $(TARGET)
 
