@@ -1,5 +1,6 @@
 #include "symmetryFunctions.h"
 #include <vector>
+#include <memory>
 
 class SymmetryFunctionSet
 {
@@ -12,20 +13,24 @@ class SymmetryFunctionSet
       int funtype, int num_prms, double* prms, int cutoff_type, double cutoff);
     int get_G_vector_size(int num_atoms, int* types);
     void eval(int num_atoms, int* types, double* xyzs, double* G_vector);
+    void eval_new(int num_atoms, int* types, double* xyzs, double* G_vector);
     void eval_derivatives(int num_atoms, int* types, double* xyzs, double* dG_tensor);
+    void eval_derivatives_new(int num_atoms, int* types, double* xyzs, double* dG_tensor);
+    void available_symFuns();
+    void print_symFuns();
   private:
     int num_atomtypes, num_atomtypes2;
     int* num_symFuns;
-    std::vector<TwoBodySymmetryFunction*>* twoBodySymFuns;
+    std::vector <std::vector<std::shared_ptr<TwoBodySymmetryFunction> > > twoBodySymFuns;
     int* pos_twoBody;
-    std::vector<ThreeBodySymmetryFunction*>* threeBodySymFuns;
+    std::vector <std::vector<std::shared_ptr<ThreeBodySymmetryFunction> > > threeBodySymFuns;
     int* pos_threeBody;
 
-    CutoffFunction* switch_CutFun(int cutoff_type, double cutoff);
-    TwoBodySymmetryFunction* switch_TwoBodySymFun(int funtype, int num_prms,
-      double* prms, CutoffFunction* cutfun);
-    ThreeBodySymmetryFunction* switch_ThreeBodySymFun(int funtype, int num_prms,
-      double* prms, CutoffFunction* cutfun);
+    std::shared_ptr<CutoffFunction> switch_CutFun(int cutoff_type, double cutoff);
+    std::shared_ptr<TwoBodySymmetryFunction> switch_TwoBodySymFun(int funtype, int num_prms,
+      double* prms, std::shared_ptr<CutoffFunction> cutfun);
+    std::shared_ptr<ThreeBodySymmetryFunction> switch_ThreeBodySymFun(int funtype, int num_prms,
+      double* prms, std::shared_ptr<CutoffFunction> cutfun);
 };
 
 // Wrap the C++ classes for C usage in python ctypes:
@@ -46,8 +51,12 @@ extern "C" {
     symFunSet->add_ThreeBodySymmetryFunction(type1, type2, type3, funtype, num_prms, prms,
     cutoff_type, cutoff);
   }
-  //void SymmetryFunctionSet_add_radial_function(SymmetryFunctionSet* symFunSet, double rs, double eta, double cutoff) {symFunSet->add_radial_function(rs, eta, cutoff);}
-  //void SymmetryFunctionSet_add_angular_function(SymmetryFunctionSet* symFunSet, double eta, double zeta, double lambda, double cutoff) {symFunSet->add_angular_function(eta, zeta, lambda, cutoff);}
+  void SymmetryFunctionSet_print_symFuns(SymmetryFunctionSet* symFunSet){
+    symFunSet->print_symFuns();
+  }
+  void SymmetryFunctionSet_available_symFuns(SymmetryFunctionSet* symFunSet){
+    symFunSet->available_symFuns();
+  }
   int SymmetryFunctionSet_get_G_vector_size(SymmetryFunctionSet* symFunSet,
     int num_atoms, int* types)
   {
@@ -58,9 +67,19 @@ extern "C" {
   {
     symFunSet->eval(num_atoms, types, xyzs, out);
   }
+  void SymmetryFunctionSet_eval_new(SymmetryFunctionSet* symFunSet, int num_atoms,
+    int* types, double* xyzs, double* out)
+  {
+    symFunSet->eval_new(num_atoms, types, xyzs, out);
+  }
   void SymmetryFunctionSet_eval_derivatives(SymmetryFunctionSet* symFunSet,
     int num_atoms, int* types, double* xyzs, double* out)
   {
     symFunSet->eval_derivatives(num_atoms, types, xyzs, out);
+  }
+  void SymmetryFunctionSet_eval_derivatives_new(SymmetryFunctionSet* symFunSet,
+    int num_atoms, int* types, double* xyzs, double* out)
+  {
+    symFunSet->eval_derivatives_new(num_atoms, types, xyzs, out);
   }
 };
