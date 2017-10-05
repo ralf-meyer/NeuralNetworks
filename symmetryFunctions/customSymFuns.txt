@@ -8,4 +8,4 @@ TwoBodySymFun BehlerG2 2 exp(-prm0*(rij-prm1)**2)*fcut(rij)
 ! ThreeBodySymmetryFunctions
 !
 
-ThreeBodySymFun BehlerG4 3 2**(1-prm1)*(1*prm0*cos(theta))**prm1*exp(-prm2*(rij**2+rik**2))*fcut(rij)*fcut(rik)
+ThreeBodySymFun BehlerG4 3 2.0**(1-prm1)*(1+prm0*cos(theta))**prm1*exp(-prm2*(rij**2+rik**2))*fcut(rij)*fcut(rik)

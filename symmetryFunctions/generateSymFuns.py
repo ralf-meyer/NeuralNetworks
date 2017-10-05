@@ -7,7 +7,8 @@ header_twoBody = """
 class {0}: public TwoBodySymmetryFunction
 {{
     public:
-        {0}(int num_prms, double* prms_i, std::shared_ptr<CutoffFunction> cutfun_i):
+        {0}(int num_prms, double* prms_i,
+          std::shared_ptr<CutoffFunction> cutfun_i):
           TwoBodySymmetryFunction(num_prms, prms_i, cutfun_i){{}};
         double eval(double rij);
         double drij(double rij);
@@ -18,7 +19,8 @@ header_threeBody = """
 class {0}: public ThreeBodySymmetryFunction
 {{
   public:
-    {0}(int num_prms, double* prms, std::shared_ptr<CutoffFunction> cutfun_i):
+    {0}(int num_prms, double* prms,
+      std::shared_ptr<CutoffFunction> cutfun_i):
       ThreeBodySymmetryFunction(num_prms, prms, cutfun_i){{}};
     double eval(double rij, double rik, double theta);
     double drij(double rij, double rik, double theta);
@@ -96,31 +98,37 @@ with open("symmetryFunctions.cpp", "w") as fout:
         if line.startswith("// AUTOMATIC Start of custom TwoBodySymFuns"):
             for symfun in twoBodySymFuns:
                 fout.write(method_twoBody.format(symfun[0],"eval",
-                    format_prms(symfun[1],_sp.ccode(symfun[2], user_functions = user_funs))))
+                    format_prms(symfun[1],_sp.ccode(symfun[2],
+                    user_functions = user_funs))))
                 deriv = str(_sp.Derivative(parse_expr(symfun[2]), rij).doit())
                 deriv = deriv.replace("Derivative(fcut(rij), rij)", "dfcut(rij)")
                 fout.write(method_twoBody.format(symfun[0],"drij",
-                    format_prms(symfun[1],_sp.ccode(deriv, user_functions = user_funs))))
+                    format_prms(symfun[1],_sp.ccode(deriv,
+                    user_functions = user_funs))))
         elif line.startswith("// AUTOMATIC Start of custom ThreeBodySymFuns"):
             for symfun in threeBodySymFuns:
                 fout.write(method_threeBody.format(symfun[0],"eval",
-                    format_prms(symfun[1],_sp.ccode(symfun[2], user_functions = user_funs))))
+                    format_prms(symfun[1],_sp.ccode(symfun[2],
+                    user_functions = user_funs))))
                 # Derivative with respect to rij
                 deriv = str(_sp.Derivative(parse_expr(symfun[2]), rij).doit())
                 deriv = deriv.replace("Derivative(fcut(rij), rij)", "dfcut(rij)")
                 deriv = deriv.replace("Derivative(fcut(rik), rik)", "dfcut(rik)")
                 fout.write(method_threeBody.format(symfun[0],"drij",
-                    format_prms(symfun[1],_sp.ccode(deriv, user_functions = user_funs))))
+                    format_prms(symfun[1],_sp.ccode(deriv,
+                    user_functions = user_funs))))
                 # Derivative with respect to rik
                 deriv = str(_sp.Derivative(parse_expr(symfun[2]), rik).doit())
                 deriv = deriv.replace("Derivative(fcut(rij), rij)", "dfcut(rij)")
                 deriv = deriv.replace("Derivative(fcut(rik), rik)", "dfcut(rik)")
                 fout.write(method_threeBody.format(symfun[0],"drik",
-                    format_prms(symfun[1],_sp.ccode(deriv, user_functions = user_funs))))
+                    format_prms(symfun[1],_sp.ccode(deriv, 
+                    user_functions = user_funs))))
                 # Derivative with respect to theta
                 deriv = str(_sp.Derivative(parse_expr(symfun[2]), theta).doit())
                 fout.write(method_threeBody.format(symfun[0],"dtheta",
-                    format_prms(symfun[1],_sp.ccode(deriv, user_functions = user_funs))))
+                    format_prms(symfun[1],_sp.ccode(deriv,
+                    user_functions = user_funs))))
 
 with open("symmetryFunctionSet.cpp", "r") as fin:
     lines = fin.readlines()

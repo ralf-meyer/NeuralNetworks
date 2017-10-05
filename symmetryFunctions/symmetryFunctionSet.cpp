@@ -39,11 +39,13 @@ SymmetryFunctionSet::~SymmetryFunctionSet()
   printf("Destructor finished\n");
 }
 
-void SymmetryFunctionSet::add_TwoBodySymmetryFunction(int type1, int type2, int funtype, int num_prms,
-double* prms, int cutoff_type, double cutoff)
+void SymmetryFunctionSet::add_TwoBodySymmetryFunction(
+  int type1, int type2, int funtype, int num_prms, double* prms,
+  int cutoff_type, double cutoff)
 {
   std::shared_ptr<CutoffFunction> cutfun = switch_CutFun(cutoff_type, cutoff);
-  std::shared_ptr<TwoBodySymmetryFunction> symfun = switch_TwoBodySymFun(funtype, num_prms, prms, cutfun);
+  std::shared_ptr<TwoBodySymmetryFunction> symfun = switch_TwoBodySymFun(
+    funtype, num_prms, prms, cutfun);
 
   twoBodySymFuns[type1*num_atomtypes+type2].push_back(symfun);
   num_symFuns[2*type1]++;
@@ -52,11 +54,13 @@ double* prms, int cutoff_type, double cutoff)
   }
 }
 
-void SymmetryFunctionSet::add_ThreeBodySymmetryFunction(int type1, int type2, int type3,
-int funtype, int num_prms, double* prms, int cutoff_type, double cutoff)
+void SymmetryFunctionSet::add_ThreeBodySymmetryFunction(
+  int type1, int type2, int type3, int funtype, int num_prms, double* prms,
+  int cutoff_type, double cutoff)
 {
   std::shared_ptr<CutoffFunction> cutfun = switch_CutFun(cutoff_type, cutoff);
-  std::shared_ptr<ThreeBodySymmetryFunction> symfun = switch_ThreeBodySymFun(funtype, num_prms, prms, cutfun);
+  std::shared_ptr<ThreeBodySymmetryFunction> symfun = switch_ThreeBodySymFun(
+    funtype, num_prms, prms, cutfun);
   // Atomtype2 and atomtype3 are sorted to maintain symmetry
   threeBodySymFuns[num_atomtypes2*type1 + num_atomtypes*std::min(type2,type3) +
     std::max(type2,type3)].push_back(symfun);
@@ -81,8 +85,10 @@ void SymmetryFunctionSet::print_symFuns()
   for (int ti = 0; ti < num_atomtypes; ti++)
   {
     printf("ti = %d\n", ti);
-    printf("Number of TwoBodySymmetryFunction for atom type %d is %d\n", ti, num_symFuns[2*ti]);
-    printf("Number of ThreeBodySymmetryFunction for atom type %d is %d\n", ti, num_symFuns[2*ti+1]);
+    printf("Number of TwoBodySymmetryFunction for atom type %d is %d\n",
+      ti, num_symFuns[2*ti]);
+    printf("Number of ThreeBodySymmetryFunction for atom type %d is %d\n",
+      ti, num_symFuns[2*ti+1]);
   }
 }
 
@@ -110,7 +116,8 @@ int SymmetryFunctionSet::get_G_vector_size(int num_atoms, int* types)
    Could probably be rewritten a bit faster if the loops would not span
    the full N^3 but only the upper (or lower) triangle of the rij matrix
    and rijk tensor.*/
-void SymmetryFunctionSet::eval(int num_atoms, int* types, double* xyzs, double* G_vector)
+void SymmetryFunctionSet::eval(
+  int num_atoms, int* types, double* xyzs, double* G_vector)
 {
   double rij, rik, theta;
   int counter = 0;
@@ -128,10 +135,13 @@ void SymmetryFunctionSet::eval(int num_atoms, int* types, double* xyzs, double* 
         rij = sqrt(pow(xyzs[3*i]-xyzs[3*j], 2) +
                   pow(xyzs[3*i+1]-xyzs[3*j+1], 2) +
                   pow(xyzs[3*i+2]-xyzs[3*j+2], 2));
-        for (twoBody_i = 0; twoBody_i < twoBodySymFuns[types[i]*num_atomtypes+types[j]].size(); twoBody_i++)
+        for (twoBody_i = 0;
+          twoBody_i < twoBodySymFuns[types[i]*num_atomtypes + types[j]].size();
+          twoBody_i++)
         {
-          G_vector[counter + pos_twoBody[num_atomtypes*types[i]+types[j]] + twoBody_i] +=
-            twoBodySymFuns[types[i]*num_atomtypes+types[j]][twoBody_i]->eval(rij);
+          G_vector[counter + pos_twoBody[num_atomtypes*types[i] + types[j]] +
+            twoBody_i] += twoBodySymFuns[types[i]*num_atomtypes + types[j]]
+            [twoBody_i]->eval(rij);
         }
         for (k = 0; k < num_atoms; k++)
         {
@@ -148,7 +158,9 @@ void SymmetryFunctionSet::eval(int num_atoms, int* types, double* xyzs, double* 
               (xyzs[3*i+1]-xyzs[3*j+1])*(xyzs[3*i+1]-xyzs[3*k+1]) +
               (xyzs[3*i+2]-xyzs[3*j+2])*(xyzs[3*i+2]-xyzs[3*k+2]))/(rij*rik));
 
-            for (three_Body_i = 0; three_Body_i < threeBodySymFuns[num_atomtypes2*types[i]+num_atomtypes*types[j]+types[k]].size(); three_Body_i++)
+            for (three_Body_i = 0;
+              three_Body_i < threeBodySymFuns[num_atomtypes2*types[i] +
+              num_atomtypes*types[j]+types[k]].size(); three_Body_i++)
             {
               if (types[j] == types[k])
               {
@@ -170,12 +182,16 @@ void SymmetryFunctionSet::eval(int num_atoms, int* types, double* xyzs, double* 
   }
 }
 
-void SymmetryFunctionSet::eval_new(int num_atoms, int* types, double* xyzs, double* G_vector)
+void SymmetryFunctionSet::eval_new(
+  int num_atoms, int* types, double* xyzs, double* G_vector)
 {
   double rij, rik, rjk, theta_i, theta_j, theta_k;
-  int counter = 0;
-  int i, j, k, twoBody_i, three_Body_i;
+  int i, j, k, twoBody_i, three_Body_i, type_ij, type_ji, type_ijk, type_jki,
+    type_kij;
 
+  // Figure out the positions of symmetry functions centered on atom i and
+  // save in pos_atoms
+  int counter = 0;
   int* pos_atoms = new int[num_atoms];
 
   for (i = 0; i < num_atoms; i++)
@@ -184,26 +200,35 @@ void SymmetryFunctionSet::eval_new(int num_atoms, int* types, double* xyzs, doub
     counter += num_symFuns[2*types[i]] + num_symFuns[2*types[i]+1];
   }
 
+  // Actual evaluation of the symmetry functions. The sum over other atoms
+  // is done for all symmetry functions simultaniously.
   for (i = 0; i < num_atoms; i++)
   {
-    for (j = i+1; j < num_atoms; j++)
+    // Loop over other atoms. To reduce computational effort symmetry functions
+    // centered on atom j are also evaluated here. This allows to restrict the
+    // loop to values j = i + 1.
+    for (j = i + 1; j < num_atoms; j++)
     {
       rij = sqrt(pow(xyzs[3*i]-xyzs[3*j], 2) +
                 pow(xyzs[3*i+1]-xyzs[3*j+1], 2) +
                 pow(xyzs[3*i+2]-xyzs[3*j+2], 2));
-      // Adding to symmetry functions centered on atom i
-      for (twoBody_i = 0; twoBody_i < twoBodySymFuns[types[i]*num_atomtypes+types[j]].size(); twoBody_i++)
+      // Add to two symmetry functions centered on atom i
+      type_ij = types[i]*num_atomtypes+types[j];
+      for (twoBody_i = 0; twoBody_i < twoBodySymFuns[type_ij].size();
+        twoBody_i++)
       {
-        G_vector[pos_atoms[i] + pos_twoBody[num_atomtypes*types[i]+types[j]] + twoBody_i] +=
-          twoBodySymFuns[types[i]*num_atomtypes+types[j]][twoBody_i]->eval(rij);
+        G_vector[pos_atoms[i] + pos_twoBody[type_ij] + twoBody_i] +=
+          twoBodySymFuns[type_ij][twoBody_i]->eval(rij);
       }
-      // Adding to symmetry functions centered on atom j
-      for (twoBody_i = 0; twoBody_i < twoBodySymFuns[types[j]*num_atomtypes+types[i]].size(); twoBody_i++)
+      // Add to two symmetry functions centered on atom j
+      type_ji = types[j]*num_atomtypes+types[i];
+      for (twoBody_i = 0; twoBody_i < twoBodySymFuns[type_ji].size();
+        twoBody_i++)
       {
-        G_vector[pos_atoms[j] + pos_twoBody[num_atomtypes*types[j]+types[i]] + twoBody_i] +=
-          twoBodySymFuns[types[j]*num_atomtypes+types[i]][twoBody_i]->eval(rij);
+        G_vector[pos_atoms[j] + pos_twoBody[type_ji] + twoBody_i] +=
+          twoBodySymFuns[type_ji][twoBody_i]->eval(rij);
       }
-      for (k = j+1; k < num_atoms; k++)
+      for (k = j + 1; k < num_atoms; k++)
       {
         rik = sqrt(pow(xyzs[3*i]-xyzs[3*k], 2) +
                   pow(xyzs[3*i+1]-xyzs[3*k+1], 2) +
@@ -215,34 +240,49 @@ void SymmetryFunctionSet::eval_new(int num_atoms, int* types, double* xyzs, doub
         theta_i = acos(((xyzs[3*i]-xyzs[3*j])*(xyzs[3*i]-xyzs[3*k]) +
           (xyzs[3*i+1]-xyzs[3*j+1])*(xyzs[3*i+1]-xyzs[3*k+1]) +
           (xyzs[3*i+2]-xyzs[3*j+2])*(xyzs[3*i+2]-xyzs[3*k+2]))/(rij*rik));
+        // Calculate the remaining two angles using the law of sines
         theta_j = asin(rik*sin(theta_i)/rjk);
         theta_k = asin(rij*sin(theta_i)/rjk);
 
-        for (three_Body_i = 0; three_Body_i < threeBodySymFuns[num_atomtypes2*types[i] +
-          num_atomtypes*std::min(types[j], types[k]) + std::max(types[j], types[k])].size(); three_Body_i++)
+        // As described in add_ThreeBodySymmetryFunction() the type of the three
+        // body symmetry function consists of the atom type of the atom the
+        // function is centered on an the sorted pair of atom types of the two
+        // remaining atoms. 
+
+        // Add to three body symmetry functions centered on atom i.
+        type_ijk = num_atomtypes2*types[i] +
+          num_atomtypes*std::min(types[j], types[k]) +
+          std::max(types[j], types[k]);
+        for (three_Body_i = 0; three_Body_i < threeBodySymFuns[type_ijk].size();
+          three_Body_i++)
         {
-          G_vector[pos_atoms[i] + num_symFuns[2*types[i]] + pos_threeBody[num_atomtypes2*types[i] +
-            num_atomtypes*std::min(types[j], types[k]) + std::max(types[j], types[k])]+ three_Body_i] +=
-            threeBodySymFuns[num_atomtypes2*types[i]+num_atomtypes*std::min(types[j], types[k]) +
-            std::max(types[j], types[k])][three_Body_i]->eval(rij, rik, theta_i);
+          G_vector[pos_atoms[i] + num_symFuns[2*types[i]] +
+            pos_threeBody[type_ijk]+ three_Body_i] +=
+            threeBodySymFuns[type_ijk][three_Body_i]->eval(rij, rik, theta_i);
         }
 
-        for (three_Body_i = 0; three_Body_i < threeBodySymFuns[num_atomtypes2*types[j] +
-          num_atomtypes*std::min(types[i],types[k]) + std::max(types[i],types[k])].size(); three_Body_i++)
+        // Add to three body symmetry functions centered on atom j.
+        type_jki = num_atomtypes2*types[j] +
+          num_atomtypes*std::min(types[i],types[k]) +
+          std::max(types[i],types[k]);
+        for (three_Body_i = 0; three_Body_i < threeBodySymFuns[type_jki].size();
+          three_Body_i++)
         {
-          G_vector[pos_atoms[j] + num_symFuns[2*types[j]] + pos_threeBody[num_atomtypes2*types[j] +
-            num_atomtypes*std::min(types[i], types[k]) + std::max(types[i], types[k])]+ three_Body_i] +=
-            threeBodySymFuns[num_atomtypes2*types[j] + num_atomtypes*std::min(types[i],types[k]) +
-            std::max(types[i], types[k])][three_Body_i]->eval(rij, rjk, theta_j);
+          G_vector[pos_atoms[j] + num_symFuns[2*types[j]] +
+            pos_threeBody[type_jki]+ three_Body_i] +=
+            threeBodySymFuns[type_jki][three_Body_i]->eval(rij, rjk, theta_j);
         }
 
-        for (three_Body_i = 0; three_Body_i < threeBodySymFuns[num_atomtypes2*types[k] +
-          num_atomtypes*std::min(types[i],types[j]) + std::max(types[i],types[j])].size(); three_Body_i++)
+        // Add to three body symmetry functions centered on atom k.
+        type_kij = num_atomtypes2*types[k] +
+          num_atomtypes*std::min(types[i],types[j]) +
+          std::max(types[i],types[j]);
+        for (three_Body_i = 0; three_Body_i < threeBodySymFuns[type_kij].size();
+          three_Body_i++)
         {
-          G_vector[pos_atoms[k] + num_symFuns[2*types[k]] + pos_threeBody[num_atomtypes2*types[k] +
-            num_atomtypes*std::min(types[i],types[j]) + std::max(types[i],types[j])]+ three_Body_i] +=
-            threeBodySymFuns[num_atomtypes2*types[k] + num_atomtypes*std::min(types[i],types[j]) +
-            std::max(types[i],types[j])][three_Body_i]->eval(rjk, rik, theta_k);
+          G_vector[pos_atoms[k] + num_symFuns[2*types[k]] +
+            pos_threeBody[type_kij]+ three_Body_i] +=
+            threeBodySymFuns[type_kij][three_Body_i]->eval(rjk, rik, theta_k);
         }
       }
     }
@@ -250,7 +290,8 @@ void SymmetryFunctionSet::eval_new(int num_atoms, int* types, double* xyzs, doub
   delete[] pos_atoms;
 }
 
-void SymmetryFunctionSet::eval_derivatives(int num_atoms, int* types, double* xyzs, double* dG_tensor)
+void SymmetryFunctionSet::eval_derivatives(
+  int num_atoms, int* types, double* xyzs, double* dG_tensor)
 {
   double rij, rij2, rik, rik2, theta, dGdr, dGdrij, dGdrik, dGdtheta, dot;
   int counter = 0;
@@ -331,11 +372,14 @@ void SymmetryFunctionSet::eval_derivatives(int num_atoms, int* types, double* xy
   }
 }
 
-void SymmetryFunctionSet::eval_derivatives_new(int num_atoms, int* types, double* xyzs, double* dG_tensor)
+void SymmetryFunctionSet::eval_derivatives_new(
+  int num_atoms, int* types, double* xyzs, double* dG_tensor)
 {
-  double rij, rij2, rik, rik2, rjk, rjk2, theta_i, theta_j, theta_k, dGdr, dGdrij, dGdrik, dGdtheta, dot;
-  int counter = 0;
+  double rij, rij2, rik, rik2, rjk, rjk2, theta_i, theta_j, theta_k,
+    dGdr, dGdrij, dGdrik, dGdtheta, dot;
   int i, j, k, twoBody_i, three_Body_i, coord, index_base;
+
+  int counter = 0;
   int* pos_atoms = new int[num_atoms];
 
   for (i = 0; i < num_atoms; i++)
@@ -401,9 +445,9 @@ void SymmetryFunctionSet::eval_derivatives_new(int num_atoms, int* types, double
           theta_k = asin(rij*sin(theta_i)/rjk);
           for (three_Body_i = 0; three_Body_i < threeBodySymFuns[num_atomtypes2*types[i]+num_atomtypes*types[j]+types[k]].size(); three_Body_i++)
           {
-            dGdrij = threeBodySymFuns[num_atomtypes2*types[i]+num_atomtypes*types[j]+types[k]][three_Body_i]->drij(rij, rik, theta);
-            dGdrik = threeBodySymFuns[num_atomtypes2*types[i]+num_atomtypes*types[j]+types[k]][three_Body_i]->drik(rij, rik, theta);
-            dGdtheta = threeBodySymFuns[num_atomtypes2*types[i]+num_atomtypes*types[j]+types[k]][three_Body_i]->dtheta(rij, rik, theta);
+            dGdrij = threeBodySymFuns[num_atomtypes2*types[i]+num_atomtypes*types[j]+types[k]][three_Body_i]->drij(rij, rik, theta_i);
+            dGdrik = threeBodySymFuns[num_atomtypes2*types[i]+num_atomtypes*types[j]+types[k]][three_Body_i]->drik(rij, rik, theta_i);
+            dGdtheta = threeBodySymFuns[num_atomtypes2*types[i]+num_atomtypes*types[j]+types[k]][three_Body_i]->dtheta(rij, rik, theta_i);
 
             index_base = 3*num_atoms*(pos_atoms[i] + num_symFuns[2*types[i]] +
               pos_threeBody[num_atomtypes2*types[i] + num_atomtypes*types[j] + types[k]]+ three_Body_i);
@@ -434,7 +478,8 @@ void SymmetryFunctionSet::eval_derivatives_new(int num_atoms, int* types, double
   delete[] pos_atoms;
 }
 
-std::shared_ptr<CutoffFunction> SymmetryFunctionSet::switch_CutFun(int cutoff_type, double cutoff)
+std::shared_ptr<CutoffFunction> SymmetryFunctionSet::switch_CutFun(
+  int cutoff_type, double cutoff)
 {
   std::shared_ptr<CutoffFunction> cutfun;
   switch (cutoff_type) {

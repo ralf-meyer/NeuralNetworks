@@ -48,14 +48,15 @@ class SymmetryFunctionSet_new(object):
             self.type_dict[i] = i
         self.obj = lib.create_SymmetryFunctionSet(_ct.c_int(len(atomtypes)))
 
-    def add_TwoBodySymmetryFunction(self, type1, type2, funtype, prms, cuttype, cutoff):
+    def add_TwoBodySymmetryFunction(self, type1, type2, funtype, prms,
+            cuttype, cutoff):
         ptr = (_ct.c_double*len(prms))(*prms)
         lib.SymmetryFunctionSet_add_TwoBodySymmetryFunction(self.obj,
             self.type_dict[type1], self.type_dict[type2], funtype, len(prms),
             ptr, cuttype, cutoff)
 
     def add_ThreeBodySymmetryFunction(self, type1, type2, type3, funtype, prms,
-        cuttype, cutoff):
+            cuttype, cutoff):
         ptr = (_ct.c_double*len(prms))(*prms)
         lib.SymmetryFunctionSet_add_ThreeBodySymmetryFunction(self.obj,
             self.type_dict[type1], self.type_dict[type2], self.type_dict[type3],
@@ -80,8 +81,8 @@ class SymmetryFunctionSet_new(object):
                 for lamb in lambs:
                     for ti in self.atomtypes:
                         for (tj, tk) in combinations_with_replacement(self.atomtypes, 2):
-                            self.add_ThreeBodySymmetryFunction(ti, tj, tk, 0,
-                                [lamb, zeta, eta], 1, self.cutoff)
+                            self.add_ThreeBodySymmetryFunction(
+                                ti, tj, tk, 0, [lamb, zeta, eta], 1, self.cutoff)
 
     def print_symFuns(self):
         lib.SymmetryFunctionSet_print_symFuns(self.obj)
@@ -104,7 +105,8 @@ class SymmetryFunctionSet_new(object):
         len_G_vector = lib.SymmetryFunctionSet_get_G_vector_size(self.obj,
             len(types), types_ptr)
         out = _np.zeros(len_G_vector)
-        lib.SymmetryFunctionSet_eval_new(self.obj, len(types), types_ptr, xyzs, out)
+        lib.SymmetryFunctionSet_eval_new(
+            self.obj, len(types), types_ptr, xyzs, out)
         return out
 
     def eval_geometry(self, geo):
@@ -120,19 +122,21 @@ class SymmetryFunctionSet_new(object):
     def eval_derivatives(self, types, xyzs):
         int_types = [self.type_dict[ti] for ti in types]
         types_ptr = (_ct.c_int*len(types))(*int_types)
-        len_G_vector = lib.SymmetryFunctionSet_get_G_vector_size(self.obj,
-            len(types), types_ptr)
+        len_G_vector = lib.SymmetryFunctionSet_get_G_vector_size(
+            self.obj, len(types), types_ptr)
         out = _np.zeros((len_G_vector, 3*len(types)))
-        lib.SymmetryFunctionSet_eval_derivatives(self.obj, len(types), types_ptr, xyzs, out)
+        lib.SymmetryFunctionSet_eval_derivatives(
+            self.obj, len(types), types_ptr, xyzs, out)
         return out
 
     def eval_derivatives_new(self, types, xyzs):
         int_types = [self.type_dict[ti] for ti in types]
         types_ptr = (_ct.c_int*len(types))(*int_types)
-        len_G_vector = lib.SymmetryFunctionSet_get_G_vector_size(self.obj,
-            len(types), types_ptr)
+        len_G_vector = lib.SymmetryFunctionSet_get_G_vector_size(
+            self.obj, len(types), types_ptr)
         out = _np.zeros((len_G_vector, 3*len(types)))
-        lib.SymmetryFunctionSet_eval_derivatives_new(self.obj, len(types), types_ptr, xyzs, out)
+        lib.SymmetryFunctionSet_eval_derivatives_new(
+            self.obj, len(types), types_ptr, xyzs, out)
         return out
 
 class SymmetryFunctionSet(object):
@@ -154,7 +158,7 @@ class SymmetryFunctionSet(object):
             for zeta in zetas:
                 for lamb in lambs:
                     self.angular_sym_funs.append(
-                            SFs.AngularSymmetryFunction(eta, zeta, lamb, self.cutoff))
+                        SFs.AngularSymmetryFunction(eta, zeta, lamb, self.cutoff))
 
     def add_angular_functions_new(self, etas, zetas, lambs, rss):
         for eta in etas:
