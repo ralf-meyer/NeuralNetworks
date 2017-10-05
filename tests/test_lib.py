@@ -3,37 +3,33 @@ from NeuralNetworks.SymmetryFunctionSetC import SymmetryFunctionSet as SymFunSet
 import numpy as np
 import matplotlib.pyplot as plt
 
-sfs_cpp = SymFunSet_cpp([0, 1])
-sfs_py = SymFunSet_py([0, 1])
-sfs_c = SymFunSet_c([0, 1])
+sfs_cpp = SymFunSet_cpp(["Ni", "Au"], cutoff = 100000.)
+sfs_py = SymFunSet_py(["Ni", "Au"], cutoff = 100000.)
+sfs_c = SymFunSet_c(["Ni", "Au"], cutoff = 100000.)
 
 pos = np.array([[0.0, 0.0, 0.0],
-                [1.2, 0.0, 0.0],
-                [0.0, 1.2, 0.0],
-                [-1.2, 0.0, 0.0]])
-types = [0, 0, 1, 0]
+                [1.0, 0.0, 0.0],
+                [0.0, 1.0, 0.0],
+                [-1.0, 0.0, 0.0],
+                [0.0,-1.0, 0.0]])
+types = ["Ni", "Ni", "Au", "Ni", "Au"]
 
-#sfs_cpp.add_TwoBodySymmetryFunction(0,0,0,[1.0,0.0],1,7.0)
-#sfs_cpp.add_TwoBodySymmetryFunction(0,1,0,[1.0,0.0],1,7.0)
-#sfs_cpp.add_TwoBodySymmetryFunction(1,0,0,[1.0,0.0],1,7.0)
-#sfs_cpp.add_TwoBodySymmetryFunction(1,1,0,[1.0,0.0],1,7.0)
-sfs_cpp.add_radial_functions([0.0],[1.0])
-sfs_cpp.add_ThreeBodySymmetryFunction(0,0,0,0,[1.0, 1.0, 1.0],1,7.0)
-sfs_cpp.add_ThreeBodySymmetryFunction(0,0,1,0,[1.0, 1.0, 1.0],1,7.0)
-sfs_cpp.add_ThreeBodySymmetryFunction(0,1,1,0,[1.0, 1.0, 1.0],1,7.0)
-sfs_cpp.add_ThreeBodySymmetryFunction(1,0,0,0,[1.0, 1.0, 1.0],1,7.0)
-sfs_cpp.add_ThreeBodySymmetryFunction(1,0,1,0,[1.0, 1.0, 1.0],1,7.0)
-sfs_cpp.add_ThreeBodySymmetryFunction(1,1,1,0,[1.0, 1.0, 1.0],1,7.0)
-sfs_py.add_radial_functions([0.0],[1.0])
-sfs_py.add_angular_functions([1.0],[1.0],[1.0])
-sfs_c.add_radial_functions([0.0],[1.0])
-sfs_c.add_angular_functions([1.0],[1.0],[1.0])
+rss = [0.0]
+etas = [np.log(2.0)]
 
-out_cpp = sfs_cpp.eval(types, pos)
+sfs_cpp.add_radial_functions(rss, etas)
+sfs_cpp.add_angular_functions([1.0], [1.0], etas)
+sfs_py.add_radial_functions(rss, etas)
+sfs_py.add_angular_functions([1.0],[1.0], etas)
+sfs_c.add_radial_functions(rss, etas)
+sfs_c.add_angular_functions([1.0],[1.0], etas)
+
+
 geo = [(t, p) for t,p in zip(types, pos)]
+out_cpp = sfs_cpp.eval_geometry(geo)
 out_py = sfs_py.eval_geometry(geo).flatten()
 
-print "Evalutation difference smaller 1e-6: ", all(out_cpp - out_py < 1e-6)
+print("Evalutation difference smaller 1e-6: {}".format(all(abs(out_cpp - out_py) < 1e-6)))
 
 analytical_derivatives = sfs_cpp.eval_derivatives(types, pos)
 ## Calculate numerical derivatives
@@ -45,7 +41,7 @@ for i in xrange(pos.size):
     numerical_derivatives[:,i] = (sfs_cpp.eval(types, pos+dpos)
         - sfs_cpp.eval(types, pos-dpos))/(2*dx)
 
-print "Derivatives difference smaller 1e-6: ", all(numerical_derivatives.flatten() - analytical_derivatives.flatten() < 1e-6)
+print("Derivatives difference smaller 1e-6: {}".format(all(abs(numerical_derivatives.flatten() - analytical_derivatives.flatten()) < 1e-6)))
 
 #fig, ax = plt.subplots(ncols = 2, figsize = (10,5));
 #p1 = ax[0].pcolormesh(numerical_derivatives)
