@@ -219,10 +219,10 @@ class SymmetryFunctionSet(object):
                     mask2 = [a[0] == atype2 for a in geometry]
                     for j, ang_fun in enumerate(self.angular_sym_funs):
                         if (atype == atype2):
-                            out[:,Nt*Nr+ind*Na+j] = (kron_ijk *
+                            out[:,Nt*Nr+ind*Na+j] = 0.5*(kron_ijk *
                                 ang_fun(rij, rik, costheta)).dot(mask).dot(mask2)
                         else:
-                            out[:,Nt*Nr+ind*Na+j] = 0.5*(kron_ijk *
+                            out[:,Nt*Nr+ind*Na+j] = (kron_ijk *
                                 ang_fun(rij, rik, costheta)).dot(mask).dot(mask2)
                     ind += 1
 

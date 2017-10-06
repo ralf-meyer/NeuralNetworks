@@ -165,12 +165,12 @@ void SymmetryFunctionSet::eval(
               if (types[j] == types[k])
               {
                 G_vector[counter + num_symFuns[2*types[i]] + pos_threeBody[num_atomtypes2*types[i] +
-                  num_atomtypes*types[j] + types[k]]+ three_Body_i] +=
+                  num_atomtypes*types[j] + types[k]]+ three_Body_i] += 0.5*
                   threeBodySymFuns[num_atomtypes2*types[i]+num_atomtypes*types[j]+types[k]][three_Body_i]->eval(rij, rik, theta);
               } else
               {
                 G_vector[counter + num_symFuns[2*types[i]] + pos_threeBody[num_atomtypes2*types[i] +
-                  num_atomtypes*types[j] + types[k]]+ three_Body_i] += 0.5*
+                  num_atomtypes*types[j] + types[k]]+ three_Body_i] +=
                   threeBodySymFuns[num_atomtypes2*types[i]+num_atomtypes*types[j]+types[k]][three_Body_i]->eval(rij, rik, theta);
               }
             }
@@ -212,7 +212,7 @@ void SymmetryFunctionSet::eval_new(
       rij = sqrt(pow(xyzs[3*i]-xyzs[3*j], 2) +
                 pow(xyzs[3*i+1]-xyzs[3*j+1], 2) +
                 pow(xyzs[3*i+2]-xyzs[3*j+2], 2));
-      // Add to two symmetry functions centered on atom i
+      // Add to two body symmetry functions centered on atom i
       type_ij = types[i]*num_atomtypes+types[j];
       for (two_Body_i = 0; two_Body_i < twoBodySymFuns[type_ij].size();
         two_Body_i++)
@@ -220,7 +220,7 @@ void SymmetryFunctionSet::eval_new(
         G_vector[pos_atoms[i] + pos_twoBody[type_ij] + two_Body_i] +=
           twoBodySymFuns[type_ij][two_Body_i]->eval(rij);
       }
-      // Add to two symmetry functions centered on atom j
+      // Add to two body symmetry functions centered on atom j
       type_ji = types[j]*num_atomtypes+types[i];
       for (two_Body_i = 0; two_Body_i < twoBodySymFuns[type_ji].size();
         two_Body_i++)
@@ -377,7 +377,8 @@ void SymmetryFunctionSet::eval_derivatives_new(
 {
   double rij, rij2, rik, rik2, rjk, rjk2, theta_i, theta_j, theta_k,
     dGdr, dGdrij, dGdrik, dGdtheta, dot;
-  int i, j, k, two_Body_i, three_Body_i, coord, index_base;
+  int i, j, k, two_Body_i, three_Body_i, coord, index_base, type_ij, type_ji,
+    type_ijk, type_jki, type_kij;
 
   int counter = 0;
   int* pos_atoms = new int[num_atoms];
@@ -397,19 +398,22 @@ void SymmetryFunctionSet::eval_derivatives_new(
                 pow(xyzs[3*i+2]-xyzs[3*j+2], 2);
       rij = sqrt(rij2);
       // dG/dx is calculated as product of dG/dr * dr/dx
-      // Add to two symmetry functions centered on atom i
-      for (two_Body_i = 0; two_Body_i < twoBodySymFuns[types[i]*num_atomtypes+types[j]].size(); two_Body_i++)
+      // Add to two body symmetry functions centered on atom i
+      type_ij = types[i]*num_atomtypes+types[j];
+      for (two_Body_i = 0; two_Body_i < twoBodySymFuns[type_ij].size();
+        two_Body_i++)
       {
-        dGdr = twoBodySymFuns[types[i]*num_atomtypes+types[j]][two_Body_i]->drij(rij);
+        dGdr = twoBodySymFuns[type_ij][two_Body_i]->drij(rij);
         // Loop over the three cartesian coordinates
         for (coord = 0; coord < 3; coord++){
-          dG_tensor[3*num_atoms*(pos_atoms[i] + pos_twoBody[num_atomtypes*types[i]+types[j]] + two_Body_i) +
-            3*i+coord] += dGdr*(xyzs[3*i+coord]-xyzs[3*j+coord])/rij;
-          dG_tensor[3*num_atoms*(pos_atoms[i] + pos_twoBody[num_atomtypes*types[i]+types[j]] + two_Body_i) +
+          dG_tensor[3*num_atoms*(pos_atoms[i] + pos_twoBody[type_ij] +
+            two_Body_i) + 3*i+coord] += dGdr*(xyzs[3*i+coord]-xyzs[3*j+coord])/rij;
+          dG_tensor[3*num_atoms*(pos_atoms[i] + pos_twoBody[type_ij] + two_Body_i) +
             3*j+coord] += dGdr*(-xyzs[3*i+coord]+xyzs[3*j+coord])/rij;
         }
       }
-      // Add to two symmetry functions centered on atom j
+      // Add to two body symmetry functions centered on atom j
+      type_ji = types[j]*num_atomtypes+types[i];
       for (two_Body_i = 0; two_Body_i < twoBodySymFuns[types[j]*num_atomtypes+types[i]].size(); two_Body_i++)
       {
         dGdr = twoBodySymFuns[types[j]*num_atomtypes+types[i]][two_Body_i]->drij(rij);
@@ -422,54 +426,50 @@ void SymmetryFunctionSet::eval_derivatives_new(
         }
       }
 
-      for (k = 0; k < num_atoms; k++)
+      for (k = j+1; k < num_atoms; k++)
       {
-        if (i == k || j == k)
+        rik2 = pow(xyzs[3*i]-xyzs[3*k], 2) + pow(xyzs[3*i+1]-xyzs[3*k+1], 2) +
+                  pow(xyzs[3*i+2]-xyzs[3*k+2], 2);
+        rik = sqrt(rik2);
+        rjk2 = pow(xyzs[3*j]-xyzs[3*k], 2) + pow(xyzs[3*j+1]-xyzs[3*k+1], 2) +
+                  pow(xyzs[3*j+2]-xyzs[3*k+2], 2);
+        rjk = sqrt(rjk2);
+
+        dot = ((xyzs[3*i]-xyzs[3*j])*(xyzs[3*i]-xyzs[3*k]) +
+          (xyzs[3*i+1]-xyzs[3*j+1])*(xyzs[3*i+1]-xyzs[3*k+1]) +
+          (xyzs[3*i+2]-xyzs[3*j+2])*(xyzs[3*i+2]-xyzs[3*k+2]));
+        // Calculate the angle between rij and rik
+        theta_i = acos(dot/(rij*rik));
+        theta_j = asin(rik*sin(theta_i)/rjk);
+        theta_k = asin(rij*sin(theta_i)/rjk);
+
+        // Add to three body symmetry functions centered on atom i.
+        for (three_Body_i = 0; three_Body_i < threeBodySymFuns[num_atomtypes2*types[i]+num_atomtypes*types[j]+types[k]].size(); three_Body_i++)
         {
-          continue;
-        } else
-        {
-          rik2 = pow(xyzs[3*i]-xyzs[3*k], 2) + pow(xyzs[3*i+1]-xyzs[3*k+1], 2) +
-                    pow(xyzs[3*i+2]-xyzs[3*k+2], 2);
-          rik = sqrt(rik2);
-          rjk2 = pow(xyzs[3*j]-xyzs[3*k], 2) + pow(xyzs[3*j+1]-xyzs[3*k+1], 2) +
-                    pow(xyzs[3*j+2]-xyzs[3*k+2], 2);
-          rjk = sqrt(rjk2);
+          dGdrij = threeBodySymFuns[num_atomtypes2*types[i]+num_atomtypes*types[j]+types[k]][three_Body_i]->drij(rij, rik, theta_i);
+          dGdrik = threeBodySymFuns[num_atomtypes2*types[i]+num_atomtypes*types[j]+types[k]][three_Body_i]->drik(rij, rik, theta_i);
+          dGdtheta = threeBodySymFuns[num_atomtypes2*types[i]+num_atomtypes*types[j]+types[k]][three_Body_i]->dtheta(rij, rik, theta_i);
 
-          dot = ((xyzs[3*i]-xyzs[3*j])*(xyzs[3*i]-xyzs[3*k]) +
-            (xyzs[3*i+1]-xyzs[3*j+1])*(xyzs[3*i+1]-xyzs[3*k+1]) +
-            (xyzs[3*i+2]-xyzs[3*j+2])*(xyzs[3*i+2]-xyzs[3*k+2]));
-          // Calculate the angle between rij and rik
-          theta_i = acos(dot/(rij*rik));
-          theta_j = asin(rik*sin(theta_i)/rjk);
-          theta_k = asin(rij*sin(theta_i)/rjk);
-          for (three_Body_i = 0; three_Body_i < threeBodySymFuns[num_atomtypes2*types[i]+num_atomtypes*types[j]+types[k]].size(); three_Body_i++)
-          {
-            dGdrij = threeBodySymFuns[num_atomtypes2*types[i]+num_atomtypes*types[j]+types[k]][three_Body_i]->drij(rij, rik, theta_i);
-            dGdrik = threeBodySymFuns[num_atomtypes2*types[i]+num_atomtypes*types[j]+types[k]][three_Body_i]->drik(rij, rik, theta_i);
-            dGdtheta = threeBodySymFuns[num_atomtypes2*types[i]+num_atomtypes*types[j]+types[k]][three_Body_i]->dtheta(rij, rik, theta_i);
+          index_base = 3*num_atoms*(pos_atoms[i] + num_symFuns[2*types[i]] +
+            pos_threeBody[num_atomtypes2*types[i] + num_atomtypes*types[j] + types[k]]+ three_Body_i);
+          for (coord = 0; coord < 3; coord++){
+            // Derivative with respect to rij
+            dG_tensor[index_base + 3*i + coord] += dGdrij*(xyzs[3*i+coord]-xyzs[3*j+coord])/rij;
+            dG_tensor[index_base + 3*j + coord] += dGdrij*(-xyzs[3*i+coord]+xyzs[3*j+coord])/rij;
+            // Derivative with respect to rik
+            dG_tensor[index_base + 3*i + coord] += dGdrik*(xyzs[3*i+coord]-xyzs[3*k+coord])/rik;
+            dG_tensor[index_base + 3*k + coord] += dGdrik*(-xyzs[3*i+coord]+xyzs[3*k+coord])/rik;
 
-            index_base = 3*num_atoms*(pos_atoms[i] + num_symFuns[2*types[i]] +
-              pos_threeBody[num_atomtypes2*types[i] + num_atomtypes*types[j] + types[k]]+ three_Body_i);
-            for (coord = 0; coord < 3; coord++){
-              // Derivative with respect to rij
-              dG_tensor[index_base + 3*i + coord] += dGdrij*(xyzs[3*i+coord]-xyzs[3*j+coord])/rij;
-              dG_tensor[index_base + 3*j + coord] += dGdrij*(-xyzs[3*i+coord]+xyzs[3*j+coord])/rij;
-              // Derivative with respect to rik
-              dG_tensor[index_base + 3*i + coord] += dGdrik*(xyzs[3*i+coord]-xyzs[3*k+coord])/rik;
-              dG_tensor[index_base + 3*k + coord] += dGdrik*(-xyzs[3*i+coord]+xyzs[3*k+coord])/rik;
+            // Derivative with respect to theta
+            dG_tensor[index_base + 3*i + coord] += dGdtheta*(dot*rik2*(xyzs[3*i + coord]-xyzs[3*j+coord]) +
+              dot*rij2*(xyzs[3*i+coord]-xyzs[3*k+coord]) + rij2*rik2*(xyzs[3*j + coord]+xyzs[3*k + coord]-2*xyzs[3*i + coord]))/
+              (rij*rij2*sqrt(1-pow(dot,2)/pow(rij*rik,2))*rik*rik2+std::numeric_limits<double>::epsilon());
 
-              // Derivative with respect to theta
-              dG_tensor[index_base + 3*i + coord] += dGdtheta*(dot*rik2*(xyzs[3*i + coord]-xyzs[3*j+coord]) +
-                dot*rij2*(xyzs[3*i+coord]-xyzs[3*k+coord]) + rij2*rik2*(xyzs[3*j + coord]+xyzs[3*k + coord]-2*xyzs[3*i + coord]))/
-                (rij*rij2*sqrt(1-pow(dot,2)/pow(rij*rik,2))*rik*rik2+std::numeric_limits<double>::epsilon());
+            dG_tensor[index_base + 3*j + coord] += dGdtheta*(rij2*(xyzs[3*i+coord]-xyzs[3*k+coord])-dot*(xyzs[3*i + coord]-xyzs[3*j+coord]))/
+              (rij*rij2*sqrt(1-pow(dot,2)/pow(rij*rik,2))*rik+std::numeric_limits<double>::epsilon());
 
-              dG_tensor[index_base + 3*j + coord] += dGdtheta*(rij2*(xyzs[3*i+coord]-xyzs[3*k+coord])-dot*(xyzs[3*i + coord]-xyzs[3*j+coord]))/
-                (rij*rij2*sqrt(1-pow(dot,2)/pow(rij*rik,2))*rik+std::numeric_limits<double>::epsilon());
-
-              dG_tensor[index_base + 3*k + coord] += dGdtheta*(rik2*(xyzs[3*i + coord]-xyzs[3*j+coord])-dot*(xyzs[3*i+coord]-xyzs[3*k+coord]))/
-                (rij*sqrt(1-pow(dot,2)/pow(rij*rik,2))*rik*rik2+std::numeric_limits<double>::epsilon());
-            }
+            dG_tensor[index_base + 3*k + coord] += dGdtheta*(rik2*(xyzs[3*i + coord]-xyzs[3*j+coord])-dot*(xyzs[3*i+coord]-xyzs[3*k+coord]))/
+              (rij*sqrt(1-pow(dot,2)/pow(rij*rik,2))*rik*rik2+std::numeric_limits<double>::epsilon());
           }
         }
       }
