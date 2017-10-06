@@ -419,6 +419,33 @@ def get_size_of_input(Data):
 
     return Size
 
+          
+
+#Converts a standard (Behler) network to the force-field part of  a
+#partitioned network
+#Returns the weights and biases as a list
+def convert_standard_to_partitioned_net(NetworkData):
+    
+    WeightData,BiasData=get_weights_biases_from_data(NetworkData)
+    OutWeights=list()
+    OutBiases=list()
+    for i in range(0,len(NetworkData)):
+        Network=NetworkData[i]
+        DataStructWeights=PartitionedNetworkData() 
+        DataStructBiases=PartitionedNetworkData() 
+        for j in range(0,len(Network)):
+            Weights=WeightData[i][j]
+            Biases=BiasData[i][j]
+            DataStructWeights.ForceFieldNetworkData.append(Weights)
+            DataStructBiases.ForceFieldNetworkData.append(Biases)
+                    
+            
+        OutWeights.append(DataStructWeights)
+        OutBiases.append(DataStructBiases)
+
+    return OutWeights,OutBiases      
+
+
 #Prepares the data for saving.
 #It gets the weights and biases from the session for a partitioned network
 #Returns all the network parameters as a list
@@ -441,29 +468,11 @@ def get_trained_variables_partitioned(Session,Dict):
             
         NetworkData.append(NetLayers)
 
-    return NetworkData                
-                    
-def convert_standard_to_partitioned_net(NetworkData):
-    
-    WeightData,BiasData=get_weights_biases_from_data(NetworkData)
-    OutWeights=list()
-    OutBiases=list()
-    for i in range(0,len(NetworkData)):
-        Network=NetworkData[i]
-        DataStructWeights=PartitionedNetworkData() 
-        DataStructBiases=PartitionedNetworkData() 
-        for j in range(0,len(Network)):
-            Weights=WeightData[i][j]
-            Biases=BiasData[i][j]
-            DataStructWeights.ForceFieldNetworkData.append(Weights)
-            DataStructBiases.ForceFieldNetworkData.append(Biases)
-                    
-            
-        OutWeights.append(DataStructWeights)
-        OutBiases.append(DataStructBiases)
+    return NetworkData      
 
-    return OutWeights,OutBiases      
-
+#Prepares the data for saving.
+#It gets the weights and biases from the session.
+#Returns all the network parameters as a list
 def get_trained_variables(Session,AllHiddenLayers):
 
     NetworkData=list()
@@ -476,25 +485,10 @@ def get_trained_variables(Session,AllHiddenLayers):
         NetworkData.append(Layers)
     return NetworkData
 
-def all_derivatives_of_Gij_wrt_alpha(Session,GsForAtom,Alpha,AlphaValue):
 
-    Derivatives=list()
-    for i in range(0,len(GsForAtom)):
-        Derivatives.append(1)#not correct yet
-
-
-    return Derivatives
-
-
-def all_derivatives_of_Ei_wrt_Gij(Session,InputLayer,Network,G_values):
-
-    Derivatives=_tf.gradients(Network,InputLayer)
-    DerivativeValues=Session.run(Derivatives,feed_dict={InputLayer:G_values})[0]
-
-    return DerivativeValues
-
-
-
+#Evaluates the networks and calculates the energy as a sum of all network
+#outputs.
+#Returns the energy as a float.
 def evaluate_all_atomicnns(Session,AtomicNNs,InData):
 
     Energy=0
@@ -506,6 +500,9 @@ def evaluate_all_atomicnns(Session,AtomicNNs,InData):
 
     return Energy
 
+#Evaluates the partitioned networks and calculates the energy as a sum of all 
+#network outputs.
+#Returns the energy as a float.
 def evaluate_all_partitioned_atomicnns(Session,AtomicNNs,InData,NumberOfRadial):
 
     Energy=0
@@ -521,7 +518,11 @@ def evaluate_all_partitioned_atomicnns(Session,AtomicNNs,InData,NumberOfRadial):
 
     return Energy
 
-
+#Trains one step for an atomic network.
+#First it prepares the input data and the placeholder and then executes a
+#training step. 
+#Returns the current session,the trained network and the cost for the 
+#training step 
 def train_atomic_networks(Session,AtomicNNs,TrainingInputs,TrainingOutputs,Epochs,Optimizer,OutputLayer,CostFun,ValidationInputs=None,ValidationOutputs=None,CostCriterium=None,MakePlot=False,IsPartitioned=False,NrOfRadial=None):
 
 
@@ -546,7 +547,8 @@ def train_atomic_networks(Session,AtomicNNs,TrainingInputs,TrainingOutputs,Epoch
 
     return Session,TrainedNetwork,TrainCost,ValidationCost
 
-
+#Trains one batch for an atomic network.
+#Returns the cost for the training step 
 def train_atomic_network_batch(Session,Optimizer,Layers,TrainingData,ValidationData,CostFun):
 
     TrainingCost=0
@@ -562,6 +564,9 @@ def train_atomic_network_batch(Session,Optimizer,Layers,TrainingData,ValidationD
 
     return TrainingCost,ValidationCost
 
+#Checks for uninitialized variables and initilizes them if 
+#necessary
+#Returns the initilized variables
 def guarantee_initialized_variables(session, list_of_variables = None):
     if list_of_variables is None:
         list_of_variables = _tf.all_variables()
@@ -570,13 +575,17 @@ def guarantee_initialized_variables(session, list_of_variables = None):
     session.run(_tf.initialize_variables(uninitialized_variables))
     return uninitialized_variables
 
+#Returns a tensor for the energy error of the dataset.
 def calc_dE(Session,dE_Fun,Layers,Data):
     return _np.nan_to_num(_np.mean(evaluate(Session,dE_Fun,Layers,Data)))
 
+#Calculates the runnung average over N steps.
 def running_mean(x,N):
     cumsum=_np.cumsum(_np.insert(x,0,0))
     return (cumsum[N:]-cumsum[:-N])/N
 
+#Initializes the cost plot for the training 
+#Returns the figure and the different plots 
 def initialize_cost_plot(TrainingData,ValidationData=[]):
 
     fig=_plt.figure()
@@ -604,6 +613,7 @@ def initialize_cost_plot(TrainingData,ValidationData=[]):
 
     return fig,ax,TrainingCostPlot,ValidationCostPlot,RunningMeanPlot
 
+#Updates the cost plot with new data
 def update_cost_plot(figure,ax,TrainingCostPlot,TrainingCost,ValidationCostPlot=None,ValidationCost=None,RunningMeanPlot=None):
 
     TrainingCostPlot.set_data(_np.arange(0,len(TrainingCost)),TrainingCost)
@@ -619,7 +629,10 @@ def update_cost_plot(figure,ax,TrainingCostPlot,TrainingCost,ValidationCostPlot=
     #We need to draw *and* flush
     figure.canvas.draw()
     figure.canvas.flush_events()
-    
+
+#Initializes the plot of the absolute value of the weights 
+#Can be used to identify redundant symmetry functions
+#Returns the figure and the plot
 def initialize_weights_plot(sparse_weights,n_gs):
     fig=_plt.figure()
     ax = fig.add_subplot(111)
@@ -637,6 +650,9 @@ def initialize_weights_plot(sparse_weights,n_gs):
     
     return fig,weights_plot
 
+#Updates the plot of the absolute value of the weights 
+#Can be used to identify redundant symmetry functions
+#Returns the figure and the plot
 def update_weights_plot(fig,weights_plot,sparse_weights):
     for u,rect in enumerate(weights_plot):
         rect.set_height(sparse_weights[u])
@@ -645,6 +661,8 @@ def update_weights_plot(fig,weights_plot,sparse_weights):
     
     return fig,weights_plot
 
+#Converts cartesion to spherical coordinates
+#Returns the spherical coordinates
 def cartesian_to_spherical(xyz):
     spherical = _np.zeros_like(xyz)
     xy = xyz[:,0]**2 + xyz[:,1]**2
@@ -652,7 +670,10 @@ def cartesian_to_spherical(xyz):
     spherical[:,1] = _np.arctan2(xyz[:,2], _np.sqrt(xy))
     spherical[:,2] = _np.arctan2(xyz[:,1], xyz[:,0])
     return spherical
-    
+
+#Returns a tensor for the learning rate 
+#Learning rate can be decayed with different methods.
+#Returns the tensors for the global step and the learning reate
 def get_learning_rate(StartLearningRate,LearningRateType,decay_steps,boundaries=[],values=[]):
     
     if LearningRateType=="none":
@@ -674,7 +695,8 @@ def get_learning_rate(StartLearningRate,LearningRateType,decay_steps,boundaries=
         global_step = _tf.Variable(0, trainable=False)
         return global_step,_tf.train.polynomial_decay(StartLearningRate, global_step, decay_steps, end_learning_rate=0.00001, power=2.0, cycle=False)
 
-
+#Calculates the distances between all atoms
+#Returns a matrix with all distances.
 def calc_distance_to_all_atoms(xyz):
     
     Ngeom=len(xyz[:,0])
@@ -683,7 +705,37 @@ def calc_distance_to_all_atoms(xyz):
         distances[i,:]=_np.linalg.norm(xyz-xyz[i,:])
     
     return distances
-    
+
+#Gets the maximum and minimum radial distance within the dataset
+#Returns a min,max value as floats.
+def get_ds_r_min_r_max(geoms):
+    r_min=10e10
+    r_max=0
+    for geom in geoms:
+        np_geom=_np.zeros((len(geom),3))
+        np_dist=_np.zeros((len(geom),len(geom)))
+        for i,atom in enumerate(geom):
+            xyz=atom[1]
+            np_geom[i,:]=xyz
+        np_dist=calc_distance_to_all_atoms(np_geom)
+        L=np_dist!=0
+        r_min_tmp=_np.min(np_dist[L])
+        r_max_tmp=_np.max(np_dist)
+        if r_min_tmp<r_min:
+            r_min= r_min_tmp
+
+        if r_max_tmp>r_max:
+            r_max=r_max_tmp
+            
+    return r_min,r_max
+
+
+#Creates geometries outside the dataset for a fixed energy
+#to prevent the network from performing badly outside the training area.
+#The radial coverage area of the training data has to be specified via
+#r_min and r_max, the types of atoms as a list: ["species1",species2] and 
+#the number of atoms per atom type have to be specified as a list:[1,2]
+#Returns N geometries as a list.
 def create_zero_diff_geometries(r_min,r_max,types,N_atoms_per_type,N):
     
     out_geoms=[]
@@ -722,7 +774,8 @@ def create_zero_diff_geometries(r_min,r_max,types,N_atoms_per_type,N):
         
     return out_geoms
 
-#parsing q-chem format to NN compatible format
+#Parse q-chem format to NN compatible format
+#Returns the geometries in a compatible list
 def parse_qchem_geometries(in_geoms):
     out_geoms=[]
     for in_geom in in_geoms:
@@ -737,28 +790,8 @@ def parse_qchem_geometries(in_geoms):
     return out_geoms
 
 
-def get_ds_r_min_r_max(geoms):
-    r_min=10e10
-    r_max=0
-    for geom in geoms:
-        np_geom=_np.zeros((len(geom),3))
-        np_dist=_np.zeros((len(geom),len(geom)))
-        for i,atom in enumerate(geom):
-            xyz=atom[1]
-            np_geom[i,:]=xyz
-        np_dist=calc_distance_to_all_atoms(np_geom)
-        L=np_dist!=0
-        r_min_tmp=_np.min(np_dist[L])
-        r_max_tmp=_np.max(np_dist)
-        if r_min_tmp<r_min:
-            r_min= r_min_tmp
-
-        if r_max_tmp>r_max:
-            r_max=r_max_tmp
-            
-    return r_min,r_max
-
-
+#This class implements all the properties and methods for training and 
+#evaluating the network
 class AtomicNeuralNetInstance(object):
 
     def __init__(self):
@@ -846,7 +879,9 @@ class AtomicNeuralNetInstance(object):
         self.FirstWeights=[]
         self.SavingDirectory="save"
 
-
+    #Initializes the network for training by starting a session and getting 
+    #the placeholder for the output, the cost function, the learning rate and 
+    #the optimizer.
     def initialize_network(self):
         
         try:
@@ -891,34 +926,32 @@ class AtomicNeuralNetInstance(object):
         #Initialize session
         self.Session.run(_tf.global_variables_initializer())
         
+    #Loads the model in the specified folder
+    def load_model(self,ModelName="save/trained_variables"):
         
-    def load_model(self,ModelName="save/trained_variables",Pretraining=False):
-        
-        nrNets=len(self.Structures)
         model=[]
         if ".npy" not in ModelName:
             ModelName=ModelName+".npy"
             rare_model=_np.load(ModelName)
-            weights_and_biases=rare_model[0]
+            model=rare_model[0]
             min_of_out=rare_model[1]
             
-        if Pretraining==True:
-            #Copy pretrained model structure N times for each atom species in new net
-            for i in range(nrNets):
-                model.append(weights_and_biases[0])
-        else:
-            model=weights_and_biases
-            
         self.TrainedVariables=model
-        self.MinOfOut=min_of_out
+        self.MinOfOut=min_of_out #Offset for the last layer output for sigmoid or tanh activation functions
 
 
         return 1
-
-    def expand_existing_net(self,ModelName="save/trained_variables",MakeAllVariable=True,ModelData=None,ConvertToPartitioned=False,Pretraining=False):
+    
+    #Creates a new network out of stored data
+    #MakeAllVariables specifies if all layers can be trained
+    #If the model is not stored on the harddrive, but directly created in a 
+    #training before it can be passed as ModelData
+    #ConvertToPartitioned converts a standard atomic network to a partitioned
+    #network with the standard network beeing the force network part.
+    def expand_existing_net(self,ModelName="save/trained_variables",MakeAllVariable=True,ModelData=None,ConvertToPartitioned=False):
         
         if ModelData==None:
-            Success=AtomicNeuralNetInstance.load_model(self,ModelName,Pretraining)
+            Success=AtomicNeuralNetInstance.load_model(self,ModelName)
         else:
             self.TrainedVariables=ModelData[0]
             self.MinOfOut=ModelData[1]
@@ -942,7 +975,8 @@ class AtomicNeuralNetInstance(object):
             AtomicNeuralNetInstance.make_and_initialize_network(self)
             #except:
             #    print("Partitioned network loaded, please set IsPartitioned=True")
-
+            
+    #Creates the specified network        
     def make_network(self):
 
         Execute=True
@@ -963,11 +997,14 @@ class AtomicNeuralNetInstance(object):
             else:
                 AtomicNeuralNetInstance.make_partitioned_atomic_networks(self)
 
+    #Creates and initializes the specified network
     def make_and_initialize_network(self):
 
         AtomicNeuralNetInstance.make_network(self)
         AtomicNeuralNetInstance.initialize_network(self)
 
+    #Start the training without the use of batch training
+    #Returns the costs for the training
     def start_training(self):
 
         Execute=True
@@ -995,13 +1032,18 @@ class AtomicNeuralNetInstance(object):
             print("Training finished")
 
         return self.TrainingCosts,self.ValidationCosts
-
+    
+    #Expands a stored net for the specified atoms
+    #nAtoms is a list of integers:[1,2]
+    #ModelName is the path to the stored file
     def expand_trained_net(self, nAtoms,ModelName=None):
 
         self.NumberOfAtomsPerType=nAtoms
         AtomicNeuralNetInstance.expand_existing_net(self,ModelName)
         
-    
+    #Calculates the energy error for the whole dataset
+    #Returns two lists consisting of the mean value and the variance of the 
+    #dataset for training and validation data.
     def dE_stat(self,Layers):
         
         train_stat=[]
@@ -1051,6 +1093,7 @@ class AtomicNeuralNetInstance(object):
         
         return train_stat,val_stat
     
+    #Prepares and evaluates the dataset for the loaded network
     def eval_dataset(self,dataset):
         
         Out=0
@@ -1063,15 +1106,17 @@ class AtomicNeuralNetInstance(object):
         
         return Out
     
+    #Recreates a saved network,prepares and evaluates the specified dataset.
     def start_evaluation(self,nAtoms,ModelName="save/trained_variables"):
         
         Out=0
         AtomicNeuralNetInstance.expand_trained_net(self,nAtoms,ModelName)
-        for data in self.EvalData:
-            Out=AtomicNeuralNetInstance.eval_dataset(self,data)
+        for dataset in self.EvalData:
+            Out=AtomicNeuralNetInstance.eval_dataset(self,dataset)
                 
         return Out
-
+    
+    #Evaluates the prepared data
     def eval_step(self):
         Out=0
         if self.IsPartitioned==False:
@@ -1080,7 +1125,13 @@ class AtomicNeuralNetInstance(object):
             Out=evaluate_all_partitioned_atomicnns(self.Session,self.AtomicNNs,self.TrainingInputs,self.TotalNrOfRadialFuns)
         return Out
 
-    
+    #Starts a batch training
+    #At each epoch a random batch is selected and trained.
+    #Every 1% the trained variables (weights and biases) are saved to
+    #The specified folder
+    #At the end of the training an error for the whole dataset is calulated
+    #If multiple instances are trained the flag Multiple has to be set to true
+    #Returns the trained network in a list    
     def start_batch_training(self,find_best_symmfuns=False):
         #Clear cost array for multi instance training
         self.OverallTrainingCosts=list()
@@ -1243,7 +1294,8 @@ class AtomicNeuralNetInstance(object):
                 
                 return [self.TrainedVariables,self.MinOfOut]
                     
-
+    #Converts the cartesian coordinates to a symmetry function vector and  
+    #calculates the mean value and the variance of the symmetry function vector
     def calculate_statistics_for_dataset(self,TakeAsReference):
 
         print("Converting data to neural net input format...")
@@ -1281,7 +1333,12 @@ class AtomicNeuralNetInstance(object):
             if TakeAsReference==True:
                 self.MinOfOut=_np.min(NormalizedEnergy)*2 #factor of two is to make sure that there is room for lower energies
 
-
+    #Reads lammps files,adds symmetry functions to the symmetry function
+    #basis and converts the cartesian corrdinates to symmetry function vectors.
+    #TakeAsReference specifies if the MinOfOut Parameter should be set
+    #according to this dataset
+    #LoadGeometries specifies if the conversion of the geometry coordinates
+    #should be done or not
     def read_files(self,TakeAsReference=True,LoadGeometries=True):
 
         Execute=True
@@ -1312,7 +1369,10 @@ class AtomicNeuralNetInstance(object):
             self.SymmFunSet.add_angular_functions(self.Etas,self.Zetas,self.Lambs)
         if LoadGeometries:
             AtomicNeuralNetInstance.calculate_statistics_for_dataset(self,TakeAsReference)
-
+    
+    #Initilizes a loaded dataset
+    #TakeAsReference specifies if the MinOfOut Parameter should be set
+    #according to this dataset
     def init_dataset(self,geometries,energies,TakeAsReference=True):
         if len(geometries)==len(energies):
             self.Ds=DataSet.DataSet()
@@ -1325,13 +1385,17 @@ class AtomicNeuralNetInstance(object):
         else:
             print("Number of energies: "+str(len(energies))+" does not match number of geometries: "+str(len(geometries)))
         
-        
+    #Converts the geometries in compatible format and prepares the data
+    #for evaluation
+    #NoBatches specifies if the data should be split into batches or not    
     def create_eval_data(self,geometries,NoBatches=True):
         dummy_energies=[0]*len(geometries)
         AtomicNeuralNetInstance.init_dataset(self,geometries,dummy_energies)
         self.EvalData=AtomicNeuralNetInstance.get_data(self,NoBatches=True)
         
-    
+    #Creates a data batch by drawing a random sample out of the dataset
+    #The symmetry function vector is then normlized.
+    #Returns a batch consisting of input and output
     def get_data_batch(self,BatchSize=100,NoBatches=False):
 
         AllData=list()
@@ -1380,7 +1444,12 @@ class AtomicNeuralNetInstance(object):
             Inputs=AtomicNeuralNetInstance.sort_and_normalize_data(self,BatchSize,AllData)
 
             return Inputs,OutputData
-
+    
+    #Creates a batch collection 
+    #CoverageOfSetInPercent discribes how many data points are included in the
+    #batch
+    #NoBatches specifies if the data is split into differnt batches or only 
+    #consits of a single not randomized batch
     def get_data(self,BatchSize=100,CoverageOfSetInPercent=70,NoBatches=False):
         
         Batches=[]
@@ -1421,7 +1490,11 @@ class AtomicNeuralNetInstance(object):
             return Batches
         
 
-
+    #Creates training and validation data
+    #BatchSize specifies the number of data points per batch.
+    #TrainingSetInPercent discribes the coverage of the training dataset
+    #TrainingSetInPercent discribes the coverage of the validation dataset
+    #NoBatches specifies if the data is split into differnt batches or only 
     def make_training_and_validation_data(self,BatchSize=100,TrainingSetInPercent=70,ValidationSetInPercent=30,NoBatches=False):
 
         if NoBatches==False:
@@ -1439,7 +1512,7 @@ class AtomicNeuralNetInstance(object):
             self.ValidationInputs=temp[0][0]
             self.ValidationOutputs=temp[0][0]
             
-            
+    #Returns a tensor which represents the energy output of the network
     def energy_of_all_atomic_networks(self):
 
         TotalEnergy=0
@@ -1456,6 +1529,8 @@ class AtomicNeuralNetInstance(object):
     
         return TotalEnergy,AllEnergies
     
+    #Returns a tensor which represents the energy output of the partitioned
+    #network
     def energy_of_all_partitioned_atomic_networks(self):
     
         TotalEnergy=0
@@ -1475,6 +1550,7 @@ class AtomicNeuralNetInstance(object):
     
         return TotalEnergy,AllEnergies
     
+    #Returns a tensor which represents the force output of the network
     def force_of_all_atomic_networks(self):
         
         F=[]
@@ -1491,7 +1567,12 @@ class AtomicNeuralNetInstance(object):
             Fi.append(_tf.matmul(dE_Gi,dGi_dxj))
         
         return F,Fi
-            
+    
+    #The atomic cost function consists of multiple parts which are each
+    #represented by a tensor.
+    #The main part is the energy cost.
+    #The reqularization and the force cost is optional
+    #Return a tensor which is the sum of all costs
     def atomic_cost_function(self):
         
         if self.IsPartitioned==True:
@@ -1522,6 +1603,8 @@ class AtomicNeuralNetInstance(object):
     
         return Cost
 
+    #Normalizes the input data
+    #Returns the normalized inputs
     def sort_and_normalize_data(self,BatchSize,AllData):
 
         Inputs=list()
@@ -1536,6 +1619,8 @@ class AtomicNeuralNetInstance(object):
 
         return Inputs
     
+    #Creates data outside the area covered by the dataset and adds them to the 
+    #training data
     def init_correction_network_data(self,forcefield,geoms,energies,N_zero_geoms=10000):
         #get coverage of dataset
         ds_r_min,ds_r_max=get_ds_r_min_r_max(geoms)
@@ -1550,6 +1635,8 @@ class AtomicNeuralNetInstance(object):
         all_energies=energies+zero_ds_energies
         self.init_dataset(all_geoms,all_energies)
     
+    #Creates the specified partitioned network with separate varibale tensors
+    #for each atoms.(Only for evaluation)
     def make_parallel_partitioned_atomic_networks(self):
 
         AtomicNNs = list()
@@ -1688,7 +1775,8 @@ class AtomicNeuralNetInstance(object):
             print("No network data found!")
         
         self.AtomicNNs=AtomicNNs
-
+        
+    #Creates the specified partitioned network 
     def make_partitioned_atomic_networks(self):
 
         AtomicNNs = list()
@@ -1874,6 +1962,9 @@ class AtomicNeuralNetInstance(object):
             self.AtomicNNs=AtomicNNs
             self.VariablesDictionary=AllHiddenLayers
         
+        
+    #Creates the specified network with separate varibale tensors
+    #for each atoms.(Only for evaluation)
     def make_parallel_atomic_networks(self):
 
         AtomicNNs = list()
@@ -1944,7 +2035,7 @@ class AtomicNeuralNetInstance(object):
             
         self.AtomicNNs=AtomicNNs
 
-
+    #Creates the specified network 
     def make_atomic_networks(self):
 
         AllHiddenLayers = list()
@@ -2072,7 +2163,9 @@ class AtomicNeuralNetInstance(object):
             self.VariablesDictionary=AllHiddenLayers
             
 
-            
+#This class implements the possibillities to train multiple training
+#instances at once. This is neccessary if the datasets have a different
+#number of atoms per species.           
 class MultipleInstanceTraining(object):
     
     def __init__(self):
@@ -2093,7 +2186,8 @@ class MultipleInstanceTraining(object):
         self.MakePlots=False
         self.IsPartitioned=False
         self.GlobalSession=_tf.Session()
-        
+    
+    #Initializes all instances with the same parameters
     def initialize_multiple_instances(self):
         
         Execute=True
@@ -2130,11 +2224,15 @@ class MultipleInstanceTraining(object):
             #Write global minimum to all instances
             for Instance in self.TrainingInstances:
                 Instance.MinOfOut=self.GlobalMinOfOut
-                
+    
+    #Sets the session of the currently trained instance to the
+    #global session
     def set_session(self):
         for Instance in self.TrainingInstances:
             Instance.Session = self.GlobalSession
 
+    #Traines each instance for EpochsPerCylce epochs then uses the resulting network
+    #as a basis for the next training instance
     def train_multiple_instances(self,StartModelName=None):
         print("Startet multiple instance training!")
         ct=0
@@ -2193,7 +2291,7 @@ class MultipleInstanceTraining(object):
                     print("")
                     
                               
-                
+#This class is a container for the partitioned network structures                
 class PartitionedStructure(object):
     
      def __init__(self):
@@ -2201,7 +2299,7 @@ class PartitionedStructure(object):
          self.ForceFieldNetworkStructure=list()
          self.CorrectionNetworkStructure=list()
          
-                
+#This class is a container for the partitioned network data             
 class PartitionedNetworkData(object):
     
      def __init__(self):
@@ -2211,10 +2309,4 @@ class PartitionedNetworkData(object):
          self.ForceFieldVariable=False
          self.CorrectionVariable=False
          
-class PartitionedGs(object):
-    
-     def __init__(self):
-         
-         self.ForceFieldGs=list()
-         self.CorrectionGs=list()
                 
