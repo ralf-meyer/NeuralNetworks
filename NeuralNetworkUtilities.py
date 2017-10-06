@@ -812,7 +812,8 @@ class AtomicNeuralNetInstance(object):
         self.ValidationInputs=list()
         self.ValidationOutputs=list()
         self.Gs=list()
-        self.d_Gs=list()
+        self.ForceTrainingData=None
+        self.ForceValidationData=None
         self.HiddenType="truncated_normal"
         self.HiddenData=list()
         self.BiasType="zeros"
@@ -1173,21 +1174,26 @@ class AtomicNeuralNetInstance(object):
                         rnd=_rand.randint(0,NrOfValidationBatches-1)
                         self.ValidationInputs=self.ValidationBatches[rnd][0]
                         self.ValidationOutputs=self.ValidationBatches[rnd][1]
+                    if self.UseForce:
+                        self.ForceTrainingData=self.TrainingBatches[rnd][2]
+                        if self.ValidationBatches:
+                            self.ForceValidationData=self.ValidationBatches[rnd][2]
+                            
                     #Prepare data and layers for feeding
                     if i==0:
                         if self.IsPartitioned==False:
-                            Layers,TrainingData=prepare_data_environment_for_atomicNNs(self.AtomicNNs,self.TrainingInputs,self.OutputLayer,self.TrainingOutputs)
+                            Layers,TrainingData=prepare_data_environment_for_atomicNNs(self.AtomicNNs,self.TrainingInputs,self.OutputLayer,self.TrainingOutputs,self.ForceTrainingData)
                         else:
                             Layers,TrainingData=prepare_data_environment_for_partitioned_atomicNNs(self.AtomicNNs,self.TrainingInputs,self.TotalNrOfRadialFuns,self.OutputLayer,self.TrainingOutputs)
                     else:
                         if self.IsPartitioned==False:
-                            TrainingData=make_data_for_atomicNNs(self.TrainingInputs,self.TrainingOutputs)
+                            TrainingData=make_data_for_atomicNNs(self.TrainingInputs,self.TrainingOutputs,self.ForceTrainingData)
                         else:
                             _,TrainingData=prepare_data_environment_for_partitioned_atomicNNs(self.AtomicNNs,self.TrainingInputs,self.TotalNrOfRadialFuns,self.OutputLayer,self.TrainingOutputs)
                     #Make validation input vector
                     if len(self.ValidationInputs)>0:
                         if self.IsPartitioned==False:
-                            ValidationData=make_data_for_atomicNNs(self.ValidationInputs,self.ValidationOutputs)
+                            ValidationData=make_data_for_atomicNNs(self.ValidationInputs,self.ValidationOutputs,self.ForceValidationData)
                         else:
                             _,ValidationData=prepare_data_environment_for_partitioned_atomicNNs(self.AtomicNNs,self.TrainingInputs,self.TotalNrOfRadialFuns,self.OutputLayer,self.TrainingOutputs)
                     else:
@@ -1417,7 +1423,8 @@ class AtomicNeuralNetInstance(object):
             if NoBatches:
                 BatchSize=len(self.Ds.geometries)
 
-            OutputData=_np.empty((BatchSize,1))
+            EnergyData=_np.empty((BatchSize,1))
+            ForceData=_np.empty((BatchSize,self.SizeOfInputs[0],3)) #All inputs have to be the same size
             if NoBatches==False:
                 if BatchSize>len(self.AllGeometries)/10:
                     BatchSize=int(BatchSize/10)
@@ -1439,11 +1446,16 @@ class AtomicNeuralNetInstance(object):
                     ValuesForDrawingSamples.pop(rnd)
 
                 AllData.append(self.AllGeometries[MyNr])
-                OutputData[i]=self.Ds.energies[MyNr]
+                EnergyData[i]=self.Ds.energies[MyNr]
+                if self.UseForce:
+                    ForceData[i,:,:]=self.Ds.forces[MyNr]
 
             Inputs=AtomicNeuralNetInstance.sort_and_normalize_data(self,BatchSize,AllData)
-
-            return Inputs,OutputData
+            if self.UseForce:
+                return Inputs,EnergyData,ForceData
+            else:
+                return Inputs,EnergyData
+                
     
     #Creates a batch collection 
     #CoverageOfSetInPercent discribes how many data points are included in the
