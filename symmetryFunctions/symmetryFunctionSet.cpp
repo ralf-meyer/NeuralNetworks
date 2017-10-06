@@ -121,7 +121,7 @@ void SymmetryFunctionSet::eval(
 {
   double rij, rik, theta;
   int counter = 0;
-  int i, j, k, twoBody_i, three_Body_i;
+  int i, j, k, two_Body_i, three_Body_i;
 
   for (i = 0; i < num_atoms; i++)
   {
@@ -135,13 +135,13 @@ void SymmetryFunctionSet::eval(
         rij = sqrt(pow(xyzs[3*i]-xyzs[3*j], 2) +
                   pow(xyzs[3*i+1]-xyzs[3*j+1], 2) +
                   pow(xyzs[3*i+2]-xyzs[3*j+2], 2));
-        for (twoBody_i = 0;
-          twoBody_i < twoBodySymFuns[types[i]*num_atomtypes + types[j]].size();
-          twoBody_i++)
+        for (two_Body_i = 0;
+          two_Body_i < twoBodySymFuns[types[i]*num_atomtypes + types[j]].size();
+          two_Body_i++)
         {
           G_vector[counter + pos_twoBody[num_atomtypes*types[i] + types[j]] +
-            twoBody_i] += twoBodySymFuns[types[i]*num_atomtypes + types[j]]
-            [twoBody_i]->eval(rij);
+            two_Body_i] += twoBodySymFuns[types[i]*num_atomtypes + types[j]]
+            [two_Body_i]->eval(rij);
         }
         for (k = 0; k < num_atoms; k++)
         {
@@ -186,7 +186,7 @@ void SymmetryFunctionSet::eval_new(
   int num_atoms, int* types, double* xyzs, double* G_vector)
 {
   double rij, rik, rjk, theta_i, theta_j, theta_k;
-  int i, j, k, twoBody_i, three_Body_i, type_ij, type_ji, type_ijk, type_jki,
+  int i, j, k, two_Body_i, three_Body_i, type_ij, type_ji, type_ijk, type_jki,
     type_kij;
 
   // Figure out the positions of symmetry functions centered on atom i and
@@ -214,19 +214,19 @@ void SymmetryFunctionSet::eval_new(
                 pow(xyzs[3*i+2]-xyzs[3*j+2], 2));
       // Add to two symmetry functions centered on atom i
       type_ij = types[i]*num_atomtypes+types[j];
-      for (twoBody_i = 0; twoBody_i < twoBodySymFuns[type_ij].size();
-        twoBody_i++)
+      for (two_Body_i = 0; two_Body_i < twoBodySymFuns[type_ij].size();
+        two_Body_i++)
       {
-        G_vector[pos_atoms[i] + pos_twoBody[type_ij] + twoBody_i] +=
-          twoBodySymFuns[type_ij][twoBody_i]->eval(rij);
+        G_vector[pos_atoms[i] + pos_twoBody[type_ij] + two_Body_i] +=
+          twoBodySymFuns[type_ij][two_Body_i]->eval(rij);
       }
       // Add to two symmetry functions centered on atom j
       type_ji = types[j]*num_atomtypes+types[i];
-      for (twoBody_i = 0; twoBody_i < twoBodySymFuns[type_ji].size();
-        twoBody_i++)
+      for (two_Body_i = 0; two_Body_i < twoBodySymFuns[type_ji].size();
+        two_Body_i++)
       {
-        G_vector[pos_atoms[j] + pos_twoBody[type_ji] + twoBody_i] +=
-          twoBodySymFuns[type_ji][twoBody_i]->eval(rij);
+        G_vector[pos_atoms[j] + pos_twoBody[type_ji] + two_Body_i] +=
+          twoBodySymFuns[type_ji][two_Body_i]->eval(rij);
       }
       for (k = j + 1; k < num_atoms; k++)
       {
@@ -247,7 +247,7 @@ void SymmetryFunctionSet::eval_new(
         // As described in add_ThreeBodySymmetryFunction() the type of the three
         // body symmetry function consists of the atom type of the atom the
         // function is centered on an the sorted pair of atom types of the two
-        // remaining atoms. 
+        // remaining atoms.
 
         // Add to three body symmetry functions centered on atom i.
         type_ijk = num_atomtypes2*types[i] +
@@ -295,7 +295,7 @@ void SymmetryFunctionSet::eval_derivatives(
 {
   double rij, rij2, rik, rik2, theta, dGdr, dGdrij, dGdrik, dGdtheta, dot;
   int counter = 0;
-  int i, j, k, twoBody_i, three_Body_i, coord, index_base;
+  int i, j, k, two_Body_i, three_Body_i, coord, index_base;
 
   for (i = 0; i < num_atoms; i++)
   {
@@ -309,15 +309,15 @@ void SymmetryFunctionSet::eval_derivatives(
         rij2 = pow(xyzs[3*i]-xyzs[3*j], 2) + pow(xyzs[3*i+1]-xyzs[3*j+1], 2) +
                   pow(xyzs[3*i+2]-xyzs[3*j+2], 2);
         rij = sqrt(rij2);
-        for (twoBody_i = 0; twoBody_i < twoBodySymFuns[types[i]*num_atomtypes+types[j]].size(); twoBody_i++)
+        for (two_Body_i = 0; two_Body_i < twoBodySymFuns[types[i]*num_atomtypes+types[j]].size(); two_Body_i++)
         {
-          dGdr = twoBodySymFuns[types[i]*num_atomtypes+types[j]][twoBody_i]->drij(rij);
+          dGdr = twoBodySymFuns[types[i]*num_atomtypes+types[j]][two_Body_i]->drij(rij);
           // Loop over the three cartesian coordinates
           for (coord = 0; coord < 3; coord++){
             // dG/dx is calculated as product of dG/dr * dr/dx
-            dG_tensor[3*num_atoms*(counter + pos_twoBody[num_atomtypes*types[i]+types[j]] + twoBody_i) +
+            dG_tensor[3*num_atoms*(counter + pos_twoBody[num_atomtypes*types[i]+types[j]] + two_Body_i) +
               3*i+coord] += dGdr*(xyzs[3*i+coord]-xyzs[3*j+coord])/rij;
-            dG_tensor[3*num_atoms*(counter + pos_twoBody[num_atomtypes*types[i]+types[j]] + twoBody_i) +
+            dG_tensor[3*num_atoms*(counter + pos_twoBody[num_atomtypes*types[i]+types[j]] + two_Body_i) +
               3*j+coord] += dGdr*(-xyzs[3*i+coord]+xyzs[3*j+coord])/rij;
           }
         }
@@ -377,7 +377,7 @@ void SymmetryFunctionSet::eval_derivatives_new(
 {
   double rij, rij2, rik, rik2, rjk, rjk2, theta_i, theta_j, theta_k,
     dGdr, dGdrij, dGdrik, dGdtheta, dot;
-  int i, j, k, twoBody_i, three_Body_i, coord, index_base;
+  int i, j, k, two_Body_i, three_Body_i, coord, index_base;
 
   int counter = 0;
   int* pos_atoms = new int[num_atoms];
@@ -397,27 +397,27 @@ void SymmetryFunctionSet::eval_derivatives_new(
                 pow(xyzs[3*i+2]-xyzs[3*j+2], 2);
       rij = sqrt(rij2);
       // dG/dx is calculated as product of dG/dr * dr/dx
-      // Entries for atom i
-      for (twoBody_i = 0; twoBody_i < twoBodySymFuns[types[i]*num_atomtypes+types[j]].size(); twoBody_i++)
+      // Add to two symmetry functions centered on atom i
+      for (two_Body_i = 0; two_Body_i < twoBodySymFuns[types[i]*num_atomtypes+types[j]].size(); two_Body_i++)
       {
-        dGdr = twoBodySymFuns[types[i]*num_atomtypes+types[j]][twoBody_i]->drij(rij);
+        dGdr = twoBodySymFuns[types[i]*num_atomtypes+types[j]][two_Body_i]->drij(rij);
         // Loop over the three cartesian coordinates
         for (coord = 0; coord < 3; coord++){
-          dG_tensor[3*num_atoms*(pos_atoms[i] + pos_twoBody[num_atomtypes*types[i]+types[j]] + twoBody_i) +
+          dG_tensor[3*num_atoms*(pos_atoms[i] + pos_twoBody[num_atomtypes*types[i]+types[j]] + two_Body_i) +
             3*i+coord] += dGdr*(xyzs[3*i+coord]-xyzs[3*j+coord])/rij;
-          dG_tensor[3*num_atoms*(pos_atoms[i] + pos_twoBody[num_atomtypes*types[i]+types[j]] + twoBody_i) +
+          dG_tensor[3*num_atoms*(pos_atoms[i] + pos_twoBody[num_atomtypes*types[i]+types[j]] + two_Body_i) +
             3*j+coord] += dGdr*(-xyzs[3*i+coord]+xyzs[3*j+coord])/rij;
         }
       }
-      // Entries for atom j
-      for (twoBody_i = 0; twoBody_i < twoBodySymFuns[types[j]*num_atomtypes+types[i]].size(); twoBody_i++)
+      // Add to two symmetry functions centered on atom j
+      for (two_Body_i = 0; two_Body_i < twoBodySymFuns[types[j]*num_atomtypes+types[i]].size(); two_Body_i++)
       {
-        dGdr = twoBodySymFuns[types[j]*num_atomtypes+types[i]][twoBody_i]->drij(rij);
+        dGdr = twoBodySymFuns[types[j]*num_atomtypes+types[i]][two_Body_i]->drij(rij);
         // Loop over the three cartesian coordinates
         for (coord = 0; coord < 3; coord++){
-          dG_tensor[3*num_atoms*(pos_atoms[j] + pos_twoBody[num_atomtypes*types[j]+types[i]] + twoBody_i) +
+          dG_tensor[3*num_atoms*(pos_atoms[j] + pos_twoBody[num_atomtypes*types[j]+types[i]] + two_Body_i) +
             3*i+coord] += dGdr*(xyzs[3*i+coord]-xyzs[3*j+coord])/rij;
-          dG_tensor[3*num_atoms*(pos_atoms[j] + pos_twoBody[num_atomtypes*types[j]+types[i]] + twoBody_i) +
+          dG_tensor[3*num_atoms*(pos_atoms[j] + pos_twoBody[num_atomtypes*types[j]+types[i]] + two_Body_i) +
             3*j+coord] += dGdr*(-xyzs[3*i+coord]+xyzs[3*j+coord])/rij;
         }
       }
