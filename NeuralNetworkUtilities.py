@@ -5,153 +5,162 @@ Created on Thu Apr  6 11:30:10 2017
 
 @author: Fuchs Alexander
 """
-import numpy as np
-import tensorflow as tf
+import numpy as _np
+import tensorflow as _tf
 import DataSet
 import SymmetryFunctionSetC as SymmetryFunctionSet
-import random as rand
-import matplotlib.pyplot as plt
-import multiprocessing
-import time 
-import os
+import random as _rand
+import matplotlib.pyplot as _plt
+import multiprocessing as _multiprocessing
+import time as _time 
+import os as _os
 
 
-plt.ion()
-tf.reset_default_graph()
+_plt.ion()
+_tf.reset_default_graph()
 
+#Construct input for the NN.
 def construct_input_layer(InputUnits):
-    #Construct inputs for the NN
-    Inputs=tf.placeholder(tf.float32, shape=[None, InputUnits])
+    
+    Inputs=_tf.placeholder(_tf.float32, shape=[None, InputUnits])
 
     return Inputs
 
+#Construct the weights for this layer.
 def construct_hidden_layer(LayerBeforeUnits,HiddenUnits,InitType=None,InitData=[],BiasType=None,BiasData=[],MakeAllVariable=False,Mean=0.0,Stddev=1.0):
-    #Construct the weights for this layer
+    
     if len(InitData)==0:
         if InitType!=None:
             if InitType == "zeros":
-                Weights=tf.Variable(tf.zeros([LayerBeforeUnits,HiddenUnits]),dtype=tf.float32,name="variable")
+                Weights=_tf.Variable(_tf.zeros([LayerBeforeUnits,HiddenUnits]),dtype=_tf.float32,name="variable")
             elif InitType =="ones":
-                Weights=tf.Variable(tf.ones([LayerBeforeUnits,HiddenUnits]),dtype=tf.float32,name="variable")
+                Weights=_tf.Variable(_tf.ones([LayerBeforeUnits,HiddenUnits]),dtype=_tf.float32,name="variable")
             elif InitType == "fill":
-                Weights=tf.Variable(tf.fill([LayerBeforeUnits,HiddenUnits]),dtype=tf.float32,name="variable")
+                Weights=_tf.Variable(_tf.fill([LayerBeforeUnits,HiddenUnits]),dtype=_tf.float32,name="variable")
             elif InitType == "random_normal":
-                Weights=tf.Variable(tf.random_normal([LayerBeforeUnits,HiddenUnits],mean=Mean,stddev=Stddev),dtype=tf.float32,name="variable")
+                Weights=_tf.Variable(_tf.random_normal([LayerBeforeUnits,HiddenUnits],mean=Mean,stddev=Stddev),dtype=_tf.float32,name="variable")
             elif InitType == "truncated_normal":
-                Weights=tf.Variable(tf.truncated_normal([LayerBeforeUnits,HiddenUnits],mean=Mean,stddev=Stddev),dtype=tf.float32,name="variable")
+                Weights=_tf.Variable(_tf.truncated_normal([LayerBeforeUnits,HiddenUnits],mean=Mean,stddev=Stddev),dtype=_tf.float32,name="variable")
             elif InitType == "random_uniform":
-                Weights=tf.Variable(tf.random_uniform([LayerBeforeUnits,HiddenUnits]),dtype=tf.float32,name="variable")
+                Weights=_tf.Variable(_tf.random_uniform([LayerBeforeUnits,HiddenUnits]),dtype=_tf.float32,name="variable")
             elif InitType == "random_shuffle":
-                Weights=tf.Variable(tf.random_shuffle([LayerBeforeUnits,HiddenUnits]),dtype=tf.float32,name="variable")
+                Weights=_tf.Variable(_tf.random_shuffle([LayerBeforeUnits,HiddenUnits]),dtype=_tf.float32,name="variable")
             elif InitType == "random_crop":
-                Weights=tf.Variable(tf.random_crop([LayerBeforeUnits,HiddenUnits]),dtype=tf.float32,name="variable")
+                Weights=_tf.Variable(_tf.random_crop([LayerBeforeUnits,HiddenUnits]),dtype=_tf.float32,name="variable")
             elif InitType == "random_gamma":
-                Weights=tf.Variable(tf.random_gamma([LayerBeforeUnits,HiddenUnits]),dtype=tf.float32,name="variable")
+                Weights=_tf.Variable(_tf.random_gamma([LayerBeforeUnits,HiddenUnits]),dtype=_tf.float32,name="variable")
             else:
                 #Assume random weights if no InitType is given
-                Weights=tf.Variable(tf.random_uniform([LayerBeforeUnits,HiddenUnits]),dtype=tf.float32,name="variable")
+                Weights=_tf.Variable(_tf.random_uniform([LayerBeforeUnits,HiddenUnits]),dtype=_tf.float32,name="variable")
         else:
             #Assume random weights if no InitType is given
-            Weights=tf.Variable(tf.random_uniform([LayerBeforeUnits,HiddenUnits]),dtype=tf.float32,name="variable")
+            Weights=_tf.Variable(_tf.random_uniform([LayerBeforeUnits,HiddenUnits]),dtype=_tf.float32,name="variable")
     else:
         if MakeAllVariable==False:
-            Weights=tf.constant(InitData,dtype=tf.float32,name="constant")
+            Weights=_tf.constant(InitData,dtype=_tf.float32,name="constant")
         else:
-            Weights=tf.Variable(InitData,dtype=tf.float32,name="variable")
+            Weights=_tf.Variable(InitData,dtype=_tf.float32,name="variable")
     #Construct the bias for this layer
     if len(BiasData)!=0:
 
         if MakeAllVariable==False:
-            Biases=tf.constant(BiasData,dtype=tf.float32,name="bias")
+            Biases=_tf.constant(BiasData,dtype=_tf.float32,name="bias")
         else:
-            Biases=tf.Variable(BiasData,dtype=tf.float32,name="bias")
+            Biases=_tf.Variable(BiasData,dtype=_tf.float32,name="bias")
 
     else:
         if InitType == "zeros":
-            Biases=tf.Variable(tf.zeros([HiddenUnits]),dtype=tf.float32,name="bias")
+            Biases=_tf.Variable(_tf.zeros([HiddenUnits]),dtype=_tf.float32,name="bias")
         elif InitType =="ones":
-            Biases=tf.Variable(tf.ones([HiddenUnits]),dtype=tf.float32,name="bias")
+            Biases=_tf.Variable(_tf.ones([HiddenUnits]),dtype=_tf.float32,name="bias")
         elif InitType == "fill":
-            Biases=tf.Variable(tf.fill([HiddenUnits],BiasData),dtype=tf.float32,name="bias")
+            Biases=_tf.Variable(_tf.fill([HiddenUnits],BiasData),dtype=_tf.float32,name="bias")
         elif InitType == "random_normal":
-            Biases=tf.Variable(tf.random_normal([HiddenUnits],mean=Mean,stddev=Stddev),dtype=tf.float32,name="bias")
+            Biases=_tf.Variable(_tf.random_normal([HiddenUnits],mean=Mean,stddev=Stddev),dtype=_tf.float32,name="bias")
         elif InitType == "truncated_normal":
-            Biases=tf.Variable(tf.truncated_normal([HiddenUnits],mean=Mean,stddev=Stddev),dtype=tf.float32,name="bias")
+            Biases=_tf.Variable(_tf.truncated_normal([HiddenUnits],mean=Mean,stddev=Stddev),dtype=_tf.float32,name="bias")
         elif InitType == "random_uniform":
-            Biases=tf.Variable(tf.random_uniform([HiddenUnits]),dtype=tf.float32,name="bias")
+            Biases=_tf.Variable(_tf.random_uniform([HiddenUnits]),dtype=_tf.float32,name="bias")
         elif InitType == "random_shuffle":
-            Biases=tf.Variable(tf.random_shuffle([HiddenUnits]),dtype=tf.float32,name="bias")
+            Biases=_tf.Variable(_tf.random_shuffle([HiddenUnits]),dtype=_tf.float32,name="bias")
         elif InitType == "random_crop":
-            Biases=tf.Variable(tf.random_crop([HiddenUnits],BiasData),dtype=tf.float32,name="bias")
+            Biases=_tf.Variable(_tf.random_crop([HiddenUnits],BiasData),dtype=_tf.float32,name="bias")
         elif InitType == "random_gamma":
-            Biases=tf.Variable(tf.random_gamma([HiddenUnits],InitData),dtype=tf.float32,name="bias")
+            Biases=_tf.Variable(_tf.random_gamma([HiddenUnits],InitData),dtype=_tf.float32,name="bias")
         else:
-            Biases = tf.Variable(tf.random_uniform([HiddenUnits]),dtype=tf.float32,name="bias")
+            Biases = _tf.Variable(_tf.random_uniform([HiddenUnits]),dtype=_tf.float32,name="bias")
     
     return Weights,Biases
 
+#Construct the output layer for the NN.
 def construct_output_layer(OutputUnits):
-    #Construct the output for the NN
-    Outputs = tf.placeholder(tf.float32, shape=[None, OutputUnits])
+    
+    Outputs = _tf.placeholder(_tf.float32, shape=[None, OutputUnits])
 
     return Outputs
 
-
+#Make a trainable layer.
+#Returns two tensors(weights,biases).
 def construct_trainable_layer(NrInputs,NrOutputs,Min):
-    #make a not trainable layer with the weights one
-
-    Weights=tf.Variable(np.ones([NrInputs,NrOutputs]),dtype=tf.float32)#, trainable=False)
-    Biases=tf.Variable(np.zeros([NrOutputs]),dtype=tf.float32)#,trainable=False)
+    
+    Weights=_tf.Variable(_np.ones([NrInputs,NrOutputs]),dtype=_tf.float32)
+    Biases=_tf.Variable(_np.zeros([NrOutputs]),dtype=_tf.float32)
     if Min!=0:
-        Biases=tf.add(Biases,Min/NrOutputs)
+        Biases=_tf.add(Biases,Min/NrOutputs)
 
     return Weights,Biases
 
+#Make a not trainable layer with all weights being 1.
+#Returns two tensors(weights,biases).
 def construct_not_trainable_layer(NrInputs,NrOutputs,Min):
-    #make a not trainable layer with the weights one
 
-    Weights=tf.constant(np.ones([NrInputs,NrOutputs]),dtype=tf.float32)#, trainable=False)
-    Biases=tf.constant(np.zeros([NrOutputs]),dtype=tf.float32)#,trainable=False)
+
+    Weights=_tf.constant(_np.ones([NrInputs,NrOutputs]),dtype=_tf.float32)#, trainable=False)
+    Biases=_tf.constant(_np.zeros([NrOutputs]),dtype=_tf.float32)#,trainable=False)
     if Min!=0:
-        Biases=tf.add(Biases,Min/NrOutputs)
+        Biases=_tf.add(Biases,Min/NrOutputs)
 
     return Weights,Biases
 
+ #Connect the outputs of the layer before to the current layer using an 
+ #activation function.
+ #Returns the connected tensor. 
 def connect_layers(InputsForLayer,Layer1Weights,Layer1Bias,ActFun=None,FunParam=None,Dropout=0):
-    #connect the outputs of the layer before to current layer
+   
     if ActFun!=None:
         if ActFun=="sigmoid":
-            Out=tf.nn.sigmoid(tf.matmul(InputsForLayer, Layer1Weights) + Layer1Bias)
+            Out=_tf.nn.sigmoid(_tf.matmul(InputsForLayer, Layer1Weights) + Layer1Bias)
         elif ActFun=="tanh":
-            Out=tf.nn.tanh(tf.matmul(InputsForLayer, Layer1Weights) + Layer1Bias)
+            Out=_tf.nn.tanh(_tf.matmul(InputsForLayer, Layer1Weights) + Layer1Bias)
         elif ActFun=="relu":
-            Out=tf.nn.relu(tf.matmul(InputsForLayer, Layer1Weights) + Layer1Bias)
+            Out=_tf.nn.relu(_tf.matmul(InputsForLayer, Layer1Weights) + Layer1Bias)
         elif ActFun=="relu6":
-            Out=tf.nn.relu6(tf.matmul(InputsForLayer, Layer1Weights) + Layer1Bias)
+            Out=_tf.nn.relu6(_tf.matmul(InputsForLayer, Layer1Weights) + Layer1Bias)
         elif ActFun=="crelu":
-            Out=tf.nn.crelu(tf.matmul(InputsForLayer, Layer1Weights) + Layer1Bias)
+            Out=_tf.nn.crelu(_tf.matmul(InputsForLayer, Layer1Weights) + Layer1Bias)
         elif ActFun=="elu":
-            Out=tf.nn.elu(tf.matmul(InputsForLayer, Layer1Weights) + Layer1Bias)
+            Out=_tf.nn.elu(_tf.matmul(InputsForLayer, Layer1Weights) + Layer1Bias)
         elif ActFun=="softplus":
-            Out=tf.nn.softplus(tf.matmul(InputsForLayer, Layer1Weights) + Layer1Bias)
+            Out=_tf.nn.softplus(_tf.matmul(InputsForLayer, Layer1Weights) + Layer1Bias)
         elif ActFun=="dropout":
-            Out=tf.nn.dropout(tf.matmul(InputsForLayer, Layer1Weights) + Layer1Bias,FunParam)
+            Out=_tf.nn.dropout(_tf.matmul(InputsForLayer, Layer1Weights) + Layer1Bias,FunParam)
         elif ActFun=="bias_add":
-            Out=tf.nn.bias_add(tf.matmul(InputsForLayer, Layer1Weights) + Layer1Bias,FunParam)
+            Out=_tf.nn.bias_add(_tf.matmul(InputsForLayer, Layer1Weights) + Layer1Bias,FunParam)
         elif ActFun == "none":
-            Out = tf.matmul(InputsForLayer, Layer1Weights) + Layer1Bias
+            Out = _tf.matmul(InputsForLayer, Layer1Weights) + Layer1Bias
     else:
-        Out=tf.nn.sigmoid(tf.matmul(InputsForLayer, Layer1Weights) + Layer1Bias)
+        Out=_tf.nn.sigmoid(_tf.matmul(InputsForLayer, Layer1Weights) + Layer1Bias)
         
     if Dropout!=0:
         #Apply dropout between layers   
-        Out=tf.nn.dropout(Out,Dropout)
+        Out=_tf.nn.dropout(Out,Dropout)
 
     return Out
 
-
+#Construct a basic NN.
+#Returns a tensor for the NN outout and the feeding placeholders for intput
+#and output,
 def make_standard_neuralnetwork(Structure,HiddenType=None,HiddenData=None,BiasType=None,BiasData=None,ActFun=None,ActFunParam=None,Dropout=0):
-    #Construct the NN
 
     #Make inputs
     NrInputs=Structure[0]
@@ -186,55 +195,45 @@ def make_standard_neuralnetwork(Structure,HiddenType=None,HiddenData=None,BiasTy
 
     return LastConnection,InputLayer,OutputLayer
 
-def get_my_variables(partial_dict):
-    OutVars=[]
-    for AtomicNet in partial_dict:
-        for SubNet in AtomicNet:
-            if len(SubNet)>0:
-                for Var in SubNet:
-                    OutVars.append(Var[0])
-                    
-    train_vars=tf.trainable_variables()
-    for var in train_vars:
-        if var not in OutVars:
-            OutVars.append(var)
-            
-    return OutVars
-            
 
+ #Returns the cost function as a tensor.
 def total_cost_for_network(TotalEnergy,ReferenceValue,Type):
-    #define a cost function for the NN
+   
     if Type=="squared-difference":
-        Cost=0.5*tf.reduce_sum((TotalEnergy-ReferenceValue)**2)
+        Cost=0.5*_tf.reduce_sum((TotalEnergy-ReferenceValue)**2)
     elif Type=="Adaptive_1":
         epsilon=10e-9
-        Cost=0.5*tf.reduce_sum((TotalEnergy-ReferenceValue)**2*(tf.sigmoid(tf.abs(TotalEnergy-ReferenceValue+epsilon))-0.5)+(0.5+tf.sigmoid(tf.abs(TotalEnergy-ReferenceValue+epsilon)))*tf.pow(tf.abs(TotalEnergy-ReferenceValue+epsilon),1.25))
+        Cost=0.5*_tf.reduce_sum((TotalEnergy-ReferenceValue)**2\
+                                *(_tf.sigmoid(_tf.abs(TotalEnergy-ReferenceValue+epsilon))-0.5)\
+                                +(0.5+_tf.sigmoid(_tf.abs(TotalEnergy-ReferenceValue+epsilon)))\
+                                *_tf.pow(_tf.abs(TotalEnergy-ReferenceValue+epsilon),1.25))
     elif Type=="Adaptive_2":
         epsilon=10e-9
-        Cost=0.5*tf.reduce_sum((TotalEnergy-ReferenceValue)**2*(tf.sigmoid(tf.abs(TotalEnergy-ReferenceValue+epsilon))-0.5)+(0.5+tf.sigmoid(tf.abs(TotalEnergy-ReferenceValue+epsilon)))*tf.abs(TotalEnergy-ReferenceValue+epsilon))
+        Cost=0.5*_tf.reduce_sum((TotalEnergy-ReferenceValue)**2\
+                                *(_tf.sigmoid(_tf.abs(TotalEnergy-ReferenceValue+epsilon))-0.5)\
+                                +(0.5+_tf.sigmoid(_tf.abs(TotalEnergy-ReferenceValue+epsilon)))\
+                                *_tf.abs(TotalEnergy-ReferenceValue+epsilon))
     return Cost
 
-def cost_function(Network,Output,CostFunType=None,RegType=None,RegParam=None):
-    #define a cost function for the NN
-    if CostFunType != None:
-        if CostFunType=="error":
-            CostFunction = 0.5 * tf.reduce_sum(tf.subtract(Network, Output) * tf.subtract(Network, Output))
-    else:
-        CostFunction = 0.5 * tf.reduce_sum(tf.subtract(Network, Output) * tf.subtract(Network, Output))
-    #to be expanded
-    return CostFunction
-
-
+#Does ones training step(one batch).
+#Returns the training cost for the step.
 def train_step(Session,Optimizer,Layers,Data,CostFun):
     #Train the network for one step
-    _,Cost=Session.run([Optimizer,CostFun],feed_dict={i: np.array(d) for i, d in zip(Layers,Data)})
+    _,Cost=Session.run([Optimizer,CostFun],feed_dict={i: _np.array(d) for i, d in zip(Layers,Data)})
     return Cost
 
+#Calculates the validation cost for this training step,
+#without optimizing the net.
 def validate_step(Session,Layers,Data,CostFun):
     #Evaluate cost function without changing the network
-    Cost=Session.run(CostFun,feed_dict={i: np.array(d) for i, d in zip(Layers,Data)})
+    Cost=Session.run(CostFun,feed_dict={i: _np.array(d) for i, d in zip(Layers,Data)})
     return Cost
 
+#Sorts the input placeholders in the correct order for feeding.
+#Each atom has a seperate placeholder which must be feed at each step.
+#The placeholders have to match the symmetry function input.
+#For training the output placeholder also has to be feed.
+#Returns all placeholders as a list.
 def make_layers_for_atomicNNs(AtomicNNs,OutputLayer=None):
     #Create list of placeholders for feeding in correct order
     Layers=list()
@@ -247,7 +246,9 @@ def make_layers_for_atomicNNs(AtomicNNs,OutputLayer=None):
 
     return Layers
 
-
+#Sorts the symmetry function data for feeding.
+#For training the output data also has to be added.
+#Returns all data for the batch as a list.
 def make_data_for_atomicNNs(InData,OutData=[],dG_dx_data=None):
     #Sort data matching the placeholders
     CombinedData=list()
@@ -263,6 +264,9 @@ def make_data_for_atomicNNs(InData,OutData=[],dG_dx_data=None):
 
     return CombinedData
 
+#Prepares the data and the input placeholders for the training in a partitioned
+#NN. 
+#Returns the placeholders in Layers and the Data in combined data as lists
 def prepare_data_environment_for_partitioned_atomicNNs(AtomicNNs,InData,NumberOfRadial,OutputLayer=[],OutData=[]):
 
     Layers=list()
@@ -286,6 +290,8 @@ def prepare_data_environment_for_partitioned_atomicNNs(AtomicNNs,InData,NumberOf
         
     return Layers,CombinedData
 
+#Prepares the data and the input placeholders for the training in a NN.
+#Returns the placeholders in Layers and the Data in combined data as lists
 def prepare_data_environment_for_atomicNNs(AtomicNNs,InData,OutputLayer=[],OutData=[],dG_dx_data=None):
     #Put data and placeholders in correct order for feeding
     Layers=make_layers_for_atomicNNs(AtomicNNs,OutputLayer)
@@ -294,7 +300,7 @@ def prepare_data_environment_for_atomicNNs(AtomicNNs,InData,OutputLayer=[],OutDa
     
     return Layers,Data
 
-
+#Simple training routine without use of batch training
 def train(Session,Optimizer,CostFun,Layers,TrainingData,Epochs,ValidationData=None,CostCriterium=None,MakePlot=False):
     #Train with specifications and return loss
     TrainCost=list()
@@ -323,85 +329,17 @@ def train(Session,Optimizer,CostFun,Layers,TrainingData,Epochs,ValidationData=No
 
     return Session,TrainCost,ValidationCost
 
+#Evaluates the network
 def evaluate(Session,Network,Layers,Data):
     #Evaluate model for given input data
     if len(Layers)==1:
         return Session.run(Network, feed_dict={Layers[0]:Data})
     else:
-        return Session.run(Network, feed_dict={i: np.array(d) for i, d in zip(Layers,Data)})
+        return Session.run(Network, feed_dict={i: _np.array(d) for i, d in zip(Layers,Data)})
 
-
-def all_perms(elements):
-    #Returns  all permutations of input
-
-    if len(elements) <=1:
-        yield elements
-    else:
-        for perm in all_perms(elements[1:]):
-            for i in range(len(elements)):
-                # nb elements[0:1] works in both string and list contexts
-                yield perm[:i] + elements[0:1] + perm[i:]
-
-
-def transform_permuted_data(PermutationData):
-    #Transform data to an input vector format
-    OutPermutedData=list()
-    for Permutation in PermutationData:
-        OutPermutation=[]
-        for i in range(0,len(Permutation)-1):
-            if i==0:
-                OutPermutation=Permutation[i]
-            Next=Permutation[i+1]
-            OutPermutation=OutPermutation+Next
-    OutPermutedData.append(OutPermutation)
-
-    return OutPermutedData
-
-
-def get_all_input_layers_as_single_input(AtomicNNs):
-    for i in range(0,len(AtomicNNs)-1):
-        ThisNetwork=AtomicNNs[i]
-        NextNetwork=AtomicNNs[i+1]
-        if i==0:
-            Out=ThisNetwork[2]
-
-        t1=NextNetwork[2]
-        Out=tf.concat(1,[Out,t1])
-
-    return Out
-
-def get_data_for_specifc_networks(AtomicNNs,InData):
-    #Return input permutation as input vectors for neural nets
-    OutData=list()
-    offset=0
-
-    for i in range(0,len(AtomicNNs)):
-        AtomicNetwork=AtomicNNs[i]
-        NumberOfAtomsPerType=AtomicNetwork[0]
-        tempData=InData[offset:offset+NumberOfAtomsPerType]
-        offset+=NumberOfAtomsPerType
-        OutData.append(tempData)
-
-    return OutData
-
-def create_single_input_layer(AtomicNNs):
-
-    for i in range(0,len(AtomicNNs)):
-        if i==0:
-            Out=AtomicNNs[i][2]
-        else:
-            Out=tf.concat([Out,AtomicNNs[i][2]], 1)
-
-    return Out
-
-def create_single_input_vector(AllData):
-
-    AllInputs=[]
-    for Data in AllData:
-        AllInputs+=Data
-
-    return [AllInputs]
-
+#Reads out the saved network data for partitioned nets and sorts them into 
+#weights and biases
+#Returns  lists of numpy arrays
 def get_weights_biases_from_partitioned_data(TrainedData,Multi):
 
     Weights=list()
@@ -434,6 +372,9 @@ def get_weights_biases_from_partitioned_data(TrainedData,Multi):
 
     return Weights,Biases
 
+#Reads out the saved network data and sorts them into 
+#weights and biases
+#Returns  lists of numpy arrays
 def get_weights_biases_from_data(TrainedData):
 
     Weights=list()
@@ -450,6 +391,9 @@ def get_weights_biases_from_data(TrainedData):
 
     return Weights,Biases
 
+
+#Calculates the structure based on the stored varibales
+#Returns a list of structures(one structure per atom species)
 def get_structure_from_data(TrainedData):
 
     Structures=list()
@@ -464,7 +408,8 @@ def get_structure_from_data(TrainedData):
 
     return Structures
 
-
+#Get the size of the G-vectors
+#Returns a list of integers
 def get_size_of_input(Data):
     
     Size=list()
@@ -474,6 +419,9 @@ def get_size_of_input(Data):
 
     return Size
 
+#Prepares the data for saving.
+#It gets the weights and biases from the session for a partitioned network
+#Returns all the network parameters as a list
 def get_trained_variables_partitioned(Session,Dict):
     
     NetworkData=list()
@@ -540,7 +488,7 @@ def all_derivatives_of_Gij_wrt_alpha(Session,GsForAtom,Alpha,AlphaValue):
 
 def all_derivatives_of_Ei_wrt_Gij(Session,InputLayer,Network,G_values):
 
-    Derivatives=tf.gradients(Network,InputLayer)
+    Derivatives=_tf.gradients(Network,InputLayer)
     DerivativeValues=Session.run(Derivatives,feed_dict={InputLayer:G_values})[0]
 
     return DerivativeValues
@@ -594,7 +542,7 @@ def train_atomic_networks(Session,AtomicNNs,TrainingInputs,TrainingOutputs,Epoch
         ValidationData=None
     #Start training of the atomic network
     Session,TrainCost,ValidationCost=train(Session,Optimizer,CostFun,Layers,Data,Epochs,ValidationData,CostCriterium,MakePlot)
-    TrainedNetwork=tf.trainable_variables()
+    TrainedNetwork=_tf.trainable_variables()
 
     return Session,TrainedNetwork,TrainCost,ValidationCost
 
@@ -616,32 +564,32 @@ def train_atomic_network_batch(Session,Optimizer,Layers,TrainingData,ValidationD
 
 def guarantee_initialized_variables(session, list_of_variables = None):
     if list_of_variables is None:
-        list_of_variables = tf.all_variables()
-    uninitialized_variables = list(tf.get_variable(name) for name in
-                                   session.run(tf.report_uninitialized_variables(list_of_variables)))
-    session.run(tf.initialize_variables(uninitialized_variables))
+        list_of_variables = _tf.all_variables()
+    uninitialized_variables = list(_tf.get_variable(name) for name in
+                                   session.run(_tf.report_uninitialized_variables(list_of_variables)))
+    session.run(_tf.initialize_variables(uninitialized_variables))
     return uninitialized_variables
 
 def calc_dE(Session,dE_Fun,Layers,Data):
-    return np.nan_to_num(np.mean(evaluate(Session,dE_Fun,Layers,Data)))
+    return _np.nan_to_num(_np.mean(evaluate(Session,dE_Fun,Layers,Data)))
 
 def running_mean(x,N):
-    cumsum=np.cumsum(np.insert(x,0,0))
+    cumsum=_np.cumsum(_np.insert(x,0,0))
     return (cumsum[N:]-cumsum[:-N])/N
 
 def initialize_cost_plot(TrainingData,ValidationData=[]):
 
-    fig=plt.figure()
+    fig=_plt.figure()
     ax = fig.add_subplot(111)
     ax.set_autoscaley_on(True)
-    TrainingCostPlot, = ax.semilogy(np.arange(0,len(TrainingData)),TrainingData)
+    TrainingCostPlot, = ax.semilogy(_np.arange(0,len(TrainingData)),TrainingData)
     if len(ValidationData)!=0:
-        ValidationCostPlot,=ax.semilogy(np.arange(0,len(ValidationData)),ValidationData)
+        ValidationCostPlot,=ax.semilogy(_np.arange(0,len(ValidationData)),ValidationData)
     else:
         ValidationCostPlot=None
     #add running average plot 
     running_avg=running_mean(TrainingData,1000)
-    RunningMeanPlot,=ax.semilogy(np.arange(0,len(running_avg)),running_avg)
+    RunningMeanPlot,=ax.semilogy(_np.arange(0,len(running_avg)),running_avg)
 
     #Need both of these in order to rescale
     ax.relim()
@@ -658,13 +606,13 @@ def initialize_cost_plot(TrainingData,ValidationData=[]):
 
 def update_cost_plot(figure,ax,TrainingCostPlot,TrainingCost,ValidationCostPlot=None,ValidationCost=None,RunningMeanPlot=None):
 
-    TrainingCostPlot.set_data(np.arange(0,len(TrainingCost)),TrainingCost)
+    TrainingCostPlot.set_data(_np.arange(0,len(TrainingCost)),TrainingCost)
     if ValidationCostPlot!=None:
-        ValidationCostPlot.set_data(np.arange(0,len(ValidationCost)),ValidationCost)
+        ValidationCostPlot.set_data(_np.arange(0,len(ValidationCost)),ValidationCost)
     
     if RunningMeanPlot != None:
         running_avg=running_mean(TrainingCost,1000)
-        RunningMeanPlot.set_data(np.arange(0,len(running_avg)),running_avg)
+        RunningMeanPlot.set_data(_np.arange(0,len(running_avg)),running_avg)
     #Need both of these in order to rescale
     ax.relim()
     ax.autoscale_view()
@@ -673,9 +621,9 @@ def update_cost_plot(figure,ax,TrainingCostPlot,TrainingCost,ValidationCostPlot=
     figure.canvas.flush_events()
     
 def initialize_weights_plot(sparse_weights,n_gs):
-    fig=plt.figure()
+    fig=_plt.figure()
     ax = fig.add_subplot(111)
-    weights_plot=ax.bar(np.arange(n_gs),sparse_weights)
+    weights_plot=ax.bar(_np.arange(n_gs),sparse_weights)
     ax.set_autoscaley_on(True)
     
     #Need both of these in order to rescale
@@ -698,41 +646,41 @@ def update_weights_plot(fig,weights_plot,sparse_weights):
     return fig,weights_plot
 
 def cartesian_to_spherical(xyz):
-    spherical = np.zeros_like(xyz)
+    spherical = _np.zeros_like(xyz)
     xy = xyz[:,0]**2 + xyz[:,1]**2
-    spherical[:,0] = np.sqrt(xy + xyz[:,2]**2)
-    spherical[:,1] = np.arctan2(xyz[:,2], np.sqrt(xy))
-    spherical[:,2] = np.arctan2(xyz[:,1], xyz[:,0])
+    spherical[:,0] = _np.sqrt(xy + xyz[:,2]**2)
+    spherical[:,1] = _np.arctan2(xyz[:,2], _np.sqrt(xy))
+    spherical[:,2] = _np.arctan2(xyz[:,1], xyz[:,0])
     return spherical
     
 def get_learning_rate(StartLearningRate,LearningRateType,decay_steps,boundaries=[],values=[]):
     
     if LearningRateType=="none":
-        global_step = tf.Variable(0, trainable=False)
+        global_step = _tf.Variable(0, trainable=False)
         return global_step,StartLearningRate
     elif LearningRateType=="exponential_decay":
-        global_step = tf.Variable(0, trainable=False)
-        return global_step,tf.train.exponential_decay(StartLearningRate, global_step, decay_steps, decay_rate=0.96, staircase=False)
+        global_step = _tf.Variable(0, trainable=False)
+        return global_step,_tf.train.exponential_decay(StartLearningRate, global_step, decay_steps, decay_rate=0.96, staircase=False)
     elif LearningRateType=="inverse_time_decay":
-        global_step = tf.Variable(0, trainable=False)
-        return global_step,tf.train.inverse_time_decay(StartLearningRate, global_step, decay_steps,  decay_rate=0.96, staircase=False)
+        global_step = _tf.Variable(0, trainable=False)
+        return global_step,_tf.train.inverse_time_decay(StartLearningRate, global_step, decay_steps,  decay_rate=0.96, staircase=False)
     elif LearningRateType=="piecewise_constant":
-        global_step = tf.Variable(0, trainable=False)
-        return global_step,tf.train.piecewise_constant(global_step, boundaries, values)
+        global_step = _tf.Variable(0, trainable=False)
+        return global_step,_tf.train.piecewise_constant(global_step, boundaries, values)
     elif LearningRateType=="polynomial_decay_p1":
-        global_step = tf.Variable(0, trainable=False)
-        return global_step,tf.train.polynomial_decay(StartLearningRate, global_step, decay_steps, end_learning_rate=0.00001, power=1.0, cycle=False)
+        global_step = _tf.Variable(0, trainable=False)
+        return global_step,_tf.train.polynomial_decay(StartLearningRate, global_step, decay_steps, end_learning_rate=0.00001, power=1.0, cycle=False)
     elif LearningRateType=="polynomial_decay_p2":
-        global_step = tf.Variable(0, trainable=False)
-        return global_step,tf.train.polynomial_decay(StartLearningRate, global_step, decay_steps, end_learning_rate=0.00001, power=2.0, cycle=False)
+        global_step = _tf.Variable(0, trainable=False)
+        return global_step,_tf.train.polynomial_decay(StartLearningRate, global_step, decay_steps, end_learning_rate=0.00001, power=2.0, cycle=False)
 
 
 def calc_distance_to_all_atoms(xyz):
     
     Ngeom=len(xyz[:,0])
-    distances=np.zeros((Ngeom,Ngeom))
+    distances=_np.zeros((Ngeom,Ngeom))
     for i in range(Ngeom):
-        distances[i,:]=np.linalg.norm(xyz-xyz[i,:])
+        distances[i,:]=_np.linalg.norm(xyz-xyz[i,:])
     
     return distances
     
@@ -740,8 +688,8 @@ def create_zero_diff_geometries(r_min,r_max,types,N_atoms_per_type,N):
     
     out_geoms=[]
     Natoms=sum(N_atoms_per_type)
-    np_geom=np.zeros((Natoms,3))
-    np_dist=np.zeros((Natoms,Natoms))
+    np_geom=_np.zeros((Natoms,3))
+    np_dist=_np.zeros((Natoms,Natoms))
     for i in range(N):
         #try to get valid position for atom
         run=True
@@ -751,22 +699,22 @@ def create_zero_diff_geometries(r_min,r_max,types,N_atoms_per_type,N):
             ct=0
             for j in range(len(N_atoms_per_type)):
                 for k in range(N_atoms_per_type[j]):
-                    r=rand.uniform(0,5*r_max)
-                    phi=rand.uniform(0,2*np.pi)
-                    theta=rand.uniform(0,np.pi)
-                    x=r*np.cos(theta)*np.cos(phi)
-                    y=r*np.cos(theta)*np.sin(phi)
-                    z=r*np.sin(theta)
+                    r=_rand.uniform(0,5*r_max)
+                    phi=_rand.uniform(0,2*_np.pi)
+                    theta=_rand.uniform(0,_np.pi)
+                    x=r*_np.cos(theta)*_np.cos(phi)
+                    y=r*_np.cos(theta)*_np.sin(phi)
+                    z=r*_np.sin(theta)
                     xyz=[x,y,z]
                     a_type=types[j]
-                    atom=(a_type,np.asarray(xyz))
+                    atom=(a_type,_np.asarray(xyz))
                     np_geom[ct,:]=xyz
                     ct+=1
                     geom.append(atom)
                 
             np_dist=calc_distance_to_all_atoms(np_geom)
             L=np_dist!=0
-            if np.all(np_dist[L])>r_max or np.all(np_dist[L])<r_min:
+            if _np.all(np_dist[L])>r_max or _np.all(np_dist[L])<r_min:
                 out_geoms.append(geom)
                 run=False
 
@@ -782,7 +730,7 @@ def parse_qchem_geometries(in_geoms):
         out_geom=[]
         for atom in atoms_list:
             xyz=[float(atom[1]),float(atom[2]),float(atom[3])]
-            my_tuple=(atom[0],np.asarray(xyz))
+            my_tuple=(atom[0],_np.asarray(xyz))
             out_geom.append(my_tuple)
         out_geoms.append(out_geom)
                 
@@ -793,15 +741,15 @@ def get_ds_r_min_r_max(geoms):
     r_min=10e10
     r_max=0
     for geom in geoms:
-        np_geom=np.zeros((len(geom),3))
-        np_dist=np.zeros((len(geom),len(geom)))
+        np_geom=_np.zeros((len(geom),3))
+        np_dist=_np.zeros((len(geom),len(geom)))
         for i,atom in enumerate(geom):
             xyz=atom[1]
             np_geom[i,:]=xyz
         np_dist=calc_distance_to_all_atoms(np_geom)
         L=np_dist!=0
-        r_min_tmp=np.min(np_dist[L])
-        r_max_tmp=np.max(np_dist)
+        r_min_tmp=_np.min(np_dist[L])
+        r_max_tmp=_np.max(np_dist)
         if r_min_tmp<r_min:
             r_min= r_min_tmp
 
@@ -908,59 +856,61 @@ class AtomicNeuralNetInstance(object):
             self.CostFun=AtomicNeuralNetInstance.atomic_cost_function(self)
             
             #if self.IsPartitioned==True:
-            All_Vars=tf.trainable_variables()#get_my_variables(self.VariablesDictionary)
+            All_Vars=_tf.trainable_variables()
             decay_steps=len(self.TrainingBatches)*self.LearningDecayEpochs
             self.GlobalStep,self.LearningRateFun=get_learning_rate(self.LearningRate,self.LearningRateType,decay_steps,self.LearningRateBounds,self.LearningRateValues)
             
             #Set optimizer
             if self.OptimizerType==None:
-               self.Optimizer=tf.train.GradientDescentOptimizer(self.LearningRateFun).minimize(self.CostFun,var_list=All_Vars,global_step=self.GlobalStep)
+               self.Optimizer=_tf.train.GradientDescentOptimizer(self.LearningRateFun).minimize(self.CostFun,var_list=All_Vars,global_step=self.GlobalStep)
             else:
                 if self.OptimizerType=="GradientDescent":
-                    self.Optimizer=tf.train.GradientDescentOptimizer(self.LearningRateFun).minimize(self.CostFun,var_list=All_Vars,global_step=self.GlobalStep)
+                    self.Optimizer=_tf.train.GradientDescentOptimizer(self.LearningRateFun).minimize(self.CostFun,var_list=All_Vars,global_step=self.GlobalStep)
                 elif self.OptimizerType=="Adagrad":
-                    self.Optimizer=tf.train.AdagradOptimizer(self.LearningRateFun).minimize(self.CostFun,var_list=All_Vars,global_step=self.GlobalStep)
+                    self.Optimizer=_tf.train.AdagradOptimizer(self.LearningRateFun).minimize(self.CostFun,var_list=All_Vars,global_step=self.GlobalStep)
                 elif self.OptimizerType=="Adadelta":
-                    self.Optimizer=tf.train.AdadeltaOptimizer(self.LearningRateFun).minimize(self.CostFun,var_list=All_Vars,global_step=self.GlobalStep)
+                    self.Optimizer=_tf.train.AdadeltaOptimizer(self.LearningRateFun).minimize(self.CostFun,var_list=All_Vars,global_step=self.GlobalStep)
                 elif self.OptimizerType=="AdagradDA":
-                    self.Optimizer=tf.train.AdagradDAOptimizer(self.LearningRateFun,self.OptimizerProp).minimize(self.CostFun,var_list=All_Vars,global_step=self.GlobalStep)
+                    self.Optimizer=_tf.train.AdagradDAOptimizer(self.LearningRateFun,self.OptimizerProp).minimize(self.CostFun,var_list=All_Vars,global_step=self.GlobalStep)
                 elif self.OptimizerType=="Momentum":
-                    self.Optimizer=tf.train.MomentumOptimizer(self.LearningRateFun,self.OptimizerProp).minimize(self.CostFun,var_list=All_Vars,global_step=self.GlobalStep)
+                    self.Optimizer=_tf.train.MomentumOptimizer(self.LearningRateFun,self.OptimizerProp).minimize(self.CostFun,var_list=All_Vars,global_step=self.GlobalStep)
                 elif self.OptimizerType=="Adam":
-                    self.Optimizer=tf.train.AdamOptimizer(self.LearningRateFun, beta1=0.9, beta2=0.999, epsilon=1e-08).minimize(self.CostFun,var_list=All_Vars,global_step=self.GlobalStep)
+                    self.Optimizer=_tf.train.AdamOptimizer(self.LearningRateFun, beta1=0.9, beta2=0.999, epsilon=1e-08).minimize(self.CostFun,var_list=All_Vars,global_step=self.GlobalStep)
                 elif self.OptimizerType=="Ftrl":
-                   self.Optimizer=tf.train.FtrlOptimizer(self.LearningRateFun).minimize(self.CostFun,var_list=All_Vars,global_step=self.GlobalStep)
+                   self.Optimizer=_tf.train.FtrlOptimizer(self.LearningRateFun).minimize(self.CostFun,var_list=All_Vars,global_step=self.GlobalStep)
                 elif self.OptimizerType=="ProximalGradientDescent":
-                    self.Optimizer=tf.train.ProximalGradientDescentOptimizer(self.LearningRateFun).minimize(self.CostFun,var_list=All_Vars,global_step=self.GlobalStep)
+                    self.Optimizer=_tf.train.ProximalGradientDescentOptimizer(self.LearningRateFun).minimize(self.CostFun,var_list=All_Vars,global_step=self.GlobalStep)
                 elif self.OptimizerType=="ProximalAdagrad":
-                    self.Optimizer=tf.train.ProximalAdagradOptimizer(self.LearningRateFun).minimize(self.CostFun,var_list=All_Vars,global_step=self.GlobalStep)
+                    self.Optimizer=_tf.train.ProximalAdagradOptimizer(self.LearningRateFun).minimize(self.CostFun,var_list=All_Vars,global_step=self.GlobalStep)
                 elif self.OptimizerType=="RMSProp":
-                    self.Optimizer=tf.train.RMSPropOptimizer(self.LearningRateFun).minimize(self.CostFun,var_list=All_Vars,global_step=self.GlobalStep)
+                    self.Optimizer=_tf.train.RMSPropOptimizer(self.LearningRateFun).minimize(self.CostFun,var_list=All_Vars,global_step=self.GlobalStep)
                 else:
-                    self.Optimizer=tf.train.GradientDescentOptimizer(self.LearningRateFun).minimize(self.CostFun,var_list=All_Vars,global_step=self.GlobalStep)
+                    self.Optimizer=_tf.train.GradientDescentOptimizer(self.LearningRateFun).minimize(self.CostFun,var_list=All_Vars,global_step=self.GlobalStep)
         except:
             print("Evaluation only no training supported if all networks are constant!")
         #Initialize session
-        self.Session.run(tf.global_variables_initializer())
+        self.Session.run(_tf.global_variables_initializer())
         
         
     def load_model(self,ModelName="save/trained_variables",Pretraining=False):
         
         nrNets=len(self.Structures)
-        
+        model=[]
         if ".npy" not in ModelName:
             ModelName=ModelName+".npy"
-            rare_model=np.load(ModelName)
-                                   
-        if Pretraining:
+            rare_model=_np.load(ModelName)
+            weights_and_biases=rare_model[0]
+            min_of_out=rare_model[1]
+            
+        if Pretraining==True:
             #Copy pretrained model structure N times for each atom species in new net
             for i in range(nrNets):
-                temp=rare_model[0].append(rare_model[0][0])
+                model.append(weights_and_biases[0])
         else:
-            temp=rare_model
+            model=weights_and_biases
             
-        self.TrainedVariables=temp[0]
-        self.MinOfOut=temp[1]
+        self.TrainedVariables=model
+        self.MinOfOut=min_of_out
 
 
         return 1
@@ -1036,9 +986,9 @@ class AtomicNeuralNetInstance(object):
             self.TrainedVariables=get_trained_variables(self.Session,self.VariablesDictionary)
             #Store variables
 
-            if not os.path.exists(self.SavingDirectory):
-                os.makedirs(self.SavingDirectory)
-            np.save(self.SavingDirectory+"/trained_variables",self.TrainedVariables)
+            if not _os.path.exists(self.SavingDirectory):
+                _os.makedirs(self.SavingDirectory)
+            _np.save(self.SavingDirectory+"/trained_variables",self.TrainedVariables)
 
             self.TrainingCosts=TrainingCosts
             self.ValidationCosts=ValidationCosts
@@ -1072,7 +1022,7 @@ class AtomicNeuralNetInstance(object):
                 train_dE=evaluate(self.Session,self.dE_Fun,Layers,TrainingData)
             else:
                 temp=evaluate(self.Session,self.dE_Fun,Layers,TrainingData)
-                train_dE=tf.concat([train_dE,temp],0)
+                train_dE=_tf.concat([train_dE,temp],0)
     
         for i in range(0,len(self.ValidationBatches)):
             ValidationInputs=self.ValidationBatches[i][0]
@@ -1085,16 +1035,16 @@ class AtomicNeuralNetInstance(object):
                 val_dE=evaluate(self.Session,self.dE_Fun,Layers,TrainingData)
             else:
                 temp=evaluate(self.Session,self.dE_Fun,Layers,TrainingData)
-                val_dE=tf.concat([val_dE,temp],0)
+                val_dE=_tf.concat([val_dE,temp],0)
         
         with self.Session.as_default():
             train_dE=train_dE.eval().tolist()
             val_dE=val_dE.eval().tolist()
         
-        train_mean=np.mean(train_dE)
-        train_var=np.var(train_dE)
-        val_mean=np.mean(val_dE)
-        val_var=np.var(val_dE)
+        train_mean=_np.mean(train_dE)
+        train_var=_np.var(train_dE)
+        val_mean=_np.mean(val_dE)
+        val_var=_np.var(val_dE)
         
         train_stat=[train_mean,train_var]
         val_stat=[val_mean,val_var]
@@ -1136,7 +1086,7 @@ class AtomicNeuralNetInstance(object):
         self.OverallTrainingCosts=list()
         self.OverallValidationCosts=list()
 
-        start=time.time()
+        start=_time.time()
         Execute=True
         if len(self.AtomicNNs)==0:
             print("No atomic neural nets available!")
@@ -1163,13 +1113,13 @@ class AtomicNeuralNetInstance(object):
 
                     tempTrainingCost=[]
                     tempValidationCost=[]
-                    rnd=rand.randint(0,NrOfTrainingBatches-1)
+                    rnd=_rand.randint(0,NrOfTrainingBatches-1)
                     self.TrainingInputs=self.TrainingBatches[rnd][0]
                     self.TrainingOutputs=self.TrainingBatches[rnd][1]
                     
                     BatchSize=self.TrainingInputs[0].shape[0]
                     if self.ValidationBatches:
-                        rnd=rand.randint(0,NrOfValidationBatches-1)
+                        rnd=_rand.randint(0,NrOfValidationBatches-1)
                         self.ValidationInputs=self.ValidationBatches[rnd][0]
                         self.ValidationOutputs=self.ValidationBatches[rnd][1]
                     #Prepare data and layers for feeding
@@ -1220,25 +1170,25 @@ class AtomicNeuralNetInstance(object):
                         if self.MakePlots==True:
                             if i ==0:
                                 if find_best_symmfuns:
-                                    sparse_tensor=np.abs(self.Session.run(self.FirstWeights[0]))#only supports force field at the moment
-                                    sparse_weights=np.sum(sparse_tensor,axis=1)
+                                    sparse_tensor=_np.abs(self.Session.run(self.FirstWeights[0]))#only supports force field at the moment
+                                    sparse_weights=_np.sum(sparse_tensor,axis=1)
                                     fig_weights,weights_plot=initialize_weights_plot(sparse_weights,self.SizeOfInputs[0])
                                 else:
                                     fig,ax,TrainingCostPlot,ValidationCostPlot,RunningMeanPlot=initialize_cost_plot(self.OverallTrainingCosts,self.OverallValidationCosts)
                             else:
                                 if find_best_symmfuns:
-                                    sparse_tensor=np.abs(self.Session.run(self.FirstWeights[0]))#only supports force field at the moment
-                                    sparse_weights=np.sum(sparse_tensor,axis=1)
+                                    sparse_tensor=_np.abs(self.Session.run(self.FirstWeights[0]))#only supports force field at the moment
+                                    sparse_weights=_np.sum(sparse_tensor,axis=1)
                                     fig_weights,weights_plot=update_weights_plot(fig_weights,weights_plot,sparse_weights)
                                 else:
                                     update_cost_plot(fig,ax,TrainingCostPlot,self.OverallTrainingCosts,ValidationCostPlot,self.OverallValidationCosts,RunningMeanPlot)
                         #Finished percentage output
-                        print([str(100*i/self.Epochs)+" %","deltaE = "+str(self.DeltaE)+" ev","Cost = "+str(self.TrainingCosts),"t = "+str(time.time()-start)+" s","global step: "+str(self.Session.run(self.GlobalStep))])
+                        print([str(100*i/self.Epochs)+" %","deltaE = "+str(self.DeltaE)+" ev","Cost = "+str(self.TrainingCosts),"t = "+str(_time.time()-start)+" s","global step: "+str(self.Session.run(self.GlobalStep))])
                         Prediction=AtomicNeuralNetInstance.eval_dataset(self,[self.TrainingInputs,None])
                         print("Data:")
-                        print(self.TrainingOutputs[0:int(len(self.TrainingOutputs)/20)])
+                        print(self.TrainingOutputs[0:max(int(len(self.TrainingOutputs)/20),1)])
                         print("Prediction:")
-                        print(Prediction[0:int(len(Prediction)/20)])
+                        print(Prediction[0:max(int(len(Prediction)/20),1)])
                         #Store variables
                         if self.IsPartitioned==False:
                             self.TrainedVariables=get_trained_variables(self.Session,self.VariablesDictionary)
@@ -1246,9 +1196,9 @@ class AtomicNeuralNetInstance(object):
                             self.TrainedVariables=get_trained_variables_partitioned(self.Session,self.VariablesDictionary)
 
 
-                        if not os.path.exists(self.SavingDirectory):
-                            os.makedirs(self.SavingDirectory)
-                        np.save(self.SavingDirectory+"/trained_variables",[self.TrainedVariables,self.MinOfOut])
+                        if not _os.path.exists(self.SavingDirectory):
+                            _os.makedirs(self.SavingDirectory)
+                        _np.save(self.SavingDirectory+"/trained_variables",[self.TrainedVariables,self.MinOfOut])
                     
 
                     #Abort criteria
@@ -1258,7 +1208,7 @@ class AtomicNeuralNetInstance(object):
                             print("Reached criterium!")
                             print("Cost= "+str((self.TrainingCosts+self.ValidationCosts)/2))
                             print("delta E = "+str(self.DeltaE)+" ev")
-                            print("t = "+str(time.time()-start)+" s")
+                            print("t = "+str(_time.time()-start)+" s")
                             print("Epoch = "+str(i))
                             print("")
 
@@ -1266,27 +1216,27 @@ class AtomicNeuralNetInstance(object):
                             print("Reached criterium!")
                             print("Cost= "+str(self.TrainingCosts))
                             print("delta E = "+str(self.DeltaE)+" ev")
-                            print("t = "+str(time.time()-start)+" s")
+                            print("t = "+str(_time.time()-start)+" s")
                             print("Epoch = "+str(i))
                             print("")
                         
 
                         print("Calculation of whole dataset energy difference ...")
                         train_stat,val_stat=AtomicNeuralNetInstance.dE_stat(self,Layers)
-                        print("Training dataset error= "+str(train_stat[0])+"+-"+str(np.sqrt(train_stat[1]))+" ev")
-                        print("Validation dataset error= "+str(val_stat[0])+"+-"+str(np.sqrt(val_stat[1]))+" ev")
+                        print("Training dataset error= "+str(train_stat[0])+"+-"+str(_np.sqrt(train_stat[1]))+" ev")
+                        print("Validation dataset error= "+str(val_stat[0])+"+-"+str(_np.sqrt(val_stat[1]))+" ev")
                         print("Training finished")
                         break   
                             
                     if i==(self.Epochs-1):
                         print("Training finished")
                         print("delta E = "+str(self.DeltaE)+" ev")
-                        print("t = "+str(time.time()-start)+" s")
+                        print("t = "+str(_time.time()-start)+" s")
                         print("")
                         
                         train_stat,val_stat=AtomicNeuralNetInstance.dE_stat(self,Layers)
-                        print("Training dataset error= "+str(train_stat[0])+"+-"+str(np.sqrt(train_stat[1]))+" ev")
-                        print("Validation dataset error= "+str(val_stat[0])+"+-"+str(np.sqrt(val_stat[1]))+" ev")
+                        print("Training dataset error= "+str(train_stat[0])+"+-"+str(_np.sqrt(train_stat[1]))+" ev")
+                        print("Validation dataset error= "+str(val_stat[0])+"+-"+str(_np.sqrt(val_stat[1]))+" ev")
                         
                         
             if self.Multiple==True:
@@ -1302,7 +1252,7 @@ class AtomicNeuralNetInstance(object):
         #Get G vectors
         for i in range(0,NrGeom):
 
-            temp=np.asarray(self.SymmFunSet.eval_geometry(self.Ds.geometries[i],self.InputDerivatives))
+            temp=_np.asarray(self.SymmFunSet.eval_geometry(self.Ds.geometries[i],self.InputDerivatives))
             
             NrAtoms=len(temp)
             self.AllGeometries.append(temp)
@@ -1310,7 +1260,7 @@ class AtomicNeuralNetInstance(object):
                 print(str(100*i/NrGeom)+" %")
             for j in range(0,len(temp)):
                 if i==0:
-                    AllTemp.append(np.empty((NrGeom,temp[j].shape[0])))
+                    AllTemp.append(_np.empty((NrGeom,temp[j].shape[0])))
                     AllTemp[j][i]=temp[j]
                 else:
                     AllTemp[j][i]=temp[j]
@@ -1318,18 +1268,18 @@ class AtomicNeuralNetInstance(object):
         print("Calculating mean values and variances...")
         #Input statistics
         for InputsForNetX in AllTemp:
-            self.MeansOfDs.append(np.mean(InputsForNetX,axis=0))
-            self.VarianceOfDs.append(np.var(InputsForNetX,axis=0))
+            self.MeansOfDs.append(_np.mean(InputsForNetX,axis=0))
+            self.VarianceOfDs.append(_np.var(InputsForNetX,axis=0))
         #Output statistics
         if len(self.Ds.energies)>0:
-            NormalizedEnergy=np.divide(self.Ds.energies,NrAtoms)
+            NormalizedEnergy=_np.divide(self.Ds.energies,NrAtoms)
             if self.MinOfOut== None:
                 TakeAsReference=True
             else:
-                if self.MinOfOut>np.min(NormalizedEnergy):
+                if self.MinOfOut>_np.min(NormalizedEnergy):
                     TakeAsReference=True
             if TakeAsReference==True:
-                self.MinOfOut=np.min(NormalizedEnergy)*2 #factor of two is to make sure that there is room for lower energies
+                self.MinOfOut=_np.min(NormalizedEnergy)*2 #factor of two is to make sure that there is room for lower energies
 
 
     def read_files(self,TakeAsReference=True,LoadGeometries=True):
@@ -1403,7 +1353,7 @@ class AtomicNeuralNetInstance(object):
             if NoBatches:
                 BatchSize=len(self.Ds.geometries)
 
-            OutputData=np.empty((BatchSize,1))
+            OutputData=_np.empty((BatchSize,1))
             if NoBatches==False:
                 if BatchSize>len(self.AllGeometries)/10:
                     BatchSize=int(BatchSize/10)
@@ -1418,7 +1368,7 @@ class AtomicNeuralNetInstance(object):
                 if NoBatches:
                     MyNr=i
                 else:
-                    rnd=rand.randint(0,len(ValuesForDrawingSamples)-1)
+                    rnd=_rand.randint(0,len(ValuesForDrawingSamples)-1)
                     #Get number
                     MyNr=ValuesForDrawingSamples[rnd]
                     #remove number from possible samples
@@ -1502,7 +1452,7 @@ class AtomicNeuralNetInstance(object):
             #Get input data for network
             AllEnergies.append(Network)
         
-        TotalEnergy=tf.add_n(AllEnergies)
+        TotalEnergy=_tf.add_n(AllEnergies)
     
         return TotalEnergy,AllEnergies
     
@@ -1520,7 +1470,7 @@ class AtomicNeuralNetInstance(object):
                     #Get input data for network
                     AllEnergies.append(SubNet)
     
-        TotalEnergy=tf.add_n(AllEnergies)
+        TotalEnergy=_tf.add_n(AllEnergies)
     
     
         return TotalEnergy,AllEnergies
@@ -1533,12 +1483,12 @@ class AtomicNeuralNetInstance(object):
             AtomicNet=self.AtomicNNs[i]
             G_Input=AtomicNet[2]
             dGi_dxj=AtomicNet[3]
-            dE_Gi=tf.gradients(self.TotalEnergy,G_Input)
+            dE_Gi=_tf.gradients(self.TotalEnergy,G_Input)
             if i==0:
-                F=tf.matmul(dE_Gi,dGi_dxj)
+                F=_tf.matmul(dE_Gi,dGi_dxj)
             else:
-                F=tf.concat([F,tf.matmul(dE_Gi,dGi_dxj)],0)
-            Fi.append(tf.matmul(dE_Gi,dGi_dxj))
+                F=_tf.concat([F,_tf.matmul(dE_Gi,dGi_dxj)],0)
+            Fi.append(_tf.matmul(dE_Gi,dGi_dxj))
         
         return F,Fi
             
@@ -1558,15 +1508,15 @@ class AtomicNeuralNetInstance(object):
                 self.OutputForce,AllForces=AtomicNeuralNetInstance.force_of_all_atomic_networks(self)
                 Cost+=total_cost_for_network(self.TotalForce,self.OutputForce,self.CostFunType)
         
-        self.dE_Fun=tf.abs(self.TotalEnergy-self.OutputLayer)
+        self.dE_Fun=_tf.abs(self.TotalEnergy-self.OutputLayer)
         
         if self.Regularization=="L1":
-            trainableVars=tf.trainable_variables()
-            l1_regularizer = tf.contrib.layers.l1_regularizer(scale=0.005, scope=None)
-            Cost += tf.contrib.layers.apply_regularization(l1_regularizer, trainableVars)
+            trainableVars=_tf.trainable_variables()
+            l1_regularizer = _tf.contrib.layers.l1_regularizer(scale=0.005, scope=None)
+            Cost += _tf.contrib.layers.apply_regularization(l1_regularizer, trainableVars)
         elif self.Regularization=="L2":
-            trainableVars=tf.trainable_variables()
-            self.RegLoss=tf.add_n([tf.nn.l2_loss(v) for v in trainableVars
+            trainableVars=_tf.trainable_variables()
+            self.RegLoss=_tf.add_n([_tf.nn.l2_loss(v) for v in trainableVars
                                if 'bias' not in v.name]) * self.RegularizationParam
             Cost += self.RegLoss
     
@@ -1577,12 +1527,12 @@ class AtomicNeuralNetInstance(object):
         Inputs=list()
         for i in range(0,len(self.SizeOfInputs)):
             
-            Inputs.append(np.zeros((BatchSize,self.SizeOfInputs[i])))
+            Inputs.append(_np.zeros((BatchSize,self.SizeOfInputs[i])))
             #exclude nan values
-            L=np.nonzero(self.VarianceOfDs[i])
+            L=_np.nonzero(self.VarianceOfDs[i])
             if L[0].size>0:
                 for j in range(0,len(AllData)):
-                    Inputs[i][j][L]=np.divide(np.subtract(AllData[j][i][L],self.MeansOfDs[i][L]),np.sqrt(self.VarianceOfDs[i][L]))
+                    Inputs[i][j][L]=_np.divide(_np.subtract(AllData[j][i][L],self.MeansOfDs[i][L]),_np.sqrt(self.VarianceOfDs[i][L]))
 
         return Inputs
     
@@ -1604,7 +1554,7 @@ class AtomicNeuralNetInstance(object):
 
         AtomicNNs = list()
         # Start Session
-        self.Session=tf.Session()
+        self.Session=_tf.Session()
         if len(self.Structures)!= len(self.NumberOfAtomsPerType):
             raise ValueError("Length of Structures does not match length of NumberOfAtomsPerType")
         if len(self.HiddenData) != 0:    
@@ -1745,8 +1695,8 @@ class AtomicNeuralNetInstance(object):
         AllHiddenLayers=list()
         # Start Session
         if self.Multiple==False:
-            self.Session=tf.Session(config=tf.ConfigProto(
-  intra_op_parallelism_threads=multiprocessing.cpu_count()))
+            self.Session=_tf.Session(config=_tf.ConfigProto(
+  intra_op_parallelism_threads=_multiprocessing.cpu_count()))
         if len(self.Structures)!= len(self.NumberOfAtomsPerType):
             raise ValueError("Length of Structures does not match length of NumberOfAtomsPerType")
         if not(isinstance(self.Structures[0],PartitionedStructure)):
@@ -1928,7 +1878,7 @@ class AtomicNeuralNetInstance(object):
 
         AtomicNNs = list()
         # Start Session
-        self.Session=tf.Session()    
+        self.Session=_tf.Session()    
         # make all layers
         if len(self.Structures)!= len(self.NumberOfAtomsPerType):
             raise ValueError("Length of Structures does not match length of NumberOfAtomsPerType")
@@ -1984,7 +1934,7 @@ class AtomicNeuralNetInstance(object):
                             Network = connect_layers(Network, Weights, Biases, self.ActFun, self.ActFunParam,Dropout)
         
                     if self.UseForce:
-                        InputForce=tf.placeholder(tf.float32, shape=[None, NrInputs,3])
+                        InputForce=_tf.placeholder(_tf.float32, shape=[None, NrInputs,3])
                         AtomicNNs.append([self.NumberOfAtomsPerType[i], Network, InputLayer,InputForce])
                     else:
                         AtomicNNs.append(
@@ -2001,8 +1951,8 @@ class AtomicNeuralNetInstance(object):
         AtomicNNs = list()
         # Start Session
         if self.Multiple==False:
-            self.Session=tf.Session(config=tf.ConfigProto(
-  intra_op_parallelism_threads=multiprocessing.cpu_count()))
+            self.Session=_tf.Session(config=_tf.ConfigProto(
+  intra_op_parallelism_threads=_multiprocessing.cpu_count()))
             
         OldBiasNr = 0
         OldShape = None
@@ -2044,8 +1994,8 @@ class AtomicNeuralNetInstance(object):
                                         indices.append([q, q])
                                         values += [1.0]
                                         
-                                    delta = tf.SparseTensor(indices, values, thisShape)
-                                    tempWeights = tempWeights + tf.sparse_tensor_to_dense(delta)
+                                    delta = _tf.SparseTensor(indices, values, thisShape)
+                                    tempWeights = tempWeights + _tf.sparse_tensor_to_dense(delta)
                                 
                                 HiddenLayers.append([tempWeights, tempBias])
                             else:
@@ -2054,14 +2004,14 @@ class AtomicNeuralNetInstance(object):
                                     OldShape = self.HiddenData[i][j - 1].shape
                                     # fill old weights in new structure
                                     if OldBiasNr < NrHidden:
-                                        ThisWeightData = np.random.normal(loc=0.0, scale=0.01, size=(NrIn, NrHidden))
+                                        ThisWeightData = _np.random.normal(loc=0.0, scale=0.01, size=(NrIn, NrHidden))
                                         ThisWeightData[0:OldShape[0], 0:OldShape[1]] = self.HiddenData[i][j - 1]
-                                        ThisBiasData = np.zeros([NrHidden])
+                                        ThisBiasData = _np.zeros([NrHidden])
                                         ThisBiasData[0:OldBiasNr] = self.BiasData[i][j - 1]
                                     elif OldBiasNr>NrHidden:
-                                        ThisWeightData = np.zeros((NrIn, NrHidden))
+                                        ThisWeightData = _np.zeros((NrIn, NrHidden))
                                         ThisWeightData[0:, 0:] = self.HiddenData[i][j - 1][0:NrIn,0:NrHidden]
-                                        ThisBiasData = np.zeros([NrHidden])
+                                        ThisBiasData = _np.zeros([NrHidden])
                                         ThisBiasData[0:OldBiasNr] = self.BiasData[i][j - 1][0:NrIn,0:NrHidden]
                                     else:
                                         ThisWeightData = self.HiddenData[i][j - 1]
@@ -2112,7 +2062,7 @@ class AtomicNeuralNetInstance(object):
                             Network = connect_layers(Network, Weights, Biases, self.ActFun, self.ActFunParam,Dropout)
     
                     if self.UseForce:
-                        InputForce=tf.placeholder(tf.float32, shape=[None, NrInputs,3])
+                        InputForce=_tf.placeholder(_tf.float32, shape=[None, NrInputs,3])
                         AtomicNNs.append([self.NumberOfAtomsPerType[i], Network, InputLayer,InputForce])
                     else:
                         AtomicNNs.append([self.NumberOfAtomsPerType[i], Network, InputLayer])
@@ -2142,7 +2092,7 @@ class MultipleInstanceTraining(object):
         self.GlobalMinOfOut=0
         self.MakePlots=False
         self.IsPartitioned=False
-        self.GlobalSession=tf.Session()
+        self.GlobalSession=_tf.Session()
         
     def initialize_multiple_instances(self):
         
@@ -2200,8 +2150,8 @@ class MultipleInstanceTraining(object):
                     Instance.expand_existing_net(ModelData=LastStepsModelData)
                 
                 LastStepsModelData=Instance.start_batch_training()
-                tf.reset_default_graph()
-                self.GlobalSession=tf.Session()
+                _tf.reset_default_graph()
+                self.GlobalSession=_tf.Session()
                 MultipleInstanceTraining.set_session(self)
                 self.GlobalTrainingCosts+=Instance.OverallTrainingCosts
                 self.GlobalValidationCosts+=Instance.OverallValidationCosts
@@ -2214,7 +2164,7 @@ class MultipleInstanceTraining(object):
                     
                     #Finished percentage output
                     print(str(100*ct/(self.GlobalEpochs*len(self.TrainingInstances)))+" %")
-                    np.save("trained_variables",LastStepsModelData)
+                    _np.save("trained_variables",LastStepsModelData)
                 ct=ct+1
                 #Abort criteria
                 if self.GlobalTrainingCosts<=self.GlobalCostCriterium and self.GlobalValidationCosts<=self.GloablCostCriterium or Instance.DeltaE<self.Global_dE_Criterium:
@@ -2242,9 +2192,7 @@ class MultipleInstanceTraining(object):
                     print("Epoch = "+str(i))
                     print("")
                     
-            
-        
-                    
+                              
                 
 class PartitionedStructure(object):
     
