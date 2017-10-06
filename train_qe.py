@@ -75,6 +75,6 @@ Training.MakeLastLayerConstant=True
 Training.MakeAllVariable=False
 Training.NumberOfAtomsPerType=md_reader.nr_atoms_per_type
 #Load pretrained net
-Training.expand_existing_net(ModelName="pretrained_"+md_reader.nr_atoms_per_type+"_species/trained_variables",Pretraining=True)
+Training.expand_existing_net(ModelName="pretrained_"+md_reader.nr_atoms_per_type+"_species/trained_variables")
 #Start training
 Training.start_batch_training()
