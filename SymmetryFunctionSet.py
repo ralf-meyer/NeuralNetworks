@@ -73,7 +73,7 @@ class SymmetryFunctionSet(object):
         rss = _np.linspace(0.,self.cutoff,N)
         etas = [2./(self.cutoff/(N-1))**2]*N
         for rs, eta in zip(rss, etas):
-            add_radial_function(self, rs, eta, self.cutoff)
+            self.add_radial_functions([rs], [eta], self.cutoff)
 
     def add_angular_functions(self, etas, zetas, lambs):
         for eta in etas:
