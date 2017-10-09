@@ -16,9 +16,6 @@ cdef extern from "math.h":
     double cosh(double m)
     double sqrt(double m)
     double M_PI
-    
-
-
 
 class SymmetryFunctionSet(object):
     
