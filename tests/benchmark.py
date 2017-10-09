@@ -1,5 +1,5 @@
 import time
-from NeuralNetworks.SymmetryFunctionSet_new import SymmetryFunctionSet_py as SymFunSet_py, SymmetryFunctionSet as SymFunSet_cpp
+from NeuralNetworks.SymmetryFunctionSet import SymmetryFunctionSet_py as SymFunSet_py, SymmetryFunctionSet as SymFunSet_cpp
 from NeuralNetworks.SymmetryFunctionSetC import SymmetryFunctionSet as SymFunSet_c
 import numpy as np
 
