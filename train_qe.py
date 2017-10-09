@@ -40,7 +40,7 @@ md_reader.calibrate_energy()
 #Load trainings instance
 Training=_NN.AtomicNeuralNetInstance()
 #Default symmetry function set
-Training.NumberOfRadialFunctions=30
+Training.NumberOfRadialFunctions=25
 Training.Lambs=[1.0,-1.0]
 Training.Zetas=[0.025,0.045,0.075,0.1,0.15,0.2,0.3,0.5,0.7,1,1.5,2,3,5,10,18,36,100]
 Training.Etas=[0.1]   

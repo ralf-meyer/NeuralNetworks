@@ -25,11 +25,14 @@ if data_file=="":
     print("Please specify a MD file")
     print("Option: -input x")
     quit()
+    
 
 if nr_species==0:
     print("Please specify for how many species you pre-train the network!")
     print("Option: -nr_atoms x")
     quit()
+else:
+    print("Pre-training for "+str(nr_species)+" atom species...")
 
 md_reader=_reader.QE_MD_Reader()
 for i in range(nr_species):
@@ -43,7 +46,7 @@ md_reader.calibrate_energy()
 #Get instance
 Training=_NN.AtomicNeuralNetInstance()
 #Default symmetry function set
-Training.NumberOfRadialFunctions=30
+Training.NumberOfRadialFunctions=25
 Training.Lambs=[1.0,-1.0]
 Training.Zetas=[0.025,0.045,0.075,0.1,0.15,0.2,0.3,0.5,0.7,1,1.5,2,3,5,10,18,36,100]
 Training.Etas=[0.1]   
@@ -53,7 +56,7 @@ Training.atomtypes=md_reader.atom_types
 Training.init_dataset(md_reader.geometries,md_reader.e_pot_rel)
 
 #Create batches
-batch_size=len(md_reader.e_pot_rel)/50 
+batch_size=10#len(md_reader.e_pot_rel)/10 
 Training.make_training_and_validation_data(batch_size,70,30)
 
 #Default trainings settings
