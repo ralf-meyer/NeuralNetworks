@@ -236,13 +236,16 @@ void SymmetryFunctionSet::eval_new(
         rjk = sqrt(pow(xyzs[3*j]-xyzs[3*k], 2) +
                   pow(xyzs[3*j+1]-xyzs[3*k+1], 2) +
                   pow(xyzs[3*j+2]-xyzs[3*k+2], 2));
-        // Calculate the angle between rij and rik
+        // Calculate the angle between rij, rik and rjk
         theta_i = acos(((xyzs[3*i]-xyzs[3*j])*(xyzs[3*i]-xyzs[3*k]) +
           (xyzs[3*i+1]-xyzs[3*j+1])*(xyzs[3*i+1]-xyzs[3*k+1]) +
           (xyzs[3*i+2]-xyzs[3*j+2])*(xyzs[3*i+2]-xyzs[3*k+2]))/(rij*rik));
-        // Calculate the remaining two angles using the law of sines
-        theta_j = asin(rik*sin(theta_i)/rjk);
-        theta_k = asin(rij*sin(theta_i)/rjk);
+        theta_j = acos(((xyzs[3*j]-xyzs[3*k])*(xyzs[3*j]-xyzs[3*i]) +
+          (xyzs[3*j+1]-xyzs[3*k+1])*(xyzs[3*j+1]-xyzs[3*i+1]) +
+          (xyzs[3*j+2]-xyzs[3*k+2])*(xyzs[3*j+2]-xyzs[3*i+2]))/(rjk*rij));
+        theta_k = acos(((xyzs[3*k]-xyzs[3*i])*(xyzs[3*k]-xyzs[3*j]) +
+          (xyzs[3*k+1]-xyzs[3*i+1])*(xyzs[3*k+1]-xyzs[3*j+1]) +
+          (xyzs[3*k+2]-xyzs[3*i+2])*(xyzs[3*k+2]-xyzs[3*j+2]))/(rik*rjk));
 
         // As described in add_ThreeBodySymmetryFunction() the type of the three
         // body symmetry function consists of the atom type of the atom the
@@ -447,8 +450,8 @@ void SymmetryFunctionSet::eval_derivatives_new(
           (xyzs[3*k+2]-xyzs[3*i+2])*(xyzs[3*k+2]-xyzs[3*j+2]));
         // Calculate the angle between rij and rik
         theta_i = acos(dot_i/(rij*rik));
-        theta_j = asin(rik*sin(theta_i)/rjk);
-        theta_k = asin(rij*sin(theta_i)/rjk);
+        theta_j = acos(dot_j/(rjk*rij));
+        theta_k = acos(dot_k/(rik*rjk));
 
         // Add to three body symmetry functions centered on atom i.
         type_ijk = num_atomtypes2*types[i] +
