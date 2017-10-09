@@ -73,7 +73,7 @@ class SymmetryFunctionSet(object):
         rss = _np.linspace(0.,self.cutoff,N)
         etas = [2./(self.cutoff/(N-1))**2]*N
         for rs, eta in zip(rss, etas):
-            self.add_radial_functions([rs], [eta], self.cutoff)
+            self.add_radial_functions([rs],[eta])
 
     def add_angular_functions(self, etas, zetas, lambs):
         for eta in etas:
@@ -88,7 +88,7 @@ class SymmetryFunctionSet(object):
         lib.SymmetryFunctionSet_print_symFuns(self.obj)
 
     def available_symFuns(self):
-        lib.SymmetryFunctionSet_available_symFuns(self.obj)
+        return lib.SymmetryFunctionSet_available_symFuns(self.obj)
 
     def eval(self, types, xyzs):
         int_types = [self.type_dict[ti] for ti in types]
@@ -113,6 +113,11 @@ class SymmetryFunctionSet(object):
         types = [a[0] for a in geo]
         xyzs = _np.array([a[1] for a in geo])
         return self.eval(types, xyzs)
+    
+    def eval_geometry_derivatives(self, geo):
+        types = [a[0] for a in geo]
+        xyzs = _np.array([a[1] for a in geo])
+        return self.eval_derivatives(types, xyzs)
 
     def eval_geometry_old(self, geo):
         types = [a[0] for a in geo]
