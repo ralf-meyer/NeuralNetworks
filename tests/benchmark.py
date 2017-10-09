@@ -1,5 +1,5 @@
 import time
-from NeuralNetworks.SymmetryFunctionSet_new import SymmetryFunctionSet as SymFunSet_py, SymmetryFunctionSet_new as SymFunSet_cpp
+from NeuralNetworks.SymmetryFunctionSet_new import SymmetryFunctionSet_py as SymFunSet_py, SymmetryFunctionSet as SymFunSet_cpp
 from NeuralNetworks.SymmetryFunctionSetC import SymmetryFunctionSet as SymFunSet_c
 import numpy as np
 
@@ -61,37 +61,37 @@ geo55 = [["Ni", np.array([-0.0000014484, 1.4664110123, 2.3723640186])],
 
 
 
-# geo = [["Ni", np.array([0.0, 0.0, 0.0])],
-#         ["Ni", np.array([1.2, 0.0, 0.0])],
-#         ["Au", np.array([0.0, 1.2, 0.0])],
-#         ["Ni", np.array([-1.2, 0.0, 0.0])],
-#         ["Au", np.array([0.0, -1.2, 0.0])],
-#         ["Au", np.array([0.0, 0.0, 1.2])],
-#         ["Ni", np.array([0.0, 0.0, -1.2])],
-#         ["Ni", np.array([1.2, 1.2, 0.0])],
-#         ["Ni", np.array([-1.2, 1.2, 0.0])],
-#         ["Ni", np.array([1.2, -1.2, 0.0])],
-#         ["Ni", np.array([-1.2, -1.2, 0.0])],
-#         ["Ni", np.array([1.2, 1.2, 1.2])],
-#         ["Ni", np.array([-1.2, 1.2, 1.2])],
-#         ["Au", np.array([1.2, -1.2, 1.2])],
-#         ["Ni", np.array([-1.2, -1.2, 1.2])],
-#         ["Ni", np.array([1.2, 1.2, -1.2])],
-#         ["Ni", np.array([-1.2, 1.2, -1.2])],
-#         ["Au", np.array([1.2, -1.2, -1.2])],
-#         ["Ni", np.array([-1.2, -1.2, -1.2])],
-#         ["Ni", np.array([1.2, 1.2, 2.4])],
-#         ["Ni", np.array([-1.2, 1.2, 2.4])],
-#         ["Au", np.array([1.2, -1.2, 2.4])],
-#         ["Ni", np.array([-1.2, -1.2, 2.4])],
-#         ["Ni", np.array([1.2, 1.2, -2.4])],
-#         ["Ni", np.array([-1.2, 1.2, -2.4])],
-#         ["Au", np.array([1.2, -1.2, -2.4])],
-#         ["Ni", np.array([-1.2, -1.2, -2.4])],
-#         ["Ni", np.array([1.2, 1.2, 3.6])],
-#         ["Ni", np.array([-1.2, 1.2, 3.6])],
-#         ["Au", np.array([1.2, -1.2, 3.6])],
-#         ["Ni", np.array([-1.2, -1.2, 3.6])]]
+geo = [["Ni", np.array([0.0, 0.0, 0.0])],
+        ["Ni", np.array([1.2, 0.0, 0.0])],
+        ["Au", np.array([0.0, 1.2, 0.0])],
+        ["Ni", np.array([-1.2, 0.0, 0.0])],
+        ["Au", np.array([0.0, -1.2, 0.0])],
+        ["Au", np.array([0.0, 0.0, 1.2])],
+        ["Ni", np.array([0.0, 0.0, -1.2])],
+        ["Ni", np.array([1.2, 1.2, 0.0])],
+        ["Ni", np.array([-1.2, 1.2, 0.0])],
+        ["Ni", np.array([1.2, -1.2, 0.0])],
+        ["Ni", np.array([-1.2, -1.2, 0.0])],
+        ["Ni", np.array([1.2, 1.2, 1.2])],
+        ["Ni", np.array([-1.2, 1.2, 1.2])],
+        ["Au", np.array([1.2, -1.2, 1.2])],
+        ["Ni", np.array([-1.2, -1.2, 1.2])],
+        ["Ni", np.array([1.2, 1.2, -1.2])],
+        ["Ni", np.array([-1.2, 1.2, -1.2])],
+        ["Au", np.array([1.2, -1.2, -1.2])],
+        ["Ni", np.array([-1.2, -1.2, -1.2])],
+        ["Ni", np.array([1.2, 1.2, 2.4])],
+        ["Ni", np.array([-1.2, 1.2, 2.4])],
+        ["Au", np.array([1.2, -1.2, 2.4])],
+        ["Ni", np.array([-1.2, -1.2, 2.4])],
+        ["Ni", np.array([1.2, 1.2, -2.4])],
+        ["Ni", np.array([-1.2, 1.2, -2.4])],
+        ["Au", np.array([1.2, -1.2, -2.4])],
+        ["Ni", np.array([-1.2, -1.2, -2.4])],
+        ["Ni", np.array([1.2, 1.2, 3.6])],
+        ["Ni", np.array([-1.2, 1.2, 3.6])],
+        ["Au", np.array([1.2, -1.2, 3.6])],
+        ["Ni", np.array([-1.2, -1.2, 3.6])]]
 
 rss = [0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0]
 etas = [1.0]
@@ -114,21 +114,36 @@ sfs_c.add_angular_functions([1.0], zetas, lambdas)
 start_time = time.time()
 out_cpp = sfs_cpp.eval_geometry(geo55)
 end_time = time.time()
-print("Cpp:    {}".format(end_time-start_time))
+print("Cpp:      {} s".format(end_time-start_time))
 
 start_time = time.time()
-out_cpp_new = sfs_cpp.eval_geometry_new(geo55)
+out_cpp_new = sfs_cpp.eval_geometry_old(geo55)
 end_time = time.time()
-print("Cpp_new:{}".format(end_time-start_time))
+print("Cpp_old:  {} s".format(end_time-start_time))
 
 start_time = time.time()
 out_py = sfs_py.eval_geometry(geo55)
 end_time = time.time()
-print("Python: {}".format(end_time-start_time))
+print("Python:   {} s".format(end_time-start_time))
 
 start_time = time.time()
 out_c = np.asarray(sfs_c.eval_geometry(geo55))
 end_time = time.time()
-print("C:      {}".format(end_time-start_time))
+print("C:        {} s".format(end_time-start_time))
 
-print(all(abs(out_cpp-out_py.flatten()) < 1e-6))
+print("Difference of Python and Cpp < 1e-6: {}".format(all(abs(out_cpp-out_py.flatten()) < 1e-6)))
+
+print("\n--- Derivatives ---")
+
+types = [a[0] for a in geo55]
+xyzs = np.array([a[1] for a in geo55])
+
+start_time = time.time()
+out_cpp = sfs_cpp.eval_derivatives(types, xyzs)
+end_time = time.time()
+print("Cpp:      {} s".format(end_time-start_time))
+
+start_time = time.time()
+out_cpp_new = sfs_cpp.eval_derivatives_old(types, xyzs)
+end_time = time.time()
+print("Cpp_old:  {} s".format(end_time-start_time))

@@ -116,7 +116,7 @@ int SymmetryFunctionSet::get_G_vector_size(int num_atoms, int* types)
    Could probably be rewritten a bit faster if the loops would not span
    the full N^3 but only the upper (or lower) triangle of the rij matrix
    and rijk tensor.*/
-void SymmetryFunctionSet::eval(
+void SymmetryFunctionSet::eval_old(
   int num_atoms, int* types, double* xyzs, double* G_vector)
 {
   double rij, rik, theta;
@@ -182,7 +182,7 @@ void SymmetryFunctionSet::eval(
   }
 }
 
-void SymmetryFunctionSet::eval_new(
+void SymmetryFunctionSet::eval(
   int num_atoms, int* types, double* xyzs, double* G_vector)
 {
   double rij, rik, rjk, theta_i, theta_j, theta_k;
@@ -293,7 +293,7 @@ void SymmetryFunctionSet::eval_new(
   delete[] pos_atoms;
 }
 
-void SymmetryFunctionSet::eval_derivatives(
+void SymmetryFunctionSet::eval_derivatives_old(
   int num_atoms, int* types, double* xyzs, double* dG_tensor)
 {
   double rij, rij2, rik, rik2, theta, dGdr, dGdrij, dGdrik, dGdtheta, dot;
@@ -375,7 +375,7 @@ void SymmetryFunctionSet::eval_derivatives(
   }
 }
 
-void SymmetryFunctionSet::eval_derivatives_new(
+void SymmetryFunctionSet::eval_derivatives(
   int num_atoms, int* types, double* xyzs, double* dG_tensor)
 {
   double rij, rij2, rik, rik2, rjk, rjk2, theta_i, theta_j, theta_k,
