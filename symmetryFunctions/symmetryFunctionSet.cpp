@@ -197,7 +197,7 @@ void SymmetryFunctionSet::eval(
   for (i = 0; i < num_atoms; i++)
   {
     pos_atoms[i] = counter;
-    counter += num_symFuns[2*types[i]] + num_symFuns[2*types[i]+1];
+    counter += num_symFuns[2*types[i]] + num_symFuns[2*types[i] + 1];
   }
 
   // Actual evaluation of the symmetry functions. The sum over other atoms
@@ -210,8 +210,8 @@ void SymmetryFunctionSet::eval(
     for (j = i + 1; j < num_atoms; j++)
     {
       rij = sqrt(pow(xyzs[3*i]-xyzs[3*j], 2) +
-                pow(xyzs[3*i+1]-xyzs[3*j+1], 2) +
-                pow(xyzs[3*i+2]-xyzs[3*j+2], 2));
+                pow(xyzs[3*i + 1]-xyzs[3*j+1], 2) +
+                pow(xyzs[3*i + 2]-xyzs[3*j+2], 2));
       // Add to two body symmetry functions centered on atom i
       type_ij = types[i]*num_atomtypes+types[j];
       for (two_Body_i = 0; two_Body_i < twoBodySymFuns[type_ij].size();
@@ -260,7 +260,7 @@ void SymmetryFunctionSet::eval(
           three_Body_i++)
         {
           G_vector[pos_atoms[i] + num_symFuns[2*types[i]] +
-            pos_threeBody[type_ijk]+ three_Body_i] +=
+            pos_threeBody[type_ijk] + three_Body_i] +=
             threeBodySymFuns[type_ijk][three_Body_i]->eval(rij, rik, theta_i);
         }
 
@@ -272,7 +272,7 @@ void SymmetryFunctionSet::eval(
           three_Body_i++)
         {
           G_vector[pos_atoms[j] + num_symFuns[2*types[j]] +
-            pos_threeBody[type_jki]+ three_Body_i] +=
+            pos_threeBody[type_jki] + three_Body_i] +=
             threeBodySymFuns[type_jki][three_Body_i]->eval(rij, rjk, theta_j);
         }
 
@@ -284,7 +284,7 @@ void SymmetryFunctionSet::eval(
           three_Body_i++)
         {
           G_vector[pos_atoms[k] + num_symFuns[2*types[k]] +
-            pos_threeBody[type_kij]+ three_Body_i] +=
+            pos_threeBody[type_kij] + three_Body_i] +=
             threeBodySymFuns[type_kij][three_Body_i]->eval(rjk, rik, theta_k);
         }
       }
