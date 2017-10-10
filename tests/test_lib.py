@@ -29,21 +29,24 @@ sfs_c.add_angular_functions([1.0],[1.0], etas)
 
 geo = [(t, p) for t,p in zip(types, pos)]
 out_cpp = sfs_cpp.eval_geometry(geo)
-out_py = sfs_py.eval_geometry(geo).flatten()
+out_py = sfs_py.eval_geometry(geo)
 
-print("Evalutation difference smaller 1e-6: {}".format(all(abs(out_cpp - out_py) < 1e-6)))
+print("Evalutation difference smaller 1e-6: {}".format(
+    all(abs(np.array(out_cpp) - out_py).flatten() < 1e-6)))
 
 analytical_derivatives = sfs_cpp.eval_derivatives(types, pos)
 ## Calculate numerical derivatives
-numerical_derivatives = np.zeros((len(out_cpp), pos.size))
+numerical_derivatives = np.zeros((len(out_cpp), out_cpp[0].size, pos.size))
 dx = 0.00001
 for i in xrange(pos.size):
     dpos = np.zeros(pos.shape)
     dpos[np.unravel_index(i,dpos.shape)] += dx
-    numerical_derivatives[:,i] = (sfs_cpp.eval(types, pos+dpos)
-        - sfs_cpp.eval(types, pos-dpos))/(2*dx)
+    numerical_derivatives[:,:,i] = (np.array(sfs_cpp.eval(types, pos+dpos))
+        - np.array(sfs_cpp.eval(types, pos-dpos)))/(2*dx)
 
-print("Derivatives difference smaller 1e-6: {}".format(all(abs(numerical_derivatives.flatten() - analytical_derivatives.flatten()) < 1e-6)))
+print("Derivatives difference smaller 1e-6: {}".format(all(
+    abs(numerical_derivatives.flatten() -
+    np.array(analytical_derivatives).flatten()) < 1e-6)))
 
 if plot_derivatives:
     fig, ax = plt.subplots(ncols = 3, figsize = (12,4));

@@ -59,6 +59,19 @@ geo55 = [["Ni", np.array([-0.0000014484, 1.4664110123, 2.3723640186])],
  ["Au", np.array([-1.5218424129, -3.9016237632, -2.4365474244])],
  ["Au", np.array([-2.4083831653, -1.4719099067, -3.9381161552])]]
 
+geo13 = [["Ni", np.array([0.0, 0.0, 0.0])],
+["Au", np.array([0.0, 1.33737, 2.1639])],
+["Au", np.array([1.33737, 2.1639, 0.0])],
+["Au", np.array([2.1639, 0.0, 1.33737])],
+["Au", np.array([-1.33737, 2.1639, 0.0])],
+["Au", np.array([-2.1639, 0.0, 1.33737])],
+["Au", np.array([0.0, -1.33737, 2.1639])],
+["Au", np.array([-1.33737, -2.1639, 0.0])],
+["Au", np.array([1.33737, -2.1639, 0.0])],
+["Au", np.array([2.1639, 0.0, -1.33737])],
+["Au", np.array([0.0, 1.33737, -2.1639])],
+["Au", np.array([-2.1639, 0.0, -1.33737])],
+["Au", np.array([0.0, -1.33737, -2.1639])]]
 
 
 geo = [["Ni", np.array([0.0, 0.0, 0.0])],
@@ -99,6 +112,7 @@ etas = [1.0]
 zetas = [1.0, 2.0, 3.0]
 lambdas = [1.0, 2.0, 3.0, 4.0]
 
+
 sfs_cpp = SymFunSet_cpp(["Ni", "Au"])
 sfs_cpp.add_radial_functions(rss, etas)
 sfs_cpp.add_angular_functions([1.0], zetas, lambdas)
@@ -110,6 +124,30 @@ sfs_py.add_angular_functions([1.0,], zetas, lambdas)
 sfs_c = SymFunSet_c(["Ni", "Au"])
 sfs_c.add_radial_functions(rss, etas)
 sfs_c.add_angular_functions([1.0], zetas, lambdas)
+
+print("\n--- NiAu12 ---")
+
+start_time = time.time()
+out_cpp = sfs_cpp.eval_geometry(geo13)
+end_time = time.time()
+print("Cpp:      {} s".format(end_time-start_time))
+
+start_time = time.time()
+out_cpp_new = sfs_cpp.eval_geometry_old(geo13)
+end_time = time.time()
+print("Cpp_old:  {} s".format(end_time-start_time))
+
+start_time = time.time()
+out_py = sfs_py.eval_geometry(geo13)
+end_time = time.time()
+print("Python:   {} s".format(end_time-start_time))
+
+start_time = time.time()
+out_c = np.asarray(sfs_c.eval_geometry(geo13))
+end_time = time.time()
+print("C:        {} s".format(end_time-start_time))
+
+print("\n--- NiAu54 ---")
 
 start_time = time.time()
 out_cpp = sfs_cpp.eval_geometry(geo55)
@@ -131,10 +169,26 @@ out_c = np.asarray(sfs_c.eval_geometry(geo55))
 end_time = time.time()
 print("C:        {} s".format(end_time-start_time))
 
-print("Difference of Python and Cpp < 1e-6: {}".format(all(abs(out_cpp-out_py.flatten()) < 1e-6)))
+print("Difference of Python and Cpp < 1e-6: {}".format(all(abs(
+    np.array(out_cpp)-out_py).flatten() < 1e-6)))
 
 print("\n--- Derivatives ---")
 
+print("\n--- NiAu12 ---")
+types = [a[0] for a in geo13]
+xyzs = np.array([a[1] for a in geo13])
+
+start_time = time.time()
+out_cpp = sfs_cpp.eval_derivatives(types, xyzs)
+end_time = time.time()
+print("Cpp:      {} s".format(end_time-start_time))
+
+start_time = time.time()
+out_cpp_new = sfs_cpp.eval_derivatives_old(types, xyzs)
+end_time = time.time()
+print("Cpp_old:  {} s".format(end_time-start_time))
+
+print("\n--- NiAu54 ---")
 types = [a[0] for a in geo55]
 xyzs = np.array([a[1] for a in geo55])
 
