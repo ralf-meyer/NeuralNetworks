@@ -1113,6 +1113,16 @@ class AtomicNeuralNetInstance(object):
         
         return Out
     
+    def eval_force(self,GDataSet,DerGDataSet):
+        InputLayers=[]
+        Data=[]
+        for i,AtomicNN in enumerate(self.AtomicNNs):
+            InputLayers.append(AtomicNN[2])
+            InputLayers.append(AtomicNN[3])
+            Data.append(GDataSet[i])
+            Data.append(DerGDataSet[i])
+            
+        return self.Session.run(self.OutputForce,feed_dict={i: _np.array(d) for i, d in zip(InputLayers,Data)})
     #Recreates a saved network,prepares and evaluates the specified dataset.
     def start_evaluation(self,nAtoms,ModelName="save/trained_variables"):
         
@@ -1189,6 +1199,7 @@ class AtomicNeuralNetInstance(object):
                             
                     #Prepare data and layers for feeding
                     if i==0:
+                        EnergyLayers=make_layers_for_atomicNNs(self.AtomicNNs,self.OutputLayer,[],False)
                         if self.IsPartitioned==False:
                             Layers,TrainingData=prepare_data_environment_for_atomicNNs(self.AtomicNNs,self.TrainingInputs,self.OutputLayer,self.TrainingOutputs,self.OutputLayerForce,self.ForceTrainingInput,self.ForceTrainingOutput)
                         else:
@@ -1250,10 +1261,15 @@ class AtomicNeuralNetInstance(object):
                         #Finished percentage output
                         print([str(100*i/self.Epochs)+" %","deltaE = "+str(self.DeltaE)+" ev","Cost = "+str(self.TrainingCosts),"t = "+str(_time.time()-start)+" s","global step: "+str(self.Session.run(self.GlobalStep))])
                         Prediction=AtomicNeuralNetInstance.eval_dataset(self,[self.TrainingInputs,None])
+                        Force=AtomicNeuralNetInstance.eval_force(self,self.TrainingInputs,self.ForceTrainingInput)
                         print("Data:")
-                        print(self.TrainingOutputs[0:max(int(len(self.TrainingOutputs)/20),1)])
+                        print("Ei="+str(self.TrainingOutputs[0:max(int(len(self.TrainingOutputs)/20),1)]))
+                        if self.UseForce:
+                            print("F1_x="+str(self.ForceTrainingOutput[0:max(int(len(self.TrainingOutputs)/20),1),0]))
                         print("Prediction:")
-                        print(Prediction[0:max(int(len(Prediction)/20),1)])
+                        print("Ei="+str(Prediction[0:max(int(len(Prediction)/20),1)]))
+                        if self.UseForce:
+                            print("F1_x="+str(Force[0:max(int(len(Prediction)/20),1),0]))
                         #Store variables
                         if self.IsPartitioned==False:
                             self.TrainedVariables=get_trained_variables(self.Session,self.VariablesDictionary)
@@ -1287,7 +1303,7 @@ class AtomicNeuralNetInstance(object):
                         
 
                         print("Calculation of whole dataset energy difference ...")
-                        train_stat,val_stat=AtomicNeuralNetInstance.dE_stat(self,Layers)
+                        train_stat,val_stat=AtomicNeuralNetInstance.dE_stat(self,EnergyLayers)
                         print("Training dataset error= "+str(train_stat[0])+"+-"+str(_np.sqrt(train_stat[1]))+" ev")
                         print("Validation dataset error= "+str(val_stat[0])+"+-"+str(_np.sqrt(val_stat[1]))+" ev")
                         print("Training finished")
@@ -1299,7 +1315,7 @@ class AtomicNeuralNetInstance(object):
                         print("t = "+str(_time.time()-start)+" s")
                         print("")
                         
-                        train_stat,val_stat=AtomicNeuralNetInstance.dE_stat(self,Layers)
+                        train_stat,val_stat=AtomicNeuralNetInstance.dE_stat(self,EnergyLayers)
                         print("Training dataset error= "+str(train_stat[0])+"+-"+str(_np.sqrt(train_stat[1]))+" ev")
                         print("Validation dataset error= "+str(val_stat[0])+"+-"+str(_np.sqrt(val_stat[1]))+" ev")
                         
