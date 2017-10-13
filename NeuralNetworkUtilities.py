@@ -234,18 +234,18 @@ def validate_step(Session,Layers,Data,CostFun):
 #The placeholders have to match the symmetry function input.
 #For training the output placeholder also has to be feed.
 #Returns all placeholders as a list.
-def make_layers_for_atomicNNs(AtomicNNs,OutputLayer=None,OutputLayerForce=None):
+def make_layers_for_atomicNNs(AtomicNNs,OutputLayer=None,OutputLayerForce=None,AppendForce=True):
     #Create list of placeholders for feeding in correct order
     Layers=list()
     ForceLayer=False
     for AtomicNetwork in AtomicNNs:
         Layers.append(AtomicNetwork[2])
-        if len(AtomicNetwork)>3:
+        if len(AtomicNetwork)>3 and AppendForce:
             Layers.append(AtomicNetwork[3])
             ForceLayer=True
     if OutputLayer!=None:
         Layers.append(OutputLayer)
-        if ForceLayer:
+        if ForceLayer and AppendForce:
             Layers.append(OutputLayerForce)
 
     return Layers
@@ -253,10 +253,10 @@ def make_layers_for_atomicNNs(AtomicNNs,OutputLayer=None,OutputLayerForce=None):
 #Sorts the symmetry function data for feeding.
 #For training the output data also has to be added.
 #Returns all data for the batch as a list.
-def make_data_for_atomicNNs(InData,OutData=[],ForceInput=None,ForceOutput=None):
+def make_data_for_atomicNNs(InData,OutData=[],ForceInput=[],ForceOutput=[],AppendForce=True):
     #Sort data matching the placeholders
     CombinedData=list()
-    if ForceInput!=None:
+    if len(ForceInput)!=0:
         for e,f in zip(InData,ForceInput):
             CombinedData.append(e)
             CombinedData.append(f)
@@ -265,7 +265,7 @@ def make_data_for_atomicNNs(InData,OutData=[],ForceInput=None,ForceOutput=None):
             CombinedData.append(Data)
     if len(OutData)!=0:
         CombinedData.append(OutData)
-        if ForceOutput!=None:
+        if len(ForceOutput)!=0:
             CombinedData.append(ForceOutput)
 
     return CombinedData
@@ -298,11 +298,11 @@ def prepare_data_environment_for_partitioned_atomicNNs(AtomicNNs,InData,NumberOf
 
 #Prepares the data and the input placeholders for the training in a NN.
 #Returns the placeholders in Layers and the Data in combined data as lists
-def prepare_data_environment_for_atomicNNs(AtomicNNs,InData,OutputLayer=[],OutData=[],OutputLayerForce=None,ForceInput=None,ForceOutput=None):
+def prepare_data_environment_for_atomicNNs(AtomicNNs,InData,OutputLayer=None,OutData=[],OutputLayerForce=None,ForceInput=[],ForceOutput=[],AppendForce=True):
     #Put data and placeholders in correct order for feeding
-    Layers=make_layers_for_atomicNNs(AtomicNNs,OutputLayer,OutputLayerForce)
+    Layers=make_layers_for_atomicNNs(AtomicNNs,OutputLayer,OutputLayerForce,AppendForce)
     
-    Data=make_data_for_atomicNNs(InData,OutData,ForceInput,ForceOutput)
+    Data=make_data_for_atomicNNs(InData,OutData,ForceInput,ForceOutput,AppendForce)
     
     return Layers,Data
 
@@ -483,11 +483,10 @@ def get_trained_variables(Session,AllHiddenLayers):
 #Evaluates the networks and calculates the energy as a sum of all network
 #outputs.
 #Returns the energy as a float.
-def evaluate_all_atomicnns(Session,AtomicNNs,InData):
+def evaluate_all_atomicnns(Session,AtomicNNs,InData,AppendForce=False):
 
     Energy=0
-    Layers,Data=prepare_data_environment_for_atomicNNs(AtomicNNs,InData,list(),list())
-
+    Layers,Data=prepare_data_environment_for_atomicNNs(AtomicNNs,InData,OutputLayer=None,OutData=[],OutputLayerForce=None,ForceInput=[],ForceOutput=[],AppendForce=False)
     for i in range(0,len(AtomicNNs)):
         AtomicNetwork=AtomicNNs[i]
         Energy+=evaluate(Session,AtomicNetwork[1],[Layers[i]],Data[i])
@@ -816,10 +815,10 @@ class AtomicNeuralNetInstance(object):
         self.ValidationInputs=list()
         self.ValidationOutputs=list()
         self.Gs=list()
-        self.ForceTrainingInput=None
-        self.ForceValidationInput=None
-        self.ForceTrainingOutput=None
-        self.ForceValidationOutput=None
+        self.ForceTrainingInput=[]
+        self.ForceValidationInput=[]
+        self.ForceTrainingOutput=[]
+        self.ForceValidationOutput=[]
         self.HiddenType="truncated_normal"
         self.HiddenData=list()
         self.BiasType="zeros"
@@ -1106,12 +1105,11 @@ class AtomicNeuralNetInstance(object):
     def eval_dataset(self,dataset):
         
         Out=0
-        indata=dataset[0]
-        
+        InData=dataset[0]
         if self.IsPartitioned==False:
-            Out=evaluate_all_atomicnns(self.Session,self.AtomicNNs,indata)
+            Out=evaluate_all_atomicnns(self.Session,self.AtomicNNs,InData,AppendForce=False)
         else:
-            Out=evaluate_all_partitioned_atomicnns(self.Session,self.AtomicNNs,indata,self.TotalNrOfRadialFuns)
+            Out=evaluate_all_partitioned_atomicnns(self.Session,self.AtomicNNs,InData,self.TotalNrOfRadialFuns)
         
         return Out
     
@@ -1596,14 +1594,14 @@ class AtomicNeuralNetInstance(object):
             G_Input=AtomicNet[2]
             dGi_dxj=AtomicNet[3]
             dE_Gi=_tf.gradients(self.TotalEnergy,G_Input)
-
-            mul=_tf.matmul(dE_Gi,dGi_dxj)
+            mul=_tf.matmul(_tf.transpose(dGi_dxj,perm=[0,2,1]),_tf.reshape(dE_Gi,[-1,self.SizeOfInputs[i],1]))
+            dim_red=_tf.reshape(mul,[-1,sum(self.NumberOfAtomsPerType)*3])
             if i==0:
-                F=_tf.reduce_sum(mul,0)
+                F=dim_red
             else:
-                F=_tf.add(F,_tf.reduce_sum(mul,0))
-            Fi.append(_tf.reduce_sum(mul,0))
-        
+                F=_tf.add(F,dim_red)
+            Fi.append(dim_red)
+
         return F,Fi
     
     #The atomic cost function consists of multiple parts which are each
