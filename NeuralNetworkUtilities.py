@@ -897,7 +897,7 @@ class AtomicNeuralNetInstance(object):
             if self.UseForce:
                 self.OutputLayerForce=construct_output_layer(sum(self.NumberOfAtomsPerType)*3)
             #Cost function for whole net
-            self.CostFun=AtomicNeuralNetInstance.atomic_cost_function(self)
+            self.CostFun=self.atomic_cost_function(self)
             
             #if self.IsPartitioned==True:
             All_Vars=_tf.trainable_variables()
@@ -960,7 +960,7 @@ class AtomicNeuralNetInstance(object):
     def expand_existing_net(self,ModelName="save/trained_variables",MakeAllVariable=True,ModelData=None,ConvertToPartitioned=False):
         
         if ModelData==None:
-            Success=AtomicNeuralNetInstance.load_model(self,ModelName)
+            Success=self.load_model(ModelName)
         else:
             self.TrainedVariables=ModelData[0]
             self.MinOfOut=ModelData[1]
@@ -981,7 +981,7 @@ class AtomicNeuralNetInstance(object):
             self.BiasType="zeros"
             self.MakeAllVariable=MakeAllVariable
             #try:
-            AtomicNeuralNetInstance.make_and_initialize_network(self)
+            self.make_and_initialize_network(self)
             #except:
             #    print("Partitioned network loaded, please set IsPartitioned=True")
             
@@ -1002,15 +1002,15 @@ class AtomicNeuralNetInstance(object):
 
         if Execute==True:
             if self.IsPartitioned==False:
-                AtomicNeuralNetInstance.make_atomic_networks(self)
+                self.make_atomic_networks(self)
             else:
-                AtomicNeuralNetInstance.make_partitioned_atomic_networks(self)
+                self.make_partitioned_atomic_networks(self)
 
     #Creates and initializes the specified network
     def make_and_initialize_network(self):
 
-        AtomicNeuralNetInstance.make_network(self)
-        AtomicNeuralNetInstance.initialize_network(self)
+        self.make_network(self)
+        self.initialize_network(self)
 
     #Start the training without the use of batch training
     #Returns the costs for the training
@@ -1048,7 +1048,7 @@ class AtomicNeuralNetInstance(object):
     def expand_trained_net(self, nAtoms,ModelName=None):
 
         self.NumberOfAtomsPerType=nAtoms
-        AtomicNeuralNetInstance.expand_existing_net(self,ModelName)
+        self.expand_existing_net(ModelName)
         
     #Calculates the energy error for the whole dataset
     #Returns two lists consisting of the mean value and the variance of the 
@@ -1128,9 +1128,9 @@ class AtomicNeuralNetInstance(object):
     def start_evaluation(self,nAtoms,ModelName="save/trained_variables"):
         
         Out=0
-        AtomicNeuralNetInstance.expand_trained_net(self,nAtoms,ModelName)
+        self.expand_trained_net(nAtoms,ModelName)
         for dataset in self.EvalData:
-            Out=AtomicNeuralNetInstance.eval_dataset(self,dataset)
+            Out=self.eval_dataset(dataset)
                 
         return Out
     
@@ -1272,8 +1272,8 @@ class AtomicNeuralNetInstance(object):
                                     update_cost_plot(fig,ax,TrainingCostPlot,self.OverallTrainingCosts,ValidationCostPlot,self.OverallValidationCosts,RunningMeanPlot)
                         #Finished percentage output
                         print([str(100*i/self.Epochs)+" %","deltaE = "+str(self.DeltaE)+" ev","Cost = "+str(self.TrainingCosts),"t = "+str(_time.time()-start)+" s","global step: "+str(self.Session.run(self.GlobalStep))])
-                        Prediction=AtomicNeuralNetInstance.eval_dataset(self,[self.TrainingInputs,None])
-                        Force=AtomicNeuralNetInstance.eval_force(self,self.TrainingInputs,self.ForceTrainingInput)
+                        Prediction=self.eval_dataset([self.TrainingInputs,None])
+                        Force=self.eval_force(self.TrainingInputs,self.ForceTrainingInput)
                         print("Data:")
                         print("Ei="+str(self.TrainingOutputs[0:max(int(len(self.TrainingOutputs)/20),1)]))
                         if self.UseForce:
@@ -1316,7 +1316,7 @@ class AtomicNeuralNetInstance(object):
                         
 
                         print("Calculation of whole dataset energy difference ...")
-                        train_stat,val_stat=AtomicNeuralNetInstance.dE_stat(self,EnergyLayers)
+                        train_stat,val_stat=self.dE_stat(EnergyLayers)
                         print("Training dataset error= "+str(train_stat[0])+"+-"+str(_np.sqrt(train_stat[1]))+" ev")
                         print("Validation dataset error= "+str(val_stat[0])+"+-"+str(_np.sqrt(val_stat[1]))+" ev")
                         print("Training finished")
@@ -1328,7 +1328,7 @@ class AtomicNeuralNetInstance(object):
                         print("t = "+str(_time.time()-start)+" s")
                         print("")
                         
-                        train_stat,val_stat=AtomicNeuralNetInstance.dE_stat(self,EnergyLayers)
+                        train_stat,val_stat=self.dE_stat(EnergyLayers)
                         print("Training dataset error= "+str(train_stat[0])+"+-"+str(_np.sqrt(train_stat[1]))+" ev")
                         print("Validation dataset error= "+str(val_stat[0])+"+-"+str(_np.sqrt(val_stat[1]))+" ev")
                         
@@ -1423,7 +1423,7 @@ class AtomicNeuralNetInstance(object):
             self.SymmFunSet.add_angular_functions(self.Etas,self.Zetas,self.Lambs)
             self.SizeOfInputs=get_size_of_input(self.SymmFunSet.eval_geometry(self.Ds.geometries[0]))
         if LoadGeometries:
-            AtomicNeuralNetInstance.calculate_statistics_for_dataset(self,TakeAsReference)
+            self.calculate_statistics_for_dataset(TakeAsReference)
     
 
     def init_dataset(self,geometries,energies,g_derivaties=None,TakeAsReference=True):
@@ -1446,7 +1446,7 @@ class AtomicNeuralNetInstance(object):
             self.SymmFunSet.add_angular_functions(self.Etas,self.Zetas,self.Lambs)
             self.SizeOfInputs=get_size_of_input(self.SymmFunSet.eval_geometry(self.Ds.geometries[0]))
                 
-            AtomicNeuralNetInstance.calculate_statistics_for_dataset(self,TakeAsReference)
+            self.calculate_statistics_for_dataset(TakeAsReference)
         else:
             print("Number of energies: "+str(len(energies))+" does not match number of geometries: "+str(len(geometries)))
         
@@ -1461,8 +1461,8 @@ class AtomicNeuralNetInstance(object):
                 batches or only consits of a single not randomized batch.
         """
         dummy_energies=[0]*len(geometries)
-        AtomicNeuralNetInstance.init_dataset(self,geometries,dummy_energies)
-        self.EvalData=AtomicNeuralNetInstance.get_data(self,NoBatches=True)
+        self.init_dataset(geometries,dummy_energies)
+        self.EvalData=self.get_data(NoBatches=True)
         
 
     def get_data_batch(self,BatchSize=100,NoBatches=False):
@@ -1534,7 +1534,7 @@ class AtomicNeuralNetInstance(object):
                 if self.UseForce:
                     ForceInput.append(self.AllGDerivatives[MyNr])
             
-            Inputs,ForceInput=AtomicNeuralNetInstance.sort_and_normalize_data(self,BatchSize,GeomData,ForceInput)
+            Inputs,ForceInput=self.sort_and_normalize_data(BatchSize,GeomData,ForceInput)
             if self.UseForce:
                 return Inputs,EnergyData,ForceInput,ForceOutput
             else:
@@ -1583,7 +1583,7 @@ class AtomicNeuralNetInstance(object):
                 NrOfBatches=1
             print("Creating and normalizing "+str(NrOfBatches)+" batches...")
             for i in range(0,NrOfBatches):
-                Batches.append(AtomicNeuralNetInstance.get_data_batch(self,BatchSize,NoBatches))
+                Batches.append(self.get_data_batch(BatchSize,NoBatches))
                 if NoBatches==False:
                     if i % max(int(NrOfBatches/10),1)==0:
                         print(str(100*i/NrOfBatches)+" %")
@@ -1603,16 +1603,16 @@ class AtomicNeuralNetInstance(object):
             
         if NoBatches==False:
             #Get training data
-            self.TrainingBatches=AtomicNeuralNetInstance.get_data(self,BatchSize,TrainingSetInPercent,NoBatches)
+            self.TrainingBatches=self.get_data(BatchSize,TrainingSetInPercent,NoBatches)
             #Get validation data
-            self.ValidationBatches=AtomicNeuralNetInstance.get_data(self,BatchSize,ValidationSetInPercent,NoBatches)
+            self.ValidationBatches=self.get_data(BatchSize,ValidationSetInPercent,NoBatches)
         else:
             #Get training data
-            temp=AtomicNeuralNetInstance.get_data(self,BatchSize,TrainingSetInPercent,NoBatches)
+            temp=self.get_data(BatchSize,TrainingSetInPercent,NoBatches)
             self.TrainingInputs=temp[0][0]
             self.TrainingOutputs=temp[0][1]
             #Get validation data
-            temp=AtomicNeuralNetInstance.get_data(self,BatchSize,ValidationSetInPercent,NoBatches)
+            temp=self.get_data(BatchSize,ValidationSetInPercent,NoBatches)
             self.ValidationInputs=temp[0][0]
             self.ValidationOutputs=temp[0][0]
             
@@ -1704,9 +1704,9 @@ class AtomicNeuralNetInstance(object):
             A tensor which is the sum of all costs"""
         
         if self.IsPartitioned==True:
-            self.TotalEnergy,AllEnergies=AtomicNeuralNetInstance.energy_of_all_partitioned_atomic_networks(self)
+            self.TotalEnergy,AllEnergies=self.energy_of_all_partitioned_atomic_networks(self)
         else:
-            self.TotalEnergy,AllEnergies=AtomicNeuralNetInstance.energy_of_all_atomic_networks(self)
+            self.TotalEnergy,AllEnergies=self.energy_of_all_atomic_networks(self)
             
         Cost=cost_for_network(self.TotalEnergy,self.OutputLayer,self.CostFunType)
         #add force cost
@@ -1714,7 +1714,7 @@ class AtomicNeuralNetInstance(object):
             if self.IsPartitioned==True:
                 raise(NotImplementedError)
             else:
-                self.OutputForce,AllForces=AtomicNeuralNetInstance.force_of_all_atomic_networks(self)  
+                self.OutputForce,AllForces=self.force_of_all_atomic_networks(self)  
                 #Cost+=cost_for_network(self.OutputForce,self.OutputLayerForce,self.CostFunType)
                 
         #Create tensor for energy difference calculation
