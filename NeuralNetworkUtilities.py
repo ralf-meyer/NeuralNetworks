@@ -1082,7 +1082,7 @@ class AtomicNeuralNetInstance(object):
                         print("Data:")
                         print("Ei="+str(self._TrainingOutputs[0:max(int(len(self._TrainingOutputs)/20),1)]))
                         if self.UseForce:
-                            Force=self.eval_dataset_force(self._TrainingInputs,self._ForceTrainingInput)
+                            Force=self.eval_dataset_force(self.TrainingBatches,rnd)
                             print("F1_x="+str(self._ForceTrainingOutput[0:max(int(len(self._TrainingOutputs)/20),1),0]))
                         print("Prediction:")
                         print("Ei="+str(Prediction[0:max(int(len(Prediction)/20),1)]))
