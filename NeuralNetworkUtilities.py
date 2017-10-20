@@ -572,7 +572,6 @@ class AtomicNeuralNetInstance(object):
                 self._OutputLayerForce=_construct_output_layer(sum(self.NumberOfAtomsPerType)*3)
             #Cost function for whole net
             self.CostFun=self._atomic_cost_function()
-            self.CostFun+=self._ForceCost
             #if self.IsPartitioned==True:
             
             decay_steps=len(self.TrainingBatches)*self.LearningDecayEpochs
