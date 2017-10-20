@@ -16,6 +16,7 @@ import time as _time
 import os as _os
 
 
+
 _plt.ion()
 _tf.reset_default_graph()
 
@@ -457,7 +458,6 @@ class AtomicNeuralNetInstance(object):
         self.LearningDecayEpochs=100
         self.LearningRateBounds=[]
         self.LearningRateValues=[]
-        self.RegLoss=0
         self.CostFun=None
         self.MakePlots=False
         self.InitMean=0.0
@@ -465,6 +465,7 @@ class AtomicNeuralNetInstance(object):
         self.MakeAllVariable=True
         self.Regularization="none"
         self.RegularizationParam=0.0
+        self.ForceCostParam=0.0001
         self.InputDerivatives=False
         self.Multiple=False
         self.UseForce=False
@@ -519,6 +520,9 @@ class AtomicNeuralNetInstance(object):
         self._OutputLayer=None
         self._OutputForce=None
         self._TotalEnergy=None
+        self._ForceCost=None
+        self._EnergyCost=None
+        self._RegLoss=None
         #Dataset
         self._AllGeometries=[]
         self._AllGDerivatives=[]
@@ -678,7 +682,12 @@ class AtomicNeuralNetInstance(object):
         Returns:
             Cost(float):The training cost for the step."""
         #Train the network for one step
-        _,Cost=self._Session.run([self._Optimizer,self.CostFun],feed_dict={i: _np.array(d) for i, d in zip(Layers,Data)})
+        if self.UseForce:
+            _,Cost1,Cost2=self._Session.run([self._Optimizer,self.CostFun,self._ForceCost],feed_dict={i: _np.array(d) for i, d in zip(Layers,Data)})
+            Cost=Cost1+Cost2
+        else: 
+            _,Cost=self._Session.run([self._Optimizer,self.CostFun],feed_dict={i: _np.array(d) for i, d in zip(Layers,Data)})
+        
         return Cost
 
 
@@ -689,7 +698,12 @@ class AtomicNeuralNetInstance(object):
         Returns:
             Cost (float): The cost for the data"""
         #Evaluate cost function without changing the network
-        Cost=self._Session.run(self.CostFun,feed_dict={i: _np.array(d) for i, d in zip(Layers,Data)})
+        if self.UseForce:
+            Cost1,Cost2=self._Session.run([self.CostFun,self._ForceCost],feed_dict={i: _np.array(d) for i, d in zip(Layers,Data)})
+            Cost=Cost1+Cost2
+        else: 
+            Cost=self._Session.run(self.CostFun,feed_dict={i: _np.array(d) for i, d in zip(Layers,Data)})
+            
         return Cost
 
     def _train_atomic_network_batch(self,Layers,TrainingData,ValidationData):
@@ -857,7 +871,7 @@ class AtomicNeuralNetInstance(object):
             TrainingInputs=self.TrainingBatches[i][0]
             TrainingOutputs=self.TrainingBatches[i][1]
 
-            TrainingData=self._Net.make_data_for_atomicNNs(TrainingInputs,TrainingOutputs)
+            TrainingData=self._Net.make_data_for_atomicNNs(TrainingInputs,TrainingOutputs,AppendForce=False)
 
             if i==0:
                 train_dE=self.evaluate(self._dE_Fun,Layers,TrainingData)
@@ -869,7 +883,7 @@ class AtomicNeuralNetInstance(object):
             ValidationInputs=self.ValidationBatches[i][0]
             ValidationOutputs=self.ValidationBatches[i][1]
             
-            ValidationData=self._Net.make_data_for_atomicNNs(ValidationInputs,ValidationOutputs)
+            ValidationData=self._Net.make_data_for_atomicNNs(ValidationInputs,ValidationOutputs,AppendForce=False)
            
             if i==0:
                 val_dE=self.evaluate(self._dE_Fun,Layers,ValidationData)
@@ -1028,12 +1042,12 @@ class AtomicNeuralNetInstance(object):
                     #Prepare data and layers for feeding
                     if i==0:
                         EnergyLayers=self._Net.make_layers_for_atomicNNs(self._OutputLayer,[],False)
-                        Layers,TrainingData=self._Net.prepare_data_environment(self._TrainingInputs,self._OutputLayer,self._TrainingOutputs,self._OutputLayerForce,self._ForceTrainingInput,self._ForceTrainingOutput,NormalizationTraining)
+                        Layers,TrainingData=self._Net.prepare_data_environment(self._TrainingInputs,self._OutputLayer,self._TrainingOutputs,self._OutputLayerForce,self._ForceTrainingInput,self._ForceTrainingOutput,NormalizationTraining,self.UseForce)
                     else:
-                        TrainingData=self._Net.make_data_for_atomicNNs(self._TrainingInputs,self._TrainingOutputs,self._ForceTrainingInput,self._ForceTrainingOutput,NormalizationTraining)
+                        TrainingData=self._Net.make_data_for_atomicNNs(self._TrainingInputs,self._TrainingOutputs,self._ForceTrainingInput,self._ForceTrainingOutput,NormalizationTraining,self.UseForce)
                     #Make validation input vector
                     if len(self._ValidationInputs)>0:
-                        ValidationData=self._Net.make_data_for_atomicNNs(self._ValidationInputs,self._ValidationOutputs,self._ForceValidationInput,self._ForceValidationOutput,NormalizationValidation)
+                        ValidationData=self._Net.make_data_for_atomicNNs(self._ValidationInputs,self._ValidationOutputs,self._ForceValidationInput,self._ForceValidationOutput,NormalizationValidation,self.UseForce)
                     else:
                         ValidationData=None
                         
@@ -1099,7 +1113,7 @@ class AtomicNeuralNetInstance(object):
                     
 
                     #Abort criteria
-                    if self.TrainingCosts<=self.CostCriterium and self.ValidationCosts<=self.CostCriterium or self.DeltaE<self.dE_Criterium:
+                    if self.TrainingCosts != 0 and self.TrainingCosts<=self.CostCriterium and self.ValidationCosts<=self.CostCriterium or self.DeltaE<self.dE_Criterium:
                         
                         if self.ValidationCosts!=0:
                             print("Reached criterium!")
@@ -1462,15 +1476,15 @@ class AtomicNeuralNetInstance(object):
         
         self._TotalEnergy,AllEnergies=self._Net.energy_of_all_atomic_networks()
   
-        Cost=cost_for_network(self._TotalEnergy,self._OutputLayer,self.CostFunType)
+        self._EnergyCost=cost_for_network(self._TotalEnergy,self._OutputLayer,self.CostFunType)
+        Cost=self._EnergyCost
         #add force cost
         if self.UseForce==True:
             if self.IsPartitioned==True:
                 raise(NotImplementedError)
             else:
                 self._OutputForce,AllForces=self._Net.force_of_all_atomic_networks(self)  
-                Cost+=cost_for_network(self._OutputForce,self._OutputLayerForce,self.CostFunType)
-                
+                self._ForceCost=self.ForceCostParam*_tf.divide(cost_for_network(self._OutputForce,self._OutputLayerForce,self.CostFunType),sum(self.NumberOfAtomsPerType))
         #Create tensor for energy difference calculation
         self._dE_Fun=_tf.abs(self._TotalEnergy-self._OutputLayer)
         
@@ -1480,10 +1494,10 @@ class AtomicNeuralNetInstance(object):
             Cost += _tf.contrib.layers.apply_regularization(l1_regularizer, trainableVars)
         elif self.Regularization=="L2":
             trainableVars=_tf.trainable_variables()
-            self.RegLoss=_tf.add_n([_tf.nn.l2_loss(v) for v in trainableVars
+            self._RegLoss=_tf.add_n([_tf.nn.l2_loss(v) for v in trainableVars
                                if 'bias' not in v.name]) * self.RegularizationParam
-            Cost += self.RegLoss
-    
+            Cost += self._RegLoss
+
         return Cost
 
 
@@ -1607,10 +1621,12 @@ class _StandardAtomicNetwork(object):
             dEi_dGij=_tf.reshape(dEi_dGij_n,[-1,NetInstance.SizeOfInputsPerType[Type],1])
             mul=_tf.matmul(dGij_dxk_t,dEi_dGij)
             dim_red=_tf.reshape(mul,[-1,sum(NetInstance.NumberOfAtomsPerType)*3])
+            F_no_nan=_tf.where(_tf.is_inf(dim_red),_tf.zeros_like(dim_red),dim_red)
+            F_no_nan=_tf.where(_tf.is_nan(F_no_nan),_tf.zeros_like(F_no_nan),F_no_nan)
             if i==0:
-                F=dim_red
+                F=F_no_nan
             else:
-                F=_tf.add(F,dim_red)
+                F=_tf.add(F,F_no_nan)
             Fi.append(dim_red)
         
         return F,Fi
@@ -1632,8 +1648,9 @@ class _StandardAtomicNetwork(object):
             #Get network data
             AtomicNetwork=self.AtomicNNs[i]
             Network=AtomicNetwork[1]
+            E_no_nan=_tf.where(_tf.is_nan(Network),_tf.zeros_like(Network),Network)
             #Get input data for network
-            AllEnergies.append(Network)
+            AllEnergies.append(E_no_nan)
         
         Prediction=_tf.add_n(AllEnergies)
     
@@ -1688,7 +1705,7 @@ class _StandardAtomicNetwork(object):
             CombinedData(list): Sorted data for the batch as a list."""
         #Sort data matching the placeholders
         CombinedData=[]
-        if len(GDerivatives)!=0:
+        if AppendForce:
             for e,f,n in zip(GData,GDerivatives,Normalization):
                 CombinedData.append(e)
                 CombinedData.append(f)
@@ -1698,7 +1715,7 @@ class _StandardAtomicNetwork(object):
                 CombinedData.append(Data)
         if len(OutData)!=0:
             CombinedData.append(OutData)
-            if len(ForceOutput)!=0:
+            if AppendForce:
                 CombinedData.append(ForceOutput)
     
         return CombinedData
@@ -1967,7 +1984,7 @@ class _PartitionedAtomicNetwork(object):
     def get_structure_from_data(self,TrainedData):
         raise(NotImplemented)
         
-    def force_of_all_atomic_networks(self):
+    def force_of_all_atomic_networks(self,NetInstance):
         raise(NotImplemented)
     
     def energy_of_all_atomic_networks(self):
