@@ -465,7 +465,7 @@ class AtomicNeuralNetInstance(object):
         self.MakeAllVariable=True
         self.Regularization="none"
         self.RegularizationParam=0.0
-        self.ForceCostParam=0.0001
+        self.ForceCostParam=0.1
         self.InputDerivatives=False
         self.Multiple=False
         self.UseForce=False
@@ -517,6 +517,7 @@ class AtomicNeuralNetInstance(object):
         #Output tensors
         self._OutputLayerForce=None
         self._Optimizer=None
+        self._ForceOptimizer=None
         self._OutputLayer=None
         self._OutputForce=None
         self._TotalEnergy=None
@@ -527,7 +528,38 @@ class AtomicNeuralNetInstance(object):
         self._AllGeometries=[]
         self._AllGDerivatives=[]
 
-
+    def get_optimizer(self,CostFun):
+        
+        All_Vars=_tf.trainable_variables()
+        #Set optimizer
+        if self.OptimizerType==None:
+           Optimizer=_tf.train.GradientDescentOptimizer(self.LearningRateFun).minimize(CostFun,var_list=All_Vars,global_step=self.GlobalStep)
+        else:
+            if self.OptimizerType=="GradientDescent":
+                Optimizer=_tf.train.GradientDescentOptimizer(self.LearningRateFun).minimize(CostFun,var_list=All_Vars,global_step=self.GlobalStep)
+            elif self.OptimizerType=="Adagrad":
+                self._Optimizer=_tf.train.AdagradOptimizer(self.LearningRateFun).minimize(CostFun,var_list=All_Vars,global_step=self.GlobalStep)
+            elif self.OptimizerType=="Adadelta":
+                Optimizer=_tf.train.AdadeltaOptimizer(self.LearningRateFun).minimize(CostFun,var_list=All_Vars,global_step=self.GlobalStep)
+            elif self.OptimizerType=="AdagradDA":
+                Optimizer=_tf.train.AdagradDAOptimizer(self.LearningRateFun,self.OptimizerProp).minimize(CostFun,var_list=All_Vars,global_step=self.GlobalStep)
+            elif self.OptimizerType=="Momentum":
+                Optimizer=_tf.train.MomentumOptimizer(self.LearningRateFun,self.OptimizerProp).minimize(CostFun,var_list=All_Vars,global_step=self.GlobalStep)
+            elif self.OptimizerType=="Adam":
+                Optimizer=_tf.train.AdamOptimizer(self.LearningRateFun, beta1=0.9, beta2=0.999, epsilon=1e-08).minimize(CostFun,var_list=All_Vars,global_step=self.GlobalStep)
+            elif self.OptimizerType=="Ftrl":
+               Optimizer=_tf.train.FtrlOptimizer(self.LearningRateFun).minimize(CostFun,var_list=All_Vars,global_step=self.GlobalStep)
+            elif self.OptimizerType=="ProximalGradientDescent":
+                Optimizer=_tf.train.ProximalGradientDescentOptimizer(self.LearningRateFun).minimize(CostFun,var_list=All_Vars,global_step=self.GlobalStep)
+            elif self.OptimizerType=="ProximalAdagrad":
+                Optimizer=_tf.train.ProximalAdagradOptimizer(self.LearningRateFun).minimize(CostFun,var_list=All_Vars,global_step=self.GlobalStep)
+            elif self.OptimizerType=="RMSProp":
+                Optimizer=_tf.train.RMSPropOptimizer(self.LearningRateFun).minimize(CostFun,var_list=All_Vars,global_step=self.GlobalStep)
+            else:
+                Optimizer=_tf.train.GradientDescentOptimizer(self.LearningRateFun).minimize(CostFun,var_list=All_Vars,global_step=self.GlobalStep)
+                
+        return Optimizer
+    
     def initialize_network(self):
         """Initializes the network for training by starting a session and getting 
         the placeholder for the output, the cost function, the learning rate and 
@@ -540,38 +572,15 @@ class AtomicNeuralNetInstance(object):
                 self._OutputLayerForce=_construct_output_layer(sum(self.NumberOfAtomsPerType)*3)
             #Cost function for whole net
             self.CostFun=self._atomic_cost_function()
-            
+            self.CostFun+=self._ForceCost
             #if self.IsPartitioned==True:
-            All_Vars=_tf.trainable_variables()
+            
             decay_steps=len(self.TrainingBatches)*self.LearningDecayEpochs
             self.GlobalStep,self.LearningRateFun=_get_learning_rate(self.LearningRate,self.LearningRateType,decay_steps,self.LearningRateBounds,self.LearningRateValues)
             
             #Set optimizer
-            if self.OptimizerType==None:
-               self._Optimizer=_tf.train.GradientDescentOptimizer(self.LearningRateFun).minimize(self.CostFun,var_list=All_Vars,global_step=self.GlobalStep)
-            else:
-                if self.OptimizerType=="GradientDescent":
-                    self._Optimizer=_tf.train.GradientDescentOptimizer(self.LearningRateFun).minimize(self.CostFun,var_list=All_Vars,global_step=self.GlobalStep)
-                elif self.OptimizerType=="Adagrad":
-                    self._Optimizer=_tf.train.AdagradOptimizer(self.LearningRateFun).minimize(self.CostFun,var_list=All_Vars,global_step=self.GlobalStep)
-                elif self.OptimizerType=="Adadelta":
-                    self._Optimizer=_tf.train.AdadeltaOptimizer(self.LearningRateFun).minimize(self.CostFun,var_list=All_Vars,global_step=self.GlobalStep)
-                elif self.OptimizerType=="AdagradDA":
-                    self._Optimizer=_tf.train.AdagradDAOptimizer(self.LearningRateFun,self.OptimizerProp).minimize(self.CostFun,var_list=All_Vars,global_step=self.GlobalStep)
-                elif self.OptimizerType=="Momentum":
-                    self._Optimizer=_tf.train.MomentumOptimizer(self.LearningRateFun,self.OptimizerProp).minimize(self.CostFun,var_list=All_Vars,global_step=self.GlobalStep)
-                elif self.OptimizerType=="Adam":
-                    self._Optimizer=_tf.train.AdamOptimizer(self.LearningRateFun, beta1=0.9, beta2=0.999, epsilon=1e-08).minimize(self.CostFun,var_list=All_Vars,global_step=self.GlobalStep)
-                elif self.OptimizerType=="Ftrl":
-                   self._Optimizer=_tf.train.FtrlOptimizer(self.LearningRateFun).minimize(self.CostFun,var_list=All_Vars,global_step=self.GlobalStep)
-                elif self.OptimizerType=="ProximalGradientDescent":
-                    self._Optimizer=_tf.train.ProximalGradientDescentOptimizer(self.LearningRateFun).minimize(self.CostFun,var_list=All_Vars,global_step=self.GlobalStep)
-                elif self.OptimizerType=="ProximalAdagrad":
-                    self._Optimizer=_tf.train.ProximalAdagradOptimizer(self.LearningRateFun).minimize(self.CostFun,var_list=All_Vars,global_step=self.GlobalStep)
-                elif self.OptimizerType=="RMSProp":
-                    self._Optimizer=_tf.train.RMSPropOptimizer(self.LearningRateFun).minimize(self.CostFun,var_list=All_Vars,global_step=self.GlobalStep)
-                else:
-                    self._Optimizer=_tf.train.GradientDescentOptimizer(self.LearningRateFun).minimize(self.CostFun,var_list=All_Vars,global_step=self.GlobalStep)
+            self._Optimizer=self.get_optimizer(self.CostFun)
+
         except:
             print("Evaluation only no training supported if all networks are constant!")
         #Initialize session
@@ -682,11 +691,7 @@ class AtomicNeuralNetInstance(object):
         Returns:
             Cost(float):The training cost for the step."""
         #Train the network for one step
-        if self.UseForce:
-            _,Cost1,Cost2=self._Session.run([self._Optimizer,self.CostFun,self._ForceCost],feed_dict={i: _np.array(d) for i, d in zip(Layers,Data)})
-            Cost=Cost1+Cost2
-        else: 
-            _,Cost=self._Session.run([self._Optimizer,self.CostFun],feed_dict={i: _np.array(d) for i, d in zip(Layers,Data)})
+        _,Cost=self._Session.run([self._Optimizer,self.CostFun],feed_dict={i: _np.array(d) for i, d in zip(Layers,Data)})
         
         return Cost
 
@@ -698,11 +703,7 @@ class AtomicNeuralNetInstance(object):
         Returns:
             Cost (float): The cost for the data"""
         #Evaluate cost function without changing the network
-        if self.UseForce:
-            Cost1,Cost2=self._Session.run([self.CostFun,self._ForceCost],feed_dict={i: _np.array(d) for i, d in zip(Layers,Data)})
-            Cost=Cost1+Cost2
-        else: 
-            Cost=self._Session.run(self.CostFun,feed_dict={i: _np.array(d) for i, d in zip(Layers,Data)})
+        Cost=self._Session.run(self.CostFun,feed_dict={i: _np.array(d) for i, d in zip(Layers,Data)})
             
         return Cost
 
@@ -1056,7 +1057,7 @@ class AtomicNeuralNetInstance(object):
                                         
                     tempTrainingCost.append(TrainingCosts)
                     tempValidationCost.append(ValidationCosts)
-                    
+
                     self.OverallTrainingCosts.append(TrainingCosts/BatchSize)
                     self.OverallValidationCosts.append(ValidationCosts/BatchSize)
 
@@ -1477,26 +1478,32 @@ class AtomicNeuralNetInstance(object):
         self._TotalEnergy,AllEnergies=self._Net.energy_of_all_atomic_networks()
   
         self._EnergyCost=cost_for_network(self._TotalEnergy,self._OutputLayer,self.CostFunType)
-        Cost=self._EnergyCost
+        
         #add force cost
         if self.UseForce==True:
             if self.IsPartitioned==True:
                 raise(NotImplementedError)
             else:
                 self._OutputForce,AllForces=self._Net.force_of_all_atomic_networks(self)  
-                self._ForceCost=self.ForceCostParam*_tf.divide(cost_for_network(self._OutputForce,self._OutputLayerForce,self.CostFunType),sum(self.NumberOfAtomsPerType))
+                self._ForceCost=self.ForceCostParam*_tf.nn.tanh(_tf.divide(cost_for_network(self._OutputForce,self._OutputLayerForce,self.CostFunType),sum(self.NumberOfAtomsPerType)))
+            Cost=self._ForceCost
+        else:
+            Cost=self._EnergyCost
+            
+            if self.Regularization=="L1":
+                trainableVars=_tf.trainable_variables()
+                l1_regularizer = _tf.contrib.layers.l1_regularizer(scale=0.005, scope=None)
+                Cost += _tf.contrib.layers.apply_regularization(l1_regularizer, trainableVars)
+            elif self.Regularization=="L2":
+                trainableVars=_tf.trainable_variables()
+                self._RegLoss=_tf.add_n([_tf.nn.l2_loss(v) for v in trainableVars
+                                   if 'bias' not in v.name]) * self.RegularizationParam
+                Cost += self._RegLoss
+        
         #Create tensor for energy difference calculation
         self._dE_Fun=_tf.abs(self._TotalEnergy-self._OutputLayer)
         
-        if self.Regularization=="L1":
-            trainableVars=_tf.trainable_variables()
-            l1_regularizer = _tf.contrib.layers.l1_regularizer(scale=0.005, scope=None)
-            Cost += _tf.contrib.layers.apply_regularization(l1_regularizer, trainableVars)
-        elif self.Regularization=="L2":
-            trainableVars=_tf.trainable_variables()
-            self._RegLoss=_tf.add_n([_tf.nn.l2_loss(v) for v in trainableVars
-                               if 'bias' not in v.name]) * self.RegularizationParam
-            Cost += self._RegLoss
+
 
         return Cost
 
