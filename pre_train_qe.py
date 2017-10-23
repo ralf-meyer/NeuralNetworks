@@ -52,7 +52,7 @@ Training.Zetas=[0.025,0.045,0.075,0.1,0.15,0.2,0.3,0.5,0.7,1,1.5,2,3,5,10,18,36,
 Training.Etas=[0.1]   
 
 #Load trainings data
-Training.atomtypes=md_reader.atom_types
+Training.Atomtypes=md_reader.atom_types
 Training.init_dataset(md_reader.geometries,md_reader.e_pot_rel)
 
 #Create batches
