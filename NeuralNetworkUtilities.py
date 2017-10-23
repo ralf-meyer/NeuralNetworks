@@ -579,7 +579,7 @@ class AtomicNeuralNetInstance(object):
             
             #Set optimizer
             self._Optimizer=self.get_optimizer(self.CostFun)
-
+    
         except:
             print("Evaluation only no training supported if all networks are constant!")
         #Initialize session
@@ -905,6 +905,15 @@ class AtomicNeuralNetInstance(object):
         
         return train_stat,val_stat
     
+    def energy_for_geometry(self,geometry):
+        self.create_eval_data(geometry)
+        
+        return self.eval_dataset_energy(self.EvalData)
+    
+    def force_for_geometry(self,geometry):
+        self.create_eval_data(geometry)
+        
+        return self.eval_dataset_force(self.EvalData)
     
     def eval_dataset_energy(self,Batches,BatchNr=0):
         """Prepares and evaluates the dataset for the loaded network.
@@ -1153,7 +1162,19 @@ class AtomicNeuralNetInstance(object):
             if self.Multiple==True:
                 
                 return [self.TrainedVariables,self._MinOfOut]
-                    
+       
+    def create_symmetry_functions(self):
+        
+        self.SizeOfInputsPerType=[]
+        self._SymmFunSet=_SymmetryFunctionSet.SymmetryFunctionSet(self.Atomtypes)
+        self._SymmFunSet.add_radial_functions_evenly(self.NumberOfRadialFunctions)
+        self._SymmFunSet.add_angular_functions(self.Etas,self.Zetas,self.Lambs)
+        self.SizeOfInputsPerType=self._SymmFunSet.num_Gs
+
+        for i,a_type in enumerate(self.NumberOfAtomsPerType):
+            for j in range(0,a_type):
+                self.SizeOfInputsPerAtom.append(self.SizeOfInputsPerType[i])     
+                
     def _convert_dataset(self,TakeAsReference):
         """Converts the cartesian coordinates to a symmetry function vector and  
         calculates the mean value and the variance of the symmetry function 
@@ -1247,16 +1268,10 @@ class AtomicNeuralNetInstance(object):
         if Execute==True:
 
             self._DataSet=_DataSet.DataSet()
-            self._SymmFunSet=_SymmetryFunctionSet.SymmetryFunctionSet(self.Atomtypes)
             self._DataSet.read_lammps(self.LammpsXYZFile,self.LammpsLogfile)
+            self.create_symmetry_functions()
             print("Added dataset!")
-            #self._SymmFunSet.add_radial_functions(self.Rs,self.Etas)
-            self._SymmFunSet.add_radial_functions_evenly(self.NumberOfRadialFunctions)
-            self._SymmFunSet.add_angular_functions(self.Etas,self.Zetas,self.Lambs)
-            self.SizeOfInputsPerType=self._SymmFunSet.num_Gs
-            for i,a_type in enumerate(self.NumberOfAtomsPerType):
-                for j in range(0,a_type):
-                    self.SizeOfInputsPerAtom.append(self.SizeOfInputsPerType[i])
+
         if LoadGeometries:
             self._convert_dataset(TakeAsReference)
     
@@ -1273,20 +1288,13 @@ class AtomicNeuralNetInstance(object):
     
         if len(geometries)==len(energies):
             self._DataSet=_DataSet.DataSet()
-            self._VarianceOfDs=[]
-            self._MeansOfDs=[]
-            self.SizeOfInputsPerType=[]
-            self._SymmFunSet=_SymmetryFunctionSet.SymmetryFunctionSet(self.Atomtypes)
             self._DataSet.energies=energies
             self._DataSet.geometries=geometries
             self._DataSet.g_derivaties=g_derivatives
-            self._SymmFunSet.add_radial_functions_evenly(self.NumberOfRadialFunctions)
-            self._SymmFunSet.add_angular_functions(self.Etas,self.Zetas,self.Lambs)
-            self.SizeOfInputsPerType=self._SymmFunSet.num_Gs
-
-            for i,a_type in enumerate(self.NumberOfAtomsPerType):
-                for j in range(0,a_type):
-                    self.SizeOfInputsPerAtom.append(self.SizeOfInputsPerType[i])
+            if TakeAsReference:
+                self._VarianceOfDs=[]
+                self._MeansOfDs=[]
+            self.create_symmetry_functions()
                 
             self._convert_dataset(TakeAsReference)
         else:
@@ -1477,30 +1485,29 @@ class AtomicNeuralNetInstance(object):
         self._TotalEnergy,AllEnergies=self._Net.energy_of_all_atomic_networks()
   
         self._EnergyCost=cost_for_network(self._TotalEnergy,self._OutputLayer,self.CostFunType)
-        
+        Cost=self._EnergyCost
+            
         #add force cost
         if self.UseForce==True:
             if self.IsPartitioned==True:
                 raise(NotImplementedError)
             else:
                 self._OutputForce,AllForces=self._Net.force_of_all_atomic_networks(self)  
-                self._ForceCost=self.ForceCostParam*_tf.nn.tanh(_tf.divide(cost_for_network(self._OutputForce,self._OutputLayerForce,self.CostFunType),sum(self.NumberOfAtomsPerType)))
-            Cost=self._ForceCost
-        else:
-            Cost=self._EnergyCost
+                self._ForceCost=self.ForceCostParam*_tf.divide(cost_for_network(self._OutputForce,self._OutputLayerForce,self.CostFunType),sum(self.NumberOfAtomsPerType))
+            Cost+=self._ForceCost
+
+        if self.Regularization=="L1":
+            trainableVars=_tf.trainable_variables()
+            l1_regularizer = _tf.contrib.layers.l1_regularizer(scale=0.005, scope=None)
+            Cost += _tf.contrib.layers.apply_regularization(l1_regularizer, trainableVars)
+        elif self.Regularization=="L2":
+            trainableVars=_tf.trainable_variables()
+            self._RegLoss=_tf.add_n([_tf.nn.l2_loss(v) for v in trainableVars
+                               if 'bias' not in v.name]) * self.RegularizationParam
+            Cost += self._RegLoss
             
-            if self.Regularization=="L1":
-                trainableVars=_tf.trainable_variables()
-                l1_regularizer = _tf.contrib.layers.l1_regularizer(scale=0.005, scope=None)
-                Cost += _tf.contrib.layers.apply_regularization(l1_regularizer, trainableVars)
-            elif self.Regularization=="L2":
-                trainableVars=_tf.trainable_variables()
-                self._RegLoss=_tf.add_n([_tf.nn.l2_loss(v) for v in trainableVars
-                                   if 'bias' not in v.name]) * self.RegularizationParam
-                Cost += self._RegLoss
-        
         #Create tensor for energy difference calculation
-        self._dE_Fun=_tf.abs(self._TotalEnergy-self._OutputLayer)
+        self._dE_Fun=_tf.zeros(shape=[1])#_tf.abs(self._TotalEnergy-self._OutputLayer)
         
 
 
@@ -1622,17 +1629,27 @@ class _StandardAtomicNetwork(object):
             norm=AtomicNet[4]
             dGij_dxk_t=_tf.transpose(dGij_dxk,perm=[0,2,1])
             temp=_tf.gradients(NetInstance._TotalEnergy,G_Input)[0]
+            #nan-workaround(may be fixed in later tensorflow versions)
+            #finite_values=_tf.is_finite(temp)
+            #temp = _tf.boolean_mask(temp,finite_values)
+            #norm= _tf.boolean_mask(norm,finite_values)
             dEi_dGij_n=_tf.multiply(temp,norm)
+            #idx=_tf.to_int32(_tf.where(finite_values))
+            #dEi_dGij_n=_tf.scatter_nd(idx,dEi_dGij_n,_tf.shape(finite_values))
             dEi_dGij_n=_tf.where(_tf.is_inf(dEi_dGij_n),_tf.zeros_like(dEi_dGij_n),dEi_dGij_n)
             dEi_dGij=_tf.reshape(dEi_dGij_n,[-1,NetInstance.SizeOfInputsPerType[Type],1])
             mul=_tf.matmul(dGij_dxk_t,dEi_dGij)
             dim_red=_tf.reshape(mul,[-1,sum(NetInstance.NumberOfAtomsPerType)*3])
-            F_no_nan=_tf.where(_tf.is_inf(dim_red),_tf.zeros_like(dim_red),dim_red)
-            F_no_nan=_tf.where(_tf.is_nan(F_no_nan),_tf.zeros_like(F_no_nan),F_no_nan)
+            #no_nan=_tf.logical_and(_tf.logical_not(_tf.is_nan(dim_red)),_tf.is_finite(dim_red))
+            #F_no_nan= _tf.boolean_mask(temp,finite_values)
+            #idx=_tf.to_int32(_tf.where(no_nan))
+            #F_no_nan=_tf.scatter_nd(idx,dim_red,_tf.shape(no_nan))
+            #F_no_nan=_tf.where(_tf.is_inf(dim_red),_tf.zeros_like(dim_red),dim_red)
+            #F_no_nan=_tf.where(_tf.is_nan(F_no_nan),_tf.zeros_like(F_no_nan),F_no_nan)
             if i==0:
-                F=F_no_nan
+                F=dim_red
             else:
-                F=_tf.add(F,F_no_nan)
+                F=_tf.add(F,dim_red)
             Fi.append(dim_red)
         
         return F,Fi
