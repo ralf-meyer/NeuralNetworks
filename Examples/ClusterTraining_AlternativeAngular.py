@@ -18,7 +18,7 @@ Training=NN.AtomicNeuralNetInstance()
 
 Training.XYZfile="2ClusterNiAu_data.xyz"
 Training.Logfile="2cluster.md"
-Training.atomtypes=["1","2"]
+Training.Atomtypes=["1","2"]
 Training.NumberOfRadialFunctions=6
 #angular symmetry function settings
 Training.Lambs=[1.5]
