@@ -14,7 +14,8 @@ import matplotlib.pyplot as _plt
 import multiprocessing as _multiprocessing
 import time as _time 
 import os as _os
-
+import ReadLammpsData as _ReaderLammps
+import ReadQEData as _ReaderQE
 
 
 _plt.ion()
@@ -443,8 +444,6 @@ class AtomicNeuralNetInstance(object):
         self.IsPartitioned=False
         
         #Data 
-        self.LammpsXYZFile=None
-        self.LammpsLogfile=None
         self.EvalData=[]
         self.TrainingBatches=[]
         self.ValidationBatches=[]
@@ -525,6 +524,7 @@ class AtomicNeuralNetInstance(object):
         self._EnergyCost=None
         self._RegLoss=None
         #Dataset
+        self._Reader=None
         self._AllGeometries=[]
         self._AllGDerivatives=[]
 
@@ -1238,7 +1238,7 @@ class AtomicNeuralNetInstance(object):
             self._MinOfOut=_np.min(NormalizedEnergy)*2 #factor of two is to make sure that there is room for lower energies
     
 
-    def read_lammps_files(self,TakeAsReference=True,LoadGeometries=True):
+    def read_qe_md_files(self,path,energy_unit="eV",dist_unit="A",TakeAsReference=True,LoadGeometries=True):
         """Reads lammps files,adds symmetry functions to the symmetry function
         basis and converts the cartesian corrdinates to symmetry function vectors.
         
@@ -1249,26 +1249,98 @@ class AtomicNeuralNetInstance(object):
                                 coordinates should be performed."""
                                 
         Execute=True
-        if self.LammpsXYZFile==None:
-            print("No .xyz-file name specified!")
-            Execute=False
-        if self.LammpsLogfile==None:
-            print("No log-file name specified!")
-            Execute=False
         if len(self.Atomtypes)==0:
             print("No atom types specified!")
             Execute=False
-#        if len(self.Zetas)==0:
-#            print("No zetas specified!")
-#            Execute=False
-#        if len(self.Lambs)==0:
-#            print("No lambdas specified!")
-#            Execute=False
+
+
+        if Execute==True:
+            self._DataSet=_DataSet.DataSet()
+            self._Reader=_ReaderQE.QE_MD_Reader()
+            if energy_unit=="Ry":
+                self._Reader.E_conv_factor=13.605698066
+            elif energy_unit=="H":
+                self._Reader.E_conv_factor=27.211396132
+            elif energy_unit=="kcal/mol":
+                self._Reader.E_conv_factor=0.043
+            elif energy_unit=="kJ/mol":
+                self._Reader.E_conv_factor=0.01
+            else:
+                self._Reader.E_conv_factor=1
+                
+            if dist_unit=="Bohr" or dist_unit=="au":
+                self._Reader.Geom_conv_factor=0.529177249
+            else:
+                self._Reader.Geom_conv_factor=1
+            
+            if len(self.Atomtypes)!=0:
+                self._Reader.atom_types=self.Atomtypes
+            else:
+                self.Atomtypes=self._Reader.atom_types    
+        
+            self._Reader.get_files(path)
+            self._Reader.read_all_files()
+            self._Reader.calibrate_energy()
+                
+            self.NumberOfAtomsPerType=self._Reader.nr_atoms_per_type
+            self._DataSet.geometries=self._Reader.geometries
+            self._DataSet.energies=self._Reader.energies
+            if self.UseForce:
+                self._DataSet.forces=self._Reader.forces
+                
+            self.create_symmetry_functions()
+            print("Added dataset!")
+
+        if LoadGeometries:
+            self._convert_dataset(TakeAsReference)
+
+    def read_lammps_files(self,XYZFile,LogFile,energy_unit="eV",dist_unit="A",TakeAsReference=True,LoadGeometries=True):
+        """Reads lammps files,adds symmetry functions to the symmetry function
+        basis and converts the cartesian corrdinates to symmetry function vectors.
+        
+        Args:
+            TakeAsReference(bool): Specifies if the MinOfOut Parameter should be 
+                                set according to this dataset.
+            LoadGeometries(bool): Specifies if the conversion of the geometry 
+                                coordinates should be performed."""
+                                
+        Execute=True
+        if len(self.Atomtypes)==0:
+            print("No atom types specified!")
+            Execute=False
+
 
         if Execute==True:
 
             self._DataSet=_DataSet.DataSet()
-            self._DataSet.read_lammps(self.LammpsXYZFile,self.LammpsLogfile)
+            self._Reader=_ReaderLammps.LammpsReader()
+            if energy_unit=="Ry":
+                self._Reader.E_conv_factor=13.605698066
+            elif energy_unit=="H":
+                self._Reader.E_conv_factor=27.211396132
+            elif energy_unit=="kcal/mol":
+                self._Reader.E_conv_factor=0.043
+            elif energy_unit=="kJ/mol":
+                self._Reader.E_conv_factor=0.01
+            else:
+                self._Reader.E_conv_factor=1
+                
+            if dist_unit=="Bohr" or dist_unit=="au":
+                self._Reader.Geom_conv_factor=0.529177249
+            else:
+                self._Reader.Geom_conv_factor=1
+            
+            if len(self.Atomtypes)!=0:
+                self._Reader.atom_types=self.Atomtypes
+            else:
+                self.Atomtypes=self._Reader.atom_types
+                
+            self._Reader.read_lammps(XYZFile,LogFile)
+            self._DataSet.geometries=self._Reader.geometries
+            self._DataSet.energies=self._Reader.energies
+            if self.UseForce:
+                self._DataSet.forces=self._Reader.forces
+                
             self.create_symmetry_functions()
             print("Added dataset!")
 
@@ -1906,7 +1978,7 @@ class _StandardAtomicNetwork(object):
                         NrHidden = Structure[j]
     
                         if j == len(Structure) - 1 and NetInstance.MakeLastLayerConstant == True:
-                            HiddenLayers.append(_construct_not_trainable_layer(NrIn, NrHidden, NetInstance.MinOfOut))
+                            HiddenLayers.append(_construct_not_trainable_layer(NrIn, NrHidden, NetInstance._MinOfOut))
                         else:
                             if j >= len(NetInstance._HiddenData[i]) and NetInstance.MakeLastLayerConstant == True:
                                 tempWeights, tempBias = _construct_hidden_layer(NrIn, NrHidden, NetInstance.HiddenType, [], NetInstance.BiasType, [],
@@ -1955,7 +2027,7 @@ class _StandardAtomicNetwork(object):
                         NrIn = Structure[j - 1]
                         NrHidden = Structure[j]
                         if j == len(Structure) - 1 and NetInstance.MakeLastLayerConstant == True:
-                            HiddenLayers.append(_construct_not_trainable_layer(NrIn, NrHidden, NetInstance.MinOfOut))
+                            HiddenLayers.append(_construct_not_trainable_layer(NrIn, NrHidden, NetInstance._MinOfOut))
                         else:
                             HiddenLayers.append(_construct_hidden_layer(NrIn, NrHidden, NetInstance.HiddenType, [], NetInstance.BiasType))
     
@@ -2535,7 +2607,7 @@ class MultipleInstanceTraining(object):
                 Instance.OptimizerType=self.GlobalOptimizer
                 Instance.Regularization=self.GlobalRegularization
                 Instance.RegularizationParam=self.GlobalRegularizationParam
-                if Instance.MinOfOut <self.GlobalMinOfOut:
+                if Instance._MinOfOut <self.GlobalMinOfOut:
                     self.GlobalMinOfOut=Instance.MinOfOut
                     
                 #Clear unnecessary data
