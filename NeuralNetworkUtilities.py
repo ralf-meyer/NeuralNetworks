@@ -322,10 +322,10 @@ def running_mean(x,N):
     cumsum=_np.cumsum(_np.insert(x,0,0))
     return (cumsum[N:]-cumsum[:-N])/N
 
-#Initializes the cost plot for the training 
-#Returns the figure and the different plots 
+ 
 def _initialize_cost_plot(TrainingData,ValidationData=[]):
-
+    """Initializes the cost plot for the training 
+    Returns the figure and the different plots"""
     fig=_plt.figure()
     ax = fig.add_subplot(111)
     ax.set_autoscaley_on(True)
@@ -351,9 +351,10 @@ def _initialize_cost_plot(TrainingData,ValidationData=[]):
 
     return fig,ax,TrainingCostPlot,ValidationCostPlot,RunningMeanPlot
 
-#Updates the cost plot with new data
-def _update_cost_plot(figure,ax,TrainingCostPlot,TrainingCost,ValidationCostPlot=None,ValidationCost=None,RunningMeanPlot=None):
 
+def _update_cost_plot(figure,ax,TrainingCostPlot,TrainingCost,ValidationCostPlot=None,ValidationCost=None,RunningMeanPlot=None):
+    """Updates the cost plot with new data"""
+    
     TrainingCostPlot.set_data(_np.arange(0,len(TrainingCost)),TrainingCost)
     if ValidationCostPlot!=None:
         ValidationCostPlot.set_data(_np.arange(0,len(ValidationCost)),ValidationCost)
@@ -368,10 +369,12 @@ def _update_cost_plot(figure,ax,TrainingCostPlot,TrainingCost,ValidationCostPlot
     figure.canvas.draw()
     figure.canvas.flush_events()
 
-#Initializes the plot of the absolute value of the weights 
-#Can be used to identify redundant symmetry functions
-#Returns the figure and the plot
+
 def _initialize_weights_plot(sparse_weights,n_gs):
+    """Initializes the plot of the absolute value of the weights 
+    Can be used to identify redundant symmetry functions
+    Returns the figure and the plot"""
+    
     fig=_plt.figure()
     ax = fig.add_subplot(111)
     weights_plot=ax.bar(_np.arange(n_gs),sparse_weights)
@@ -388,10 +391,11 @@ def _initialize_weights_plot(sparse_weights,n_gs):
     
     return fig,weights_plot
 
-#Updates the plot of the absolute value of the weights 
-#Can be used to identify redundant symmetry functions
-#Returns the figure and the plot
 def _update_weights_plot(fig,weights_plot,sparse_weights):
+    """Updates the plot of the absolute value of the weights 
+    Can be used to identify redundant symmetry functions
+    Returns the figure and the plot"""
+    
     for u,rect in enumerate(weights_plot):
         rect.set_height(sparse_weights[u])
     fig.canvas.draw()
@@ -399,9 +403,10 @@ def _update_weights_plot(fig,weights_plot,sparse_weights):
     
     return fig,weights_plot
 
-#Converts cartesion to spherical coordinates
-#Returns the spherical coordinates
 def cartesian_to_spherical(xyz):
+    """Converts cartesion to spherical coordinates
+    Returns the spherical coordinates"""
+    
     spherical = _np.zeros_like(xyz)
     xy = xyz[:,0]**2 + xyz[:,1]**2
     spherical[:,0] = _np.sqrt(xy + xyz[:,2]**2)
@@ -409,10 +414,10 @@ def cartesian_to_spherical(xyz):
     spherical[:,2] = _np.arctan2(xyz[:,1], xyz[:,0])
     return spherical
 
-#Returns a tensor for the learning rate 
-#Learning rate can be decayed with different methods.
-#Returns the tensors for the global step and the learning reate
 def _get_learning_rate(StartLearningRate,LearningRateType,decay_steps,boundaries=[],values=[]):
+    """Returns a tensor for the learning rate 
+    Learning rate can be decayed with different methods.
+    Returns the tensors for the global step and the learning rate"""
     
     if LearningRateType=="none":
         global_step = _tf.Variable(0, trainable=False)
@@ -433,9 +438,10 @@ def _get_learning_rate(StartLearningRate,LearningRateType,decay_steps,boundaries
         global_step = _tf.Variable(0, trainable=False)
         return global_step,_tf.train.polynomial_decay(StartLearningRate, global_step, decay_steps, end_learning_rate=0.00001, power=2.0, cycle=False)
 
-#Calculates the distances between all atoms
-#Returns a matrix with all distances.
+
 def _calc_distance_to_all_atoms(xyz):
+    """Calculates the distances between all atoms
+    Returns a matrix with all distances."""
     
     Ngeom=len(xyz[:,0])
     distances=_np.zeros((Ngeom,Ngeom))
@@ -444,9 +450,10 @@ def _calc_distance_to_all_atoms(xyz):
     
     return distances
 
-#Gets the maximum and minimum radial distance within the dataset
-#Returns a min,max value as floats.
 def _get_ds_r_min_r_max(geoms):
+    """Gets the maximum and minimum radial distance within the dataset
+    Returns a min,max value as floats."""
+    
     r_min=10e10
     r_max=0
     for geom in geoms:
@@ -467,14 +474,13 @@ def _get_ds_r_min_r_max(geoms):
             
     return r_min,r_max
 
-
-#Creates geometries outside the dataset for a fixed energy
-#to prevent the network from performing badly outside the training area.
-#The radial coverage area of the training data has to be specified via
-#r_min and r_max, the types of atoms as a list: ["species1",species2] and 
-#the number of atoms per atom type have to be specified as a list:[1,2]
-#Returns N geometries as a list.
 def _create_zero_diff_geometries(r_min,r_max,types,N_atoms_per_type,N):
+    """Creates geometries outside the dataset for a fixed energy
+    to prevent the network from performing badly outside the training area.
+    The radial coverage area of the training data has to be specified via
+    r_min and r_max, the types of atoms as a list: ["species1",species2] and 
+    the number of atoms per atom type have to be specified as a list:[1,2]
+    Returns N geometries as a list."""
     
     out_geoms=[]
     Natoms=sum(N_atoms_per_type)
@@ -512,9 +518,10 @@ def _create_zero_diff_geometries(r_min,r_max,types,N_atoms_per_type,N):
         
     return out_geoms
 
-#Parse q-chem format to NN compatible format
-#Returns the geometries in a compatible list
 def parse_qchem_geometries(in_geoms):
+    """Parse q-chem format to NN compatible format
+    Returns the geometries in a compatible list"""
+    
     out_geoms=[]
     for in_geom in in_geoms:
         atoms_list=in_geom.list_of_atoms
@@ -528,10 +535,11 @@ def parse_qchem_geometries(in_geoms):
     return out_geoms
 
 
-#This class implements all the properties and methods for training and 
-#evaluating the network
-class AtomicNeuralNetInstance(object):
 
+
+class AtomicNeuralNetInstance(object):
+    """This class implements all the properties and methods for training and 
+    evaluating the network"""
     def __init__(self):
 
         #Public variables
@@ -571,7 +579,7 @@ class AtomicNeuralNetInstance(object):
         self.MakeAllVariable=True
         self.Regularization="none"
         self.RegularizationParam=0.0
-        self.ForceCostParam=0.001
+        self.ForceCostParam=0.00001
         self.InputDerivatives=False
         self.Multiple=False
         self.UseForce=False
