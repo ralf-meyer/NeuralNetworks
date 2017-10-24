@@ -21,47 +21,81 @@ import ReadQEData as _ReaderQE
 _plt.ion()
 _tf.reset_default_graph()
 
-#Construct input for the NN.
+
 def _construct_input_layer(InputUnits):
+    """Construct input for the NN.
+    
+    Args:
+        InputUnits (int):Number of input units
+    
+    Returns:
+        Inputs (tensor):The input placeholder
+    """
     
     Inputs=_tf.placeholder(_tf.float32, shape=[None, InputUnits])
 
     return Inputs
 
-#Construct the weights for this layer.
-def _construct_hidden_layer(LayerBeforeUnits,HiddenUnits,InitType=None,InitData=[],BiasType=None,BiasData=[],MakeAllVariable=False,Mean=0.0,Stddev=1.0):
+
+def _construct_hidden_layer(PreviousLayerUnits,ThisHiddenUnits,WeightType=None,WeightData=[],BiasType=None,BiasData=[],MakeAllVariable=False,Mean=0.0,Stddev=1.0):
+    """Constructs the weights and biases for this layer with the specified initialization.
     
-    if len(InitData)==0:
-        if InitType!=None:
-            if InitType == "zeros":
-                Weights=_tf.Variable(_tf.zeros([LayerBeforeUnits,HiddenUnits]),dtype=_tf.float32,name="variable")
-            elif InitType =="ones":
-                Weights=_tf.Variable(_tf.ones([LayerBeforeUnits,HiddenUnits]),dtype=_tf.float32,name="variable")
-            elif InitType == "fill":
-                Weights=_tf.Variable(_tf.fill([LayerBeforeUnits,HiddenUnits]),dtype=_tf.float32,name="variable")
-            elif InitType == "random_normal":
-                Weights=_tf.Variable(_tf.random_normal([LayerBeforeUnits,HiddenUnits],mean=Mean,stddev=Stddev),dtype=_tf.float32,name="variable")
-            elif InitType == "truncated_normal":
-                Weights=_tf.Variable(_tf.truncated_normal([LayerBeforeUnits,HiddenUnits],mean=Mean,stddev=Stddev),dtype=_tf.float32,name="variable")
-            elif InitType == "random_uniform":
-                Weights=_tf.Variable(_tf.random_uniform([LayerBeforeUnits,HiddenUnits]),dtype=_tf.float32,name="variable")
-            elif InitType == "random_shuffle":
-                Weights=_tf.Variable(_tf.random_shuffle([LayerBeforeUnits,HiddenUnits]),dtype=_tf.float32,name="variable")
-            elif InitType == "random_crop":
-                Weights=_tf.Variable(_tf.random_crop([LayerBeforeUnits,HiddenUnits]),dtype=_tf.float32,name="variable")
-            elif InitType == "random_gamma":
-                Weights=_tf.Variable(_tf.random_gamma([LayerBeforeUnits,HiddenUnits]),dtype=_tf.float32,name="variable")
+    Args:
+        PreviousLayerUnits (int): Number of units of the previous layer
+        ThisHiddenUnits (int): Number of units in this layer
+        WeightType (str): Initialization of the weights 
+            Possible values are:
+                zeros,ones,fill,random_normal,truncated_normal,
+                random_uniform,random_shuffle,random_crop,
+                random_gamma
+        WeightData (numpy array): Values for the weight initialization
+        BiasType (str): Initialization of the biases
+            Possible values are:
+                zeros,ones,fill,random_normal,truncated_normal,
+                random_uniform,random_shuffle,random_crop,
+                random_gamma
+        MakeAllVariable (bool): Flag indicating whether the weights and biases
+        should be trainable or not.
+        Mean (float): Mean value for the normal distribution of the 
+        initialization.
+        Stddev (float):Standard deviation for the normal distribution of the 
+        initialization.
+    
+    Returns:
+        Weights (tensor): Weights tensor
+        Biases (tensor):Biases tensor
+    """
+    if len(WeightData)==0:
+        if WeightType!=None:
+            if WeightType == "zeros":
+                Weights=_tf.Variable(_tf.zeros([PreviousLayerUnits,ThisHiddenUnits]),dtype=_tf.float32,name="variable")
+            elif WeightType =="ones":
+                Weights=_tf.Variable(_tf.ones([PreviousLayerUnits,ThisHiddenUnits]),dtype=_tf.float32,name="variable")
+            elif WeightType == "fill":
+                Weights=_tf.Variable(_tf.fill([PreviousLayerUnits,ThisHiddenUnits]),dtype=_tf.float32,name="variable")
+            elif WeightType == "random_normal":
+                Weights=_tf.Variable(_tf.random_normal([PreviousLayerUnits,ThisHiddenUnits],mean=Mean,stddev=Stddev),dtype=_tf.float32,name="variable")
+            elif WeightType == "truncated_normal":
+                Weights=_tf.Variable(_tf.truncated_normal([PreviousLayerUnits,ThisHiddenUnits],mean=Mean,stddev=Stddev),dtype=_tf.float32,name="variable")
+            elif WeightType == "random_uniform":
+                Weights=_tf.Variable(_tf.random_uniform([PreviousLayerUnits,ThisHiddenUnits]),dtype=_tf.float32,name="variable")
+            elif WeightType == "random_shuffle":
+                Weights=_tf.Variable(_tf.random_shuffle([PreviousLayerUnits,ThisHiddenUnits]),dtype=_tf.float32,name="variable")
+            elif WeightType == "random_crop":
+                Weights=_tf.Variable(_tf.random_crop([PreviousLayerUnits,ThisHiddenUnits]),dtype=_tf.float32,name="variable")
+            elif WeightType == "random_gamma":
+                Weights=_tf.Variable(_tf.random_gamma([PreviousLayerUnits,ThisHiddenUnits]),dtype=_tf.float32,name="variable")
             else:
-                #Assume random weights if no InitType is given
-                Weights=_tf.Variable(_tf.random_uniform([LayerBeforeUnits,HiddenUnits]),dtype=_tf.float32,name="variable")
+                #Assume random weights if no WeightType is given
+                Weights=_tf.Variable(_tf.random_uniform([PreviousLayerUnits,ThisHiddenUnits]),dtype=_tf.float32,name="variable")
         else:
-            #Assume random weights if no InitType is given
-            Weights=_tf.Variable(_tf.random_uniform([LayerBeforeUnits,HiddenUnits]),dtype=_tf.float32,name="variable")
+            #Assume random weights if no WeightType is given
+            Weights=_tf.Variable(_tf.random_uniform([PreviousLayerUnits,ThisHiddenUnits]),dtype=_tf.float32,name="variable")
     else:
         if MakeAllVariable==False:
-            Weights=_tf.constant(InitData,dtype=_tf.float32,name="constant")
+            Weights=_tf.constant(WeightData,dtype=_tf.float32,name="constant")
         else:
-            Weights=_tf.Variable(InitData,dtype=_tf.float32,name="variable")
+            Weights=_tf.Variable(WeightData,dtype=_tf.float32,name="variable")
     #Construct the bias for this layer
     if len(BiasData)!=0:
 
@@ -71,41 +105,56 @@ def _construct_hidden_layer(LayerBeforeUnits,HiddenUnits,InitType=None,InitData=
             Biases=_tf.Variable(BiasData,dtype=_tf.float32,name="bias")
 
     else:
-        if InitType == "zeros":
-            Biases=_tf.Variable(_tf.zeros([HiddenUnits]),dtype=_tf.float32,name="bias")
-        elif InitType =="ones":
-            Biases=_tf.Variable(_tf.ones([HiddenUnits]),dtype=_tf.float32,name="bias")
-        elif InitType == "fill":
-            Biases=_tf.Variable(_tf.fill([HiddenUnits],BiasData),dtype=_tf.float32,name="bias")
-        elif InitType == "random_normal":
-            Biases=_tf.Variable(_tf.random_normal([HiddenUnits],mean=Mean,stddev=Stddev),dtype=_tf.float32,name="bias")
-        elif InitType == "truncated_normal":
-            Biases=_tf.Variable(_tf.truncated_normal([HiddenUnits],mean=Mean,stddev=Stddev),dtype=_tf.float32,name="bias")
-        elif InitType == "random_uniform":
-            Biases=_tf.Variable(_tf.random_uniform([HiddenUnits]),dtype=_tf.float32,name="bias")
-        elif InitType == "random_shuffle":
-            Biases=_tf.Variable(_tf.random_shuffle([HiddenUnits]),dtype=_tf.float32,name="bias")
-        elif InitType == "random_crop":
-            Biases=_tf.Variable(_tf.random_crop([HiddenUnits],BiasData),dtype=_tf.float32,name="bias")
-        elif InitType == "random_gamma":
-            Biases=_tf.Variable(_tf.random_gamma([HiddenUnits],InitData),dtype=_tf.float32,name="bias")
+        if BiasType == "zeros":
+            Biases=_tf.Variable(_tf.zeros([ThisHiddenUnits]),dtype=_tf.float32,name="bias")
+        elif BiasType =="ones":
+            Biases=_tf.Variable(_tf.ones([ThisHiddenUnits]),dtype=_tf.float32,name="bias")
+        elif BiasType == "fill":
+            Biases=_tf.Variable(_tf.fill([ThisHiddenUnits],BiasData),dtype=_tf.float32,name="bias")
+        elif BiasType == "random_normal":
+            Biases=_tf.Variable(_tf.random_normal([ThisHiddenUnits],mean=Mean,stddev=Stddev),dtype=_tf.float32,name="bias")
+        elif BiasType == "truncated_normal":
+            Biases=_tf.Variable(_tf.truncated_normal([ThisHiddenUnits],mean=Mean,stddev=Stddev),dtype=_tf.float32,name="bias")
+        elif BiasType == "random_uniform":
+            Biases=_tf.Variable(_tf.random_uniform([ThisHiddenUnits]),dtype=_tf.float32,name="bias")
+        elif BiasType == "random_shuffle":
+            Biases=_tf.Variable(_tf.random_shuffle([ThisHiddenUnits]),dtype=_tf.float32,name="bias")
+        elif BiasType == "random_crop":
+            Biases=_tf.Variable(_tf.random_crop([ThisHiddenUnits],BiasData),dtype=_tf.float32,name="bias")
+        elif BiasType == "random_gamma":
+            Biases=_tf.Variable(_tf.random_gamma([ThisHiddenUnits],BiasData),dtype=_tf.float32,name="bias")
         else:
-            Biases = _tf.Variable(_tf.random_uniform([HiddenUnits]),dtype=_tf.float32,name="bias")
+            Biases = _tf.Variable(_tf.random_uniform([ThisHiddenUnits]),dtype=_tf.float32,name="bias")
     
     return Weights,Biases
 
-#Construct the output layer for the NN.
+
 def _construct_output_layer(OutputUnits):
+    """#Constructs the output layer for the NN.
     
+    Args:
+        OutputUnits(int): Number of output units
+    
+    Returns:
+        Outputs (tensor): Output placeholder
+    """
     Outputs = _tf.placeholder(_tf.float32, shape=[None, OutputUnits])
 
     return Outputs
 
 
-#Make a not trainable layer with all weights being 1.
-#Returns two tensors(weights,biases).
 def _construct_not_trainable_layer(NrInputs,NrOutputs,Min):
-
+    """Make a not trainable layer with all weights being 1.
+    
+    Args:
+        NrInputs (int): Number of units in the previous layer
+        NrOutputs (int): Number of units in this layer
+        Min (float): Minimum of output shifts network output by
+        a constant value
+    
+    Returns:
+        Weights (tensor): Weights tensor
+        Biases (tensor): Biases tensor"""
 
     Weights=_tf.constant(_np.ones([NrInputs,NrOutputs]),dtype=_tf.float32)#, trainable=False)
     Biases=_tf.constant(_np.zeros([NrOutputs]),dtype=_tf.float32)#,trainable=False)
@@ -114,34 +163,47 @@ def _construct_not_trainable_layer(NrInputs,NrOutputs,Min):
 
     return Weights,Biases
 
- #Connect the outputs of the layer before to the current layer using an 
- #activation function.
- #Returns the connected tensor. 
-def _connect_layers(InputsForLayer,Layer1Weights,Layer1Bias,ActFun=None,FunParam=None,Dropout=0):
-   
+
+def _connect_layers(InputsForLayer,ThisLayerWeights,ThisLayerBias,ActFun=None,FunParam=None,Dropout=0):
+    """Connect the outputs of the layer before with the current layer using an 
+    activation function and matrix multiplication.
+    
+    Args:
+        InputsForLayer (tensor): Tensor of the previous layer
+        ThisLayerWeights (tensor): Weight tensor for this layer
+        ThisLayerBias (tensor): Bias tensor for this layer
+        ActFun (str): A value specifying the activation function for the layer
+            Possible values are:
+                sigmoid,tanh,relu,relu6,crelu,elu,softplus,dropout,bias_add,
+                none
+        FunParam(parameter): Parameter for the specified activation function
+        Dropout (float):Dropout (0-1 =>0%-100%) applied after this layer.
+    
+    Returns:
+        Out (tensor): The connected tensor."""
     if ActFun!=None:
         if ActFun=="sigmoid":
-            Out=_tf.nn.sigmoid(_tf.matmul(InputsForLayer, Layer1Weights) + Layer1Bias)
+            Out=_tf.nn.sigmoid(_tf.matmul(InputsForLayer, ThisLayerWeights) + ThisLayerBias)
         elif ActFun=="tanh":
-            Out=_tf.nn.tanh(_tf.matmul(InputsForLayer, Layer1Weights) + Layer1Bias)
+            Out=_tf.nn.tanh(_tf.matmul(InputsForLayer, ThisLayerWeights) + ThisLayerBias)
         elif ActFun=="relu":
-            Out=_tf.nn.relu(_tf.matmul(InputsForLayer, Layer1Weights) + Layer1Bias)
+            Out=_tf.nn.relu(_tf.matmul(InputsForLayer, ThisLayerWeights) + ThisLayerBias)
         elif ActFun=="relu6":
-            Out=_tf.nn.relu6(_tf.matmul(InputsForLayer, Layer1Weights) + Layer1Bias)
+            Out=_tf.nn.relu6(_tf.matmul(InputsForLayer, ThisLayerWeights) + ThisLayerBias)
         elif ActFun=="crelu":
-            Out=_tf.nn.crelu(_tf.matmul(InputsForLayer, Layer1Weights) + Layer1Bias)
+            Out=_tf.nn.crelu(_tf.matmul(InputsForLayer, ThisLayerWeights) + ThisLayerBias)
         elif ActFun=="elu":
-            Out=_tf.nn.elu(_tf.matmul(InputsForLayer, Layer1Weights) + Layer1Bias)
+            Out=_tf.nn.elu(_tf.matmul(InputsForLayer, ThisLayerWeights) + ThisLayerBias)
         elif ActFun=="softplus":
-            Out=_tf.nn.softplus(_tf.matmul(InputsForLayer, Layer1Weights) + Layer1Bias)
+            Out=_tf.nn.softplus(_tf.matmul(InputsForLayer, ThisLayerWeights) + ThisLayerBias)
         elif ActFun=="dropout":
-            Out=_tf.nn.dropout(_tf.matmul(InputsForLayer, Layer1Weights) + Layer1Bias,FunParam)
+            Out=_tf.nn.dropout(_tf.matmul(InputsForLayer, ThisLayerWeights) + ThisLayerBias,FunParam)
         elif ActFun=="bias_add":
-            Out=_tf.nn.bias_add(_tf.matmul(InputsForLayer, Layer1Weights) + Layer1Bias,FunParam)
+            Out=_tf.nn.bias_add(_tf.matmul(InputsForLayer, ThisLayerWeights) + ThisLayerBias,FunParam)
         elif ActFun == "none":
-            Out = _tf.matmul(InputsForLayer, Layer1Weights) + Layer1Bias
+            Out = _tf.matmul(InputsForLayer, ThisLayerWeights) + ThisLayerBias
     else:
-        Out=_tf.nn.sigmoid(_tf.matmul(InputsForLayer, Layer1Weights) + Layer1Bias)
+        Out=_tf.nn.sigmoid(_tf.matmul(InputsForLayer, ThisLayerWeights) + ThisLayerBias)
         
     if Dropout!=0:
         #Apply dropout between layers   
@@ -149,11 +211,36 @@ def _connect_layers(InputsForLayer,Layer1Weights,Layer1Bias,ActFun=None,FunParam
 
     return Out
 
-#Construct a basic NN.
-#Returns a tensor for the NN outout and the feeding placeholders for intput
-#and output,
-def make_feed_forward_neuralnetwork(Structure,HiddenType=None,HiddenData=None,BiasType=None,BiasData=None,ActFun=None,ActFunParam=None,Dropout=0):
 
+def make_feed_forward_neuralnetwork(Structure,WeightType=None,WeightData=None,BiasType=None,BiasData=None,ActFun=None,ActFunParam=None,Dropout=0):
+    """Creates a standard NN with the specified structure
+    
+    Args:
+        Structure (list): List of number of units per layer
+        WeightType (str):Specifies the type of weight initialization.
+            Possible values are:
+                zeros,ones,fill,random_normal,truncated_normal,
+                random_uniform,random_shuffle,random_crop,
+                random_gamma
+        WeightData (numpy array):Values for the weight initialization
+        BiasType (str):Specifies the type of bias initilization.
+            Possible values are:
+                zeros,ones,fill,random_normal,truncated_normal,
+                random_uniform,random_shuffle,random_crop,
+                random_gamma
+        BiasData (numpy array):Values for the bias initialization
+        ActFun (str):Specifies the activation function.
+            Possible values are:
+                sigmoid,tanh,relu,relu6,crelu,elu,softplus,dropout,bias_add,
+                none
+        ActFunParam(parameter): Parameter for the specified activation function
+        Dropout (float):Dropout (0-1 =>0%-100%) applied after this layer.
+        
+    Returns:
+        Network(tensor):Output of the NN
+        InputLayer(tensor):Input placeholders
+        OutputLayer (tensor): Output placeholders
+    """
     #Make inputs
     NrInputs=Structure[0]
     InputLayer=_construct_input_layer(NrInputs)
@@ -162,7 +249,7 @@ def make_feed_forward_neuralnetwork(Structure,HiddenType=None,HiddenData=None,Bi
     for i in range(1,len(Structure)):
         NrIn=Structure[i-1]
         NrHidden=Structure[i]
-        HiddenLayers.append(_construct_hidden_layer(NrIn,NrHidden,HiddenType,HiddenData[i-1],BiasType,BiasData[i-1]))
+        HiddenLayers.append(_construct_hidden_layer(NrIn,NrHidden,WeightType,WeightData[i-1],BiasType,BiasData[i-1]))
 
 
     #Make output layer
@@ -188,8 +275,19 @@ def make_feed_forward_neuralnetwork(Structure,HiddenType=None,HiddenData=None,Bi
     return Network,InputLayer,OutputLayer
 
 
- #Returns the cost function as a tensor.
 def cost_for_network(Prediction,ReferenceValue,Type):
+    """
+    Creates the specified cost function.
+     
+    Args:
+        Prediction (tensor):Prediction tensor of the network
+        ReferenceValue (tensor):Placeholder for the reference values
+        Type (str): Type of cost function
+            Possible values:
+                squared-difference,Adaptive_1,Adaptive_2
+    
+    Returns:
+        Cost(tensor): The cost function as a tensor."""
 
     if Type=="squared-difference":
         Cost=0.5*_tf.reduce_sum((Prediction-ReferenceValue)**2)
@@ -205,13 +303,22 @@ def cost_for_network(Prediction,ReferenceValue,Type):
                                 *(_tf.sigmoid(_tf.abs(Prediction-ReferenceValue+epsilon))-0.5)\
                                 +(0.5+_tf.sigmoid(_tf.abs(Prediction-ReferenceValue+epsilon)))\
                                 *_tf.abs(Prediction-ReferenceValue+epsilon))
-
+    
     return Cost
 
 
 
-#Calculates the runnung average over N steps.
+
 def running_mean(x,N):
+    """Calculates the runnung average over N steps.
+    
+    Args:
+        x(numpy array): Vector for the calculation
+        N (int): Number of values to average over
+    Returns:
+        A vector containing the running average of the input vector
+    
+    """
     cumsum=_np.cumsum(_np.insert(x,0,0))
     return (cumsum[N:]-cumsum[:-N])/N
 
@@ -435,14 +542,14 @@ class AtomicNeuralNetInstance(object):
         self.SizeOfInputsPerType=[]
         self.SizeOfInputsPerAtom=[]       
         self.NumberOfAtomsPerType=[]
-        self.HiddenType="truncated_normal"
-        self.BiasType="zeros"
+        self.WeightType="truncated_normal"
+        self.BiasType="truncated_normal"
         self.ActFun="elu"
         self.ActFunParam=None
         self.MakeLastLayerConstant=False
         self.Dropout=[0]
         self.IsPartitioned=False
-        self.ClippingValue=1
+        self.ClippingValue=100
         #Data 
         self.EvalData=[]
         self.TrainingBatches=[]
@@ -464,7 +571,7 @@ class AtomicNeuralNetInstance(object):
         self.MakeAllVariable=True
         self.Regularization="none"
         self.RegularizationParam=0.0
-        self.ForceCostParam=0.1
+        self.ForceCostParam=0.001
         self.InputDerivatives=False
         self.Multiple=False
         self.UseForce=False
@@ -509,7 +616,7 @@ class AtomicNeuralNetInstance(object):
         self._MinOfOut=None
         self._VarianceOfDs=[]
         self._BiasData=[]
-        self._HiddenData=[]
+        self._WeightData=[]
         self._FirstWeights=[]
         self._dE_Fun=None
         self._CurrentEpochNr=0
@@ -557,7 +664,7 @@ class AtomicNeuralNetInstance(object):
     
         #clipped minimization
         gvs = Optimizer.compute_gradients(self.CostFun)
-        capped_gvs = [(_tf.clip_by_value(grad, -self.ClippingValue, self.ClippingValue), var) for grad, var in gvs]
+        capped_gvs = [(_tf.clip_by_value(_tf.where(_tf.is_finite(grad),grad,_tf.zeros_like(grad)),-self.ClippingValue,self.ClippingValue), var) for grad, var in gvs]
         Optimizer=Optimizer.apply_gradients(capped_gvs,global_step=self.GlobalStep)
         
         return Optimizer
@@ -631,11 +738,11 @@ class AtomicNeuralNetInstance(object):
                 self._Net=_PartitionedAtomicNetwork() 
                 
             if ConvertToPartitioned:
-                self._HiddenData,self._BiasData=self._convert_standard_to_partitioned_net()
+                self._WeightData,self._BiasData=self._convert_standard_to_partitioned_net()
             else:
-                self._HiddenData,self._BiasData=self._Net.get_weights_biases_from_data(self.TrainedVariables,self.Multiple)
+                self._WeightData,self._BiasData=self._Net.get_weights_biases_from_data(self.TrainedVariables,self.Multiple)
 
-            self.HiddenType="truncated_normal"
+            self.WeightType="truncated_normal"
             self.InitMean=0
             self.InitStddev=0.01
             self.BiasType="zeros"
@@ -1349,13 +1456,13 @@ class AtomicNeuralNetInstance(object):
             self._convert_dataset(TakeAsReference)
     
 
-    def init_dataset(self,geometries,energies,g_derivatives=[],TakeAsReference=True):
+    def init_dataset(self,geometries,energies,forces=[],TakeAsReference=True):
         """Initializes a loaded dataset.
         
         Args:
             geometries (list): List of geomtries
             energies (list) : List of energies
-            g_derivaties (list): List of G-vector derivatives
+            forces (list): List of G-vector derivatives
             TakeAsReference (bool): Specifies if the MinOfOut Parameter 
                                     should be set according to this dataset"""
     
@@ -1363,7 +1470,7 @@ class AtomicNeuralNetInstance(object):
             self._DataSet=_DataSet.DataSet()
             self._DataSet.energies=energies
             self._DataSet.geometries=geometries
-            self._DataSet.g_derivaties=g_derivatives
+            self._DataSet.forces=forces
             if TakeAsReference:
                 self._VarianceOfDs=[]
                 self._MeansOfDs=[]
@@ -1457,8 +1564,8 @@ class AtomicNeuralNetInstance(object):
 
                 GeomData.append(self._AllGeometries[MyNr])
                 EnergyData[i]=self._DataSet.energies[MyNr]
-                if len(self._DataSet.g_derivaties)>0:
-                    ForceData[i]=[f for atom in self._DataSet.g_derivaties[MyNr] for f in atom]
+                if len(self._DataSet.forces)>0:
+                    ForceData[i]=[f for atom in self._DataSet.forces[MyNr] for f in atom]
                 if self.UseForce:
                     GDerivativesInput.append(self._AllGDerivatives[MyNr])
             
@@ -1580,7 +1687,7 @@ class AtomicNeuralNetInstance(object):
             Cost += self._RegLoss
             
         #Create tensor for energy difference calculation
-        self._dE_Fun=_tf.zeros(shape=[1])#_tf.abs(self._TotalEnergy-self._OutputLayer)
+        self._dE_Fun=_tf.abs(self._TotalEnergy-self._OutputLayer)
         
 
 
@@ -1709,7 +1816,7 @@ class _StandardAtomicNetwork(object):
             dEi_dGij_n=_tf.multiply(Gradient,norm)
             #idx=_tf.to_int32(_tf.where(finite_values))
             #dEi_dGij_n=_tf.scatter_nd(idx,dEi_dGij_n,_tf.shape(finite_values))
-            dEi_dGij_n=_tf.where(_tf.is_inf(dEi_dGij_n),_tf.zeros_like(dEi_dGij_n),dEi_dGij_n)
+            dEi_dGij_n=_tf.where(_tf.logical_or(_tf.is_inf(dEi_dGij_n),_tf.is_nan(dEi_dGij_n)),_tf.zeros_like(dEi_dGij_n),dEi_dGij_n)
             dEi_dGij=_tf.reshape(dEi_dGij_n,[-1,NetInstance.SizeOfInputsPerType[Type],1])
             mul=_tf.matmul(dGij_dxk_t,dEi_dGij)
             dim_red=_tf.reshape(mul,[-1,sum(NetInstance.NumberOfAtomsPerType)*3])
@@ -1880,7 +1987,7 @@ class _StandardAtomicNetwork(object):
         # make all layers
         if len(NetInstance.Structures)!= len(self.NumberOfAtomsPerType):
             raise ValueError("Length of Structures does not match length of NumberOfAtomsPerType")
-        if len(NetInstance._HiddenData) != 0:
+        if len(NetInstance._WeightData) != 0:
             for i in range(0, len(NetInstance.Structures)):
                 if len(NetInstance.Dropout)>i:
                     Dropout=NetInstance.Dropout[i]
@@ -1893,7 +2000,7 @@ class _StandardAtomicNetwork(object):
                     HiddenLayers = list()
                     Structure = NetInstance.Structures[i]
                     
-                    RawWeights = NetInstance._HiddenData[i]
+                    RawWeights = NetInstance._WeightData[i]
                     RawBias = NetInstance._BiasData[i]
                         
                     for j in range(1, len(Structure)):
@@ -1904,12 +2011,12 @@ class _StandardAtomicNetwork(object):
                         ThisBiasData = RawBias[j - 1]
         
                         HiddenLayers.append(
-                            _construct_hidden_layer(NrIn, NrHidden, NetInstance.HiddenType, ThisWeightData, NetInstance.BiasType,
+                            _construct_hidden_layer(NrIn, NrHidden, NetInstance.WeightType, ThisWeightData, NetInstance.BiasType,
                                                    ThisBiasData, NetInstance.MakeAllVariable))
                                    
                     # Make input layer
-                    if len(NetInstance._HiddenData) != 0:
-                        NrInputs = NetInstance._HiddenData[i][0].shape[0]
+                    if len(NetInstance._WeightData) != 0:
+                        NrInputs = NetInstance._WeightData[i][0].shape[0]
                     else:
                         NrInputs = Structure[0]
         
@@ -1971,7 +2078,7 @@ class _StandardAtomicNetwork(object):
                 # Make hidden layers
                 HiddenLayers = list()
                 Structure = NetInstance.Structures[i]
-                if len(NetInstance._HiddenData) != 0:
+                if len(NetInstance._WeightData) != 0:
                     
                     RawBias = NetInstance._BiasData[i]
     
@@ -1982,8 +2089,8 @@ class _StandardAtomicNetwork(object):
                         if j == len(Structure) - 1 and NetInstance.MakeLastLayerConstant == True:
                             HiddenLayers.append(_construct_not_trainable_layer(NrIn, NrHidden, NetInstance._MinOfOut))
                         else:
-                            if j >= len(NetInstance._HiddenData[i]) and NetInstance.MakeLastLayerConstant == True:
-                                tempWeights, tempBias = _construct_hidden_layer(NrIn, NrHidden, NetInstance.HiddenType, [], NetInstance.BiasType, [],
+                            if j >= len(NetInstance._WeightData[i]) and NetInstance.MakeLastLayerConstant == True:
+                                tempWeights, tempBias = _construct_hidden_layer(NrIn, NrHidden, NetInstance.WeightType, [], NetInstance.BiasType, [],
                                                                                True, NetInstance.InitMean, NetInstance.InitStddev)
                                 
                                 indices = []
@@ -2001,24 +2108,24 @@ class _StandardAtomicNetwork(object):
                             else:
                                 if len(RawBias) >= j:
                                     OldBiasNr = len(NetInstance._BiasData[i][j - 1])
-                                    OldShape = NetInstance._HiddenData[i][j - 1].shape
+                                    OldShape = NetInstance._WeightData[i][j - 1].shape
                                     # fill old weights in new structure
                                     if OldBiasNr < NrHidden:
                                         ThisWeightData = _np.random.normal(loc=0.0, scale=0.01, size=(NrIn, NrHidden))
-                                        ThisWeightData[0:OldShape[0], 0:OldShape[1]] = NetInstance._HiddenData[i][j - 1]
+                                        ThisWeightData[0:OldShape[0], 0:OldShape[1]] = NetInstance._WeightData[i][j - 1]
                                         ThisBiasData = _np.zeros([NrHidden])
                                         ThisBiasData[0:OldBiasNr] = NetInstance._BiasData[i][j - 1]
                                     elif OldBiasNr>NrHidden:
                                         ThisWeightData = _np.zeros((NrIn, NrHidden))
-                                        ThisWeightData[0:, 0:] = NetInstance._HiddenData[i][j - 1][0:NrIn,0:NrHidden]
+                                        ThisWeightData[0:, 0:] = NetInstance._WeightData[i][j - 1][0:NrIn,0:NrHidden]
                                         ThisBiasData = _np.zeros([NrHidden])
                                         ThisBiasData[0:OldBiasNr] = NetInstance._BiasData[i][j - 1][0:NrIn,0:NrHidden]
                                     else:
-                                        ThisWeightData = NetInstance._HiddenData[i][j - 1]
+                                        ThisWeightData = NetInstance._WeightData[i][j - 1]
                                         ThisBiasData = NetInstance._BiasData[i][j - 1]
         
                                     HiddenLayers.append(
-                                        _construct_hidden_layer(NrIn, NrHidden, NetInstance.HiddenType, ThisWeightData, NetInstance.BiasType,
+                                        _construct_hidden_layer(NrIn, NrHidden, NetInstance.WeightType, ThisWeightData, NetInstance.BiasType,
                                                                ThisBiasData, NetInstance.MakeAllVariable))
                                 else:
                                     raise ValueError("Number of layers doesn't match["+str(len(RawBias))+str(len(Structure))+"], MakeLastLayerConstant has to be set to True!")
@@ -2031,14 +2138,14 @@ class _StandardAtomicNetwork(object):
                         if j == len(Structure) - 1 and NetInstance.MakeLastLayerConstant == True:
                             HiddenLayers.append(_construct_not_trainable_layer(NrIn, NrHidden, NetInstance._MinOfOut))
                         else:
-                            HiddenLayers.append(_construct_hidden_layer(NrIn, NrHidden, NetInstance.HiddenType, [], NetInstance.BiasType))
+                            HiddenLayers.append(_construct_hidden_layer(NrIn, NrHidden, NetInstance.WeightType, [], NetInstance.BiasType))
     
                 AllHiddenLayers.append(HiddenLayers)
                 #create network for each atom
                 for k in range(0, NetInstance.NumberOfAtomsPerType[i]):
                     # Make input layer
-                    if len(NetInstance._HiddenData) != 0:
-                        NrInputs = NetInstance._HiddenData[i][0].shape[0]
+                    if len(NetInstance._WeightData) != 0:
+                        NrInputs = NetInstance._WeightData[i][0].shape[0]
                     else:
                         NrInputs = Structure[0]
     
@@ -2255,7 +2362,7 @@ class _PartitionedAtomicNetwork(object):
         NetInstance._Session=_tf.Session()
         if len(NetInstance.Structures)!= len(NetInstance.NumberOfAtomsPerType):
             raise ValueError("Length of Structures does not match length of NumberOfAtomsPerType")
-        if len(NetInstance._HiddenData) != 0:    
+        if len(NetInstance._WeightData) != 0:    
             # make all the networks for the different atom types
             for i in range(0, len(NetInstance.Structures)):
                 if len(NetInstance.Dropout)>i:
@@ -2287,7 +2394,7 @@ class _PartitionedAtomicNetwork(object):
                     #Construct networks out of loaded data
                     
                     #Load data for atom
-                    WeightData=NetInstance._HiddenData[i]
+                    WeightData=NetInstance._WeightData[i]
                     BiasData=NetInstance._BiasData[i]
                     if len(WeightData.ForceFieldNetworkData)>0:
                         
@@ -2301,7 +2408,7 @@ class _PartitionedAtomicNetwork(object):
                             ThisBiasData = ForceFieldBias[j - 1]
                             ForceFieldNrIn = ThisWeightData.shape[0]
                             ForceFieldNrHidden = ThisWeightData.shape[1]
-                            ForceFieldHiddenLayers.append(_construct_hidden_layer(ForceFieldNrIn, ForceFieldNrHidden, NetInstance.HiddenType, ThisWeightData, NetInstance.BiasType,ThisBiasData,WeightData.ForceFieldVariable,NetInstance.InitMean,NetInstance.InitStddev))
+                            ForceFieldHiddenLayers.append(_construct_hidden_layer(ForceFieldNrIn, ForceFieldNrHidden, NetInstance.WeightType, ThisWeightData, NetInstance.BiasType,ThisBiasData,WeightData.ForceFieldVariable,NetInstance.InitMean,NetInstance.InitStddev))
     
         
                     if len(WeightData.CorrectionNetworkData)>0:   
@@ -2315,13 +2422,13 @@ class _PartitionedAtomicNetwork(object):
                             ThisBiasData = CorrectionBias[j - 1]
                             CorrectionNrIn = ThisWeightData.shape[0]
                             CorrectionNrHidden = ThisWeightData.shape[1]
-                            CorrectionHiddenLayers.append(_construct_hidden_layer(CorrectionNrIn, CorrectionNrHidden, NetInstance.HiddenType, ThisWeightData, NetInstance.BiasType,ThisBiasData,WeightData.CorrectionVariable,NetInstance.InitMean,NetInstance.InitStddev))
+                            CorrectionHiddenLayers.append(_construct_hidden_layer(CorrectionNrIn, CorrectionNrHidden, NetInstance.WeightType, ThisWeightData, NetInstance.BiasType,ThisBiasData,WeightData.CorrectionVariable,NetInstance.InitMean,NetInstance.InitStddev))
     
                         
                     if len(ForceFieldHiddenLayers)>0:
                         # Make force field input layer
-                        ForceFieldHiddenData=NetInstance._HiddenData[i].ForceFieldNetworkData
-                        ForceFieldNrInputs = ForceFieldHiddenData[0].shape[0]
+                        ForceFieldWeightData=NetInstance._WeightData[i].ForceFieldNetworkData
+                        ForceFieldNrInputs = ForceFieldWeightData[0].shape[0]
         
                         ForceFieldInputLayer = _construct_input_layer(ForceFieldNrInputs)
                         # Connect force field input to first hidden layer
@@ -2340,8 +2447,8 @@ class _PartitionedAtomicNetwork(object):
         
                     if len(CorrectionHiddenLayers)>0:
                         # Make correction input layer
-                        CorrectionHiddenData=NetInstance._HiddenData[i].CorrectionNetworkData
-                        CorrectionNrInputs = CorrectionHiddenData[0].shape[0]
+                        CorrectionWeightData=NetInstance._WeightData[i].CorrectionNetworkData
+                        CorrectionNrInputs = CorrectionWeightData[0].shape[0]
         
                         CorrectionInputLayer = _construct_input_layer(CorrectionNrInputs)
                         # Connect Correction input to first hidden layer
@@ -2428,9 +2535,9 @@ class _PartitionedAtomicNetwork(object):
                 ForceFieldStructure=StructureForAtom.ForceFieldNetworkStructure
                 CorrectionStructure=StructureForAtom.CorrectionNetworkStructure
                 #Construct networks out of loaded data
-                if len(NetInstance._HiddenData) != 0:
+                if len(NetInstance._WeightData) != 0:
                     #Load data for atom
-                    WeightData=NetInstance._HiddenData[i]
+                    WeightData=NetInstance._WeightData[i]
                     BiasData=NetInstance._BiasData[i]
                     if len(WeightData.ForceFieldNetworkData)>0:
                         
@@ -2445,7 +2552,7 @@ class _PartitionedAtomicNetwork(object):
                             ThisBiasData = ForceFieldBias[j - 1]
                             ForceFieldNrIn = ThisWeightData.shape[0]
                             ForceFieldNrHidden = ThisWeightData.shape[1]
-                            ForceFieldHiddenLayers.append(_construct_hidden_layer(ForceFieldNrIn, ForceFieldNrHidden, NetInstance.HiddenType, ThisWeightData, NetInstance.BiasType,ThisBiasData,WeightData.ForceFieldVariable,NetInstance.InitMean,NetInstance.InitStddev))
+                            ForceFieldHiddenLayers.append(_construct_hidden_layer(ForceFieldNrIn, ForceFieldNrHidden, NetInstance.WeightType, ThisWeightData, NetInstance.BiasType,ThisBiasData,WeightData.ForceFieldVariable,NetInstance.InitMean,NetInstance.InitStddev))
     
                         NetworkHiddenLayers[0]=ForceFieldHiddenLayers
                         
@@ -2461,7 +2568,7 @@ class _PartitionedAtomicNetwork(object):
                             ThisBiasData = CorrectionBias[j - 1]
                             CorrectionNrIn = ThisWeightData.shape[0]
                             CorrectionNrHidden = ThisWeightData.shape[1]
-                            CorrectionHiddenLayers.append(_construct_hidden_layer(CorrectionNrIn, CorrectionNrHidden, NetInstance.HiddenType, ThisWeightData, NetInstance.BiasType,ThisBiasData,WeightData.CorrectionVariable,NetInstance.InitMean,NetInstance.InitStddev))
+                            CorrectionHiddenLayers.append(_construct_hidden_layer(CorrectionNrIn, CorrectionNrHidden, NetInstance.WeightType, ThisWeightData, NetInstance.BiasType,ThisBiasData,WeightData.CorrectionVariable,NetInstance.InitMean,NetInstance.InitStddev))
                          
                         NetworkHiddenLayers[1]=CorrectionHiddenLayers
                 
@@ -2470,7 +2577,7 @@ class _PartitionedAtomicNetwork(object):
                     for j in range(1, len(ForceFieldStructure)):
                         ForceFieldNrIn = ForceFieldStructure[j - 1]
                         ForceFieldNrHidden = ForceFieldStructure[j]
-                        ForceFieldHiddenLayers.append(_construct_hidden_layer(ForceFieldNrIn, ForceFieldNrHidden, NetInstance.HiddenType, [], NetInstance.BiasType,[],True,NetInstance.InitMean,NetInstance.InitStddev))
+                        ForceFieldHiddenLayers.append(_construct_hidden_layer(ForceFieldNrIn, ForceFieldNrHidden, NetInstance.WeightType, [], NetInstance.BiasType,[],True,NetInstance.InitMean,NetInstance.InitStddev))
     
                     NetworkHiddenLayers[0]=ForceFieldHiddenLayers
     
@@ -2479,7 +2586,7 @@ class _PartitionedAtomicNetwork(object):
                     for j in range(1, len(CorrectionStructure)):
                         CorrectionNrIn = CorrectionStructure[j - 1]
                         CorrectionNrHidden = CorrectionStructure[j]
-                        CorrectionHiddenLayers.append(_construct_hidden_layer(CorrectionNrIn, CorrectionNrHidden, NetInstance.HiddenType, [], NetInstance.BiasType,[],True,NetInstance.InitMean,NetInstance.InitStddev))
+                        CorrectionHiddenLayers.append(_construct_hidden_layer(CorrectionNrIn, CorrectionNrHidden, NetInstance.WeightType, [], NetInstance.BiasType,[],True,NetInstance.InitMean,NetInstance.InitStddev))
                     
                     NetworkHiddenLayers[1]=CorrectionHiddenLayers
                     
@@ -2491,8 +2598,8 @@ class _PartitionedAtomicNetwork(object):
                     if len(ForceFieldHiddenLayers)>0:
                         # Make force field input layer
                         if CreateNewForceField==False:
-                            ForceFieldHiddenData=NetInstance._HiddenData[i].ForceFieldNetworkData
-                            ForceFieldNrInputs = ForceFieldHiddenData[0].shape[0]
+                            ForceFieldWeightData=NetInstance._WeightData[i].ForceFieldNetworkData
+                            ForceFieldNrInputs = ForceFieldWeightData[0].shape[0]
                         else:
                             ForceFieldNrInputs = ForceFieldStructure[0]
         
@@ -2515,8 +2622,8 @@ class _PartitionedAtomicNetwork(object):
                     if len(CorrectionHiddenLayers)>0:
                         # Make correction input layer
                         if CreateNewCorrection==False:
-                            CorrectionHiddenData=NetInstance._HiddenData[i].CorrectionNetworkData
-                            CorrectionNrInputs = CorrectionHiddenData[0].shape[0]
+                            CorrectionWeightData=NetInstance._WeightData[i].CorrectionNetworkData
+                            CorrectionNrInputs = CorrectionWeightData[0].shape[0]
                         else:
                             CorrectionNrInputs = CorrectionStructure[0]
         
@@ -2604,7 +2711,7 @@ class MultipleInstanceTraining(object):
                 Instance.CostCriterium=0
                 Instance.dE_Criterium=0
                 Instance.IsPartitioned=self.IsPartitioned
-                Instance.HiddenType="truncated_normal"
+                Instance.WeightType="truncated_normal"
                 Instance.LearningRate=self.GlobalLearningRate
                 Instance.OptimizerType=self.GlobalOptimizer
                 Instance.Regularization=self.GlobalRegularization
