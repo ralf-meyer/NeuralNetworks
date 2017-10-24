@@ -26,35 +26,24 @@ if data_file=="":
     print("Option: -input x")
     exit
 
-#Get quantum espresso md run parser
-md_reader=_reader.QE_MD_Reader()
-md_reader.E_conv_factor=13.605698066 #From Ry to ev
-md_reader.Geom_conv_factor=1 #To Angstroem
-md_reader.get_files(data_file)
-#Read data
-md_reader.read_all_files()
-#Take minimum as zero
-md_reader.calibrate_energy()
 
 
 #Load trainings instance
 Training=_NN.AtomicNeuralNetInstance()
+#Read file
+Training.read_qe_md_files(data_file,"Ry")
 #Default symmetry function set
 Training.NumberOfRadialFunctions=25
 Training.Lambs=[1.0,-1.0]
 Training.Zetas=[0.025,0.045,0.075,0.1,0.15,0.2,0.3,0.5,0.7,1,1.5,2,3,5,10,18,36,100]
 Training.Etas=[0.1]   
 
-#Load trainings data
-Training.Atomtypes=md_reader.atom_types
-Training.init_dataset(md_reader.geometries,md_reader.e_pot_rel)
-
 #Create batches
-batch_size=len(md_reader.e_pot_rel)/50 
+batch_size=len(Training.energies)/50 
 Training.make_training_and_validation_data(batch_size,70,30)
 
 #Default trainings settings
-for i in range(len(md_reader.atom_types)):
+for i in range(len(Training.Atomtypes)):
     Training.Structures.append([Training.SizeOfInputs[0],100,100,40,20,1])
 
 
@@ -73,8 +62,7 @@ Training.OptimizerType="Adam"
 Training.SavingDirectory=model_dir
 Training.MakeLastLayerConstant=True
 Training.MakeAllVariable=False
-Training.NumberOfAtomsPerType=md_reader.nr_atoms_per_type
 #Load pretrained net
-Training.expand_existing_net(ModelName="pretrained_"+md_reader.nr_atoms_per_type+"_species/trained_variables")
+Training.expand_existing_net(ModelName="pretrained_"+str(len(Training.Atomtypes))+"_species/trained_variables")
 #Start training
 Training.start_batch_training()
