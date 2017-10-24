@@ -1,7 +1,6 @@
 #model training script
 import sys 
 from NeuralNetworks import NeuralNetworkUtilities as _NN
-from NeuralNetworks import ReadQEData as _reader
 
 #Get input
 plots=False
