@@ -442,7 +442,7 @@ class AtomicNeuralNetInstance(object):
         self.MakeLastLayerConstant=False
         self.Dropout=[0]
         self.IsPartitioned=False
-        
+        self.ClippingValue=1
         #Data 
         self.EvalData=[]
         self.TrainingBatches=[]
@@ -530,34 +530,36 @@ class AtomicNeuralNetInstance(object):
 
     def get_optimizer(self,CostFun):
         
-        All_Vars=_tf.trainable_variables()
         #Set optimizer
-        if self.OptimizerType==None:
-           Optimizer=_tf.train.GradientDescentOptimizer(self.LearningRateFun).minimize(CostFun,var_list=All_Vars,global_step=self.GlobalStep)
+        Optimizer=_tf.train.GradientDescentOptimizer(self.LearningRateFun)
+        if self.OptimizerType=="GradientDescent":
+            Optimizer=_tf.train.GradientDescentOptimizer(self.LearningRateFun)
+        elif self.OptimizerType=="Adagrad":
+            self._Optimizer=_tf.train.AdagradOptimizer(self.LearningRateFun)
+        elif self.OptimizerType=="Adadelta":
+            Optimizer=_tf.train.AdadeltaOptimizer(self.LearningRateFun)
+        elif self.OptimizerType=="AdagradDA":
+            Optimizer=_tf.train.AdagradDAOptimizer(self.LearningRateFun,self.OptimizerProp)
+        elif self.OptimizerType=="Momentum":
+            Optimizer=_tf.train.MomentumOptimizer(self.LearningRateFun,self.OptimizerProp)
+        elif self.OptimizerType=="Adam":
+            Optimizer=_tf.train.AdamOptimizer(self.LearningRateFun, beta1=0.9, beta2=0.999, epsilon=1e-08)
+        elif self.OptimizerType=="Ftrl":
+           Optimizer=_tf.train.FtrlOptimizer(self.LearningRateFun)
+        elif self.OptimizerType=="ProximalGradientDescent":
+            Optimizer=_tf.train.ProximalGradientDescentOptimizer(self.LearningRateFun)
+        elif self.OptimizerType=="ProximalAdagrad":
+            Optimizer=_tf.train.ProximalAdagradOptimizer(self.LearningRateFun)
+        elif self.OptimizerType=="RMSProp":
+            Optimizer=_tf.train.RMSPropOptimizer(self.LearningRateFun)
         else:
-            if self.OptimizerType=="GradientDescent":
-                Optimizer=_tf.train.GradientDescentOptimizer(self.LearningRateFun).minimize(CostFun,var_list=All_Vars,global_step=self.GlobalStep)
-            elif self.OptimizerType=="Adagrad":
-                self._Optimizer=_tf.train.AdagradOptimizer(self.LearningRateFun).minimize(CostFun,var_list=All_Vars,global_step=self.GlobalStep)
-            elif self.OptimizerType=="Adadelta":
-                Optimizer=_tf.train.AdadeltaOptimizer(self.LearningRateFun).minimize(CostFun,var_list=All_Vars,global_step=self.GlobalStep)
-            elif self.OptimizerType=="AdagradDA":
-                Optimizer=_tf.train.AdagradDAOptimizer(self.LearningRateFun,self.OptimizerProp).minimize(CostFun,var_list=All_Vars,global_step=self.GlobalStep)
-            elif self.OptimizerType=="Momentum":
-                Optimizer=_tf.train.MomentumOptimizer(self.LearningRateFun,self.OptimizerProp).minimize(CostFun,var_list=All_Vars,global_step=self.GlobalStep)
-            elif self.OptimizerType=="Adam":
-                Optimizer=_tf.train.AdamOptimizer(self.LearningRateFun, beta1=0.9, beta2=0.999, epsilon=1e-08).minimize(CostFun,var_list=All_Vars,global_step=self.GlobalStep)
-            elif self.OptimizerType=="Ftrl":
-               Optimizer=_tf.train.FtrlOptimizer(self.LearningRateFun).minimize(CostFun,var_list=All_Vars,global_step=self.GlobalStep)
-            elif self.OptimizerType=="ProximalGradientDescent":
-                Optimizer=_tf.train.ProximalGradientDescentOptimizer(self.LearningRateFun).minimize(CostFun,var_list=All_Vars,global_step=self.GlobalStep)
-            elif self.OptimizerType=="ProximalAdagrad":
-                Optimizer=_tf.train.ProximalAdagradOptimizer(self.LearningRateFun).minimize(CostFun,var_list=All_Vars,global_step=self.GlobalStep)
-            elif self.OptimizerType=="RMSProp":
-                Optimizer=_tf.train.RMSPropOptimizer(self.LearningRateFun).minimize(CostFun,var_list=All_Vars,global_step=self.GlobalStep)
-            else:
-                Optimizer=_tf.train.GradientDescentOptimizer(self.LearningRateFun).minimize(CostFun,var_list=All_Vars,global_step=self.GlobalStep)
-                
+            Optimizer=_tf.train.GradientDescentOptimizer(self.LearningRateFun)
+    
+        #clipped minimization
+        gvs = Optimizer.compute_gradients(self.CostFun)
+        capped_gvs = [(_tf.clip_by_value(grad, -self.ClippingValue, self.ClippingValue), var) for grad, var in gvs]
+        Optimizer=Optimizer.apply_gradients(capped_gvs,global_step=self.GlobalStep)
+        
         return Optimizer
     
     def initialize_network(self):
@@ -579,10 +581,9 @@ class AtomicNeuralNetInstance(object):
             
             #Set optimizer
             self._Optimizer=self.get_optimizer(self.CostFun)
-    
         except:
             print("Evaluation only no training supported if all networks are constant!")
-        #Initialize session
+            #Initialize session
         self._Session.run(_tf.global_variables_initializer())
         
     
@@ -1700,18 +1701,19 @@ class _StandardAtomicNetwork(object):
             dGij_dxk=AtomicNet[3]
             norm=AtomicNet[4]
             dGij_dxk_t=_tf.transpose(dGij_dxk,perm=[0,2,1])
-            temp=_tf.gradients(NetInstance._TotalEnergy,G_Input)[0]
+            Gradient=_tf.gradients(NetInstance._TotalEnergy,G_Input)
             #nan-workaround(may be fixed in later tensorflow versions)
             #finite_values=_tf.is_finite(temp)
             #temp = _tf.boolean_mask(temp,finite_values)
             #norm= _tf.boolean_mask(norm,finite_values)
-            dEi_dGij_n=_tf.multiply(temp,norm)
+            dEi_dGij_n=_tf.multiply(Gradient,norm)
             #idx=_tf.to_int32(_tf.where(finite_values))
             #dEi_dGij_n=_tf.scatter_nd(idx,dEi_dGij_n,_tf.shape(finite_values))
             dEi_dGij_n=_tf.where(_tf.is_inf(dEi_dGij_n),_tf.zeros_like(dEi_dGij_n),dEi_dGij_n)
             dEi_dGij=_tf.reshape(dEi_dGij_n,[-1,NetInstance.SizeOfInputsPerType[Type],1])
             mul=_tf.matmul(dGij_dxk_t,dEi_dGij)
             dim_red=_tf.reshape(mul,[-1,sum(NetInstance.NumberOfAtomsPerType)*3])
+
             #no_nan=_tf.logical_and(_tf.logical_not(_tf.is_nan(dim_red)),_tf.is_finite(dim_red))
             #F_no_nan= _tf.boolean_mask(temp,finite_values)
             #idx=_tf.to_int32(_tf.where(no_nan))
