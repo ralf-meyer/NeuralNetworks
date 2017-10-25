@@ -537,7 +537,7 @@ class QE_MD_Reader(object):
         self.e_pot=[]
         self.e_kin=[]
         self.forces=[]
-        self.e_pot_rel=[]
+        self.energies=[]
         self.temperature=[]
         self.geometries=[]
         self.Calibration=[] #list of tuples ,includes ("path to file",Nr of Atoms of this type)
@@ -599,7 +599,7 @@ class QE_MD_Reader(object):
         else: #Sets minimum as zero point 
             e_cal=min(self.e_pot)
                         
-        self.e_pot_rel=np.subtract(self.e_pot,e_cal)
+        self.energies=np.subtract(self.e_pot,e_cal)
         
 
 class QE_SCF_Reader(object):
