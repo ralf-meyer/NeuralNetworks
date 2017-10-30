@@ -446,9 +446,9 @@ def _initialize_cost_plot(TrainingData, ValidationData=[]):
     ax.set_ylabel("log(cost)")
     ax.set_title("Normalized cost per batch")
     if len(ValidationData) != 0:
-        fig.legend(handles=[TrainingCostPlot,ValidationCostPlot,RunningMeanPlot],labels=["Training cost","Valiation cost","Running avg"])
+        fig.legend(handles=[TrainingCostPlot,ValidationCostPlot,RunningMeanPlot],labels=["Training cost","Validation cost","Running avg"],loc=1)
     else:
-        fig.legend(handles=[TrainingCostPlot,RunningMeanPlot],labels=["Training cost","Running avg"])
+        fig.legend(handles=[TrainingCostPlot,RunningMeanPlot],labels=["Training cost","Running avg"],loc=1)
         
     # We need to draw *and* flush
     fig.canvas.draw()
@@ -851,11 +851,14 @@ class AtomicNeuralNetInstance(object):
         """
         if ".npy" not in ModelName:
             ModelName = ModelName + ".npy"
-            rare_model = _np.load(ModelName)
-            self.TrainedVariables = rare_model[0]
-            self._MeansOfDs = rare_model[1]
-            self._VarianceOfDs = rare_model[2]
-            self._MinOfOut = rare_model[3]
+            try:
+                rare_model = _np.load(ModelName)
+                self.TrainedVariables = rare_model[0]
+                self._MeansOfDs = rare_model[1]
+                self._VarianceOfDs = rare_model[2]
+                self._MinOfOut = rare_model[3]
+            except:
+                return 0
 
         return 1
 
@@ -904,6 +907,8 @@ class AtomicNeuralNetInstance(object):
             self.MakeAllVariable = MakeAllVariable
             # try:
             self.make_and_initialize_network()
+        else:
+            raise ValueError("No model found!")
             # except:
             #    print("Partitioned network loaded, please set IsPartitioned=True")
 
