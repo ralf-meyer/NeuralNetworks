@@ -7,7 +7,7 @@ plots=False
 learning_rate=0.0001
 epochs=1500
 data_file=""
-
+force=False
 for i,arg in enumerate(sys.argv):
     if "-input" in arg:
         data_file=sys.argv[i+1]
@@ -15,6 +15,8 @@ for i,arg in enumerate(sys.argv):
         model_dir=sys.argv[i+1]
     if "-epochs" in arg:
         epochs=sys.argv[i+1]
+    if "-force" in arg:
+        force=bool(sys.argv[i+1])
     if "-v" in arg:
         plots=True
     if "-lr" in arg:
@@ -29,21 +31,17 @@ if data_file=="":
 
 #Load trainings instance
 Training=_NN.AtomicNeuralNetInstance()
-#Read file
-Training.read_qe_md_files(data_file,"Ry")
+Training.UseForce=force
 #Default symmetry function set
-Training.NumberOfRadialFunctions=25
+Training.NumberOfRadialFunctions=20
 Training.Lambs=[1.0,-1.0]
 Training.Zetas=[0.025,0.045,0.075,0.1,0.15,0.2,0.3,0.5,0.7,1,1.5,2,3,5,10,18,36,100]
 Training.Etas=[0.1]   
-
-#Create batches
-batch_size=len(Training.energies)/50 
-Training.make_training_and_validation_data(batch_size,70,30)
-
+#Read file
+Training.read_qe_md_files(data_file,"Ry",TakeAsReference=False)
 #Default trainings settings
 for i in range(len(Training.Atomtypes)):
-    Training.Structures.append([Training.SizeOfInputs[0],100,100,40,20,1])
+    Training.Structures.append([Training.SizeOfInputsPerType[0],100,100,40,20,1])
 
 
 Training.Dropout=[0,0,0,0,0]
@@ -63,5 +61,11 @@ Training.MakeLastLayerConstant=True
 Training.MakeAllVariable=False
 #Load pretrained net
 Training.expand_existing_net(ModelName="pretrained_"+str(len(Training.Atomtypes))+"_species/trained_variables")
+
+#Create batches
+batch_size=len(Training._DataSet.energies)/50 
+Training.make_training_and_validation_data(batch_size,70,30)
+
+
 #Start training
 Training.start_batch_training()
