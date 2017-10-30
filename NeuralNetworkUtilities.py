@@ -445,7 +445,11 @@ def _initialize_cost_plot(TrainingData, ValidationData=[]):
     ax.set_xlabel("batches")
     ax.set_ylabel("log(cost)")
     ax.set_title("Normalized cost per batch")
-
+    if len(ValidationData) != 0:
+        fig.legend(handles=[TrainingCostPlot,ValidationCostPlot,RunningMeanPlot],labels=["Training cost","Valiation cost","Running avg"])
+    else:
+        fig.legend(handles=[TrainingCostPlot,RunningMeanPlot],labels=["Training cost","Running avg"])
+        
     # We need to draw *and* flush
     fig.canvas.draw()
     fig.canvas.flush_events()
@@ -899,7 +903,7 @@ class AtomicNeuralNetInstance(object):
             self.BiasType = "zeros"
             self.MakeAllVariable = MakeAllVariable
             # try:
-            self.make_and_initialize_network(self)
+            self.make_and_initialize_network()
             # except:
             #    print("Partitioned network loaded, please set IsPartitioned=True")
 
@@ -1076,7 +1080,7 @@ class AtomicNeuralNetInstance(object):
                 else:
                     self._Net = _PartitionedAtomicNetwork()
 
-        self._Net.make_atomic_networks(self)
+        self._Net.make_atomic_networks()
 
     def make_and_initialize_network(self):
         """Creates and initializes the specified network"""
@@ -3256,7 +3260,7 @@ class MultipleInstanceTraining(object):
                 LastStepsModelData = Instance.start_batch_training()
                 _tf.reset_default_graph()
                 self.GlobalSession = _tf.Session()
-                MultipleInstanceTraining.set_session(self)
+                self.set_session()
                 self.GlobalTrainingCosts += Instance.OverallTrainingCosts
                 self.GlobalValidationCosts += Instance.OverallValidationCosts
                 if ct % max(int((self.GlobalEpochs * len(self.TrainingInstances)) / 50),
