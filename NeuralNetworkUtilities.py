@@ -1540,7 +1540,7 @@ class AtomicNeuralNetInstance(object):
         # Get G vectors
 
         for i in range(0, NrGeom):
-
+            
             temp = _np.asarray(self._SymmFunSet.eval_geometry(
                 self._DataSet.geometries[i]))
 
@@ -1577,12 +1577,15 @@ class AtomicNeuralNetInstance(object):
                 InputsForTypeX = list(InputsForNetX)
             else:
                 InputsForTypeX += list(InputsForNetX)
-
-            if self.NumberOfAtomsPerType[ct] == i + 1:
-                self._MeansOfDs[ct] = _np.mean(InputsForTypeX, axis=0)
-                self._VarianceOfDs[ct] = _np.var(InputsForTypeX, axis=0)
-                InputsForTypeX = []
-                ct += 1
+            try:
+                if self.NumberOfAtomsPerType[ct] == i + 1:
+                    self._MeansOfDs[ct] = _np.mean(InputsForTypeX, axis=0)
+                    self._VarianceOfDs[ct] = _np.var(InputsForTypeX, axis=0)
+                    InputsForTypeX = []
+                    ct += 1
+            except:
+                raise ValueError(
+                        "Number of atoms per type did not match input!")
         # Output statistics
         if len(self._DataSet.energies) > 0:
             NormalizedEnergy = _np.divide(self._DataSet.energies, NrAtoms)
