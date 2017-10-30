@@ -1080,7 +1080,7 @@ class AtomicNeuralNetInstance(object):
                 else:
                     self._Net = _PartitionedAtomicNetwork()
 
-        self._Net.make_atomic_networks()
+        self._Net.make_atomic_networks(self)
 
     def make_and_initialize_network(self):
         """Creates and initializes the specified network"""
