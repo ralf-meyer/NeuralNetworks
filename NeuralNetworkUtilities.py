@@ -1585,7 +1585,7 @@ class AtomicNeuralNetInstance(object):
                     ct += 1
             except:
                 raise ValueError(
-                        "Number of atoms per type did not match input!")
+                        "Number of atoms per type does not match input!")
         # Output statistics
         if len(self._DataSet.energies) > 0:
             NormalizedEnergy = _np.divide(self._DataSet.energies, NrAtoms)
