@@ -2137,7 +2137,7 @@ class _StandardAtomicNetwork(object):
             if i == 0:
                 F = dim_red
             else:
-                F = _tf.add(F, dim_red)
+                F = _tf.scalar_mul(-1,_tf.add(F, dim_red))
             Fi.append(dim_red)
 
         return F, Fi
