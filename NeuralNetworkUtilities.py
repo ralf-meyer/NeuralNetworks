@@ -1288,6 +1288,26 @@ class AtomicNeuralNetInstance(object):
             The trained network in as a list
             (self._MinOfOut is the offset of the last bias node, necessary
              for tanh or sigmoid activation functions in the last layer)."""
+            
+        if self._DataSet is None:
+            raise Exception(
+                    "No dataset initialized please call\
+                    init_dataset first!")
+        if self._SymmFunSet is None:
+            raise Exception(
+                    "No symmetry function set initialized please call\
+                    create_symmetry_functions or init_dataset first!")
+            
+        if self._Net is None:
+            raise Exception(
+                    "No atomic network specified please call\
+                    make_and_initialize_network or expand_existing_net first!")
+            
+        if self.TrainingBatches ==[]:
+            raise Exception(
+                    "No training batches specified please call\
+                    make_training_and_validation_data first!")
+
 
         # Clear cost array for multi instance training
         self.OverallTrainingCosts = []
@@ -1519,7 +1539,13 @@ class AtomicNeuralNetInstance(object):
                 return [self.TrainedVariables, self._MinOfOut]
 
     def create_symmetry_functions(self):
-
+        
+        if self.Atomtypes==[]:
+            raise Exception("No Atomtypes specified!")
+            
+        if self.Etas==[]and self.Lambs==[] and self.Zetas==[]:
+            print("No angular symmetry functions specified!")
+        
         self.SizeOfInputsPerType = []
         self._SymmFunSet = _SymmetryFunctionSet.SymmetryFunctionSet(
             self.Atomtypes)
@@ -1887,6 +1913,16 @@ class AtomicNeuralNetInstance(object):
             TrainingSetInPercent (int): Discribes the coverage of the training dataset.(value from 0-100)
             TrainingSetInPercent (int): Discribes the coverage of the validation dataset.(value from 0-100)
             NoBatches (bool): Specifies if the data is split into differnt batches or only """
+        
+        if self._DataSet is None:
+            raise Exception(
+                    "No dataset initialized please call\
+                    init_dataset first!")
+        if self._SymmFunSet is None:
+            raise Exception(
+                    "No symmetry function set initialized please call\
+                    create_symmetry_functions or init_dataset first!")
+        
 
         if not NoBatches:
             # Get training data
@@ -2118,7 +2154,7 @@ class _StandardAtomicNetwork(object):
 
         Prediction = 0
         AllEnergies = list()
-
+        
         for i in range(0, len(self.AtomicNNs)):
             # Get network data
             AtomicNetwork = self.AtomicNNs[i]
