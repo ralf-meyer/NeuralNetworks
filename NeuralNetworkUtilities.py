@@ -908,7 +908,7 @@ class AtomicNeuralNetInstance(object):
             # try:
             self.make_and_initialize_network()
         else:
-            raise ValueError("No model found!")
+            raise ValueError("No model : "+str(ModelName))
             # except:
             #    print("Partitioned network loaded, please set IsPartitioned=True")
 
@@ -1526,12 +1526,13 @@ class AtomicNeuralNetInstance(object):
         self._SymmFunSet.add_radial_functions_evenly(
             self.NumberOfRadialFunctions)
         self._SymmFunSet.add_angular_functions(
-            self.Etas, self.Zetas, self.Lambs)
+                self.Etas, self.Zetas, self.Lambs)
         self.SizeOfInputsPerType = self._SymmFunSet.num_Gs
-
+        
         for i, a_type in enumerate(self.NumberOfAtomsPerType):
             for j in range(0, a_type):
                 self.SizeOfInputsPerAtom.append(self.SizeOfInputsPerType[i])
+                
 
     def _convert_dataset(self, TakeAsReference):
         """Converts the cartesian coordinates to a symmetry function vector and
@@ -1618,50 +1619,38 @@ class AtomicNeuralNetInstance(object):
             LoadGeometries(bool): Specifies if the conversion of the geometry
                                 coordinates should be performed."""
 
-        Execute = True
-        if len(self.Atomtypes) == 0:
-            print("No atom types specified!")
-            Execute = False
 
-        if Execute:
-            self._DataSet = _DataSet.DataSet()
-            self._Reader = _ReaderQE.QE_MD_Reader()
-            if energy_unit == "Ry":
-                self._Reader.E_conv_factor = 13.605698066
-            elif energy_unit == "H":
-                self._Reader.E_conv_factor = 27.211396132
-            elif energy_unit == "kcal/mol":
-                self._Reader.E_conv_factor = 0.043
-            elif energy_unit == "kJ/mol":
-                self._Reader.E_conv_factor = 0.01
-            else:
-                self._Reader.E_conv_factor = 1
+        self._DataSet = _DataSet.DataSet()
+        self._Reader = _ReaderQE.QE_MD_Reader()
+        if energy_unit == "Ry":
+            self._Reader.E_conv_factor = 13.605698066
+        elif energy_unit == "H":
+            self._Reader.E_conv_factor = 27.211396132
+        elif energy_unit == "kcal/mol":
+            self._Reader.E_conv_factor = 0.043
+        elif energy_unit == "kJ/mol":
+            self._Reader.E_conv_factor = 0.01
+        else:
+            self._Reader.E_conv_factor = 1
 
-            if dist_unit == "Bohr" or dist_unit == "au":
-                self._Reader.Geom_conv_factor = 0.529177249
-            else:
-                self._Reader.Geom_conv_factor = 1
+        if dist_unit == "Bohr" or dist_unit == "au":
+            self._Reader.Geom_conv_factor = 0.529177249
+        else:
+            self._Reader.Geom_conv_factor = 1
 
-            if len(self.Atomtypes) != 0:
-                self._Reader.atom_types = self.Atomtypes
-            else:
-                self.Atomtypes = self._Reader.atom_types
+        if len(self.Atomtypes) != 0:
+            self._Reader.atom_types = self.Atomtypes
+            
+        self._Reader.get_files(path)
+        self._Reader.read_all_files()
+        self._Reader.calibrate_energy()
+        self.Atomtypes = self._Reader.atom_types
+        self.NumberOfAtomsPerType = self._Reader.nr_atoms_per_type
+        self.init_dataset(self._Reader.geometries,self._Reader.energies,
+                     self._Reader.forces, TakeAsReference)
 
-            self._Reader.get_files(path)
-            self._Reader.read_all_files()
-            self._Reader.calibrate_energy()
 
-            self.NumberOfAtomsPerType = self._Reader.nr_atoms_per_type
-            self._DataSet.geometries = self._Reader.geometries
-            self._DataSet.energies = self._Reader.energies
-            if self.UseForce:
-                self._DataSet.forces = self._Reader.forces
-
-            self.create_symmetry_functions()
-            print("Added dataset!")
-
-        if LoadGeometries:
-            self._convert_dataset(TakeAsReference)
+        
 
     def read_lammps_files(
             self,
@@ -1680,47 +1669,32 @@ class AtomicNeuralNetInstance(object):
             LoadGeometries(bool): Specifies if the conversion of the geometry
                                 coordinates should be performed."""
 
-        Execute = True
-        if len(self.Atomtypes) == 0:
-            print("No atom types specified!")
-            Execute = False
 
-        if Execute:
+        self._DataSet = _DataSet.DataSet()
+        self._Reader = _ReaderLammps.LammpsReader()
+        if energy_unit == "Ry":
+            self._Reader.E_conv_factor = 13.605698066
+        elif energy_unit == "H":
+            self._Reader.E_conv_factor = 27.211396132
+        elif energy_unit == "kcal/mol":
+            self._Reader.E_conv_factor = 0.043
+        elif energy_unit == "kJ/mol":
+            self._Reader.E_conv_factor = 0.01
+        else:
+            self._Reader.E_conv_factor = 1
 
-            self._DataSet = _DataSet.DataSet()
-            self._Reader = _ReaderLammps.LammpsReader()
-            if energy_unit == "Ry":
-                self._Reader.E_conv_factor = 13.605698066
-            elif energy_unit == "H":
-                self._Reader.E_conv_factor = 27.211396132
-            elif energy_unit == "kcal/mol":
-                self._Reader.E_conv_factor = 0.043
-            elif energy_unit == "kJ/mol":
-                self._Reader.E_conv_factor = 0.01
-            else:
-                self._Reader.E_conv_factor = 1
+        if dist_unit == "Bohr" or dist_unit == "au":
+            self._Reader.Geom_conv_factor = 0.529177249
+        else:
+            self._Reader.Geom_conv_factor = 1
 
-            if dist_unit == "Bohr" or dist_unit == "au":
-                self._Reader.Geom_conv_factor = 0.529177249
-            else:
-                self._Reader.Geom_conv_factor = 1
+        self._Reader.read_lammps(XYZFile, LogFile)
+        self.Atomtypes = self._Reader.atom_types
+        self.NumberOfAtomsPerType = self._Reader.nr_atoms_per_type
+        self.init_dataset(self._Reader.geometries,self._Reader.energies,
+                     self._Reader.forces, TakeAsReference)
 
-            if len(self.Atomtypes) != 0:
-                self._Reader.atom_types = self.Atomtypes
-            else:
-                self.Atomtypes = self._Reader.atom_types
-
-            self._Reader.read_lammps(XYZFile, LogFile)
-            self._DataSet.geometries = self._Reader.geometries
-            self._DataSet.energies = self._Reader.energies
-            if self.UseForce:
-                self._DataSet.forces = self._Reader.forces
-
-            self.create_symmetry_functions()
-            print("Added dataset!")
-
-        if LoadGeometries:
-            self._convert_dataset(TakeAsReference)
+        print("Added dataset!")
 
     def init_dataset(self, geometries, energies,
                      forces=[], TakeAsReference=True):
@@ -1812,6 +1786,7 @@ class AtomicNeuralNetInstance(object):
             EnergyData = _np.empty((BatchSize, 1))
             ForceData = _np.empty(
                 (BatchSize, sum(self.NumberOfAtomsPerType) * 3))
+
             if not NoBatches:
                 if BatchSize > len(self._AllGeometries) / 10:
                     BatchSize = int(BatchSize / 10)
@@ -1961,13 +1936,16 @@ class AtomicNeuralNetInstance(object):
         if self.Regularization == "L1":
             trainableVars = _tf.trainable_variables()
             l1_regularizer = _tf.contrib.layers.l1_regularizer(
-                scale=0.005, scope=None)
-            Cost += _tf.contrib.layers.apply_regularization(
+                scale=self.RegularizationParam, scope=None)
+            self._RegLoss = _tf.contrib.layers.apply_regularization(
                 l1_regularizer, trainableVars)
+            Cost += self._RegLoss
         elif self.Regularization == "L2":
             trainableVars = _tf.trainable_variables()
-            self._RegLoss = _tf.add_n([_tf.nn.l2_loss(v) for v in trainableVars
-                                       if 'bias' not in v.name]) * self.RegularizationParam
+            l2_regularizer=_tf.contrib.layers.l2_regularizer(
+                    scale=self.RegularizationParam, scope=None)
+            self._RegLoss = _tf.contrib.layers.apply_regularization(
+                l2_regularizer, trainableVars)
             Cost += self._RegLoss
 
         # Create tensor for energy difference calculation
@@ -2002,6 +1980,7 @@ class AtomicNeuralNetInstance(object):
                         (BatchSize, self.SizeOfInputsPerAtom[ct], 3 * sum(self.NumberOfAtomsPerType))))
                     Norm.append(
                         _np.zeros((BatchSize, self.SizeOfInputsPerAtom[ct])))
+                    
                 # exclude nan values
                 L = _np.nonzero(VarianceOfDs)
 
