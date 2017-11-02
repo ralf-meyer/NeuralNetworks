@@ -4,6 +4,7 @@ from NeuralNetworks.SymmetryFunctionSet import SymmetryFunctionSet as SymFunSet_
 import numpy as np
 
 class LibraryTest(unittest.TestCase):
+
     def test_derivaties(self):
         sfs_cpp = SymFunSet_cpp(["Ni", "Au"], cutoff = 10.)
         pos = np.array([[0.0, 0.0, 0.0],
