@@ -24,5 +24,7 @@ setup(
     version="0.0.1",
     description="Neural Networks Potentials",
     install_requires=["Numpy"],
+    packages=["NeuralNetworks"],
+    package_dir={"": "../"},
     cmdclass={'install': CustomInstall}
 )
