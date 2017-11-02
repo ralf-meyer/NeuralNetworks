@@ -1,0 +1,33 @@
+
+units          metal
+dimension      3
+atom_style     atomic
+boundary       f  f  f
+pair_style     meam
+read_data      data.Gold
+
+pair_coeff     * * /home/rmeyer/lammps/potentials/library.meam Au NULL Au
+
+timestep       0.002
+
+# Output
+dump           1 all xyz 1 Au_md.xyz
+dump_modify    1 element Au
+dump           2 all custom 1 Au_md.dump element x y z fx fy fz
+dump_modify    2 element Au
+dump_modify    2 sort id
+thermo_style   custom step temp etotal pe press vol enthalpy
+thermo         1
+
+fix            walls all wall/reflect xlo EDGE xhi EDGE ylo EDGE yhi EDGE zlo EDGE zhi EDGE
+
+velocity       all create 10000.0 4928459 rot yes mom yes dist gaussian
+fix            1 all momentum 100 linear 1 1 1 angular
+
+###
+
+#fix            2 all nve
+fix            2 all nvt temp 10000.0 10000.0 100.0
+
+# Run the simulation
+run            100000
