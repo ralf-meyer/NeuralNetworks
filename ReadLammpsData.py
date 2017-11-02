@@ -1,7 +1,6 @@
-
-import numpy as _np
 import re as _re
 from os.path import isfile
+import numpy as _np
 
 class LammpsReader(object): 
 
@@ -78,46 +77,45 @@ class LammpsReader(object):
     #---
 
     
-    def read_lammps(self, xyzfile, thermofile, dumpfile):
+    def read_lammps(self, dumpfile, xyzfile, thermofile):
         """Extracts data like atom types. geometries and forces from LAMPS
-        result files.
+        result files (thermo file, custom dum and xyz-files).
+        It will try to use the dump file first to find geometries and forces.
+        If the dump if not found the geometries will be read from xyz-file.
+        The energy is currently read from xyz file. 
+        
+        If unit conversion factors are set they will be applied automatically.
+        Further on, atoms will be labeled automatically if atom types were set.
 
         Args: 
             xyzfile: path to .xyz-file output by LAMPS.
             thermofile: path to the .log file output by LAMPS.
             dumpfile: path to a custom dump file in the following format:
                 TODO: specify format of dump file here.
-
-
-        TODO: 
-            x read atomic species from dump file, Except they are set already. 
-            * read energy and factor by conversion factors (have to be set.)
-            * read geometries and factor by conversion.. (from either dump or xyz)
-                Format: List of tuple(
-                    string Name of Atom, i.e. species + number;
-                    nparray positions)
-            * read forces from dump. If not dump given leave empty arr.
-                Format: List of nparrays or lists. 
         """
 
-        if not isfile(dumpfile):
-            msg = "Invalid file path: {0} is not a file!".format(dumpfile)
-            raise ValueError(msg)
-        if not isfile(xyzfile):
-            msg = "Invalid file path: {0} is not a file!".format(dumpfile)
-            raise ValueError(msg)
-        if not isfile(thermofile):
-            msg = "Invalid file path: {0} is not a file!".format(dumpfile)
-            raise ValueError(msg)
+        # read geometries and forces and species from dump file
+        if isfile(dumpfile):
+            self._read_from_dump(dumpfile)
+        else:
+            msg = "Dump file not found at {0}.\n".format(dumpfile)
+            msg += "Trying xyz file ..."
+            print(msg)
 
-        #read geometries and forces and species from dump file
-        self._read_from_dump(dumpfile)
-
-        # try to acquire species and geometries from xyzfile
-        self._read_geometries_from_xyz(xyzfile)
+            if isfile(xyzfile):
+                # try to acquire species and geometries from xyzfile
+                self._read_geometries_from_xyz(xyzfile)
+            else:
+                msg = "XYZ file not found at {0}.\n".format(xyzfile)
+                raise ValueError("Neither dump nor xyz file given!")
 
         # read energies and potentials
-        self._read_energies_from_thermofile(thermofile)
+        if isfile(thermofile):
+            self._read_energies_from_thermofile(thermofile)
+        else:
+            msg = "Invalid file path: {0} is not a file!".format(dumpfile)
+            raise ValueError(msg)
+        
 
     def _read_from_dump(self, dumpfile):
         """reads species, geometries and forces from dump file.
@@ -198,7 +196,6 @@ class LammpsReader(object):
 
                     # toggle flag is information on species was acquired
                     if species_unknown:
-                        # self._species.sorted # nt sure ob ich das sortiederen soll?
                         species_unknown = False
                         
         except IOError as e:
@@ -209,26 +206,53 @@ class LammpsReader(object):
             print(msg)
 
     def _read_geometries_from_xyz(self, xyzfile):
-        """read geometries from xyz file"""
+        
+        # check if species already set
+        species_unknown = len(self._species) == 0
+        number_of_atoms_total = None if species_unknown else len(self._species)
+
         try:
             with open(xyzfile, "r") as f_xyz:
-                counter = 0
+                counter = -1
+
                 for line in f_xyz:
-                    if counter == 0: 
+                    # read number of atoms if not known yet
+                    if number_of_atoms_total is None:
+                        number_of_atoms_total = int(line)
+
+                    if counter == -1: 
                         # New geometry, read number of atoms and skip the comment
-                        # line
+                    
                         geo = []
-                        counter = int(line)
+                        counter = 0
+
                         next(f_xyz)
                         continue
-                    else:                
+
+                    else: 
+                        # read geometries
                         sp = line.split()
-                        geo.append((sp[0],_np.array([float(sp[1]), 
-                                    float(sp[2]), float(sp[3])])))
-                        counter -= 1
-                        if counter == 0:
+
+                        if species_unknown:
+                            self._species.append(sp[0])
+                        
+                        geo.append(
+                            (self._species[counter],
+                            _np.array(map(float, sp[1:4])) \
+                            * self._geometry_conversion_factor)
+                        )
+
+                        counter += 1
+
+                        if counter == number_of_atoms_total:
                             # Current geometry finished -> save to self.geometries
                             self.geometries.append(geo)
+                            counter = -1
+
+                            # toggle flag to look for species
+                            if species_unknown:
+                                species_unknown = False
+    
         except Exception as e:
             print("Error reading xyz file: {0}".format(e.message))
         
@@ -243,15 +267,9 @@ class LammpsReader(object):
                     elif switch and line.startswith("Loop time"):
                         switch = False
                     elif switch:
-                        self.energies.append(float(line.split()[ind]))
+                        self.energies.append(
+                            float(line.split()[ind]) \
+                            * self._energy_conversion_factor
+                        )
         except Exception as e:
             print("Error reading thermodynamics file: {0}".format(e.message))
-
-
-if __name__ == '__main__':
-
-    # just for testing ;)
-    reader = LammpsReader()
-    reader._read_from_dump("./Tests/TestData/Lammps/Au_md.dump")
-
-    pass
