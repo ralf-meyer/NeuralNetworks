@@ -1,8 +1,8 @@
 import unittest
 
-def fun(x):
-    return x + 1
+tests = ['dummy_test.py',]
 
-class DummyTest(unittest.TestCase):
-    def test(self):
-        self.assertEqual(fun(3), 4)
+if __name__ == '__main__':
+    testsuite = unittest.TestLoader().loadTestsFromNames(tests)
+    unittest.TextTestRunner(verbosity=1).run(testsuite)
+    
