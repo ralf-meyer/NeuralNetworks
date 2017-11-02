@@ -4,7 +4,7 @@
 Status
 ------
 
-Below you find the status on [Travis-CI](https://travis-ci.org/ralf-meyer/NeuralNetworks) for the release branches.
+Below you find the status on [Travis-CI](https://travis-ci.org/ralf-meyer/NeuralNetworks) for the relevant branches.
 
 | Branch   |      Status   | 
 |:--------:|:-------------:|
