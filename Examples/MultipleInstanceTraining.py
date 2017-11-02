@@ -20,7 +20,7 @@ Training2=NN.AtomicNeuralNetInstance()
 
 Training.XYZfile="curve.xyz"
 Training.Logfile="md.curve"
-Training.SymmFunKeys=["1","2"]
+Training.Atomtypes=["1","2"]
 Training.NumberOfRadialFunctions=5
 Training.Lambs=[1.0,-1.0]
 Training.Zetas=np.arange(0.1,5,0.5).tolist()
@@ -35,7 +35,7 @@ Training.NumberOfSameNetworks.append(1)
 
 Training2.XYZfile="NiAu_data_2AU1Ni.xyz"
 Training2.Logfile="log.3atoms"
-Training2.SymmFunKeys=["1","2"]
+Training2.Atomtypes=["1","2"]
 Training2.NumberOfRadialFunctions=5
 Training2.Lambs=[1.0,-1.0]
 Training2.Zetas=np.arange(0.1,5,0.5).tolist()

@@ -61,7 +61,7 @@ Evaluation=NN.AtomicNeuralNetInstance()
 
 Training.XYZfile="/home/afuchs/Lammps-Rechnungen/H2O/water.xyz"
 Training.Logfile="/home/afuchs/Lammps-Rechnungen/H2O/log.water"
-Training.atomtypes=["O","H"]
+Training.Atomtypes=["O","H"]
 Training.NumberOfRadialFunctions=7
 #angular symmetry function settings
 Training.Lambs=[1.0,-1.0]
@@ -104,7 +104,7 @@ Training.start_batch_training()
 
 
 #Load second trainings data
-Training2.atomtypes=["O","H"]
+Training2.Atomtypes=["O","H"]
 Training2.NumberOfRadialFunctions=7
 #angular symmetry function settings
 Training2.Lambs=[1.0,-1.0]

@@ -12,6 +12,8 @@ import matplotlib.pyplot as plt
 from NeuralNetworks import ReadQEData as reader
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
+import time
+import copy
 #from NeuralNetworks import ClusterGeometries
 import scipy
 import pyQChem as qc
@@ -110,11 +112,11 @@ Evaluation=NN.AtomicNeuralNetInstance()
 #ref_e=ref_e-min(ref_e)
 nr_atoms=2
 md_reader_h=reader.QE_MD_Reader()
-for i in range(nr_atoms):
-    md_reader_h.atom_types.append("H"+str(i+1))
+#for i in range(nr_atoms):
+#    md_reader_h.atom_types.append("H"+str(i+1))
 md_reader_h.E_conv_factor=13.605698066
 md_reader_h.Geom_conv_factor=0.529177249
-md_reader_h.get_files("/home/afuchs/QE-Rechnungen/pw.x/H_MD/Train")
+md_reader_h.get_files("/home/afuchs/QE-Rechnungen/pw.x/H_MD/Md_run/H_2.out")
 md_reader_h.read_all_files()
 #md_reader_h.Calibration.append(("/home/afuchs/QE-Rechnungen/pw.x/H2O/single_atoms/h.out",6))
 md_reader_h.calibrate_energy()
@@ -139,60 +141,89 @@ niau_energies=md_reader.e_pot_rel-min(md_reader.e_pot_rel)
 #all_energies =  list((np_energies-np.min(np_energies)))
 #train_e=list(ref_e)+list(ref_e2)
 #train_geoms=scf_geoms+md_reader.geometries
-
-Training.atomtypes=["H"]
+Training.UseForce=True
+Training.Structures=[]
+Training.NumberOfAtomsPerType=[]
+Training.Atomtypes=["H"]
 Training.NumberOfRadialFunctions=20
-
+NrH=4
+Training.NumberOfAtomsPerType.append(NrH)
 #angular symmetry function settings
 Training.Lambs=[1.0,-1.0]
 Training.Zetas=[0.025,0.045,0.075,0.1,0.15,0.2,0.3,0.5,0.7,1,1.5,2,3,5,10,18,36,100]
 Training.Etas=[0.1]   
+Training.create_symmetry_functions()
 #Training.init_dataset(train_geoms,train_e)
 h_energies=md_reader_h.e_pot_rel-min(md_reader_h.e_pot_rel)
-Training.init_dataset(md_reader_h.geometries,h_energies)
-Training.make_training_and_validation_data(10,70,30)
+#Training.init_dataset(md_reader_h.geometries,h_energies,md_reader_h.forces)
+#Training.make_training_and_validation_data(20,70,30)
+
+MyGeom=md_reader_h.geometries[0]
+GeomMdx=copy.deepcopy(MyGeom)
+GeomPdx=copy.deepcopy(MyGeom)
+dx=np.zeros(3)
+
+h=1E-6
+dx[0]=dx[0]+h
+Mdx=MyGeom[0][1]-dx
+Pdx=MyGeom[0][1]+dx
+
+
+
+GeomMdx[0][1][0]=Mdx[0]
+GeomMdx[0][1][1]=Mdx[1]
+GeomMdx[0][1][2]=Mdx[2]
+
+GeomPdx[0][1][0]=Pdx[0]
+GeomPdx[0][1][1]=Pdx[1]
+GeomPdx[0][1][2]=Pdx[2]
+
+#Data=Training.create_eval_data()
 
 
 
 #Train with data 
 #NrO=3
-NrH=6
-Training.Structures=[]
-Training.NumberOfAtomsPerType=[]
-Training.Structures.append([Training.SizeOfInputs[0],100,100,1])
-Training.Dropout=[0,0.5,0]
+
+
+Training.Structures.append([Training.SizeOfInputsPerType[0],80,80,20,1])
+Training.Dropout=[0,0]
 #Training.NumberOfAtomsPerType.append(NrO)
 #Training.Structures.append([Training.SizeOfInputs[1],80,25,1])
-Training.NumberOfAtomsPerType.append(NrH)
+
 Training.HiddenType="truncated_normal"
 Training.HiddenData=list()
 Training.BiasData=list()
 Training.ActFun="elu"
 Training.LearningRate=0.005
 Training.dE_Criterium=0
-Training.Epochs=20000
-#
+Training.Epochs=200
 Training.MakePlots=True
 Training.OptimizerType="Adam"
-Training.Regularization="L2"
+Training.Regularization="none"
 Training.CostFunType="Adaptive_2"
 Training.LearningRateType="exponential_decay"
 Training.SavingDirectory="pretraining"
 Training.LearningDecayEpochs=100
-Training.RegularizationParam=0.1
-Training.MakeLastLayerConstant=True
+Training.RegularizationParam=0.01
+#Training.MakeLastLayerConstant=True
 Training.make_and_initialize_network()
 #Training.expand_existing_net(ModelName="save_h2o/trained_variables")
 #Start first training
-
-Training.start_batch_training()
-
+Pred=Training.energy_for_geometry([GeomMdx,GeomPdx,MyGeom])
+print(Pred[0])
+print(Pred[1])
+F=(Pred[1]-Pred[0])/(2*h)
+F_a=Training.force_for_geometry([GeomMdx,GeomPdx,MyGeom])[-1][0]
+print([F[0],F_a])
+#Training.start_batch_training()
+time.sleep(10000)
 #
 #Load second trainings data
 
 #Training2.TrainingBatches=Training.TrainingBatches
 #Training2.ValidationBatches=Training.ValidationBatches
-Training2.atomtypes=["Ni","Au"]
+Training2.Atomtypes=["Ni","Au"]
 Training2.NumberOfRadialFunctions=20
 Training2.Lambs=[1.0,-1.0]
 Training2.Zetas=[0.025,0.045,0.075,0.1,0.15,0.2,0.3,0.5,0.7,1,1.5,2,3,5,10,18,36,100]
@@ -224,7 +255,7 @@ NrAu=7
 Training2.NumberOfAtomsPerType=[]
 Training2.NumberOfAtomsPerType.append(NrNi)
 Training2.NumberOfAtomsPerType.append(NrAu)
-Training2.expand_existing_net(ModelName="pretraining/trained_variables",Pretraining=True)
+Training2.expand_existing_net(ModelName="pretraining/trained_variables")
 Training2.start_batch_training()
 
 #start evaluation

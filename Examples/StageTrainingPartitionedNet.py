@@ -19,7 +19,7 @@ Training2=NN.AtomicNeuralNetInstance()
 
 Training.XYZfile="NiAu_data.xyz"
 Training.Logfile="log.md"
-Training.atomtypes=["1","2"]
+Training.Atomtypes=["1","2"]
 Training.NumberOfRadialFunctions=6
 #angular symmetry function settings
 Training.Lambs=[1.0,-1.0]
@@ -35,7 +35,7 @@ Training.make_training_and_validation_data(100,70,30)
 
 Training2.XYZfile="NiAu_data_2AU1Ni.xyz"
 Training2.Logfile="log.3atoms"
-Training2.atomtypes=["1","2"]
+Training2.Atomtypes=["1","2"]
 Training2.NumberOfRadialFunctions=6
 #angular symmetry function settings
 Training2.Lambs=[1.0,-1.0]
