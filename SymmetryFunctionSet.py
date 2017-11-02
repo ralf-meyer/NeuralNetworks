@@ -4,8 +4,8 @@ from itertools import product, combinations_with_replacement
 import SymmetryFunctions as SFs
 import numpy as _np
 import ctypes as _ct
-#from scipy.spatial.distance import pdist, squareform
-#from scipy.misc import comb
+from scipy.spatial.distance import pdist, squareform
+from scipy.misc import comb
 
 try:
     module_path = dirname(abspath(getsourcefile(lambda:0)))
