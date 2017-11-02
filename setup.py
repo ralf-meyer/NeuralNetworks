@@ -4,7 +4,7 @@ from setuptools import setup
 from subprocess import call
 
 base_path = os.path.dirname(os.path.abspath(__file__))
-lib_path = os.path.join(base_path, 'symmetryFunctions')
+lib_path = os.path.join(base_path, "symmetryFunctions")
 
 class CustomInstall(install):
     """
@@ -15,16 +15,18 @@ class CustomInstall(install):
 
         def compile_library():
             call("make", cwd=lib_path)
-        self.execute(compile_library, [],  'Compiling shared library')
+        self.execute(compile_library, [],  "Compiling shared library")
         # copy all the files to the /usr/local/lib/python2.7/dist-package
         install.run(self)
 
 setup(
     name="NeuralNetworks",
-    version="0.0.1",
+    version="0.1",
     description="Neural Networks Potentials",
     install_requires=["numpy", "scipy"],
     packages=["NeuralNetworks"],
     package_dir={"": "../"},
-    cmdclass={'install': CustomInstall}
+    package_data={"": ["symmetryFunctions/libSymFunSet.so"]},
+    include_package_data=True,
+    cmdclass={"install": CustomInstall}
 )
