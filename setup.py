@@ -4,7 +4,7 @@ from setuptools import setup
 from subprocess import call
 
 base_path = os.path.dirname(os.path.abspath(__file__))
-lib_path = os.path.join(base_path, "symmetryFunctions")
+lib_path = os.path.join(base_path, "lib/symmetryFunctions")
 
 class CustomInstall(install):
     """
@@ -26,7 +26,7 @@ setup(
     install_requires=["numpy", "scipy", "progressbar2", "tensorflow"],
     packages=["NeuralNetworks"],
     package_dir={"": "../"},
-    package_data={"": ["symmetryFunctions/libSymFunSet.so"]},
+    package_data={"": ["lib/symmetryFunctions/libSymFunSet.so"]},
     include_package_data=True,
     cmdclass={"install": CustomInstall}
 )
