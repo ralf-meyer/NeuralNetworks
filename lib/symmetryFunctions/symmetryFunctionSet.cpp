@@ -10,6 +10,7 @@ anything between these tags.
 #include <limits>
 #include <math.h>
 #include <algorithm>
+#include <string.h>
 
 SymmetryFunctionSet::SymmetryFunctionSet(int num_atomtypes_i):
 twoBodySymFuns(num_atomtypes_i*num_atomtypes_i),
@@ -76,6 +77,44 @@ void SymmetryFunctionSet::add_ThreeBodySymmetryFunction(
       pos_threeBody[num_atomtypes2*type1 + num_atomtypes*i + j]++;
     }
   }
+}
+
+int SymmetryFunctionSet::get_CutFun_by_name(const char* name)
+{
+  int id = -1;
+  if (strcmp(name, "const") == 0)
+  {
+    id = 0;
+  } else if (strcmp(name, "cos") == 0)
+  {
+    id = 1;
+  } else if (strcmp(name, "tanh") == 0)
+  {
+    id = 2;
+  }
+  return id;
+}
+
+int SymmetryFunctionSet::get_TwoBodySymFun_by_name(const char* name)
+{
+  int id = -1;
+
+  if (strcmp(name, "BehlerG2") == 0)
+  {
+    id = 0;
+  }
+  return id;
+}
+
+int SymmetryFunctionSet::get_ThreeBodySymFun_by_name(const char* name)
+{
+  int id = -1;
+
+  if (strcmp(name, "BehlerG4") == 0)
+  {
+    id = 0;
+  }
+  return id;
 }
 
 void SymmetryFunctionSet::print_symFuns()
