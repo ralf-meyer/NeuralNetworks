@@ -9,7 +9,7 @@ from scipy.misc import comb
 
 try:
     module_path = dirname(abspath(getsourcefile(lambda:0)))
-    lib = _ct.cdll.LoadLibrary(join(module_path,"symmetryFunctions/libSymFunSet.so"))
+    lib = _ct.cdll.LoadLibrary(join(module_path,"lib/symmetryFunctions/libSymFunSet.so"))
     lib.SymmetryFunctionSet_add_TwoBodySymmetryFunction.argtypes = (
         _ct.c_void_p, _ct.c_int, _ct.c_int, _ct.c_int, _ct.c_int,
         _ct.POINTER(_ct.c_double), _ct.c_int, _ct.c_double)
