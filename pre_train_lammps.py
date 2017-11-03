@@ -6,10 +6,10 @@ from NeuralNetworks import NeuralNetworkUtilities as _NN
 plots=False
 learning_rate=0.005
 epochs=20000
-dump_file=""
-xyz_file=""
-thermo_file=""
-nr_species=0
+dump_file="/home/afuchs/Lammps-Rechnungen/Au_md/Au_md.dump"
+xyz_file="/home/afuchs/Lammps-Rechnungen/Au_md/Au_md.xyz"
+thermo_file="/home/afuchs/Lammps-Rechnungen/Au_md/Au.log"
+nr_species=1
 e_unit="eV"
 dist_unit="A"
 force=False
@@ -61,24 +61,23 @@ else:
 #Get instance
 Training=_NN.AtomicNeuralNetInstance()
 Training.UseForce=force
-#Read files
-for i in range(nr_species):
-    Training.Atomtypes.append("X"+str(i+1))
-Training.read_lammps_files(dump_file,xyz_file,thermo_file,e_unit,dist_unit)
-
 #Default symmetry function set
 Training.NumberOfRadialFunctions=25
 Training.Lambs=[1.0,-1.0]
 Training.Zetas=[0.025,0.045,0.075,0.1,0.15,0.2,0.3,0.5,0.7,1,1.5,2,3,5,10,18,36,100]
 Training.Etas=[0.1]   
+#Read files
+for i in range(nr_species):
+    Training.Atomtypes.append("X"+str(i+1))
+Training.read_lammps_files(dump_file,xyz_file,thermo_file,e_unit,dist_unit)
 
 #Create batches
-batch_size=len(Training.Ds.energies)/50 
+batch_size=len(Training._DataSet.energies)/50 
 Training.make_training_and_validation_data(batch_size,90,10)
 
 #Default trainings settings
 for i in range(nr_species):
-    Training.Structures.append([Training.SizeOfInputs[0],100,100,1])
+    Training.Structures.append([Training.SizeOfInputsPerType[i],100,100,1])
 
 #Dropout and regularization for generalizing the net
 Training.Dropout=[0,0.5,0]

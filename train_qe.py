@@ -38,7 +38,6 @@ if data_file=="":
     exit
 
 
-
 #Load trainings instance
 Training=_NN.AtomicNeuralNetInstance()
 Training.UseForce=force
@@ -51,7 +50,7 @@ Training.Etas=[0.1]
 Training.read_qe_md_files(data_file,e_unit,dist_unit)
 #Default trainings settings
 for i in range(len(Training.Atomtypes)):
-    Training.Structures.append([Training.SizeOfInputsPerType[0],100,100,40,20,1])
+    Training.Structures.append([Training.SizeOfInputsPerType[i],100,100,40,20,1])
 
 
 Training.Dropout=[0,0,0,0,0]
@@ -69,6 +68,7 @@ Training.OptimizerType="Adam"
 Training.SavingDirectory=model_dir
 Training.MakeLastLayerConstant=False
 Training.MakeAllVariable=False
+
 if load_pretraining:
     #Load pretrained net
     Training.expand_existing_net(ModelName="pretrained_"+str(len(Training.Atomtypes))+"_species/trained_variables")
