@@ -1817,7 +1817,7 @@ class AtomicNeuralNetInstance(object):
 
         if Execute:
             if NoBatches:
-                BatchSize = len(self._DataSet.geometries)
+                BatchSize = len(self._AllGeometries)
 
             EnergyData = _np.empty((BatchSize, 1))
             ForceData = _np.empty(
@@ -1830,7 +1830,7 @@ class AtomicNeuralNetInstance(object):
 
             # Create a list with all possible random values
             ValuesForDrawingSamples = list(
-                range(0, len(self._DataSet.geometries)))
+                range(0, len(self._AllGeometries)))
 
             for i in range(0, BatchSize):
                 # Get a new random number
