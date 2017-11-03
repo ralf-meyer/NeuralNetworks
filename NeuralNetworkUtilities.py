@@ -721,6 +721,7 @@ class AtomicNeuralNetInstance(object):
         self.TrainedVariables = []
         self.CostFunType = "squared-difference"
         self.SavingDirectory = "save"
+        self.CalcDatasetStatistics=False
         # Symmetry function set settings
         self.NumberOfRadialFunctions = 20
         self.Rs = []
@@ -731,7 +732,7 @@ class AtomicNeuralNetInstance(object):
         # Private variables
 
         # Class instances
-        self._Session = []
+        self._Session = None
         self._Net = None
         self._SymmFunSet = None
         self._DataSet = None
@@ -1615,8 +1616,13 @@ class AtomicNeuralNetInstance(object):
                 InputsForTypeX += list(InputsForNetX)
             try:
                 if self.NumberOfAtomsPerType[ct] == i + 1:
-                    self._MeansOfDs[ct] = _np.mean(InputsForTypeX, axis=0)
-                    self._VarianceOfDs[ct] = _np.var(InputsForTypeX, axis=0)
+                    if self.CalcDatasetStatistics:
+                        self._MeansOfDs[ct] = _np.mean(InputsForTypeX, axis=0)
+                        self._VarianceOfDs[ct] = _np.var(InputsForTypeX, axis=0)
+                    else:
+                        self._MeansOfDs[ct]=_np.multiply(_np.ones((self.SizeOfInputsPerType[ct])),6)
+                        self._VarianceOfDs[ct]=_np.multiply(_np.ones((self.SizeOfInputsPerType[ct])),72)
+        
                     InputsForTypeX = []
                     ct += 1
             except:
@@ -2487,8 +2493,13 @@ class _StandardAtomicNetwork(object):
                                             ThisBiasData,
                                             NetInstance.MakeAllVariable))
                                 else:
-                                    raise ValueError("Number of layers doesn't match[" + str(len(RawBias)) + str(
-                                        len(Structure)) + "], MakeLastLayerConstant has to be set to True!")
+                                    HiddenLayers.append(
+                                        _construct_hidden_layer(
+                                            NrIn,
+                                            NrHidden,
+                                            NetInstance.WeightType,
+                                            [],
+                                            NetInstance.BiasType))
 
                 else:
                     for j in range(1, len(Structure)):
