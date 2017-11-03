@@ -10,7 +10,7 @@ data_file=""
 force=False
 e_unit="eV"
 dist_unit="A"
-load_pretraining=True
+load_model=True
 
 for i,arg in enumerate(sys.argv):
     if "-input" in arg:
@@ -21,8 +21,8 @@ for i,arg in enumerate(sys.argv):
         epochs=int(sys.argv[i+1])
     if "-force" in arg:
         force=bool(sys.argv[i+1])
-    if "-load_pretraining" in arg:
-        load_pretraining=bool(sys.argv[i+1])
+    if "-load_model" in arg:
+        load_model=bool(sys.argv[i+1])
     if "-v" in arg:
         plots=True
     if "-lr" in arg:
