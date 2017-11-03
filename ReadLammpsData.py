@@ -1,6 +1,8 @@
 import re as _re
 from os.path import isfile
 import numpy as _np
+from progressbar import ProgressBar
+
 
 class LammpsReader(object): 
 
@@ -16,37 +18,12 @@ class LammpsReader(object):
 
         #--- set internal cnoversion factors ---
         # 1 if calcualtions are in ev
-        self._energy_conversion_factor = 1
+        self.E_conv_factor = 1
 
         #1 if calculations are in Angstroem
-        self._geometry_conversion_factor = 1 
-
-        # depends of energy and geometry conv. factors
-        self._force_conversion_factor = 1
+        self.Geom_conv_factor = 1 
         #---
         
-    #--- getter/setter conversion factors ---
-    @property
-    def E_conv_factor(self):
-        return self._energy_conversion_factor
-    @E_conv_factor.setter
-    def E_conv_factor(self, value):
-        # set new value for energy
-        self._energy_conversion_factor = value
-        # rescale factor for force
-        self._force_conversion_factor *= value
-
-    @property
-    def Geom_conv_factor(self):
-        return self._geometry_conversion_factor
-    @Geom_conv_factor.setter
-    def Geom_conv_factor(self, value):
-        # set new value for energy
-        self._geometry_conversion_factor = value
-        # rescale factor for force
-        self._force_conversion_factor /= value
-    #---
-
     #--- getter/setter for atomic species ---
     @property
     def atom_types(self):
@@ -156,9 +133,16 @@ class LammpsReader(object):
                     raise UserWarning(msg)
                 #---
 
+                bar = ProgressBar()
+                print("Reading dump file ...")
+
                 # loop over time steps
-                for i in range(min([len(start_index), len(end_index)])):
-                    section = file_contents[start_index[i]:end_index[i]].split("\n")
+                for i in bar(range(min([len(start_index), len(end_index)]))):
+        
+                   # remove trailing EOL marker to avoid empty line at the end
+                    section = \
+                        file_contents[start_index[i]:end_index[i]].rstrip("\n")
+                    section = section.split("\n")
 
                     # first line is just header
                     section.pop(0)
@@ -180,12 +164,12 @@ class LammpsReader(object):
                         geometries_current_step.append(
                             (self._species[line_index], 
                             _np.array(map(float, line_splits[1:4])) \
-                            * self._geometry_conversion_factor
+                            * self.Geom_conv_factor
                             )
                         )
                         forces_current_step.append(
                             _np.array(map(float, line_splits[4:7]) \
-                            * self._force_conversion_factor
+                            * (self.E_conv_factor / self.Geom_conv_factor)
                             )
                         )
                         #---
@@ -215,7 +199,10 @@ class LammpsReader(object):
             with open(xyzfile, "r") as f_xyz:
                 counter = -1
 
-                for line in f_xyz:
+                bar = ProgressBar()
+                print("Reading xyz file ...")
+
+                for line in bar(f_xyz):
                     # read number of atoms if not known yet
                     if number_of_atoms_total is None:
                         number_of_atoms_total = int(line)
@@ -239,7 +226,7 @@ class LammpsReader(object):
                         geo.append(
                             (self._species[counter],
                             _np.array(map(float, sp[1:4])) \
-                            * self._geometry_conversion_factor)
+                            * self.Geom_conv_factor)
                         )
 
                         counter += 1
@@ -260,7 +247,11 @@ class LammpsReader(object):
         try:
             with open(thermofile, "r") as f_thermo:
                 switch = False
-                for line in f_thermo:
+
+                bar = ProgressBar()
+                print("Reading thermo file ...")
+
+                for line in bar(f_thermo):
                     if line.startswith("Step"):
                         ind = line.split().index("PotEng")
                         switch = True
@@ -269,7 +260,7 @@ class LammpsReader(object):
                     elif switch:
                         self.energies.append(
                             float(line.split()[ind]) \
-                            * self._energy_conversion_factor
+                            * self.E_conv_factor
                         )
         except Exception as e:
             print("Error reading thermodynamics file: {0}".format(e.message))
