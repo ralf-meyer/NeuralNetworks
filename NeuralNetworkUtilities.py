@@ -1561,7 +1561,7 @@ class AtomicNeuralNetInstance(object):
                 self.SizeOfInputsPerAtom.append(self.SizeOfInputsPerType[i])
                 
 
-    def _convert_dataset(self, TakeAsReference):
+    def _convert_dataset(self, TakeAsReference,DataPointsPercentage):
         """Converts the cartesian coordinates to a symmetry function vector and
         calculates the mean value and the variance of the symmetry function
         vector.
@@ -1572,7 +1572,7 @@ class AtomicNeuralNetInstance(object):
         """
 
         print("Converting data to neural net input format...")
-        NrGeom = len(self._DataSet.geometries)
+        NrGeom = int(len(self._DataSet.geometries)*DataPointsPercentage/100)
         AllTemp = list()
         # Get G vectors
 
@@ -1641,7 +1641,9 @@ class AtomicNeuralNetInstance(object):
             energy_unit="eV",
             dist_unit="A",
             TakeAsReference=True,
-            LoadGeometries=True):
+            LoadGeometries=True,
+            DataPointsPercentage=100
+            ):
         """Reads lammps files,adds symmetry functions to the symmetry function
         basis and converts the cartesian corrdinates to symmetry function vectors.
 
@@ -1679,19 +1681,21 @@ class AtomicNeuralNetInstance(object):
         self.Atomtypes = self._Reader.atom_types
         self.NumberOfAtomsPerType = self._Reader.nr_atoms_per_type
         self.init_dataset(self._Reader.geometries,self._Reader.energies,
-                     self._Reader.forces, TakeAsReference)
+                     self._Reader.forces, TakeAsReference,DataPointsPercentage)
 
 
         
 
     def read_lammps_files(
             self,
+            DumpFile,
             XYZFile,
-            LogFile,
+            ThermoFile,
             energy_unit="eV",
             dist_unit="A",
             TakeAsReference=True,
-            LoadGeometries=True):
+            LoadGeometries=True,
+            DataPointsPercentage=100):
         """Reads lammps files,adds symmetry functions to the symmetry function
         basis and converts the cartesian corrdinates to symmetry function vectors.
 
@@ -1720,16 +1724,16 @@ class AtomicNeuralNetInstance(object):
         else:
             self._Reader.Geom_conv_factor = 1
 
-        self._Reader.read_lammps(XYZFile, LogFile)
+        self._Reader.read_lammps(DumpFile,XYZFile,ThermoFile)
         self.Atomtypes = self._Reader.atom_types
         self.NumberOfAtomsPerType = self._Reader.nr_atoms_per_type
         self.init_dataset(self._Reader.geometries,self._Reader.energies,
-                     self._Reader.forces, TakeAsReference)
+                     self._Reader.forces, TakeAsReference,DataPointsPercentage)
 
         print("Added dataset!")
 
     def init_dataset(self, geometries, energies,
-                     forces=[], TakeAsReference=True):
+                     forces=[], TakeAsReference=True,DataPointsPercentage=100):
         """Initializes a loaded dataset.
 
         Args:
@@ -1749,7 +1753,7 @@ class AtomicNeuralNetInstance(object):
                 self._MeansOfDs = []
             self.create_symmetry_functions()
 
-            self._convert_dataset(TakeAsReference)
+            self._convert_dataset(TakeAsReference,DataPointsPercentage)
         else:
             print("Number of energies: " +
                   str(len(energies)) +
