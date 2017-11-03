@@ -10,6 +10,7 @@ data_file=""
 force=False
 e_unit="eV"
 dist_unit="A"
+load_pretraining=True
 
 for i,arg in enumerate(sys.argv):
     if "-input" in arg:
@@ -20,6 +21,8 @@ for i,arg in enumerate(sys.argv):
         epochs=int(sys.argv[i+1])
     if "-force" in arg:
         force=bool(sys.argv[i+1])
+    if "-load_pretraining" in arg:
+        load_pretraining=bool(sys.argv[i+1])
     if "-v" in arg:
         plots=True
     if "-lr" in arg:
@@ -40,12 +43,12 @@ if data_file=="":
 Training=_NN.AtomicNeuralNetInstance()
 Training.UseForce=force
 #Default symmetry function set
-Training.NumberOfRadialFunctions=20
+Training.NumberOfRadialFunctions=25
 Training.Lambs=[1.0,-1.0]
 Training.Zetas=[0.025,0.045,0.075,0.1,0.15,0.2,0.3,0.5,0.7,1,1.5,2,3,5,10,18,36,100]
 Training.Etas=[0.1]   
 #Read file
-Training.read_qe_md_files(data_file,"Ry",TakeAsReference=True)
+Training.read_qe_md_files(data_file,e_unit,dist_unit)
 #Default trainings settings
 for i in range(len(Training.Atomtypes)):
     Training.Structures.append([Training.SizeOfInputsPerType[0],100,100,40,20,1])
