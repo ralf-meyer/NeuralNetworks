@@ -69,7 +69,7 @@ Training.SavingDirectory=model_dir
 Training.MakeLastLayerConstant=False
 Training.MakeAllVariable=False
 
-if load_pretraining:
+if load_model:
     #Load pretrained net
     Training.expand_existing_net(ModelName="pretrained_"+str(len(Training.Atomtypes))+"_species/trained_variables")
 else:
