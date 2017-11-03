@@ -185,7 +185,7 @@ class LammpsReader(object):
         except IOError as e:
             print("File could not be read! {0}".format(e.errno))
         except Exception as e:
-            msg = "An unknown error occurred" + \
+            msg = "An unknown error occurred " + \
                 "during parsing of dump file: {0}".format(e.message)
             print(msg)
 
@@ -199,10 +199,9 @@ class LammpsReader(object):
             with open(xyzfile, "r") as f_xyz:
                 counter = -1
 
-                bar = ProgressBar()
                 print("Reading xyz file ...")
 
-                for line in bar(f_xyz):
+                for line in f_xyz:
                     # read number of atoms if not known yet
                     if number_of_atoms_total is None:
                         number_of_atoms_total = int(line)
@@ -248,10 +247,10 @@ class LammpsReader(object):
             with open(thermofile, "r") as f_thermo:
                 switch = False
 
-                bar = ProgressBar()
+                
                 print("Reading thermo file ...")
 
-                for line in bar(f_thermo):
+                for line in f_thermo:
                     if line.startswith("Step"):
                         ind = line.split().index("PotEng")
                         switch = True
