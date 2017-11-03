@@ -69,8 +69,11 @@ Training.OptimizerType="Adam"
 Training.SavingDirectory=model_dir
 Training.MakeLastLayerConstant=False
 Training.MakeAllVariable=False
-#Load pretrained net
-Training.expand_existing_net(ModelName="pretrained_"+str(len(Training.Atomtypes))+"_species/trained_variables")
+if load_pretraining:
+    #Load pretrained net
+    Training.expand_existing_net(ModelName="pretrained_"+str(len(Training.Atomtypes))+"_species/trained_variables")
+else:
+    Training.make_and_initialize_network()
 
 #Create batches
 batch_size=len(Training._DataSet.energies)/50 
