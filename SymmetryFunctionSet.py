@@ -1,7 +1,7 @@
 from os.path import dirname, abspath, join
 from inspect import getsourcefile
 from itertools import product, combinations_with_replacement
-import SymmetryFunctions as SFs
+import lib.symmetryFunctions.SymmetryFunctions as SFs
 import numpy as _np
 import ctypes as _ct
 from scipy.spatial.distance import pdist, squareform
