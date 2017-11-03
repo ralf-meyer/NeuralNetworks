@@ -8,6 +8,9 @@ learning_rate=0.0001
 epochs=1500
 data_file=""
 force=False
+e_unit="eV"
+dist_unit="A"
+
 for i,arg in enumerate(sys.argv):
     if "-input" in arg:
         data_file=sys.argv[i+1]
@@ -21,6 +24,10 @@ for i,arg in enumerate(sys.argv):
         plots=True
     if "-lr" in arg:
         learning_rate = sys.argv[i+1]
+    if "-e_unit" in arg:
+        e_unit=sys.argv[i+1]
+    if "-dist_unit" in arg:
+        dist_unit=sys.argv[i+1]
   
 if data_file=="":
     print("Please specify a MD file")
@@ -57,14 +64,14 @@ Training.ActFun="elu"
 Training.CostFunType="Adaptive_2"
 Training.OptimizerType="Adam"
 Training.SavingDirectory=model_dir
-Training.MakeLastLayerConstant=True
+Training.MakeLastLayerConstant=False
 Training.MakeAllVariable=False
 #Load pretrained net
 Training.expand_existing_net(ModelName="pretrained_"+str(len(Training.Atomtypes))+"_species/trained_variables")
 
 #Create batches
 batch_size=len(Training._DataSet.energies)/50 
-Training.make_training_and_validation_data(batch_size,70,30)
+Training.make_training_and_validation_data(batch_size,90,10)
 
 
 #Start training
