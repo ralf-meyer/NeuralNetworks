@@ -6,38 +6,53 @@ from NeuralNetworks import NeuralNetworkUtilities as _NN
 plots=False
 learning_rate=0.005
 epochs=20000
-data_file=""
-nr_species=0
+dump_file="/home/afuchs/Lammps-Rechnungen/Au_md/Au_md.dump"
+xyz_file="/home/afuchs/Lammps-Rechnungen/Au_md/Au_md.xyz"
+thermo_file="/home/afuchs/Lammps-Rechnungen/Au_md/Au.log"
+nr_species=1
 e_unit="eV"
 dist_unit="A"
 force=False
 for i,arg in enumerate(sys.argv):
-    if "-input" in arg:
-        data_file=sys.argv[i+1]
+    if "-dump" in arg:
+        dump_file=sys.argv[i+1]
+    if "-xyz" in arg:
+        xyz_file=sys.argv[i+1]
+    if "-thermo" in arg:
+        thermo_file=sys.argv[i+1]    
     if "-nr_species" in arg:
         nr_species=int(sys.argv[i+1])
     if "-epochs" in arg:
-        epochs=sys.argv[i+1]
-    if "-v" in arg:
-        plots=True
+        epochs=int(sys.argv[i+1])
     if "-e_unit" in arg:
         e_unit=sys.argv[i+1]
     if "-dist_unit" in arg:
         dist_unit=sys.argv[i+1]
+    if "-v" in arg:
+        plots=True
     if "-lr" in arg:
         learning_rate = float(sys.argv[i+1])
     if "-force" in arg:
         force = bool(sys.argv[i+1])
 
-if data_file=="":
-    print("Please specify a MD file")
-    print("Option: -input x")
+if dump_file=="":
+    print("Please specify a MD dump file")
+    print("Option: -dump x")
     quit()
     
+if xyz_file=="":
+    print("Please specify a MD dump file")
+    print("Option: -xyz x")
+    quit()
+    
+if thermo_file=="":
+    print("Please specify a MD dump file")
+    print("Option: -thermo x")
+    quit()
 
 if nr_species==0:
     print("Please specify for how many species you pre-train the network!")
-    print("Option: -nr_atoms x")
+    print("Option: -nr_species x")
     quit()
 else:
     print("Pre-training for "+str(nr_species)+" atom species...")
@@ -54,7 +69,8 @@ Training.Etas=[0.1]
 #Read files
 for i in range(nr_species):
     Training.Atomtypes.append("X"+str(i+1))
-Training.read_qe_md_files(data_file,e_unit,dist_unit)
+Training.read_lammps_files(dump_file,xyz_file,thermo_file,e_unit,dist_unit)
+
 #Create batches
 batch_size=len(Training._DataSet.energies)/50 
 Training.make_training_and_validation_data(batch_size,90,10)
