@@ -1,5 +1,6 @@
 import os
 from setuptools.command.install import install
+from setuptools.command.build_py import build_py
 from setuptools import setup
 from subprocess import call
 
@@ -19,6 +20,17 @@ class CustomInstall(install):
         # copy all the files to the /usr/local/lib/python2.7/dist-package
         install.run(self)
 
+class CustomBuild(build_py):
+    """
+    CustomInstall build based of the example in CustomInstall
+    """
+    def run(self):
+
+        def compile_library():
+            call("make", cwd=lib_path)
+        self.execute(compile_library, [],  "Compiling shared library")
+        build_py.run(self)
+
 setup(
     name="NeuralNetworks",
     version="0.1",
@@ -28,5 +40,5 @@ setup(
     package_dir={"": "../"},
     package_data={"": ["lib/symmetryFunctions/libSymFunSet.so"]},
     include_package_data=True,
-    cmdclass={"install": CustomInstall}
+    cmdclass={"install": CustomInstall, "build_py": CustomBuild}
 )
