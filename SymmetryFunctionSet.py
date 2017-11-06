@@ -32,6 +32,10 @@ try:
         _ct.c_void_p, _ct.c_int, _ct.POINTER(_ct.c_int),
         _np.ctypeslib.ndpointer(dtype=_np.float64, ndim = 2, flags = "C_CONTIGUOUS"),
         _np.ctypeslib.ndpointer(dtype=_np.float64, ndim = 2, flags = "C_CONTIGUOUS"))
+    lib.SymmetryFunctionSet_get_CutFun_by_name.argtypes = (_ct.c_char_p,)
+    lib.SymmetryFunctionSet_get_TwoBodySymFun_by_name.argtypes = (_ct.c_char_p,)
+    lib.SymmetryFunctionSet_get_ThreeBodySymFun_by_name.argtypes = (
+        _ct.c_char_p,)
     lib.SymmetryFunctionSet_get_G_vector_size.argtypes = (
         _ct.c_void_p, _ct.c_int, _ct.POINTER(_ct.c_int))
 except OSError as e:
@@ -50,27 +54,49 @@ class SymmetryFunctionSet(object):
         self.obj = lib.create_SymmetryFunctionSet(_ct.c_int(len(atomtypes)))
 
     def add_TwoBodySymmetryFunction(self, type1, type2, funtype, prms,
-            cuttype, cutoff):
+            cuttype = "cos", cutoff = None):
+        if cutoff == None:
+            cutoff = self.cutoff
+        cutid = lib.SymmetryFunctionSet_get_CutFun_by_name(
+            cuttype.encode('utf-8'))
+        if cutid == -1:
+            raise TypeError("Unknow CutoffFunction type {}".format(cuttype))
+        funid = lib.SymmetryFunctionSet_get_TwoBodySymFun_by_name(
+            funtype.encode('utf-8'))
+        if funid == -1:
+            raise TypeError("Unknown TwoBodySymmetryFunction type: {}".format(
+                funtype))
         ptr = (_ct.c_double*len(prms))(*prms)
         lib.SymmetryFunctionSet_add_TwoBodySymmetryFunction(self.obj,
-            self.type_dict[type1], self.type_dict[type2], funtype, len(prms),
-            ptr, cuttype, cutoff)
+            self.type_dict[type1], self.type_dict[type2], funid, len(prms),
+            ptr, cutid, cutoff)
         self.num_Gs[self.type_dict[type1]] += 1
 
     def add_ThreeBodySymmetryFunction(self, type1, type2, type3, funtype, prms,
-            cuttype, cutoff):
+            cuttype = "cos", cutoff = None):
+        if cutoff == None:
+            cutoff = self.cutoff
+        cutid = lib.SymmetryFunctionSet_get_CutFun_by_name(
+            cuttype.encode('utf-8'))
+        if cutid == -1:
+            raise TypeError("Unknow CutoffFunction type {}".format(cuttype))
+        funid = lib.SymmetryFunctionSet_get_ThreeBodySymFun_by_name(
+            funtype.encode('utf-8'))
+        if funid == -1:
+            raise TypeError("Unknown ThreeBodySymmetryFunction type: {}".format(
+                funtype))
         ptr = (_ct.c_double*len(prms))(*prms)
         lib.SymmetryFunctionSet_add_ThreeBodySymmetryFunction(self.obj,
             self.type_dict[type1], self.type_dict[type2], self.type_dict[type3],
-            funtype, len(prms), ptr, cuttype, cutoff)
+            funid, len(prms), ptr, cutid, cutoff)
         self.num_Gs[self.type_dict[type1]] += 1
 
     def add_radial_functions(self, rss, etas):
         for rs in rss:
             for eta in etas:
                 for (ti, tj) in product(self.atomtypes, repeat = 2):
-                    self.add_TwoBodySymmetryFunction(ti, tj, 0, [eta, rs],
-                        1, self.cutoff)
+                    self.add_TwoBodySymmetryFunction(
+                        ti, tj, "BehlerG2", [eta, rs])
 
     def add_radial_functions_evenly(self, N):
         rss = _np.linspace(0.,self.cutoff,N)
@@ -86,8 +112,7 @@ class SymmetryFunctionSet(object):
                         for (tj, tk) in combinations_with_replacement(
                                 self.atomtypes, 2):
                             self.add_ThreeBodySymmetryFunction(
-                                ti, tj, tk, 0, [lamb, zeta, eta], 1,
-                                self.cutoff)
+                                ti, tj, tk, "BehlerG4", [lamb, zeta, eta])
 
     def print_symFuns(self):
         lib.SymmetryFunctionSet_print_symFuns(self.obj)

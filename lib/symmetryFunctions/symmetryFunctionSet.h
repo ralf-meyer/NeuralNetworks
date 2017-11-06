@@ -24,6 +24,9 @@ class SymmetryFunctionSet
     void eval_derivatives_old(
       int num_atoms, int* types, double* xyzs, double* dG_tensor);
 
+    static int get_CutFun_by_name(const char* name);
+    static int get_TwoBodySymFun_by_name(const char* name);
+    static int get_ThreeBodySymFun_by_name(const char* name);
     void available_symFuns();
     void print_symFuns();
 
@@ -72,6 +75,18 @@ extern "C" {
   }
   void SymmetryFunctionSet_available_symFuns(SymmetryFunctionSet* symFunSet){
     symFunSet->available_symFuns();
+  }
+  int SymmetryFunctionSet_get_CutFun_by_name(const char* name)
+  {
+    SymmetryFunctionSet::get_CutFun_by_name(name);
+  }
+  int SymmetryFunctionSet_get_TwoBodySymFun_by_name(const char* name)
+  {
+    SymmetryFunctionSet::get_TwoBodySymFun_by_name(name);
+  }
+  int SymmetryFunctionSet_get_ThreeBodySymFun_by_name(const char* name)
+  {
+    SymmetryFunctionSet::get_ThreeBodySymFun_by_name(name);
   }
   int SymmetryFunctionSet_get_G_vector_size(SymmetryFunctionSet* symFunSet,
     int num_atoms, int* types)
