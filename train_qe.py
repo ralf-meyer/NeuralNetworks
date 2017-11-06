@@ -5,12 +5,13 @@ from NeuralNetworks import NeuralNetworkUtilities as _NN
 #Get input
 plots=False
 learning_rate=0.0001
-epochs=1500
+epochs=5000
 data_file=""
 force=False
 e_unit="eV"
 dist_unit="A"
 load_model=True
+model=""
 
 for i,arg in enumerate(sys.argv):
     if "-input" in arg:
@@ -31,6 +32,8 @@ for i,arg in enumerate(sys.argv):
         e_unit=sys.argv[i+1]
     if "-dist_unit" in arg:
         dist_unit=sys.argv[i+1]
+    if "-model" in arg:
+        model=sys.argv[i+1]
   
 if data_file=="":
     print("Please specify a MD file")
@@ -54,13 +57,14 @@ for i in range(len(Training.Atomtypes)):
 
 
 Training.Dropout=[0,0,0,0,0]
-Training.RegularizationParam=0.1
+Training.RegularizationParam=0.01
 
 Training.LearningRate=learning_rate
 Training.CostCriterium=0
 Training.dE_Criterium=0
 
 Training.Epochs=epochs
+Training.ForceCostParam=0.001
 Training.MakePlots=plots
 Training.ActFun="elu"
 Training.CostFunType="Adaptive_2"
@@ -71,7 +75,10 @@ Training.MakeAllVariable=False
 
 if load_model:
     #Load pretrained net
-    Training.expand_existing_net(ModelName="pretrained_"+str(len(Training.Atomtypes))+"_species/trained_variables")
+    if model=="":
+        Training.expand_existing_net(ModelName="pretraining_"+str(len(Training.Atomtypes))+"_species/trained_variables")
+    else:
+        Training.expand_existing_net(ModelName=model+"/trained_variables")
 else:
     Training.make_and_initialize_network()
 
