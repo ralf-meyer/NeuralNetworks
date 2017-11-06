@@ -766,7 +766,7 @@ class AtomicNeuralNetInstance(object):
         self._RegLoss = None
         # Dataset
         self._Reader = None
-        self._AllGeometries = []
+        self._AllGVectors = []
         self._AllGDerivatives = []
 
     def get_optimizer(self, CostFun):
@@ -949,7 +949,7 @@ class AtomicNeuralNetInstance(object):
         else:
             return self._Session.run(
                 Tensor, feed_dict={
-                    i: _np.array(d) for i, d in zip(
+                    i: d for i, d in zip(
                         Layers, Data)})
 
     def calc_dE(self, Layers, Data):
@@ -964,7 +964,7 @@ class AtomicNeuralNetInstance(object):
             Cost(float):The training cost for the step."""
         # Train the network for one step
         _, Cost = self._Session.run([self._Optimizer, self.CostFun], 
-                feed_dict={i: _np.array(d) for i, d in zip(Layers, Data)})
+                feed_dict={i: d for i, d in zip(Layers, Data)})
 
         return Cost
 
@@ -977,7 +977,7 @@ class AtomicNeuralNetInstance(object):
         # Evaluate cost function without changing the network
         Cost = self._Session.run(
             self.CostFun, feed_dict={
-                i: _np.array(d) for i, d in zip(
+                i: d for i, d in zip(
                     Layers, Data)})
 
         return Cost
@@ -1198,14 +1198,14 @@ class AtomicNeuralNetInstance(object):
         return train_stat, val_stat
 
     def energy_for_geometry(self, geometry):
-        self.create_eval_data(geometry)
-
-        return self.eval_dataset_energy(self.EvalData)
+        "Evaluates the energy for a given geometry"
+        return self.eval_dataset_energy(
+                self._convert_single_geometry(geometry))
 
     def force_for_geometry(self, geometry):
-        self.create_eval_data(geometry)
-
-        return self.eval_dataset_force(self.EvalData)
+        "Evaluates the force for a given geometry"
+        return self.eval_dataset_force(
+                self._convert_single_geometry(geometry))
 
     def eval_dataset_energy(self, Batches, BatchNr=0):
         """Prepares and evaluates the dataset for the loaded network.
@@ -1235,7 +1235,7 @@ class AtomicNeuralNetInstance(object):
             List of the predicted forces for the dataset"""
 
         AllData = Batches[BatchNr]
-        GData = AllData[0]
+        GData = AllData[0]                
         DerGData = AllData[2]
         norm = AllData[3]
         if not self.IsPartitioned:
@@ -1559,7 +1559,20 @@ class AtomicNeuralNetInstance(object):
         for i, a_type in enumerate(self.NumberOfAtomsPerType):
             for j in range(0, a_type):
                 self.SizeOfInputsPerAtom.append(self.SizeOfInputsPerType[i])
-                
+            
+    def _convert_single_geometry(self,geometry):
+        
+        Gs=[_np.asarray(self._SymmFunSet.eval_geometry(geometry))]
+        dGs=[]
+        if self.UseForce:
+            dGs=[_np.asarray(self._SymmFunSet.eval_geometry_derivatives(geometry))]
+        
+        GInputs, GDerivativesInput,Normalization=self._sort_and_normalize_data(1,Gs,dGs)
+
+        if self.UseForce:
+            return [GInputs,[], GDerivativesInput,Normalization,[]]
+        else:
+            return [GInputs, []]
 
     def _convert_dataset(self, TakeAsReference,DataPointsPercentage):
         """Converts the cartesian coordinates to a symmetry function vector and
@@ -1581,11 +1594,12 @@ class AtomicNeuralNetInstance(object):
             temp = _np.asarray(self._SymmFunSet.eval_geometry(
                 self._DataSet.geometries[i]))
 
-            self._AllGeometries.append(temp)
-            self._AllGDerivatives.append(
-                _np.asarray(
-                    self._SymmFunSet.eval_geometry_derivatives(
-                        self._DataSet.geometries[i])))
+            self._AllGVectors.append(temp)
+            if self.UseForce:
+                self._AllGDerivatives.append(
+                    _np.asarray(
+                        self._SymmFunSet.eval_geometry_derivatives(
+                            self._DataSet.geometries[i])))
             if i % max(int(NrGeom / 25), 1) == 0:
                 print(str(100 * i / NrGeom) + " %")
             for j in range(0, len(temp)):
@@ -1759,6 +1773,32 @@ class AtomicNeuralNetInstance(object):
                   str(len(energies)) +
                   " does not match number of geometries: " +
                   str(len(geometries)))
+            
+    def prepare_evaluation(self,model_name,atom_types,nr_atoms_per_type,structure=[],use_force=True):
+        
+        #Default symmetry function set
+        self._DataSet = _DataSet.DataSet()
+        self.UseForce=use_force
+        self.NumberOfRadialFunctions=25
+        self.Lambs=[1.0,-1.0]
+        self.Zetas=[0.025,0.045,0.075,0.1,0.15,0.2,0.3,0.5,0.7,1,1.5,2,3,5,10,18,36,100]
+        self.Etas=[0.1]   
+        self.Atomtypes = atom_types
+        self.NumberOfAtomsPerType = nr_atoms_per_type
+        self.create_symmetry_functions()
+
+        if len(structure)==0:
+            MyStructure=[100,100,40,20,1]
+        else:
+            MyStructure=structure
+            
+        for i in range(len(self.Atomtypes)):
+            ThisStruture=[self.SizeOfInputsPerType[i]]+MyStructure
+            self.Structures.append(ThisStruture)
+            
+        self.ActFun="elu"
+        self.MakeLastLayerConstant=False
+        self.expand_existing_net(ModelName=model_name+"/trained_variables")
 
     def create_eval_data(self, geometries, NoBatches=True):
         """Converts the geometries in compatible format and prepares the data
@@ -1774,7 +1814,7 @@ class AtomicNeuralNetInstance(object):
             IsReference = True
         else:
             IsReference = False
-
+            
         self.init_dataset(geometries, dummy_energies,
                           TakeAsReference=IsReference)
 
@@ -1817,20 +1857,15 @@ class AtomicNeuralNetInstance(object):
 
         if Execute:
             if NoBatches:
-                BatchSize = len(self._AllGeometries)
+                BatchSize = len(self._AllGVectors)
 
             EnergyData = _np.empty((BatchSize, 1))
             ForceData = _np.empty(
                 (BatchSize, sum(self.NumberOfAtomsPerType) * 3))
 
-            if not NoBatches:
-                if BatchSize > len(self._AllGeometries) / 10:
-                    BatchSize = int(BatchSize / 10)
-                    print("Shrunk batches to size:" + str(BatchSize))
-
             # Create a list with all possible random values
             ValuesForDrawingSamples = list(
-                range(0, len(self._AllGeometries)))
+                range(0, len(self._AllGVectors)))
 
             for i in range(0, BatchSize):
                 # Get a new random number
@@ -1843,7 +1878,7 @@ class AtomicNeuralNetInstance(object):
                     # remove number from possible samples
                     ValuesForDrawingSamples.pop(rnd)
 
-                GeomData.append(self._AllGeometries[MyNr])
+                GeomData.append(self._AllGVectors[MyNr])
                 EnergyData[i] = self._DataSet.energies[MyNr]
                 if len(self._DataSet.forces) > 0:
                     ForceData[i] = [f for atom in self._DataSet.forces[MyNr]
@@ -1889,12 +1924,12 @@ class AtomicNeuralNetInstance(object):
 
         if Execute:
 
-            EnergyDataSetLength = len(self._DataSet.geometries)
+            EnergyDataSetLength = len(self._AllGVectors)
             SetLength = int(EnergyDataSetLength * CoverageOfSetInPercent / 100)
 
             if not NoBatches:
-                if BatchSize > len(self._AllGeometries) / 10:
-                    BatchSize = int(BatchSize / 10)
+                if BatchSize > len(self._AllGVectors) / 10:
+                    BatchSize = int(len(self._AllGVectors) / 10)
                     print("Shrunk batches to size:" + str(BatchSize))
                 NrOfBatches = max(1, int(round(SetLength / BatchSize, 0)))
             else:
@@ -2004,7 +2039,7 @@ class AtomicNeuralNetInstance(object):
 
         Args:
             BatchSize (int): Specifies the number of data points per batch.
-            GeomData (list): Raw geometry data
+            GeomData (list): Raw G vector data
             ForceData (list): (Optional) Raw derivatives of input vector
 
         Returns:
@@ -2016,6 +2051,7 @@ class AtomicNeuralNetInstance(object):
         DerInputs = []
         Norm = []
         ct = 0
+        
         for VarianceOfDs, MeanOfDs, NrAtoms in zip(
                 self._VarianceOfDs, self._MeansOfDs, self.NumberOfAtomsPerType):
             for i in range(NrAtoms):
