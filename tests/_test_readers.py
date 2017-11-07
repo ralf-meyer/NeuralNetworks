@@ -1,18 +1,21 @@
 import unittest
-from os.path import normpath
+from os.path import normpath, dirname, join
 import numpy as _np
-
-#import NeuralNetworks.ReadLammpsData.py
-import sys
-sys.path.append(normpath("../ReadLammpsData"))
+from NeuralNetworks import ReadLammpsData
+#from ReadLammpsData import LammpsReader
+#import sys
+#sys.path.append(normpath("../ReadLammpsData"))
 #from ..ReadLammpsData import LammpsReader
 
 class TestLammpsReader(unittest.TestCase):
     """This class containts tests for ReadLammpsData.py"""
 
-    def __init__(self):
+    def setUp(self):
         # set paths to result files to read from
-        self._dump_path = normpath("./TestData/Lammps/Au_md.dump")
+        test_files_dir = join(dirname(__file__), normpath("TestData/Lammps"))
+        self._dump_path = join(test_files_dir, "Au_md.dump")
+        self._xyz_path = join(test_files_dir, "Au_md.xyz")
+        self._thermo_path = join(test_files_dir, "Au.log")
 
         #--- set reference values ---
         # species
@@ -35,9 +38,8 @@ class TestLammpsReader(unittest.TestCase):
         self._expected_force_sixth_step_eighth_atom = \
             _np.array([0.783606, 0.30807, 1.6233])
 
-        super.__init__()
 
-    def _test_species(self, actual_atom_types, actual_number_of_atoms_per_type):
+    def _check_species(self, actual_atom_types, actual_number_of_atoms_per_type):
         # test species detection
         self.assertItemsEqual(actual_atom_types, self._expected_atom_types)
         self.assertItemsEqual(
@@ -45,21 +47,31 @@ class TestLammpsReader(unittest.TestCase):
             self._expected_number_of_atoms_per_type
         )
 
-    def _test_geometry(self, actual_geometry):
-        self.assertItemsEqual(
+    def _check_geometry(self, actual_geometry):
+        """Checks geometry entries against stored references"""
+        self._assert_geometry_entries_equals(
             actual_geometry[0][2],
             self._expected_geometry_first_step_third_atom
         )
-        self.assertItemsEqual(
+        self._assert_geometry_entries_equals(
             actual_geometry[2][10],
             self._expected_geometry_third_step_eleventh_atom
         )
-        self.assertItemsEqual(
+        self._assert_geometry_entries_equals(
             actual_geometry[5][25],
             self._expected_geometry_sixth_step_twenty_sixth_atom
         )
+    
+    def _assert_geometry_entries_equals(self, expected, actual):
+        """Compares objects of the specific tuple formart (string, np.array)"""
 
-    def _test_forces(self, actual_forces):
+        # compare atomic species
+        self.assertEqual(expected[0], actual[0])
+
+        # compare geometry values
+        self.assertItemsEqual(expected[1], actual[1])
+
+    def _check_forces(self, actual_forces):
         self.assertItemsEqual(
             actual_forces[0][0],
             self._expected_force_first_step_first_atom
@@ -79,16 +91,16 @@ class TestLammpsReader(unittest.TestCase):
         reader = ReadLammpsData.LammpsReader()
 
         # read from dump file
-        reader._read_from_dump(self._dump_path)
+        reader.read_lammps(self._dump_path, self._xyz_path, self._thermo_path)
 
         # test species
-        self._test_species(reader.atom_types, reader.number_of_atoms_per_type)
+        self._check_species(reader.atom_types, reader.number_of_atoms_per_type)
 
         # test geometries
-        self._test_geometry(reader.geometries)
+        self._check_geometry(reader.geometries)
 
         # test forces
-        self._test_forces(reader.forces)
+        self._check_forces(reader.forces)
 
 
 if __name__ == '__main__':
