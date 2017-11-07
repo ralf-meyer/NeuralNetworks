@@ -38,6 +38,9 @@ class TestLammpsReader(unittest.TestCase):
         self._expected_force_sixth_step_eighth_atom = \
             _np.array([0.783606, 0.30807, 1.6233])
 
+        # energies
+        self._expected_energies = \
+            [-62.118812, -64.454685, -66.708751, -68.5237, -69.796816, -70.589006]
 
     def _check_species(self, actual_atom_types, actual_number_of_atoms_per_type):
         # test species detection
@@ -86,7 +89,7 @@ class TestLammpsReader(unittest.TestCase):
         )
 
     def test_read_dump(self):
-        """Read from dump (in test data) and compare agains hard coded string"""
+        """Read from dump (in test data) and compare against hard coded string"""
 
         reader = ReadLammpsData.LammpsReader()
 
@@ -102,6 +105,25 @@ class TestLammpsReader(unittest.TestCase):
         # test forces
         self._check_forces(reader.forces)
 
+    def test_read_thermo(self):
+        """Read energies from thermo file and compare to hard coded reference"""
+        
+        reader = ReadLammpsData.LammpsReader()        
+        reader._read_energies_from_thermofile(self._thermo_path)
+
+        self.assertItemsEqual(self._expected_energies, reader.energies)
+
+    def test_read_xyz(self):
+        """test reading geometries and species from xyz file"""
+
+        reader = ReadLammpsData.LammpsReader()
+        reader._read_geometries_from_xyz(self._xyz_path)
+
+        self._check_species(reader.atom_types, reader.number_of_atoms_per_type)
+        self._check_geometry(reader.geometries)
+
+
+        
 
 if __name__ == '__main__':
     unittest.main()
