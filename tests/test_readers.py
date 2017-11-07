@@ -2,20 +2,27 @@ import unittest
 from os.path import normpath, dirname, join
 import numpy as _np
 from NeuralNetworks import ReadLammpsData
-#from ReadLammpsData import LammpsReader
-#import sys
-#sys.path.append(normpath("../ReadLammpsData"))
-#from ..ReadLammpsData import LammpsReader
+from NeuralNetworks import ReadQEData
+
+class PathProvider(object):
+    """This class is just used to provide hard coded file paths"""
+    _test_files_dir = join(dirname(__file__), normpath("TestData"))
+    LAMMPS_test_files_dir = join(_test_files_dir, "Lammps")
+    QE_test_files_dir = join(_test_files_dir, "Lammps")
 
 class TestLammpsReader(unittest.TestCase):
     """This class containts tests for ReadLammpsData.py"""
 
+    path_provider = PathProvider
+
     def setUp(self):
         # set paths to result files to read from
-        test_files_dir = join(dirname(__file__), normpath("TestData/Lammps"))
-        self._dump_path = join(test_files_dir, "Au_md.dump")
-        self._xyz_path = join(test_files_dir, "Au_md.xyz")
-        self._thermo_path = join(test_files_dir, "Au.log")
+        self._dump_path = \
+            join(self.path_provider.LAMMPS_test_files_dir , "Au_md.dump")
+        self._xyz_path = \
+            join(self.path_provider.LAMMPS_test_files_dir , "Au_md.xyz")
+        self._thermo_path = \
+            join(self.path_provider.LAMMPS_test_files_dir , "Au.log")
 
         #--- set reference values ---
         # species
@@ -179,6 +186,42 @@ class TestLammpsReader(unittest.TestCase):
 
         except IndexError:
             self.fail("Atom types/counts per type, does not match read data!")
+
+    class TestQEReader(unittest.TestCase):
+        """Tests the QEReader's read functions
+        
+        Attributes:
+            path_provider: reference to static class that holds values for paths
+                (e.g. to qe output files)
+        """
+
+        path_provider = PathProvider
+
+        def setUp(self):
+            self._out_file_dir = self.path_provider.QE_test_files_dir
+
+            self._expected_atom_types = ["Au"]
+            self._expected_number_of_atoms_per_type = [13]
+            #self._expected_geometry_first_step
+
+        def _create_prepared_reader(self):
+            """will prep the reader by showing it the 
+            outfiles and having it read them."""
+            reader = ReadQEData.QE_MD_Reader()
+            reader.get_files(self._out_file_dir)
+            reader.read_all_files()
+
+            return reader
+
+        def test_species_discover(self):
+            """tests if species are read correctly from file"""
+            reader = self._create_prepared_reader()
+
+            self.assertItemsEqual(self._expected_atom_types, reader.atom_types)
+            self.assertItemsEqual(
+                self._expected_number_of_atoms_per_type, 
+                reader.nr_atoms_per_type
+            )            
 
 if __name__ == '__main__':
     unittest.main()
