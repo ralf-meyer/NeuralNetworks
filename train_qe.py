@@ -12,6 +12,7 @@ e_unit="eV"
 dist_unit="A"
 load_model=True
 model=""
+model_dir="save_no_name"
 
 for i,arg in enumerate(sys.argv):
     if "-input" in arg:
@@ -27,7 +28,7 @@ for i,arg in enumerate(sys.argv):
     if "-v" in arg:
         plots=True
     if "-lr" in arg:
-        learning_rate = sys.argv[i+1]
+        learning_rate = float(sys.argv[i+1])
     if "-e_unit" in arg:
         e_unit=sys.argv[i+1]
     if "-dist_unit" in arg:
@@ -57,11 +58,11 @@ for i in range(len(Training.Atomtypes)):
 
 
 Training.Dropout=[0,0,0,0,0]
-Training.RegularizationParam=0.01
+Training.RegularizationParam=0.001
 
 Training.LearningRate=learning_rate
 Training.CostCriterium=0
-Training.dE_Criterium=0
+Training.dE_Criterium=0.02
 
 Training.Epochs=epochs
 Training.ForceCostParam=0.001
@@ -71,7 +72,7 @@ Training.CostFunType="Adaptive_2"
 Training.OptimizerType="Adam"
 Training.SavingDirectory=model_dir
 Training.MakeLastLayerConstant=False
-Training.MakeAllVariable=False
+Training.MakeAllVariable=True
 
 if load_model:
     #Load pretrained net

@@ -72,7 +72,7 @@ for i in range(nr_species):
 Training.read_lammps_files(dump_file,xyz_file,thermo_file,e_unit,dist_unit)
 
 #Create batches
-batch_size=len(Training._DataSet.energies)/50 
+batch_size=len(Training._DataSet.energies)/50
 Training.make_training_and_validation_data(batch_size,90,10)
 
 #Default trainings settings

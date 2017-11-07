@@ -1200,12 +1200,20 @@ class AtomicNeuralNetInstance(object):
     def energy_for_geometry(self, geometry):
         "Evaluates the energy for a given geometry"
         return self.eval_dataset_energy(
-                self._convert_single_geometry(geometry))
+                self._convert_single_geometry(geometry),0)
 
     def force_for_geometry(self, geometry):
         "Evaluates the force for a given geometry"
         return self.eval_dataset_force(
-                self._convert_single_geometry(geometry))
+                self._convert_single_geometry(geometry),0)
+
+    def energy_and_force_for_geometry(self, geometry):
+        "Evaluates the force for a given geometry"
+        input=self._convert_single_geometry(geometry)
+        energy=self.eval_dataset_energy(input,0)
+        force= self.eval_dataset_force(input,0)
+
+        return energy,force
 
     def eval_dataset_energy(self, Batches, BatchNr=0):
         """Prepares and evaluates the dataset for the loaded network.
@@ -1247,22 +1255,6 @@ class AtomicNeuralNetInstance(object):
 
         return self.evaluate(self._OutputForce, Layers, Data)
 
-    def start_evaluation(self, nAtoms, ModelName="save/trained_variables"):
-        """Recreates a saved network,prepares and evaluates the specified
-        dataset.
-
-        Args:
-            nAtoms (list): List of number of atoms per type
-            ModelName (str):Path of model.
-        Returns:
-            Out (list):The predicted energies for the dataset."""
-
-        Out = 0
-        self.expand_trained_net(nAtoms, ModelName)
-        for i in range(len(self.EvalData)):
-            Out = self.eval_dataset_energy(self.EvalData, i)
-
-        return Out
 
     def _eval_step(self):
         """Evaluates the prepared data.
@@ -1570,9 +1562,9 @@ class AtomicNeuralNetInstance(object):
         GInputs, GDerivativesInput,Normalization=self._sort_and_normalize_data(1,Gs,dGs)
 
         if self.UseForce:
-            return [GInputs,[], GDerivativesInput,Normalization,[]]
+            return [[GInputs,[], GDerivativesInput,Normalization,[]]]
         else:
-            return [GInputs, []]
+            return [[GInputs, []]]
 
     def _convert_dataset(self, TakeAsReference,DataPointsPercentage):
         """Converts the cartesian coordinates to a symmetry function vector and
