@@ -122,8 +122,63 @@ class TestLammpsReader(unittest.TestCase):
         self._check_species(reader.atom_types, reader.number_of_atoms_per_type)
         self._check_geometry(reader.geometries)
 
+    def test_bad_dump_with_xyz_as_backup(self):
+        """test if reader can read if dump not found and xyz given as backup"""
 
-        
+        reader = ReadLammpsData.LammpsReader()
+
+        try:
+            reader.read_lammps(
+                "bad/path/to/no_where.dump", 
+                self._thermo_path, 
+                self._xyz_path)            
+
+        except ValueError as ex:
+            self.fail(
+                "Probably one xyz file not found... Details: {0}".format(
+                    ex.message)
+                )
+        except Exception as ex:
+            self.fail("Unknown error: {0}".format(ex.message))
+
+        # if nothing goes wrong, cheack if any geometries were read
+        self.assertGreater(len(reader.geometries), 0)
+
+    def test_setting_species_before_reading(self):
+        """Test if geometries are labelled correctly if species are set """
+
+        # define species to be set
+        new_types = ["H"]
+        new_count_per_type = [26]
+
+        reader = ReadLammpsData.LammpsReader()
+
+        # set atom species
+        reader.atom_types = new_types
+        reader.number_of_atoms_per_type = new_count_per_type
+
+        reader.read_lammps(self._dump_path, self._thermo_path)
+
+        # check if set species persisted or where overwritten
+        self.assertItemsEqual(new_types, reader.atom_types)
+        self.assertItemsEqual(new_count_per_type, reader.number_of_atoms_per_type)
+
+        # check if label in geometries are correct
+
+        try:
+            index_geometry = 0
+            for i_atom, atom_type in enumerate(new_types):
+                for count in range(new_count_per_type[i_atom]):
+                    
+                    self.assertEqual(
+                        atom_type, 
+                        reader.geometries[0][index_geometry][0]
+                    )
+
+                    index_geometry += 1
+
+        except IndexError:
+            self.fail("Atom types/counts per type, does not match read data!")
 
 if __name__ == '__main__':
     unittest.main()
