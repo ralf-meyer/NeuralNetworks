@@ -90,7 +90,7 @@ class LammpsReader(object):
         if isfile(thermofile):
             self._read_energies_from_thermofile(thermofile)
         else:
-            msg = "Invalid file path: {0} is not a file!".format(dumpfile)
+            msg = "Invalid file path: {0} is not a file!".format(thermofile)
             raise ValueError(msg)
         
 
