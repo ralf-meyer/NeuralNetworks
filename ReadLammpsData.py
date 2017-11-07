@@ -4,7 +4,20 @@ import numpy as _np
 from progressbar import ProgressBar
 
 
-class LammpsReader(object): 
+class LammpsReader(object):
+    """This class fetches results from the dump/thermo/xyzfile from a 
+    LAMMPS calculation.  
+
+    Attributes:
+        geometries: list of list of tuples, (atom species, atomic positions: xyz)
+        forces: list of list of np array containig the forces fx,fy,fz
+        energies: list of the energies (double)
+
+        E_conv_factor = conversion factor from unit energies should be
+            interpreted in to eV.
+        Geom_conv_factor = conversion factor from the unit the goemetries
+            should be read in and Angstroem.
+    """
 
     def __init__(self):
 
@@ -12,21 +25,19 @@ class LammpsReader(object):
         self.energies = []
         self.forces = []
     
-        #self.nr_atoms_per_type=[]
-        #self.atom_types=[]
-        self._species = [] # for internal handling of atom_types
-
-        #--- set internal cnoversion factors ---
-        # 1 if calcualtions are in ev
+        #internal cnoversion factors
         self.E_conv_factor = 1
-
-        #1 if calculations are in Angstroem
         self.Geom_conv_factor = 1 
-        #---
+
+        # for internal handling of atom_types
+        self._species = [] 
+
         
     #--- getter/setter for atomic species ---
     @property
     def atom_types(self):
+        """ the atomic species occurring in the measurement (can also be
+            set before information is read)."""
         return list(set(self._species))
 
     @atom_types.setter
@@ -38,6 +49,8 @@ class LammpsReader(object):
     #--- getter/setter for counts of atomic species ---
     @property
     def number_of_atoms_per_type(self):
+        """number of atoms for each species (can also be
+            set before information is read)"""
         return [self._species.count(x) for x in set(self._species)]
 
     @number_of_atoms_per_type.setter
@@ -54,7 +67,7 @@ class LammpsReader(object):
     #---
 
     
-    def read_lammps(self, dumpfile, xyzfile, thermofile):
+    def read_lammps(self, dumpfile, thermofile, xyzfile=""):
         """Extracts data like atom types. geometries and forces from LAMPS
         result files (thermo file, custom dum and xyz-files).
         It will try to use the dump file first to find geometries and forces.
@@ -65,33 +78,34 @@ class LammpsReader(object):
         Further on, atoms will be labeled automatically if atom types were set.
 
         Args: 
-            xyzfile: path to .xyz-file output by LAMPS.
-            thermofile: path to the .log file output by LAMPS.
             dumpfile: path to a custom dump file in the following format:
                 TODO: specify format of dump file here.
+            thermofile: path to the .log file output by LAMPS.
+            xyzfile (optional): path to .xyz-file output by LAMPS. It is
+            only attempted to be used if dump file is not found.
         """
 
-        # read geometries and forces and species from dump file
+        # read geometries and forces and species from dump file or xyz file
         if isfile(dumpfile):
             self._read_from_dump(dumpfile)
         else:
-            msg = "Dump file not found at {0}.\n".format(dumpfile)
-            msg += "Trying xyz file ..."
-            print(msg)
+            print("Dump file not found at {0}.\n".format(dumpfile))
 
-            if isfile(xyzfile):
-                # try to acquire species and geometries from xyzfile
-                self._read_geometries_from_xyz(xyzfile)
-            else:
-                msg = "XYZ file not found at {0}.\n".format(xyzfile)
-                raise ValueError("Neither dump nor xyz file given!")
+            if xyzfile != "":
+
+                print("Trying xyz file ...")
+
+                if isfile(xyzfile):
+                    self._read_geometries_from_xyz(xyzfile)
+                else:
+                    print("XYZ file not found at {0}.\n".format(xyzfile))
 
         # read energies and potentials
         if isfile(thermofile):
             self._read_energies_from_thermofile(thermofile)
         else:
-            msg = "Invalid file path: {0} is not a file!".format(thermofile)
-            raise ValueError(msg)
+            print("Invalid file path: {0} is not a file!".format(thermofile))
+            
         
 
     def _read_from_dump(self, dumpfile):
