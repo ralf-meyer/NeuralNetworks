@@ -8,7 +8,7 @@ class PathProvider(object):
     """This class is just used to provide hard coded file paths"""
     _test_files_dir = join(dirname(__file__), normpath("TestData"))
     LAMMPS_test_files_dir = join(_test_files_dir, "Lammps")
-    QE_test_files_dir = join(_test_files_dir, "Lammps")
+    QE_test_files_dir = join(_test_files_dir, "QuantumEspresso")
 
 class TestLammpsReader(unittest.TestCase):
     """This class containts tests for ReadLammpsData.py"""
@@ -187,41 +187,48 @@ class TestLammpsReader(unittest.TestCase):
         except IndexError:
             self.fail("Atom types/counts per type, does not match read data!")
 
-    class TestQEReader(unittest.TestCase):
-        """Tests the QEReader's read functions
-        
-        Attributes:
-            path_provider: reference to static class that holds values for paths
-                (e.g. to qe output files)
-        """
+class TestQEMDReader(unittest.TestCase):
+    """Tests the QEReader's read functions
+    
+    Attributes:
+        path_provider: reference to static class that holds values for paths
+            (e.g. to qe output files)
+    """
 
-        path_provider = PathProvider
+    path_provider = PathProvider
 
-        def setUp(self):
-            self._out_file_dir = self.path_provider.QE_test_files_dir
+    def setUp(self):
+        self._out_file = join(self.path_provider.QE_test_files_dir, "Au_qe6.out")
 
-            self._expected_atom_types = ["Au"]
-            self._expected_number_of_atoms_per_type = [13]
-            #self._expected_geometry_first_step
+        self._expected_atom_types = ["Au"]
+        self._expected_number_of_atoms_per_type = [13]
+        #self._expected_geometry_first_step
 
-        def _create_prepared_reader(self):
-            """will prep the reader by showing it the 
-            outfiles and having it read them."""
+    def _create_prepared_reader(self):
+        """will prep the reader by showing it the 
+        outfiles and having it read them."""
+
+        path = self._out_file
+
+        try:
             reader = ReadQEData.QE_MD_Reader()
-            reader.get_files(self._out_file_dir)
+            reader.get_files(path)
             reader.read_all_files()
-
             return reader
+        except IOError as ex:
+            print("IOError when preparing QEMDReader: {0}".format(ex.message))
+            self.fail("QEMDReader: file not found at {0}".format(path))
 
-        def test_species_discover(self):
-            """tests if species are read correctly from file"""
-            reader = self._create_prepared_reader()
 
-            self.assertItemsEqual(self._expected_atom_types, reader.atom_types)
-            self.assertItemsEqual(
-                self._expected_number_of_atoms_per_type, 
-                reader.nr_atoms_per_type
-            )            
+    def test_species_discover(self):
+        """tests if species are read correctly from file"""
+        reader = self._create_prepared_reader()
+
+        self.assertItemsEqual(self._expected_atom_types, reader.atom_types)
+        self.assertItemsEqual(
+            self._expected_number_of_atoms_per_type, 
+            reader.nr_atoms_per_type
+        )            
 
 if __name__ == '__main__':
     unittest.main()
