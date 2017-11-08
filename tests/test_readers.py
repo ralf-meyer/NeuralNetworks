@@ -1,14 +1,80 @@
 import unittest
 from os.path import normpath, dirname, join
 import numpy as _np
-from NeuralNetworks import ReadLammpsData
-from NeuralNetworks import ReadQEData
+from NeuralNetworks.data_generation import data_readers
 
 class PathProvider(object):
     """This class is just used to provide hard coded file paths"""
     _test_files_dir = join(dirname(__file__), normpath("TestData"))
     LAMMPS_test_files_dir = join(_test_files_dir, "Lammps")
     QE_test_files_dir = join(_test_files_dir, "QuantumEspresso")
+
+class BaseTestsWrapper(object):
+    """This class is only used to hide the base tests classes,
+    to avoid them beeing executed by unittest module.
+    """
+
+    class DataReadersTestUtilities(unittest.TestCase):
+        """This class provides some utility test functions tailored for
+        the attributes of the data readers, which will then be called
+        by the actual tests
+        """
+
+        def setUp(self):
+            self._expected_atom_types = None
+            self._expected_number_of_atoms_per_type = None
+
+            # expected geometries
+            # should be of the following form:
+            # a list of tuples with:
+            # - species_ij (species of atom j in step i)
+            # - geometries_ij (position of atom j in step i)
+            # Example:
+            #    [ ((i,j), (species_ij, np.array(geometries_ij))) ]
+            self._expected_geometries = None
+            # list of indices (i,j) as a tuple
+            self._expected_geometries_indices = None
+
+            # expected forces
+            # should be of same form as expected geometries, but w/o species_ij,
+            # i.e. just a list containing force values (np.array(forces_ij),
+            # with forces_ij the forces of atom j in step i).
+            self._expected_forces = None
+            self._expected_forces_indices = None
+
+        def _check_species(self, reader):
+            """Test is species are detected correctly"""
+            self.assertItemsEqual(self._expected_atom_types, reader.atom_types)
+            self.assertItemsEqual(
+                self._expected_number_of_atoms_per_type,
+                reader.nr_atoms_per_type
+            )
+
+        def _check_geometry(self, reader):
+            """Test read geometry entries"""
+
+            for i, (step, atom) in enumerate(self._expected_geometries_indices):
+                self._assert_geometry_entries_equals(
+                    reader.geometries[step][atom],
+                    self._expected_geometries[i]
+                )
+        
+        def _assert_geometry_entries_equals(self, expected, actual):
+            """Compares objects of the specific tuple formart (string, np.array)"""
+
+            # compare atomic species
+            self.assertEqual(expected[0], actual[0])
+
+            # compare geometry values
+            self.assertItemsEqual(expected[1], actual[1])
+
+        def _check_forces(self, reader):
+            
+            for i, (step, atom) in enumerate(self._expected_forces_indices):
+                self.assertItemsEqual(
+                    reader.forces[step][atom],
+                    self._expected_forces[i]
+                )
 
 class TestLammpsReader(unittest.TestCase):
     """This class containts tests for ReadLammpsData.py"""
@@ -98,7 +164,7 @@ class TestLammpsReader(unittest.TestCase):
     def test_read_dump(self):
         """Read from dump (in test data) and compare against hard coded string"""
 
-        reader = ReadLammpsData.LammpsReader()
+        reader = data_readers.LammpsReader()
 
         # read from dump file
         reader.read_lammps(self._dump_path, self._xyz_path, self._thermo_path)
@@ -115,7 +181,7 @@ class TestLammpsReader(unittest.TestCase):
     def test_read_thermo(self):
         """Read energies from thermo file and compare to hard coded reference"""
         
-        reader = ReadLammpsData.LammpsReader()        
+        reader = data_readers.LammpsReader()        
         reader._read_energies_from_thermofile(self._thermo_path)
 
         self.assertItemsEqual(self._expected_energies, reader.energies)
@@ -123,7 +189,7 @@ class TestLammpsReader(unittest.TestCase):
     def test_read_xyz(self):
         """test reading geometries and species from xyz file"""
 
-        reader = ReadLammpsData.LammpsReader()
+        reader = data_readers.LammpsReader()
         reader._read_geometries_from_xyz(self._xyz_path)
 
         self._check_species(reader.atom_types, reader.number_of_atoms_per_type)
@@ -132,7 +198,7 @@ class TestLammpsReader(unittest.TestCase):
     def test_bad_dump_with_xyz_as_backup(self):
         """test if reader can read if dump not found and xyz given as backup"""
 
-        reader = ReadLammpsData.LammpsReader()
+        reader = data_readers.LammpsReader()
 
         try:
             reader.read_lammps(
@@ -158,7 +224,7 @@ class TestLammpsReader(unittest.TestCase):
         new_types = ["H"]
         new_count_per_type = [26]
 
-        reader = ReadLammpsData.LammpsReader()
+        reader = data_readers.LammpsReader()
 
         # set atom species
         reader.atom_types = new_types
@@ -187,7 +253,7 @@ class TestLammpsReader(unittest.TestCase):
         except IndexError:
             self.fail("Atom types/counts per type, does not match read data!")
 
-class TestQEMDReader(unittest.TestCase):
+class TestQEMDReader(BaseTestsWrapper.DataReadersTestUtilities):
     """Tests the QEReader's read functions
     
     Attributes:
@@ -204,19 +270,24 @@ class TestQEMDReader(unittest.TestCase):
         self._expected_atom_types = ["Au"]
         self._expected_number_of_atoms_per_type = [13]
 
-        self._expected_geometry_first_step_first_atom = \
-            ("Au", _np.array([-0.0000000, 0.0000000, 0.0000000]))
-        self._expected_geometry_third_step_tenth_atom = \
-            ("Au", _np.array([2.260768389, 0.011928105, -1.490806648]))
-        self._expected_geometry_sixth_step_thirteenth_atom = \
+        # expected geometries values:
+        # first step/first atom, third step/tenth atom and
+        # sixth step/thirteenth atom
+        self._expected_geometries = [
+            ("Au", _np.array([-0.0000000, 0.0000000, 0.0000000])),
+            ("Au", _np.array([2.260768389, 0.011928105, -1.490806648])),
             ("Au", _np.array([-0.109880711, -1.599014933, -2.258045452]))
+        ]
+        self._expected_geometries_indices = [(0, 0), (2, 9), (5, 13)]
 
-        self._expected_force_first_step_first_atom = \
-            _np.array([0.00000100, -0.00000508, 0.00000782])
-        self._expected_force_fourth_step_eighth_atom = \
-            _np.array([-0.02532810, -0.01860887, 0.00830192])
-        self._expected_force_sixth_step_thirteenth_atom = \
+        # expected forces: 
+        # first step/first atom, fourth step/eighth atom and sixth step/13th atom
+        self._expected_forces = [
+            _np.array([0.00000100, -0.00000508, 0.00000782]),
+            _np.array([-0.02532810, -0.01860887, 0.00830192]),
             _np.array([0.00399592, -0.03540779, -0.04765918])
+        ]
+        self._expected_forces_indices = [(0, 0), (3, 7), (5, 12)]
         #---
 
         self._reader = self._create_prepared_reader()
@@ -228,7 +299,7 @@ class TestQEMDReader(unittest.TestCase):
         path = self._out_file
 
         try:
-            reader = ReadQEData.QE_MD_Reader()
+            reader = data_readers.QE_MD_Reader()
             reader.get_files(path)
             reader.read_all_files()
             return reader
@@ -239,18 +310,13 @@ class TestQEMDReader(unittest.TestCase):
 
     def test_species_discover(self):
         """tests if species are read correctly from file"""
-        
-        self.assertItemsEqual(self._expected_atom_types, self._reader.atom_types)
-        self.assertItemsEqual(
-            self._expected_number_of_atoms_per_type, 
-            self._reader.nr_atoms_per_type
-        )
+        self._check_species(self._reader)
 
     def test_geometries(self):
-        pass
+        self._check_geometry(self._reader)
 
     def test_forces(self):
-        pass
+        self._check_forces(self._reader)
 
 if __name__ == '__main__':
     unittest.main()
