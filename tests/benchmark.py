@@ -1,7 +1,8 @@
 import time
 from NeuralNetworks.SymmetryFunctionSet import SymmetryFunctionSet_py as SymFunSet_py, SymmetryFunctionSet as SymFunSet_cpp
-from NeuralNetworks.SymmetryFunctionSetC import SymmetryFunctionSet as SymFunSet_c
+#from NeuralNetworks.SymmetryFunctionSetC import SymmetryFunctionSet as SymFunSet_c
 import numpy as np
+import cProfile
 
 geo55 = [["Ni", np.array([-0.0000014484, 1.4664110123, 2.3723640186])],
  ["Au", np.array([-0.0000161717, 0.0260399013, 0.0422067291])],
@@ -121,9 +122,9 @@ sfs_py = SymFunSet_py(["Ni", "Au"])
 sfs_py.add_radial_functions(rss, etas)
 sfs_py.add_angular_functions([1.0,], zetas, lambdas)
 
-sfs_c = SymFunSet_c(["Ni", "Au"])
-sfs_c.add_radial_functions(rss, etas)
-sfs_c.add_angular_functions([1.0], zetas, lambdas)
+#sfs_c = SymFunSet_c(["Ni", "Au"])
+#sfs_c.add_radial_functions(rss, etas)
+#sfs_c.add_angular_functions([1.0], zetas, lambdas)
 
 print("\n--- NiAu12 ---")
 
@@ -142,10 +143,10 @@ out_py = sfs_py.eval_geometry(geo13)
 end_time = time.time()
 print("Python:   {} s".format(end_time-start_time))
 
-start_time = time.time()
-out_c = np.asarray(sfs_c.eval_geometry(geo13))
-end_time = time.time()
-print("C:        {} s".format(end_time-start_time))
+#start_time = time.time()
+#out_c = np.asarray(sfs_c.eval_geometry(geo13))
+#end_time = time.time()
+#print("C:        {} s".format(end_time-start_time))
 
 print("\n--- NiAu54 ---")
 
@@ -164,10 +165,10 @@ out_py = sfs_py.eval_geometry(geo55)
 end_time = time.time()
 print("Python:   {} s".format(end_time-start_time))
 
-start_time = time.time()
-out_c = np.asarray(sfs_c.eval_geometry(geo55))
-end_time = time.time()
-print("C:        {} s".format(end_time-start_time))
+#start_time = time.time()
+#out_c = np.asarray(sfs_c.eval_geometry(geo55))
+#end_time = time.time()
+#print("C:        {} s".format(end_time-start_time))
 
 print("Difference of Python and Cpp < 1e-6: {}".format(all(abs(
     np.array(out_cpp)-out_py).flatten() < 1e-6)))
@@ -201,3 +202,5 @@ start_time = time.time()
 out_cpp_new = sfs_cpp.eval_derivatives_old(types, xyzs)
 end_time = time.time()
 print("Cpp_old:  {} s".format(end_time-start_time))
+
+cProfile.run('sfs_cpp.eval_geometry(geo55)')
