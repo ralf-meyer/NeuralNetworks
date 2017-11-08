@@ -21,63 +21,6 @@ import numpy as _np
 import matplotlib.pyplot as plt
 from progressbar import ProgressBar
 
-class _AbstractReader:
-    """This class is used to define a common interface for all
-    "readers" to implement.
-
-    Attributes:
-        atom_types: the atomic species apearing in the measurement whose results
-            are parsed.
-        nr_atoms_per_type: the number of atoms occuring in the experiment listed
-            for each type.
-
-        geometries: list of list of tuples, (atom species, atomic positions: xyz).
-        forces: list of list of np array containig the forces fx,fy,fz.
-        energies: list of the energies (double).
-
-        E_conv_factor = conversion factor from unit energies should be
-            interpreted in to eV.
-        Geom_conv_factor = conversion factor from the unit the goemetries
-            should be read in and Angstroem.
-    """
-    # declare class abstract.
-    __metaclass__ = ABCMeta
-
-    @property
-    @abstractmethod
-    def atom_types(self):
-        raise NotImplementedError("Reader must implement this attribute!")
-
-    @property
-    @abstractmethod
-    def nr_atoms_per_type(self):
-        raise NotImplementedError("Reader must implement this attribute!")
-    
-    @property
-    @abstractmethod
-    def geometries(self):
-        raise NotImplementedError("Reader must implement this attribute!")
-    
-    @property
-    @abstractmethod
-    def forces(self):
-        raise NotImplementedError("Reader must implement this attribute!")
-
-    @property
-    @abstractmethod
-    def energies(self):
-        raise NotImplementedError("Reader must implement this attribute!")
-
-    @property
-    @abstractmethod
-    def E_conv_factor(self):
-        raise NotImplementedError("Reader must implement this attribute!")
-
-    @property
-    @abstractmethod
-    def Geom_conv_factor(self):
-        raise NotImplementedError("Reader must implement this attribute!")
-
 def read_atom_types(my_file):
         
     types=[]
