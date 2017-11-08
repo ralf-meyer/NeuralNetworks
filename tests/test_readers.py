@@ -54,29 +54,36 @@ class BaseTestsWrapper(object):
             """Test read geometry entries"""
 
             for i, (step, atom) in enumerate(self._expected_geometries_indices):
-                self._assert_geometry_entries_equals(
+                self._assert_geometry_entries_equal(
                     reader.geometries[step][atom],
                     self._expected_geometries[i]
                 )
         
-        def _assert_geometry_entries_equals(self, expected, actual):
+        def _assert_geometry_entries_equal(self, expected, actual):
             """Compares objects of the specific tuple formart (string, np.array)"""
 
             # compare atomic species
             self.assertEqual(expected[0], actual[0])
 
-            # compare geometry values
-            self.assertItemsEqual(expected[1], actual[1])
+            # compare geometry 
+            self._assert_list_almost_equal(expected[1], actual[1])
+        
+        def _assert_list_almost_equal(self, expected, actual, delta=2):
+            # compare length
+            self.assertEqual(len(expected), len(actual))
+
+            # compare elements
+            for (expected_element, actual_element) in zip(expected, actual):
+                self.assertAlmostEqual(expected_element, actual_element, delta)
 
         def _check_forces(self, reader):
-            
             for i, (step, atom) in enumerate(self._expected_forces_indices):
-                self.assertItemsEqual(
+                self._assert_list_almost_equal(
                     reader.forces[step][atom],
                     self._expected_forces[i]
                 )
 
-class TestLammpsReader(unittest.TestCase):
+class TestLammpsReader(BaseTestsWrapper.DataReadersTestUtilities):
     """This class containts tests for ReadLammpsData.py"""
 
     path_provider = PathProvider
@@ -96,70 +103,28 @@ class TestLammpsReader(unittest.TestCase):
         self._expected_number_of_atoms_per_type = [26]
 
         # geometries
-        self._expected_geometry_first_step_third_atom = \
-            ("Au", _np.array([-7.06365, 1.76129, -0.29539]))
-        self._expected_geometry_third_step_eleventh_atom = \
-            ("Au", _np.array([-3.26698, -2.05631, 1.26889]))
-        self._expected_geometry_sixth_step_twenty_sixth_atom = \
+        # fist step/third atom, third step/eleventh atom, and
+        # sixth step/ twenty sixth atom
+        self._expected_geometries = [
+            ("Au", _np.array([-7.06365, 1.76129, -0.29539])),
+            ("Au", _np.array([-3.26698, -2.05631, 1.26889])),
             ("Au", _np.array([-2.07949, 0.0551922, 5.46916]))
+        ]
+        self._expected_geometries_indices = [(0, 2), (2, 10), (5, 25)]
 
         # forces
-        self._expected_force_first_step_first_atom = \
-            _np.array([10.1944, -0.782955, 2.71506])
-        self._expected_force_fourth_step_twenty_first_atom = \
-            _np.array([2.04384, -9.01468, 15.4655])
-        self._expected_force_sixth_step_eighth_atom = \
+        # first step/first atom, fourth step/twenty first atom, and
+        # sixth step/eighth atom
+        self._expected_forces = [
+            _np.array([10.1944, -0.782955, 2.71506]),
+            _np.array([2.04384, -9.01468, 15.4655]),
             _np.array([0.783606, 0.30807, 1.6233])
+        ]
+        self._expected_forces_indices = [(0, 0), (3, 20), (5, 7)]
 
         # energies
         self._expected_energies = \
             [-62.118812, -64.454685, -66.708751, -68.5237, -69.796816, -70.589006]
-
-    def _check_species(self, actual_atom_types, actual_number_of_atoms_per_type):
-        # test species detection
-        self.assertItemsEqual(actual_atom_types, self._expected_atom_types)
-        self.assertItemsEqual(
-            actual_number_of_atoms_per_type,
-            self._expected_number_of_atoms_per_type
-        )
-
-    def _check_geometry(self, actual_geometry):
-        """Checks geometry entries against stored references"""
-        self._assert_geometry_entries_equals(
-            actual_geometry[0][2],
-            self._expected_geometry_first_step_third_atom
-        )
-        self._assert_geometry_entries_equals(
-            actual_geometry[2][10],
-            self._expected_geometry_third_step_eleventh_atom
-        )
-        self._assert_geometry_entries_equals(
-            actual_geometry[5][25],
-            self._expected_geometry_sixth_step_twenty_sixth_atom
-        )
-    
-    def _assert_geometry_entries_equals(self, expected, actual):
-        """Compares objects of the specific tuple formart (string, np.array)"""
-
-        # compare atomic species
-        self.assertEqual(expected[0], actual[0])
-
-        # compare geometry values
-        self.assertItemsEqual(expected[1], actual[1])
-
-    def _check_forces(self, actual_forces):
-        self.assertItemsEqual(
-            actual_forces[0][0],
-            self._expected_force_first_step_first_atom
-        )
-        self.assertItemsEqual(
-            actual_forces[3][20],
-            self._expected_force_fourth_step_twenty_first_atom
-        )
-        self.assertItemsEqual(
-            actual_forces[5][7],
-            self._expected_force_sixth_step_eighth_atom
-        )
 
     def test_read_dump(self):
         """Read from dump (in test data) and compare against hard coded string"""
@@ -169,14 +134,10 @@ class TestLammpsReader(unittest.TestCase):
         # read from dump file
         reader.read_lammps(self._dump_path, self._xyz_path, self._thermo_path)
 
-        # test species
-        self._check_species(reader.atom_types, reader.number_of_atoms_per_type)
-
-        # test geometries
-        self._check_geometry(reader.geometries)
-
-        # test forces
-        self._check_forces(reader.forces)
+        # test results
+        self._check_species(reader)
+        self._check_geometry(reader)
+        self._check_forces(reader)
 
     def test_read_thermo(self):
         """Read energies from thermo file and compare to hard coded reference"""
@@ -192,8 +153,8 @@ class TestLammpsReader(unittest.TestCase):
         reader = data_readers.LammpsReader()
         reader._read_geometries_from_xyz(self._xyz_path)
 
-        self._check_species(reader.atom_types, reader.number_of_atoms_per_type)
-        self._check_geometry(reader.geometries)
+        self._check_species(reader)
+        self._check_geometry(reader)
 
     def test_bad_dump_with_xyz_as_backup(self):
         """test if reader can read if dump not found and xyz given as backup"""
@@ -228,16 +189,15 @@ class TestLammpsReader(unittest.TestCase):
 
         # set atom species
         reader.atom_types = new_types
-        reader.number_of_atoms_per_type = new_count_per_type
+        reader.nr_atoms_per_type = new_count_per_type
 
         reader.read_lammps(self._dump_path, self._thermo_path)
 
         # check if set species persisted or where overwritten
         self.assertItemsEqual(new_types, reader.atom_types)
-        self.assertItemsEqual(new_count_per_type, reader.number_of_atoms_per_type)
+        self.assertItemsEqual(new_count_per_type, reader.nr_atoms_per_type)
 
         # check if label in geometries are correct
-
         try:
             index_geometry = 0
             for i_atom, atom_type in enumerate(new_types):
@@ -276,16 +236,16 @@ class TestQEMDReader(BaseTestsWrapper.DataReadersTestUtilities):
         self._expected_geometries = [
             ("Au", _np.array([-0.0000000, 0.0000000, 0.0000000])),
             ("Au", _np.array([2.260768389, 0.011928105, -1.490806648])),
-            ("Au", _np.array([-0.109880711, -1.599014933, -2.258045452]))
+            ("Au", _np.array([-0.091557598, -1.588272346, -2.257035259]))
         ]
-        self._expected_geometries_indices = [(0, 0), (2, 9), (5, 13)]
+        self._expected_geometries_indices = [(0, 0), (2, 9), (4, 13)]
 
         # expected forces: 
         # first step/first atom, fourth step/eighth atom and sixth step/13th atom
         self._expected_forces = [
-            _np.array([0.00000100, -0.00000508, 0.00000782]),
-            _np.array([-0.02532810, -0.01860887, 0.00830192]),
-            _np.array([0.00399592, -0.03540779, -0.04765918])
+            _np.array([1.88972599e-06, -9.59980802e-06, 1.47776572e-05]),
+            _np.array([-0.04786317, -0.03516567, 0.01568835]),
+            _np.array([0.00755119, -0.06691102, -0.09006279])
         ]
         self._expected_forces_indices = [(0, 0), (3, 7), (5, 12)]
         #---
