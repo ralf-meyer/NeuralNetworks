@@ -9,7 +9,7 @@ class PathProvider(object):
     LAMMPS_test_files_dir = join(_test_files_dir, "Lammps")
     QE_test_files_dir = join(_test_files_dir, "QuantumEspresso")
 
-class BaseTestsWrapper(object):
+class _BaseTestsWrapper(object):
     """This class is only used to hide the base tests classes,
     to avoid them beeing executed by unittest module.
     """
@@ -83,7 +83,7 @@ class BaseTestsWrapper(object):
                     self._expected_forces[i]
                 )
 
-class TestLammpsReader(BaseTestsWrapper.DataReadersTestUtilities):
+class TestLammpsReader(_BaseTestsWrapper.DataReadersTestUtilities):
     """This class containts tests for ReadLammpsData.py"""
 
     path_provider = PathProvider
@@ -213,7 +213,7 @@ class TestLammpsReader(BaseTestsWrapper.DataReadersTestUtilities):
         except IndexError:
             self.fail("Atom types/counts per type, does not match read data!")
 
-class TestQEMDReader(BaseTestsWrapper.DataReadersTestUtilities):
+class TestQEMDReader(_BaseTestsWrapper.DataReadersTestUtilities):
     """Tests the QEReader's read functions
     
     Attributes:
