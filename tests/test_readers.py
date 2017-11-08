@@ -200,9 +200,26 @@ class TestQEMDReader(unittest.TestCase):
     def setUp(self):
         self._out_file = join(self.path_provider.QE_test_files_dir, "Au_qe6.out")
 
+        #--- reference values ---
         self._expected_atom_types = ["Au"]
         self._expected_number_of_atoms_per_type = [13]
-        #self._expected_geometry_first_step
+
+        self._expected_geometry_first_step_first_atom = \
+            ("Au", _np.array([-0.0000000, 0.0000000, 0.0000000]))
+        self._expected_geometry_third_step_tenth_atom = \
+            ("Au", _np.array([2.260768389, 0.011928105, -1.490806648]))
+        self._expected_geometry_sixth_step_thirteenth_atom = \
+            ("Au", _np.array([-0.109880711, -1.599014933, -2.258045452]))
+
+        self._expected_force_first_step_first_atom = \
+            _np.array([0.00000100, -0.00000508, 0.00000782])
+        self._expected_force_fourth_step_eighth_atom = \
+            _np.array([-0.02532810, -0.01860887, 0.00830192])
+        self._expected_force_sixth_step_thirteenth_atom = \
+            _np.array([0.00399592, -0.03540779, -0.04765918])
+        #---
+
+        self._reader = self._create_prepared_reader()
 
     def _create_prepared_reader(self):
         """will prep the reader by showing it the 
@@ -222,13 +239,18 @@ class TestQEMDReader(unittest.TestCase):
 
     def test_species_discover(self):
         """tests if species are read correctly from file"""
-        reader = self._create_prepared_reader()
-
-        self.assertItemsEqual(self._expected_atom_types, reader.atom_types)
+        
+        self.assertItemsEqual(self._expected_atom_types, self._reader.atom_types)
         self.assertItemsEqual(
             self._expected_number_of_atoms_per_type, 
-            reader.nr_atoms_per_type
-        )            
+            self._reader.nr_atoms_per_type
+        )
+
+    def test_geometries(self):
+        pass
+
+    def test_forces(self):
+        pass
 
 if __name__ == '__main__':
     unittest.main()
