@@ -14,9 +14,9 @@ try:
     #    and use relative path from there.
     module_path = dirname(abspath(getsourcefile(lambda:0)))
     lib = _ct.cdll.LoadLibrary(
-        join(
+        normpath(join(
             module_path,
-            normpath("../lib/symmetryFunctions/libSymFunSet.so")
+            "libSymFunSet.so")
         )
     )
     lib.SymmetryFunctionSet_add_TwoBodySymmetryFunction.argtypes = (
