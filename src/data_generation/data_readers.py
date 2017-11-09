@@ -21,6 +21,24 @@ import numpy as _np
 import matplotlib.pyplot as plt
 from progressbar import ProgressBar
 
+def get_nr_atoms_per_type(types,geometry):
+    nr_atoms=_np.zeros((len(types))).astype(_np.int32)
+    for atom in geometry:
+        this_type=atom[0]
+        for i in range(len(types)):
+            if types[i]==this_type:
+                nr_atoms[i]+=1#
+    
+    return list(nr_atoms)
+
+def is_numeric(string):
+    try:
+        f=float(string)
+        out=True
+    except:
+        out=False
+    return out
+
 def read_atom_types(my_file):
         
     types=[]
@@ -63,14 +81,15 @@ def read_ekin_temp_etot_force(my_file,E_conv_factor,Geom_conv_factor):
     au=0.529177249 #Angstroem
     force_factor=E_conv_factor*(Geom_conv_factor/au)
 
-    
+
     #Match start and end indices
     #Read total energy
     error_ct=0
-    for i,idx in enumerate(ex_idx):
-        if i %int(len(ex_idx)/3)==0:
-            print("..."+str(float(i)*100*0.33/len(ex_idx))+"%")
-            
+    
+    print("Reding total energy:")
+    bar_etot = ProgressBar()
+    for i,idx in bar_etot(enumerate(ex_idx)):
+        
         part=my_file[idx:f1_idx[i]]
         tot_start_idx=part.index('=')
         tot_end_idx=part.index('Ry')
@@ -87,9 +106,13 @@ def read_ekin_temp_etot_force(my_file,E_conv_factor,Geom_conv_factor):
     f_clean=[]
     error_ct=0
     
-    for j,idx in enumerate(f1_idx):
-        if j %int(len(f1_idx)/3)==0:
-            print("..."+str(34+float(j)*100*0.33/len(f1_idx))+"%")
+
+    
+    print("Reading forces:")
+    bar_forces = ProgressBar()  
+    for j,idx in bar_forces(enumerate(f1_idx)):
+        #if j %int(len(f1_idx)/3)==0:
+        #    print("..."+str(34+float(j)*100*0.33/len(f1_idx))+"%")
         part=my_file[idx:f2_idx[j]]
         part_eq_idx=[i.start() for i in _re.finditer('=', part)]
         part_bs_idx=[j.start() for j in _re.finditer('\n',part)]
@@ -129,9 +152,10 @@ def read_ekin_temp_etot_force(my_file,E_conv_factor,Geom_conv_factor):
                 
     #Read kinetic energy and temperature
     error_ct=0
-    for i,idx in enumerate(kin_idx):
-        if i %int(len(kin_idx)/3)==0:
-            print("..."+str(66+float(i)*100*0.33/len(kin_idx))+"%")
+    print("Reading kinetic energy:")
+    bar_kin_energy = ProgressBar()
+    for i,idx in bar_kin_energy(enumerate(kin_idx)):
+        
 
         part=my_file[idx:const_idx[i]]
         part_eq_idx=[i.start() for i in _re.finditer('=', part)]
@@ -154,13 +178,6 @@ def read_ekin_temp_etot_force(my_file,E_conv_factor,Geom_conv_factor):
     
     return e_kin,temperature,e_tot,forces
 
-def search_idx(idx,idx_dataset,last_idx):
-    for i,x in enumerate(idx_dataset[last_idx:]):
-        if x>idx:
-            return x,i
-    
-    return None,None          
-
 def read_geometries(my_file,Geom_conv_factor,atom_types):
         
     #find scf accuracies in file
@@ -174,8 +191,6 @@ def read_geometries(my_file,Geom_conv_factor,atom_types):
     last_ket=0
     last_temp=0
     for i,idx in enumerate(pos_idx):
-        if i %int(len(pos_idx)/6)==0:
-            print("..."+str(float(i)*100*0.66/len(pos_idx))+"%")
         temp,last_ket=search_idx(idx,ket_idx,last_ket)
         start_idx.append(temp)
         temp,last_ket=search_idx(idx,temp_idx,last_temp)
@@ -187,9 +202,10 @@ def read_geometries(my_file,Geom_conv_factor,atom_types):
     iterate=0
     #get values
     if len(start_idx)==len(end_idx):
-        for i in range(0,len(start_idx)):
-            if i %int(len(pos_idx)/3)==0:
-                print("..."+str(67+float(i)*100*0.33/len(pos_idx))+"%")
+
+        bar = ProgressBar()
+
+        for i in bar(range(len(start_idx))):
             geom=[]
             values=my_file[start_idx[i]+1:end_idx[i]].split()
 
@@ -219,15 +235,62 @@ def read_geometries(my_file,Geom_conv_factor,atom_types):
             
     return all_geometries
 
-def get_nr_atoms_per_type(types,geometry):
-    nr_atoms=_np.zeros((len(types))).astype(_np.int32)
-    for atom in geometry:
-        this_type=atom[0]
-        for i in range(len(types)):
-            if types[i]==this_type:
-                nr_atoms[i]+=1#
+def read_geometry_scf(my_file,Geom_conv_factor):
+    #get lattice constant for scaling
+    a_idx=[i.start() for i in  _re.finditer('alat', my_file)]
+
+    a_idx_start=my_file.index("=",a_idx[0])+1
+    a_idx_end=my_file.index("a",a_idx_start)
+    a=float(my_file[a_idx_start:a_idx_end])
+    #get postitions
+    geom_start_idx=my_file.index("\n",a_idx[-2])
+    geom_end_idx=my_file.index("number of k points")
+    geom=my_file[geom_start_idx:geom_end_idx]
     
-    return list(nr_atoms)
+    lines=geom.split('\n')
+    sites=[]
+    types=[]
+    x=[]
+    y=[]
+    z=[]
+    eq_i=10e10
+    for line in lines:
+        parts=line.replace("\t"," ").split(" ")
+        ct=0
+        ct2=0
+        for i,part in enumerate(parts):
+            if len(part)>0:
+                ct2+=1
+                
+            if ct2==1 and part!='':
+                sites.append(part)
+            elif ct2==2 and part!='':
+                types.append(part)
+                
+            if "=" in part:
+                eq_i=i
+            elif is_numeric(part) and i>eq_i:
+                if ct==0:
+                    x.append(float(part)*Geom_conv_factor)
+                elif ct==1:
+                    y.append(float(part)*Geom_conv_factor)
+                elif ct==2:
+                    z.append(float(part)*Geom_conv_factor)
+                ct=ct+1
+    geometry=[]
+    for i in range(len(x)):
+        xyz=[x[i]*a,y[i]*a,z[i]*a]
+        atom=(types[i],_np.asarray(xyz))
+        geometry.append(atom)
+
+    return geometry
+
+def search_idx(idx,idx_dataset,last_idx):
+    for i,x in enumerate(idx_dataset[last_idx:]):
+        if x>idx:
+            return x,i
+    
+    return None,None          
 
 
 class Deprecated(object):
@@ -485,64 +548,7 @@ class Deprecated(object):
                 
         return values
 
-    def is_numeric(string):
-        try:
-            f=float(string)
-            out=True
-        except:
-            out=False
-        return out
 
-    def read_geometry_scf(my_file,Geom_conv_factor):
-        #get lattice constant for scaling
-        a_idx=[i.start() for i in  _re.finditer('alat', my_file)]
-
-        a_idx_start=my_file.index("=",a_idx[0])+1
-        a_idx_end=my_file.index("a",a_idx_start)
-        a=float(my_file[a_idx_start:a_idx_end])
-        #get postitions
-        geom_start_idx=my_file.index("\n",a_idx[-2])
-        geom_end_idx=my_file.index("number of k points")
-        geom=my_file[geom_start_idx:geom_end_idx]
-        
-        lines=geom.split('\n')
-        sites=[]
-        types=[]
-        x=[]
-        y=[]
-        z=[]
-        eq_i=10e10
-        for line in lines:
-            parts=line.replace("\t"," ").split(" ")
-            ct=0
-            ct2=0
-            for i,part in enumerate(parts):
-                if len(part)>0:
-                    ct2+=1
-                    
-                if ct2==1 and part!='':
-                    sites.append(part)
-                elif ct2==2 and part!='':
-                    types.append(part)
-                    
-                if "=" in part:
-                    eq_i=i
-                elif is_numeric(part) and i>eq_i:
-                    if ct==0:
-                        x.append(float(part)*Geom_conv_factor)
-                    elif ct==1:
-                        y.append(float(part)*Geom_conv_factor)
-                    elif ct==2:
-                        z.append(float(part)*Geom_conv_factor)
-                    ct=ct+1
-        geometry=[]
-        for i in range(len(x)):
-            xyz=[x[i]*a,y[i]*a,z[i]*a]
-            atom=(types[i],_np.asarray(xyz))
-            geometry.append(atom)
-
-        return geometry
-        
 class QE_MD_Reader(object):
 
     def __init__(self):
@@ -580,17 +586,33 @@ class QE_MD_Reader(object):
             self.atom_types=read_atom_types(self.files[0])
         else:
             print("No files loaded!")
-        ct=1
-        for this in self.files:
+
+        for ct, this in enumerate(self.files):
             print("Reading energies and forces in file "+str(ct)+"...")
-            e_kin,temperature,e_tot,forces=read_ekin_temp_etot_force(this,self.E_conv_factor,self.Geom_conv_factor)
+            e_kin,temperature,e_tot,forces=read_ekin_temp_etot_force(
+                this,
+                self.E_conv_factor,
+                self.Geom_conv_factor
+            )
             self.forces+=forces
             self.e_kin+=e_kin
             self.temperature+=temperature
             self.e_tot+=e_tot
             print("Reading geometries in file "+str(ct)+"...")
-            self.geometries+=read_geometries(this,self.Geom_conv_factor,self.atom_types)
-            ct+=1
+
+            # read starting geometry, and convert it from lattice unit to angstr.
+            starting_geometry=read_geometry_scf(this,self.Geom_conv_factor) 
+            self.geometries=[starting_geometry]
+
+            self.geometries+=read_geometries(
+                this, 
+                self.Geom_conv_factor, 
+                self.atom_types
+            )
+
+            # remove last geometry because no forces and energies are available
+            self.geometries.pop(-1)
+
         if(len(self.e_kin)==len(self.e_tot)):
             self.e_pot=_np.subtract(self.e_tot,self.e_kin)
         else:
