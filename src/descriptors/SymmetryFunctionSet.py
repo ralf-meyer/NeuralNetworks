@@ -8,8 +8,12 @@ from scipy.spatial.distance import pdist, squareform
 from scipy.misc import comb
 
 try:
+
+    # TODO: the solution with relative patch is really dirty.
+    #    Better find a way to retrieve the main package's root path
+    #    and use relative path from there.
     module_path = dirname(abspath(getsourcefile(lambda:0)))
-    lib = _ct.cdll.LoadLibrary(join(module_path,"lib/symmetryFunctions/libSymFunSet.so"))
+    lib = _ct.cdll.LoadLibrary(join(module_path,"../lib/symmetryFunctions/libSymFunSet.so"))
     lib.SymmetryFunctionSet_add_TwoBodySymmetryFunction.argtypes = (
         _ct.c_void_p, _ct.c_int, _ct.c_int, _ct.c_int, _ct.c_int,
         _ct.POINTER(_ct.c_double), _ct.c_int, _ct.c_double)
