@@ -39,7 +39,6 @@ class _AbstractReader(object):
         geometries: list of list of tuples, (atom species, atomic positions: xyz). 
         forces: list of list of np array containing the forces fx,fy,fz. 
         energies: list of lists of the energies (double). 
-
     """ 
 
     def __init__(self):
@@ -53,12 +52,22 @@ class _AbstractReader(object):
         self.forces = [ [ np.array([ ]) ] ]
         self.energies [ [ ] ]
 
+        self.energy_calibration
+
     def read(*args, **kwargs):
         """Read data from files specified in args/kwargs"""
         raise NotImplementedError("Abstract method must be overridden!")
     
     def read_folder(*args, **kwargs):
         """Read all data from result files in folder specified by args/kwargs"""
+        raise NotImplementedError("Abstract method must be overridden!")
+
+    def calibrate_energy():
+        """Shift zero point for energy, so differences in erengy come 
+        closer to the absolute values of the energies.
+        This can e.g. mean that the zero point is set to the lowest energy, 
+        which is what happens if energy_calibration attribute is not set...
+        """
         raise NotImplementedError("Abstract method must be overridden!")
     
 
@@ -812,6 +821,8 @@ class LammpsReader(object):
         # for internal handling of atom_types
         self._species = [] 
 
+        # to preset the detail for energy calibration
+        self.energy_calibration = []
         
     #--- getter/setter for atomic species ---
     @property
@@ -845,7 +856,6 @@ class LammpsReader(object):
         self._species = \
             [species for count_and_species in self._species for species in count_and_species ]
     #---
-
     
     def read_lammps(self, dumpfile, thermofile, xyzfile=""):
         """Extracts data like atom types. geometries and forces from LAMPS
@@ -884,9 +894,7 @@ class LammpsReader(object):
         if isfile(thermofile):
             self._read_energies_from_thermofile(thermofile)
         else:
-            print("Invalid file path: {0} is not a file!".format(thermofile))
-            
-        
+            print("Invalid file path: {0} is not a file!".format(thermofile))                 
 
     def _read_from_dump(self, dumpfile):
         """reads species, geometries and forces from dump file.
@@ -1057,3 +1065,19 @@ class LammpsReader(object):
                         )
         except Exception as e:
             print("Error reading thermodynamics file: {0}".format(e.message))
+
+    def calibrate_energy():
+        """Will shift the zero point of the energy so the difference in energies
+        becomes more dominant (easier to learn)"""
+
+        #--- determine offset ---
+        if not(self.energy_calibration):
+            offset = _np.array(self.energies).min()
+        else:
+            raise NotImplementedError(
+                "More detailed calibration not implemented yet!"
+            )
+        #---
+
+        # shift energies
+        self.energies = (_np.array(self.energies) - offset).tolist()
