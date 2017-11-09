@@ -2,20 +2,27 @@ import unittest
 from os.path import normpath, dirname, join
 import numpy as _np
 from NeuralNetworks import ReadLammpsData
-#from ReadLammpsData import LammpsReader
-#import sys
-#sys.path.append(normpath("../ReadLammpsData"))
-#from ..ReadLammpsData import LammpsReader
+from NeuralNetworks import ReadQEData
+
+class PathProvider(object):
+    """This class is just used to provide hard coded file paths"""
+    _test_files_dir = join(dirname(__file__), normpath("TestData"))
+    LAMMPS_test_files_dir = join(_test_files_dir, "Lammps")
+    QE_test_files_dir = join(_test_files_dir, "QuantumEspresso")
 
 class TestLammpsReader(unittest.TestCase):
     """This class containts tests for ReadLammpsData.py"""
 
+    path_provider = PathProvider
+
     def setUp(self):
         # set paths to result files to read from
-        test_files_dir = join(dirname(__file__), normpath("TestData/Lammps"))
-        self._dump_path = join(test_files_dir, "Au_md.dump")
-        self._xyz_path = join(test_files_dir, "Au_md.xyz")
-        self._thermo_path = join(test_files_dir, "Au.log")
+        self._dump_path = \
+            join(self.path_provider.LAMMPS_test_files_dir , "Au_md.dump")
+        self._xyz_path = \
+            join(self.path_provider.LAMMPS_test_files_dir , "Au_md.xyz")
+        self._thermo_path = \
+            join(self.path_provider.LAMMPS_test_files_dir , "Au.log")
 
         #--- set reference values ---
         # species
@@ -38,6 +45,9 @@ class TestLammpsReader(unittest.TestCase):
         self._expected_force_sixth_step_eighth_atom = \
             _np.array([0.783606, 0.30807, 1.6233])
 
+        # energies
+        self._expected_energies = \
+            [-62.118812, -64.454685, -66.708751, -68.5237, -69.796816, -70.589006]
 
     def _check_species(self, actual_atom_types, actual_number_of_atoms_per_type):
         # test species detection
@@ -86,7 +96,7 @@ class TestLammpsReader(unittest.TestCase):
         )
 
     def test_read_dump(self):
-        """Read from dump (in test data) and compare agains hard coded string"""
+        """Read from dump (in test data) and compare against hard coded string"""
 
         reader = ReadLammpsData.LammpsReader()
 
@@ -102,6 +112,123 @@ class TestLammpsReader(unittest.TestCase):
         # test forces
         self._check_forces(reader.forces)
 
+    def test_read_thermo(self):
+        """Read energies from thermo file and compare to hard coded reference"""
+        
+        reader = ReadLammpsData.LammpsReader()        
+        reader._read_energies_from_thermofile(self._thermo_path)
+
+        self.assertItemsEqual(self._expected_energies, reader.energies)
+
+    def test_read_xyz(self):
+        """test reading geometries and species from xyz file"""
+
+        reader = ReadLammpsData.LammpsReader()
+        reader._read_geometries_from_xyz(self._xyz_path)
+
+        self._check_species(reader.atom_types, reader.number_of_atoms_per_type)
+        self._check_geometry(reader.geometries)
+
+    def test_bad_dump_with_xyz_as_backup(self):
+        """test if reader can read if dump not found and xyz given as backup"""
+
+        reader = ReadLammpsData.LammpsReader()
+
+        try:
+            reader.read_lammps(
+                "bad/path/to/no_where.dump", 
+                self._thermo_path, 
+                self._xyz_path)            
+
+        except ValueError as ex:
+            self.fail(
+                "Probably one xyz file not found... Details: {0}".format(
+                    ex.message)
+                )
+        except Exception as ex:
+            self.fail("Unknown error: {0}".format(ex.message))
+
+        # if nothing goes wrong, cheack if any geometries were read
+        self.assertGreater(len(reader.geometries), 0)
+
+    def test_setting_species_before_reading(self):
+        """Test if geometries are labelled correctly if species are set """
+
+        # define species to be set
+        new_types = ["H"]
+        new_count_per_type = [26]
+
+        reader = ReadLammpsData.LammpsReader()
+
+        # set atom species
+        reader.atom_types = new_types
+        reader.number_of_atoms_per_type = new_count_per_type
+
+        reader.read_lammps(self._dump_path, self._thermo_path)
+
+        # check if set species persisted or where overwritten
+        self.assertItemsEqual(new_types, reader.atom_types)
+        self.assertItemsEqual(new_count_per_type, reader.number_of_atoms_per_type)
+
+        # check if label in geometries are correct
+
+        try:
+            index_geometry = 0
+            for i_atom, atom_type in enumerate(new_types):
+                for count in range(new_count_per_type[i_atom]):
+                    
+                    self.assertEqual(
+                        atom_type, 
+                        reader.geometries[0][index_geometry][0]
+                    )
+
+                    index_geometry += 1
+
+        except IndexError:
+            self.fail("Atom types/counts per type, does not match read data!")
+
+class TestQEMDReader(unittest.TestCase):
+    """Tests the QEReader's read functions
+    
+    Attributes:
+        path_provider: reference to static class that holds values for paths
+            (e.g. to qe output files)
+    """
+
+    path_provider = PathProvider
+
+    def setUp(self):
+        self._out_file = join(self.path_provider.QE_test_files_dir, "Au_qe6.out")
+
+        self._expected_atom_types = ["Au"]
+        self._expected_number_of_atoms_per_type = [13]
+        #self._expected_geometry_first_step
+
+    def _create_prepared_reader(self):
+        """will prep the reader by showing it the 
+        outfiles and having it read them."""
+
+        path = self._out_file
+
+        try:
+            reader = ReadQEData.QE_MD_Reader()
+            reader.get_files(path)
+            reader.read_all_files()
+            return reader
+        except IOError as ex:
+            print("IOError when preparing QEMDReader: {0}".format(ex.message))
+            self.fail("QEMDReader: file not found at {0}".format(path))
+
+
+    def test_species_discover(self):
+        """tests if species are read correctly from file"""
+        reader = self._create_prepared_reader()
+
+        self.assertItemsEqual(self._expected_atom_types, reader.atom_types)
+        self.assertItemsEqual(
+            self._expected_number_of_atoms_per_type, 
+            reader.nr_atoms_per_type
+        )            
 
 if __name__ == '__main__':
     unittest.main()
