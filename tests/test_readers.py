@@ -43,7 +43,7 @@ class _BaseTestsWrapper(object):
             self._expected_forces_indices = None
 
         def _check_species(self, reader):
-            """Test is species are detected correctly"""
+            """Test if species are detected correctly"""
             self.assertItemsEqual(self._expected_atom_types, reader.atom_types)
             self.assertItemsEqual(
                 self._expected_number_of_atoms_per_type,
@@ -55,8 +55,8 @@ class _BaseTestsWrapper(object):
 
             for i, (step, atom) in enumerate(self._expected_geometries_indices):
                 self._assert_geometry_entries_equal(
-                    reader.geometries[step][atom],
-                    self._expected_geometries[i]
+                    self._expected_geometries[i],
+                    reader.geometries[step][atom]
                 )
         
         def _assert_geometry_entries_equal(self, expected, actual):
@@ -235,13 +235,13 @@ class TestQEMDReader(_BaseTestsWrapper.DataReadersTestUtilities):
         # sixth step/thirteenth atom
         self._expected_geometries = [
             ("Au", _np.array([-0.0000000, 0.0000000, 0.0000000])),
-            ("Au", _np.array([2.260768389, 0.011928105, -1.490806648])),
+            ("Au", _np.array([2.259098563, 0.007969433, -1.506424622])),
             ("Au", _np.array([-0.091557598, -1.588272346, -2.257035259]))
         ]
-        self._expected_geometries_indices = [(0, 0), (2, 9), (4, 13)]
+        self._expected_geometries_indices = [(0, 0), (2, 9), (5, 12)]
 
         # expected forces: 
-        # first step/first atom, fourth step/eighth atom and sixth step/13th atom
+        # sixth step/first atom, fourth step/eighth atom and sixth step/13th atom
         self._expected_forces = [
             _np.array([1.88972599e-06, -9.59980802e-06, 1.47776572e-05]),
             _np.array([-0.04786317, -0.03516567, 0.01568835]),
@@ -266,7 +266,6 @@ class TestQEMDReader(_BaseTestsWrapper.DataReadersTestUtilities):
         except IOError as ex:
             print("IOError when preparing QEMDReader: {0}".format(ex.message))
             self.fail("QEMDReader: file not found at {0}".format(path))
-
 
     def test_species_discover(self):
         """tests if species are read correctly from file"""
