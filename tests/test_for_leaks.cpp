@@ -18,6 +18,10 @@ int main()
   sfs->add_TwoBodySymmetryFunction(1, 1, 0, 2, prms, 0, 7.0);
   sfs->add_ThreeBodySymmetryFunction(0, 0, 0, 0, 3, prms3, 0, 7.0);
   sfs->add_ThreeBodySymmetryFunction(0, 0, 1, 0, 3, prms3, 0, 7.0);
+  sfs->add_ThreeBodySymmetryFunction(0, 1, 1, 0, 3, prms3, 0, 7.0);
+  sfs->add_ThreeBodySymmetryFunction(1, 0, 0, 0, 3, prms3, 0, 7.0);
+  sfs->add_ThreeBodySymmetryFunction(1, 0, 1, 0, 3, prms3, 0, 7.0);
+  sfs->add_ThreeBodySymmetryFunction(1, 1, 1, 0, 3, prms3, 0, 7.0);
   printf("SymFunSet created\n");
 
   int num_atoms = 20;
