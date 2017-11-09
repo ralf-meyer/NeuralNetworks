@@ -91,4 +91,12 @@ ENV/
 # vs code project settings
 .vscode/
 
+# pycharm
 .idea/
+
+# virtual env + pip install
+lib/python2\.7/
+local/
+pip-selfcheck\.json
+bin/
+include/
