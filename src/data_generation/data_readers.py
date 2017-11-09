@@ -21,6 +21,47 @@ import numpy as _np
 import matplotlib.pyplot as plt
 from progressbar import ProgressBar
 
+class _AbstractReader(object): 
+    """This class is used to define a common interface for all 
+    "readers" to implement. 
+ 
+    Attributes: 
+        E_conv_factor = conversion factor from unit energies should be 
+            interpreted in to eV. 
+        Geom_conv_factor = conversion factor from the unit the geometries 
+            should be read in and Angstrom. 
+
+        atom_types: the atomic species appearing in the measurement whose results 
+            are parsed. 
+        nr_atoms_per_type: the number of atoms occuring in the experiment listed 
+            for each type. 
+ 
+        geometries: list of list of tuples, (atom species, atomic positions: xyz). 
+        forces: list of list of np array containing the forces fx,fy,fz. 
+        energies: list of lists of the energies (double). 
+
+    """ 
+
+    def __init__(self):
+        self.E_conv_factor = None
+        self.Geom_conv_factor = None
+
+        self.atom_types = []
+        self.nr_atoms_per_type = []
+
+        self.geometries = [ [ ('', np.array([ ])) ] ]
+        self.forces = [ [ np.array([ ]) ] ]
+        self.energies [ [ ] ]
+
+    def read(*args, **kwargs):
+        """Read data from files specified in args/kwargs"""
+        raise NotImplementedError("Abstract method must be overridden!")
+    
+    def read_folder(*args, **kwargs):
+        """Read all data from result files in folder specified by args/kwargs"""
+        raise NotImplementedError("Abstract method must be overridden!")
+    
+
 def get_nr_atoms_per_type(types,geometry):
     nr_atoms=_np.zeros((len(types))).astype(_np.int32)
     for atom in geometry:
@@ -291,6 +332,7 @@ def search_idx(idx,idx_dataset,last_idx):
             return x,i
     
     return None,None          
+
 
 
 class Deprecated(object):
