@@ -38,11 +38,13 @@ setup(
     install_requires=["numpy", "scipy", "progressbar2", "tensorflow", "matplotlib"],
     packages=[
         "NeuralNetworks",
-        "NeuralNetworks.data_generation"
+        "NeuralNetworks.data_generation",
+        "NeuralNetworks.descriptors"
     ],
     package_dir={
         "NeuralNetworks": "src/", 
-        "NeuralNetworks.data_generation": "src/data_generation"
+        "NeuralNetworks.data_generation": "src/data_generation", 
+        "NeuralNetworks.descriptors": "src/descriptors"
     },
     package_data={"": ["lib/symmetryFunctions/libSymFunSet.so"]},
     include_package_data=True,
