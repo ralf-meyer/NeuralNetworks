@@ -31,7 +31,7 @@ class SymmetryFunctionSet
     void print_symFuns();
 
   private:
-    int num_atomtypes, num_atomtypes2;
+    int num_atomtypes, num_atomtypes_sq;
     int* num_symFuns;
     std::vector <std::vector<std::shared_ptr<TwoBodySymmetryFunction> > >
       twoBodySymFuns;
@@ -39,6 +39,7 @@ class SymmetryFunctionSet
     std::vector <std::vector<std::shared_ptr<ThreeBodySymmetryFunction> > >
       threeBodySymFuns;
     int* pos_threeBody;
+    int* max_cutoff;
 
     std::shared_ptr<CutoffFunction> switch_CutFun(
       int cutoff_type, double cutoff);
