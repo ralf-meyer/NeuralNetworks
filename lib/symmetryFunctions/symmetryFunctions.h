@@ -48,10 +48,10 @@ class ThreeBodySymmetryFunction: public SymmetryFunction
       ThreeBodySymmetryFunction(int num_prms, double* prms,
         std::shared_ptr<CutoffFunction> cutfun_i):
         SymmetryFunction(num_prms, prms, cutfun_i){};
-      virtual double eval(double rij, double rik, double theta) = 0;
-      virtual double drij(double rij, double rik, double theta) = 0;
-      virtual double drik(double rij, double rik, double theta) = 0;
-      virtual double dtheta(double rij, double rik, double theta) = 0;
+      virtual double eval(double rij, double rik, double costheta) = 0;
+      virtual double drij(double rij, double rik, double costheta) = 0;
+      virtual double drik(double rij, double rik, double costheta) = 0;
+      virtual double dcostheta(double rij, double rik, double costheta) = 0;
 };
 
 // AUTOMATIC Start of custom ThreeBodySymFuns
@@ -62,9 +62,9 @@ class BehlerG4: public ThreeBodySymmetryFunction
     BehlerG4(int num_prms, double* prms,
       std::shared_ptr<CutoffFunction> cutfun_i):
       ThreeBodySymmetryFunction(num_prms, prms, cutfun_i){};
-    double eval(double rij, double rik, double theta);
-    double drij(double rij, double rik, double theta);
-    double drik(double rij, double rik, double theta);
-    double dtheta(double rij, double rik, double theta);
+    double eval(double rij, double rik, double costheta);
+    double drij(double rij, double rik, double costheta);
+    double drik(double rij, double rik, double costheta);
+    double dcostheta(double rij, double rik, double costheta);
 };
 // AUTOMATIC End of custom ThreeBodySymFuns

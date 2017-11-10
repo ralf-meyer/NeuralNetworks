@@ -1,7 +1,7 @@
 import sympy as _sp
 from sympy.parsing.sympy_parser import parse_expr
 
-rij, rik, theta = _sp.symbols("rij rik theta")
+rij, rik, costheta = _sp.symbols("rij rik costheta")
 
 header_twoBody = """
 class {0}: public TwoBodySymmetryFunction
@@ -22,10 +22,10 @@ class {0}: public ThreeBodySymmetryFunction
     {0}(int num_prms, double* prms,
       std::shared_ptr<CutoffFunction> cutfun_i):
       ThreeBodySymmetryFunction(num_prms, prms, cutfun_i){{}};
-    double eval(double rij, double rik, double theta);
-    double drij(double rij, double rik, double theta);
-    double drik(double rij, double rik, double theta);
-    double dtheta(double rij, double rik, double theta);
+    double eval(double rij, double rik, double costheta);
+    double drij(double rij, double rik, double costheta);
+    double drik(double rij, double rik, double costheta);
+    double dcostheta(double rij, double rik, double costheta);
 }};
 """
 
@@ -37,7 +37,7 @@ double {}::{}(double rij)
 """
 
 method_threeBody = """
-double {}::{}(double rij, double rik, double theta)
+double {}::{}(double rij, double rik, double costheta)
 {{
   return {};
 }};
@@ -100,7 +100,8 @@ with open("symmetryFunctions.cpp", "w") as fout:
                 fout.write(method_twoBody.format(symfun[0],"eval",
                     format_prms(symfun[1],_sp.ccode(symfun[2],
                     user_functions = user_funs))))
-                deriv = str(_sp.Derivative(parse_expr(symfun[2]), rij).doit())
+                deriv = str(_sp.simplify(
+                    _sp.Derivative(parse_expr(symfun[2]), rij).doit()))
                 deriv = deriv.replace("Derivative(fcut(rij), rij)", "dfcut(rij)")
                 fout.write(method_twoBody.format(symfun[0],"drij",
                     format_prms(symfun[1],_sp.ccode(deriv,
@@ -111,22 +112,25 @@ with open("symmetryFunctions.cpp", "w") as fout:
                     format_prms(symfun[1],_sp.ccode(symfun[2],
                     user_functions = user_funs))))
                 # Derivative with respect to rij
-                deriv = str(_sp.Derivative(parse_expr(symfun[2]), rij).doit())
+                deriv = str(_sp.simplify(
+                    _sp.Derivative(parse_expr(symfun[2]), rij).doit()))
                 deriv = deriv.replace("Derivative(fcut(rij), rij)", "dfcut(rij)")
                 deriv = deriv.replace("Derivative(fcut(rik), rik)", "dfcut(rik)")
                 fout.write(method_threeBody.format(symfun[0],"drij",
                     format_prms(symfun[1],_sp.ccode(deriv,
                     user_functions = user_funs))))
                 # Derivative with respect to rik
-                deriv = str(_sp.Derivative(parse_expr(symfun[2]), rik).doit())
+                deriv = str(_sp.simplify(
+                    _sp.Derivative(parse_expr(symfun[2]), rik).doit()))
                 deriv = deriv.replace("Derivative(fcut(rij), rij)", "dfcut(rij)")
                 deriv = deriv.replace("Derivative(fcut(rik), rik)", "dfcut(rik)")
                 fout.write(method_threeBody.format(symfun[0],"drik",
-                    format_prms(symfun[1],_sp.ccode(deriv, 
+                    format_prms(symfun[1],_sp.ccode(deriv,
                     user_functions = user_funs))))
-                # Derivative with respect to theta
-                deriv = str(_sp.Derivative(parse_expr(symfun[2]), theta).doit())
-                fout.write(method_threeBody.format(symfun[0],"dtheta",
+                # Derivative with respect to costheta
+                deriv = str(_sp.simplify(
+                    _sp.Derivative(parse_expr(symfun[2]), costheta).doit()))
+                fout.write(method_threeBody.format(symfun[0],"dcostheta",
                     format_prms(symfun[1],_sp.ccode(deriv,
                     user_functions = user_funs))))
 
