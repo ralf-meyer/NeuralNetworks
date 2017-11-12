@@ -113,22 +113,24 @@ int SymmetryFunctionSet::get_CutFun_by_name(const char* name)
 int SymmetryFunctionSet::get_TwoBodySymFun_by_name(const char* name)
 {
   int id = -1;
-
+// AUTOMATIC get_TwoBodySymFuns start
   if (strcmp(name, "BehlerG2") == 0)
   {
     id = 0;
   }
+// AUTOMATIC get_TwoBodySymFuns end
   return id;
 }
 
 int SymmetryFunctionSet::get_ThreeBodySymFun_by_name(const char* name)
 {
   int id = -1;
-
+// AUTOMATIC get_ThreeBodySymFuns start
   if (strcmp(name, "BehlerG4") == 0)
   {
     id = 0;
   }
+// AUTOMATIC get_ThreeBodySymFuns end
   return id;
 }
 

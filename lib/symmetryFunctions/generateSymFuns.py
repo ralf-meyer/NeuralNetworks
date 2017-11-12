@@ -143,10 +143,20 @@ lines = (lines[0:(lines.index("// AUTOMATIC ThreeBodySymmetryFunction switch sta
     lines[lines.index("// AUTOMATIC ThreeBodySymmetryFunction switch end\n")::])
 lines = (lines[0:(lines.index("// AUTOMATIC available_symFuns start\n")+1)] +
     lines[lines.index("// AUTOMATIC available_symFuns end\n")::])
+lines = (lines[0:(lines.index("// AUTOMATIC get_TwoBodySymFuns start\n")+1)] +
+    lines[lines.index("// AUTOMATIC get_TwoBodySymFuns end\n")::])
+lines = (lines[0:(lines.index("// AUTOMATIC get_ThreeBodySymFuns start\n")+1)] +
+    lines[lines.index("// AUTOMATIC get_ThreeBodySymFuns end\n")::])
 
 case_string = """    case {}:
       symFun = std::make_shared<{}>(num_prms, prms, cutfun);
       break;
+"""
+
+switch_string = """  if (strcmp(name, "{}") == 0)
+  {{
+    id = {};
+  }}
 """
 
 with open("symmetryFunctionSet.cpp", "w") as fout:
@@ -166,3 +176,9 @@ with open("symmetryFunctionSet.cpp", "w") as fout:
         elif line.startswith("// AUTOMATIC ThreeBodySymmetryFunction switch start"):
             for i, symfun in enumerate(threeBodySymFuns):
                 fout.write(case_string.format(i, symfun[0]))
+        elif line.startswith("// AUTOMATIC get_TwoBodySymFuns start"):
+            for i, symfun in enumerate(twoBodySymFuns):
+                fout.write(switch_string.format(symfun[0], i))
+        elif line.startswith("// AUTOMATIC get_ThreeBodySymFuns start"):
+            for i, symfun in enumerate(threeBodySymFuns):
+                fout.write(switch_string.format(symfun[0], i))
