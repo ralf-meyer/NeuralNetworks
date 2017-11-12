@@ -409,9 +409,10 @@ void SymmetryFunctionSet::eval_derivatives_old(
             costheta = (dot/(rij*rik));
             for (three_Body_i = 0; three_Body_i < threeBodySymFuns[num_atomtypes_sq*types[i]+num_atomtypes*types[j]+types[k]].size(); three_Body_i++)
             {
-              dGdrij = threeBodySymFuns[num_atomtypes_sq*types[i]+num_atomtypes*types[j]+types[k]][three_Body_i]->drij(rij, rik, costheta);
-              dGdrik = threeBodySymFuns[num_atomtypes_sq*types[i]+num_atomtypes*types[j]+types[k]][three_Body_i]->drik(rij, rik, costheta);
-              dGdcostheta = threeBodySymFuns[num_atomtypes_sq*types[i]+num_atomtypes*types[j]+types[k]][three_Body_i]->dcostheta(rij, rik, costheta);
+              //dGdrij = threeBodySymFuns[num_atomtypes_sq*types[i]+num_atomtypes*types[j]+types[k]][three_Body_i]->drij(rij, rik, costheta);
+              //dGdrik = threeBodySymFuns[num_atomtypes_sq*types[i]+num_atomtypes*types[j]+types[k]][three_Body_i]->drik(rij, rik, costheta);
+              //dGdcostheta = threeBodySymFuns[num_atomtypes_sq*types[i]+num_atomtypes*types[j]+types[k]][three_Body_i]->dcostheta(rij, rik, costheta);
+              threeBodySymFuns[num_atomtypes_sq*types[i]+num_atomtypes*types[j]+types[k]][three_Body_i]->derivatives(rij, rik, costheta, dGdrij, dGdrik, dGdcostheta);
 
               index_base = 3*num_atoms*(counter + num_symFuns[2*types[i]] +
                 pos_threeBody[num_atomtypes_sq*types[i] + num_atomtypes*types[j] + types[k]]+ three_Body_i);
@@ -537,12 +538,14 @@ void SymmetryFunctionSet::eval_derivatives(
         for (three_Body_i = 0; three_Body_i < threeBodySymFuns[type_ijk].size();
           three_Body_i++)
         {
-          dGdrij = threeBodySymFuns[type_ijk][three_Body_i]->drij(
+          /*dGdrij = threeBodySymFuns[type_ijk][three_Body_i]->drij(
             rij, rik, costheta_i);
           dGdrik = threeBodySymFuns[type_ijk][three_Body_i]->drik(
             rij, rik, costheta_i);
           dGdcostheta = threeBodySymFuns[type_ijk][three_Body_i]->dcostheta(
-            rij, rik, costheta_i);
+            rij, rik, costheta_i);*/
+          threeBodySymFuns[type_ijk][three_Body_i]->derivatives(
+            rij, rik, costheta_i, dGdrij, dGdrik, dGdcostheta);
 
           index_base = 3*num_atoms*(pos_atoms[i] + num_symFuns[2*types[i]] +
             pos_threeBody[type_ijk]+ three_Body_i);
@@ -585,12 +588,14 @@ void SymmetryFunctionSet::eval_derivatives(
         for (three_Body_i = 0; three_Body_i < threeBodySymFuns[type_jki].size();
           three_Body_i++)
         {
-          dGdrij = threeBodySymFuns[type_jki][three_Body_i]->drij(
+          /*dGdrij = threeBodySymFuns[type_jki][three_Body_i]->drij(
             rjk, rij, costheta_j);
           dGdrik = threeBodySymFuns[type_jki][three_Body_i]->drik(
             rjk, rij, costheta_j);
           dGdcostheta = threeBodySymFuns[type_jki][three_Body_i]->dcostheta(
-            rjk, rij, costheta_j);
+            rjk, rij, costheta_j);*/
+          threeBodySymFuns[type_jki][three_Body_i]->derivatives(
+            rjk, rij, costheta_j, dGdrij, dGdrik, dGdcostheta);
 
           index_base = 3*num_atoms*(pos_atoms[j] + num_symFuns[2*types[j]] +
             pos_threeBody[type_jki]+ three_Body_i);
@@ -634,12 +639,14 @@ void SymmetryFunctionSet::eval_derivatives(
         for (three_Body_i = 0; three_Body_i < threeBodySymFuns[type_kij].size();
           three_Body_i++)
         {
-          dGdrij = threeBodySymFuns[type_kij][three_Body_i]->drij(
+          /*dGdrij = threeBodySymFuns[type_kij][three_Body_i]->drij(
             rik, rjk, costheta_k);
           dGdrik = threeBodySymFuns[type_kij][three_Body_i]->drik(
             rik, rjk, costheta_k);
           dGdcostheta = threeBodySymFuns[type_kij][three_Body_i]->dcostheta(
-            rik, rjk, costheta_k);
+            rik, rjk, costheta_k);*/
+          threeBodySymFuns[type_kij][three_Body_i]->derivatives(
+            rik, rjk, costheta_k, dGdrij, dGdrik, dGdcostheta);
 
           index_base = 3*num_atoms*(pos_atoms[k] + num_symFuns[2*types[k]] +
             pos_threeBody[type_kij] + three_Body_i);

@@ -26,6 +26,8 @@ class {0}: public ThreeBodySymmetryFunction
     double drij(double rij, double rik, double costheta);
     double drik(double rij, double rik, double costheta);
     double dcostheta(double rij, double rik, double costheta);
+    void derivatives(double rij, double rik, double costheta,
+      double &drij, double &drik, double &dcostheta);
 }};
 """
 
@@ -40,6 +42,14 @@ method_threeBody = """
 double {}::{}(double rij, double rik, double costheta)
 {{
   return {};
+}};
+"""
+
+derivative_threeBody = """
+void {}::derivatives(double rij, double rik, double costheta,
+  double &drij, double &drik, double &dcostheta)
+{{
+  {};
 }};
 """
 
@@ -133,6 +143,36 @@ with open("symmetryFunctions.cpp", "w") as fout:
                 fout.write(method_threeBody.format(symfun[0],"dcostheta",
                     format_prms(symfun[1],_sp.ccode(deriv,
                     user_functions = user_funs))))
+
+                # Derivatives with respect to the three arguments
+                derivs = [_sp.simplify(_sp.Derivative(
+                        parse_expr(symfun[2]), rij).doit()),
+                    _sp.simplify(_sp.Derivative(
+                        parse_expr(symfun[2]), rik).doit()),
+                    _sp.simplify(_sp.Derivative(
+                        parse_expr(symfun[2]), costheta).doit())]
+                simplified_derivs = [deriv.replace(
+                    "Derivative(fcut(rij), rij)", "dfcut(rij)").replace(
+                    "Derivative(fcut(rik), rik)", "dfcut(rik)") for deriv
+                    in derivs]
+                sub_exprs, simplified_derivs = _sp.cse(simplified_derivs)
+                method_body = []
+                for sub_expr in sub_exprs:
+                    method_body.append(
+                        "auto {} = {}".format(sub_expr[0], format_prms(symfun[1],
+                        _sp.ccode(sub_expr[1], user_functions = user_funs))))
+                method_body.append("drij = {}".format(format_prms(symfun[1],
+                    _sp.ccode(simplified_derivs[0],
+                    user_functions = user_funs))))
+                method_body.append("drik = {}".format(format_prms(symfun[1],
+                    _sp.ccode(simplified_derivs[1],
+                    user_functions = user_funs))))
+                method_body.append("dcostheta = {}".format(format_prms(symfun[1],
+                    _sp.ccode(simplified_derivs[2],
+                    user_functions = user_funs))))
+
+                fout.write(derivative_threeBody.format(symfun[0],
+                    ";\n  ".join(method_body)))
 
 with open("symmetryFunctionSet.cpp", "r") as fin:
     lines = fin.readlines()
