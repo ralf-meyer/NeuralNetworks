@@ -300,7 +300,7 @@ void SymmetryFunctionSet::eval(
                   pow(xyzs[3*j+1]-xyzs[3*k+1], 2) +
                   pow(xyzs[3*j+2]-xyzs[3*k+2], 2));
         if (rik > max_cutoff[types[i]*num_atomtypes+types[k]] &&
-          rjk > max_cutoff[types[j]*num_atomtypes+types[k]])
+          rik > max_cutoff[types[k]*num_atomtypes+types[i]])
         {
           continue;
         }
@@ -513,7 +513,7 @@ void SymmetryFunctionSet::eval_derivatives(
                   pow(xyzs[3*j+2]-xyzs[3*k+2], 2);
         rjk = sqrt(rjk2);
         if (rik > max_cutoff[types[i]*num_atomtypes+types[k]] &&
-          rjk > max_cutoff[types[j]*num_atomtypes+types[k]])
+          rik > max_cutoff[types[k]*num_atomtypes+types[i]])
         {
           continue;
         }
