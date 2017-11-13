@@ -27,7 +27,9 @@ class {0}: public ThreeBodySymmetryFunction
     double drik(double rij, double rik, double costheta);
     double dcostheta(double rij, double rik, double costheta);
     void derivatives(double rij, double rik, double costheta,
-      double &drij, double &drik, double &dcostheta);
+      double &dGdrij, double &dGdrik, double &dGdcostheta);
+    void eval_with_derivatives(double rij, double rik, double costheta,
+      double &G, double &dGdrij, double &dGdrik, double &dGdcostheta);
 }};
 """
 
@@ -45,9 +47,17 @@ double {}::{}(double rij, double rik, double costheta)
 }};
 """
 
-derivative_threeBody = """
+derivatives_threeBody = """
 void {}::derivatives(double rij, double rik, double costheta,
-  double &drij, double &drik, double &dcostheta)
+  double &dGdrij, double &dGdrik, double &dGdcostheta)
+{{
+  {};
+}};
+"""
+
+eval_with_derivatives_threeBody = """
+void {}::eval_with_derivatives(double rij, double rik, double costheta,
+  double &G, double &dGdrij, double &dGdrik, double &dGdcostheta)
 {{
   {};
 }};
@@ -180,19 +190,54 @@ with open("symmetryFunctions.cpp", "w") as fout:
                 method_body = []
                 for sub_expr in sub_exprs:
                     method_body.append(
-                        "auto {} = {}".format(sub_expr[0], format_prms(symfun[1],
+                        "auto {} = {}".format(
+                        sub_expr[0], format_prms(symfun[1],
                         _sp.ccode(sub_expr[1], user_functions = user_funs))))
-                method_body.append("drij = {}".format(format_prms(symfun[1],
+                method_body.append("dGdrij = {}".format(format_prms(symfun[1],
                     _sp.ccode(simplified_derivs[0],
                     user_functions = user_funs))))
-                method_body.append("drik = {}".format(format_prms(symfun[1],
+                method_body.append("dGdrik = {}".format(format_prms(symfun[1],
                     _sp.ccode(simplified_derivs[1],
                     user_functions = user_funs))))
-                method_body.append("dcostheta = {}".format(format_prms(symfun[1],
-                    _sp.ccode(simplified_derivs[2],
+                method_body.append("dGdcostheta = {}".format(
+                    format_prms(symfun[1], _sp.ccode(simplified_derivs[2],
                     user_functions = user_funs))))
 
-                fout.write(derivative_threeBody.format(symfun[0],
+                fout.write(derivatives_threeBody.format(symfun[0],
+                    ";\n  ".join(method_body)))
+
+                # Combined eval and derivatives
+                results = [parse_expr(symfun[2]), _sp.simplify(_sp.Derivative(
+                        parse_expr(symfun[2]), rij).doit()),
+                    _sp.simplify(_sp.Derivative(
+                        parse_expr(symfun[2]), rik).doit()),
+                    _sp.simplify(_sp.Derivative(
+                        parse_expr(symfun[2]), costheta).doit())]
+                simplified_results = [result.replace(
+                    "Derivative(fcut(rij), rij)", "dfcut(rij)").replace(
+                    "Derivative(fcut(rik), rik)", "dfcut(rik)") for result
+                    in results]
+                sub_exprs, simplified_results = _sp.cse(simplified_results)
+                method_body = []
+                for sub_expr in sub_exprs:
+                    method_body.append(
+                        "auto {} = {}".format(
+                        sub_expr[0], format_prms(symfun[1],
+                        _sp.ccode(sub_expr[1], user_functions = user_funs))))
+                method_body.append("G = {}".format(format_prms(symfun[1],
+                    _sp.ccode(simplified_results[0],
+                    user_functions = user_funs))))
+                method_body.append("dGdrij = {}".format(format_prms(symfun[1],
+                    _sp.ccode(simplified_results[1],
+                    user_functions = user_funs))))
+                method_body.append("dGdrik = {}".format(format_prms(symfun[1],
+                    _sp.ccode(simplified_results[2],
+                    user_functions = user_funs))))
+                method_body.append("dGdcostheta = {}".format(
+                    format_prms(symfun[1], _sp.ccode(simplified_results[3],
+                    user_functions = user_funs))))
+
+                fout.write(eval_with_derivatives_threeBody.format(symfun[0],
                     ";\n  ".join(method_body)))
         elif line.startswith("// AUTOMATIC available_symFuns start"):
             fout.write('  printf("TwoBodySymmetryFunctions: (key: name, # of parameters)\\n");\n')

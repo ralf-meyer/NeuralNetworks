@@ -35,6 +35,8 @@ int main()
   sfs->eval(num_atoms, types, xyzs, G_vector);
   sfs->eval_derivatives(num_atoms, types, xyzs, dG_tensor);
 
+  sfs->eval_with_derivatives(num_atoms, types, xyzs, G_vector, dG_tensor);
+
   delete[] prms;
   delete[] prms3;
   delete[] types;

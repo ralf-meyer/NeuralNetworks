@@ -53,7 +53,10 @@ class ThreeBodySymmetryFunction: public SymmetryFunction
       virtual double drik(double rij, double rik, double costheta) = 0;
       virtual double dcostheta(double rij, double rik, double costheta) = 0;
       virtual void derivatives(double rij, double rik, double costheta,
-        double &drij, double &drik, double &dcostheta) = 0;
+        double &dGdrij, double &dGdrik, double &dGdcostheta) = 0;
+      virtual void eval_with_derivatives(
+        double rij, double rik, double costheta,
+        double &G, double &dGdrij, double &dGdrik, double &dGdcostheta) = 0;
 };
 
 // AUTOMATIC Start of custom ThreeBodySymFuns
@@ -69,7 +72,9 @@ class BehlerG4: public ThreeBodySymmetryFunction
     double drik(double rij, double rik, double costheta);
     double dcostheta(double rij, double rik, double costheta);
     void derivatives(double rij, double rik, double costheta,
-      double &drij, double &drik, double &dcostheta);
+      double &dGdrij, double &dGdrik, double &dGdcostheta);
+    void eval_with_derivatives(double rij, double rik, double costheta,
+      double &G, double &dGdrij, double &dGdrik, double &dGdcostheta);
 };
 // AUTOMATIC End of custom ThreeBodySymFuns
 

@@ -62,7 +62,7 @@ double BehlerG4::dcostheta(double rij, double rik, double costheta)
 };
 
 void BehlerG4::derivatives(double rij, double rik, double costheta,
-  double &drij, double &drik, double &dcostheta)
+  double &dGdrij, double &dGdrik, double &dGdcostheta)
 {
   auto x0 = costheta*prms[0] + 1;
   auto x1 = pow(x0, prms[1]);
@@ -72,9 +72,27 @@ void BehlerG4::derivatives(double rij, double rik, double costheta,
   auto x5 = exp2(-prms[1] + 1);
   auto x6 = exp(-prms[2]*(pow(rij, 2) + pow(rik, 2)));
   auto x7 = x4*x5*x6;
-  drij = x1*x7*(-rij*x2*x3 + cutfun->derivative(rij));
-  drik = x1*x3*x5*x6*(-rik*x2*x4 + cutfun->derivative(rik));
-  dcostheta = prms[0]*prms[1]*pow(x0, prms[1] - 1)*x3*x7;
+  dGdrij = x1*x7*(-rij*x2*x3 + cutfun->derivative(rij));
+  dGdrik = x1*x3*x5*x6*(-rik*x2*x4 + cutfun->derivative(rik));
+  dGdcostheta = prms[0]*prms[1]*pow(x0, prms[1] - 1)*x3*x7;
+};
+
+void BehlerG4::eval_with_derivatives(double rij, double rik, double costheta,
+  double &G, double &dGdrij, double &dGdrik, double &dGdcostheta)
+{
+  auto x0 = costheta*prms[0] + 1;
+  auto x1 = pow(x0, prms[1]);
+  auto x2 = cutfun->eval(rij);
+  auto x3 = cutfun->eval(rik);
+  auto x4 = exp2(-prms[1] + 1);
+  auto x5 = exp(-prms[2]*(pow(rij, 2) + pow(rik, 2)));
+  auto x6 = x2*x3*x4*x5;
+  auto x7 = 2*prms[2];
+  auto x8 = x1*x4*x5;
+  G = x1*x6;
+  dGdrij = x3*x8*(-rij*x2*x7 + cutfun->derivative(rij));
+  dGdrik = x2*x8*(-rik*x3*x7 + cutfun->derivative(rik));
+  dGdcostheta = prms[0]*prms[1]*pow(x0, prms[1] - 1)*x6;
 };
 // AUTOMATIC End of custom ThreeBodySymFuns
 
