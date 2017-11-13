@@ -667,10 +667,10 @@ void SymmetryFunctionSet::eval_with_derivatives(
       for (two_Body_i = 0; two_Body_i < twoBodySymFuns[type_ij].size();
         two_Body_i++)
       {
-        G_vector[pos_atoms[i] + pos_twoBody[type_ij] + two_Body_i] +=
-          twoBodySymFuns[type_ij][two_Body_i]->eval(rij);
-        // dG/dx is calculated as product of dG/dr * dr/dx
-        dGdr = twoBodySymFuns[type_ij][two_Body_i]->drij(rij);
+        twoBodySymFuns[type_ij][two_Body_i]->eval_with_derivatives(
+          rij, G, dGdr);
+        G_vector[pos_atoms[i] + pos_twoBody[type_ij] + two_Body_i] += G;
+          
         // Loop over the three cartesian coordinates
         for (coord = 0; coord < 3; coord++){
           dG_tensor[3*num_atoms*(pos_atoms[i] + pos_twoBody[type_ij] +
@@ -683,10 +683,10 @@ void SymmetryFunctionSet::eval_with_derivatives(
       for (two_Body_i = 0; two_Body_i < twoBodySymFuns[type_ji].size();
         two_Body_i++)
       {
-        G_vector[pos_atoms[j] + pos_twoBody[type_ji] + two_Body_i] +=
-          twoBodySymFuns[type_ji][two_Body_i]->eval(rij);
+        twoBodySymFuns[type_ji][two_Body_i]->eval_with_derivatives(
+          rij, G, dGdr);
+        G_vector[pos_atoms[j] + pos_twoBody[type_ji] + two_Body_i] += G;
 
-        dGdr = twoBodySymFuns[type_ji][two_Body_i]->drij(rij);
         // Loop over the three cartesian coordinates
         for (coord = 0; coord < 3; coord++){
           dG_tensor[3*num_atoms*(pos_atoms[j] + pos_twoBody[type_ji] + two_Body_i) +
