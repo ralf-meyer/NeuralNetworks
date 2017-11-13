@@ -27,6 +27,8 @@ class TwoBodySymmetryFunction: public SymmetryFunction
           SymmetryFunction(num_prms, prms_i, cutfun_i){};
         virtual double eval(double rij) = 0;
         virtual double drij(double rij) = 0;
+        virtual void eval_with_derivatives(
+          double rij, double &G, double &dGdrij) = 0;
 };
 
 // AUTOMATIC Start of custom TwoBodySymFuns
@@ -39,6 +41,7 @@ class BehlerG2: public TwoBodySymmetryFunction
           TwoBodySymmetryFunction(num_prms, prms_i, cutfun_i){};
         double eval(double rij);
         double drij(double rij);
+        void eval_with_derivatives(double rij, double &G, double &dGdrij);
 };
 // AUTOMATIC End of custom TwoBodySymFuns
 
