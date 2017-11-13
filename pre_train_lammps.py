@@ -6,9 +6,9 @@ from NeuralNetworks import NeuralNetworkUtilities as _NN
 plots=False
 learning_rate=0.005
 epochs=20000
-dump_file="/home/afuchs/Lammps-Rechnungen/Au_md/Au_md.dump"
-xyz_file="/home/afuchs/Lammps-Rechnungen/Au_md/Au_md.xyz"
-thermo_file="/home/afuchs/Lammps-Rechnungen/Au_md/Au.log"
+dump_file=""
+xyz_file=""
+thermo_file=""
 nr_species=1
 e_unit="eV"
 dist_unit="A"
@@ -69,10 +69,11 @@ Training.Etas=[0.1]
 #Read files
 for i in range(nr_species):
     Training.Atomtypes.append("X"+str(i+1))
-Training.read_lammps_files(dump_file,xyz_file,thermo_file,e_unit,dist_unit)
+
+Training.read_lammps_files(dump_file,thermo_file,xyz_file,e_unit,dist_unit)
 
 #Create batches
-batch_size=len(Training._DataSet.energies)/50
+batch_size=len(Training._DataSet.energies)/1000
 Training.make_training_and_validation_data(batch_size,90,10)
 
 #Default trainings settings

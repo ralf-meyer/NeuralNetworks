@@ -16,6 +16,8 @@ import time as _time
 import os as _os
 import ReadLammpsData as _ReaderLammps
 import ReadQEData as _ReaderQE
+from psutil import virtual_memory
+import warnings
 
 
 _plt.ion()
@@ -235,6 +237,28 @@ def _construct_not_trainable_layer(NrInputs, NrOutputs, Min):
 
     return Weights, Biases
 
+
+def _construct_pass_through_weights(weights,size):
+    """Constructs weights being all 1 in the main diagonal
+    Args:
+        weights(tensor):Weight tensor which is modified
+        size(int): Size of weights as (size,size)
+    Returns:
+        weights(tensor):Modified weights"""
+    indices = []
+    values = []
+    thisShape = weights.get_shape().as_list()
+    if thisShape[0] == thisShape[1]:
+        for q in range(0,size):
+            indices.append([q, q])
+            values += [1.0]
+
+        delta = _tf.SparseTensor(
+            indices, values, thisShape)
+        weights = weights + \
+                      _tf.sparse_tensor_to_dense(delta)
+
+    return weights
 
 def _connect_layers(InputsForLayer, ThisLayerWeights,
                     ThisLayerBias, ActFun=None, FunParam=None, Dropout=0):
@@ -1580,6 +1604,18 @@ class AtomicNeuralNetInstance(object):
         print("Converting data to neural net input format...")
         NrGeom = int(len(self._DataSet.geometries)*DataPointsPercentage/100)
         AllTemp = list()
+        #Guess size in memory for all geometries
+        test_size=_np.asarray(self._SymmFunSet.eval_geometry(
+                self._DataSet.geometries[0])).nbytes
+        if self.UseForce:
+            test_size+=_np.asarray(
+                        self._SymmFunSet.eval_geometry_derivatives(
+                            self._DataSet.geometries[0])).nbytes
+
+        print("Needed memory:" + str(2 * NrGeom * test_size / 1e9) + " GB") # Factor of two because of batch generation
+        if 2*test_size*NrGeom>virtual_memory().total:
+            warnings.warn("Not enough memory for all geometries!")
+
         # Get G vectors
 
         for i in range(0, NrGeom):
@@ -2044,7 +2080,7 @@ class AtomicNeuralNetInstance(object):
         DerInputs = []
         Norm = []
         ct = 0
-        
+
         for VarianceOfDs, MeanOfDs, NrAtoms in zip(
                 self._VarianceOfDs, self._MeansOfDs, self.NumberOfAtomsPerType):
             for i in range(NrAtoms):
@@ -2458,7 +2494,7 @@ class _StandardAtomicNetwork(object):
                 # Make hidden layers
                 HiddenLayers = list()
                 Structure = NetInstance.Structures[i]
-                if len(NetInstance._WeightData) != 0:
+                if len(NetInstance._WeightData) != 0: #if a net was loaded
 
                     RawBias = NetInstance._BiasData[i]
 
@@ -2467,31 +2503,24 @@ class _StandardAtomicNetwork(object):
                         NrHidden = Structure[j]
 
                         if j == len(Structure) - \
-                                1 and NetInstance.MakeLastLayerConstant:
+                                1 and NetInstance.MakeLastLayerConstant: #if last layer has to be set constant
+                                                                         #(pretraining)
                             HiddenLayers.append(_construct_not_trainable_layer(
                                 NrIn, NrHidden, NetInstance._MinOfOut))
                         else:
-                            if j >= len(
-                                    NetInstance._WeightData[i]) and NetInstance.MakeLastLayerConstant:
-                                tempWeights, tempBias = _construct_hidden_layer(NrIn, NrHidden, NetInstance.WeightType, [], NetInstance.BiasType, [],
-                                                                                True, NetInstance.InitMean, NetInstance.InitStddev)
+                            if j >= len(NetInstance._WeightData[i])\
+                                    and NetInstance.MakeLastLayerConstant:#if new layers which are not part of the
+                                                                          # loaded model only pass through values
+                                tempWeights, tempBias = _construct_hidden_layer(NrIn, NrHidden, NetInstance.WeightType,
+                                                                                [], NetInstance.BiasType, [],
+                                                                                True, NetInstance.InitMean,
+                                                                                NetInstance.InitStddev)
 
-                                indices = []
-                                values = []
-                                thisShape = tempWeights.get_shape().as_list()
-                                if thisShape[0] == thisShape[1]:
-                                    for q in range(0, OldBiasNr):
-                                        indices.append([q, q])
-                                        values += [1.0]
-
-                                    delta = _tf.SparseTensor(
-                                        indices, values, thisShape)
-                                    tempWeights = tempWeights + \
-                                        _tf.sparse_tensor_to_dense(delta)
+                                tempWeights=_construct_pass_through_weights(tempWeights,OldBiasNr)
 
                                 HiddenLayers.append([tempWeights, tempBias])
                             else:
-                                if len(RawBias) >= j:
+                                if j <= len(RawBias): #if there is old net data available fill in the weight data
                                     OldBiasNr = len(
                                         NetInstance._BiasData[i][j - 1])
                                     OldShape = NetInstance._WeightData[i][j - 1].shape
@@ -2525,16 +2554,17 @@ class _StandardAtomicNetwork(object):
                                             NetInstance.BiasType,
                                             ThisBiasData,
                                             NetInstance.MakeAllVariable))
-                                else:
+                                else:#if the new net is deeper then the loaded one add a trainable layer
                                     HiddenLayers.append(
                                         _construct_hidden_layer(
                                             NrIn,
                                             NrHidden,
                                             NetInstance.WeightType,
                                             [],
-                                            NetInstance.BiasType))
+                                            NetInstance.BiasType,
+                                            MakeAllVariable=True))
 
-                else:
+                else:#if no net was loaded
                     for j in range(1, len(Structure)):
                         NrIn = Structure[j - 1]
                         NrHidden = Structure[j]
@@ -3397,56 +3427,5 @@ class _PartitionedNetworkData(object):
         self.CorrectionNetworkData = list()
         self.ForceFieldVariable = False
         self.CorrectionVariable = False
-
-class PyParticlesNNForce(object):
-
-
-    def __init__(self,Net,size, dim=3, m=None, Consts=1.0):
-        self.__dim = dim
-        self.__size = size
-        self.__A = _np.zeros((size, dim))
-        self.__Fm = _np.zeros( ( size , size ) )
-        self.__V = _np.zeros( ( size , size ) )
-        self.__D = _np.zeros( ( size , size ) )
-        self.__M = _np.zeros( ( size , size ) )
-        self.Net=Net
-
-
-    def set_masses(self, m):
-        """
-        Set the masses used for computing the forces.
-        """
-        self.__M[:, :] = m
-
-    def update_force(self,pset):
-        """Evaluates the force and calulates the accelration
-        for a given PyParticels particle set"""
-        coordinates=pset.X
-        geometry=[]
-        for i in range(len(pset.label)):
-            geometry.append((pset.label[i],_np.asarray(coordinates[i])))
-        energy,forces=self.Net.energy_and_force_for_geometry(geometry)
-        forces=_np.asarray(forces)
-        forces=forces.reshape((len(pset.label),3))
-        print(energy)
-        self.__A=forces[:]/pset.M[:]
-
-        return self.__A
-
-    def getA(self):
-        """
-        Return the currents accelerations of the particles
-        """
-        return self.__A
-
-    A = property(getA, doc="Return the currents accelerations of the particles (getter only)")
-
-    def getF(self):
-        """
-        Return the currents forces on the particles
-        """
-        return (self.__A.T * self.__M[:, 0]).T
-
-    F = property(getF, doc="Return the currents forces on the particles (getter only)")
 
 

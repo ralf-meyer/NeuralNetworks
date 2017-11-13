@@ -25,7 +25,16 @@ class LammpsReader(object):
         self.energies = []
         self.forces = []
     
+#<<<<<<< Updated upstream
         #internal cnoversion factors
+#=======
+        self.nr_atoms_per_type=[13]
+        self.atom_types=["Au"]
+        self._species = [] # for internal handling of atom_types
+
+        #--- set internal cnoversion factors ---
+        # 1 if calcualtions are in ev
+#>>>>>>> Stashed changes
         self.E_conv_factor = 1
         self.Geom_conv_factor = 1 
 
@@ -119,7 +128,7 @@ class LammpsReader(object):
 
         # flag whether species where given (if false then it will be read)
         species_unknown = len(self._species) == 0
-
+        print(dumpfile)
         try:
             with open(dumpfile) as f_dump:
                 
@@ -208,7 +217,7 @@ class LammpsReader(object):
         # check if species already set
         species_unknown = len(self._species) == 0
         number_of_atoms_total = None if species_unknown else len(self._species)
-
+        print(xyzfile)
         try:
             with open(xyzfile, "r") as f_xyz:
                 counter = -1
@@ -257,11 +266,11 @@ class LammpsReader(object):
             print("Error reading xyz file: {0}".format(e.message))
         
     def _read_energies_from_thermofile(self, thermofile):
+        print(thermofile)
         try:
             with open(thermofile, "r") as f_thermo:
                 switch = False
 
-                
                 print("Reading thermo file ...")
 
                 for line in f_thermo:
