@@ -1,16 +1,8 @@
-/*
-
-CAUTION: Part of this file is written by the python script generateSymFuns.py.
-These parts are marked by comment lines starting with AUTOMATIC. Do not alter
-anything between these tags.
-*/
-
 #include "symmetryFunctionSet.h"
 #include <stdio.h>
 #include <limits>
 #include <math.h>
 #include <algorithm>
-#include <string.h>
 
 SymmetryFunctionSet::SymmetryFunctionSet(int num_atomtypes_i):
 twoBodySymFuns(num_atomtypes_i*num_atomtypes_i),
@@ -94,46 +86,6 @@ void SymmetryFunctionSet::add_ThreeBodySymmetryFunction(
   }
 }
 
-int SymmetryFunctionSet::get_CutFun_by_name(const char* name)
-{
-  int id = -1;
-  if (strcmp(name, "const") == 0)
-  {
-    id = 0;
-  } else if (strcmp(name, "cos") == 0)
-  {
-    id = 1;
-  } else if (strcmp(name, "tanh") == 0)
-  {
-    id = 2;
-  }
-  return id;
-}
-
-int SymmetryFunctionSet::get_TwoBodySymFun_by_name(const char* name)
-{
-  int id = -1;
-// AUTOMATIC get_TwoBodySymFuns start
-  if (strcmp(name, "BehlerG2") == 0)
-  {
-    id = 0;
-  }
-// AUTOMATIC get_TwoBodySymFuns end
-  return id;
-}
-
-int SymmetryFunctionSet::get_ThreeBodySymFun_by_name(const char* name)
-{
-  int id = -1;
-// AUTOMATIC get_ThreeBodySymFuns start
-  if (strcmp(name, "BehlerG4") == 0)
-  {
-    id = 0;
-  }
-// AUTOMATIC get_ThreeBodySymFuns end
-  return id;
-}
-
 void SymmetryFunctionSet::print_symFuns()
 {
   printf("Number of atom types: %d\n", num_atomtypes);
@@ -146,16 +98,6 @@ void SymmetryFunctionSet::print_symFuns()
     printf("Number of ThreeBodySymmetryFunction for atom type %d is %d\n",
       ti, num_symFuns[2*ti+1]);
   }
-}
-
-void SymmetryFunctionSet::available_symFuns()
-{
-// AUTOMATIC available_symFuns start
-  printf("TwoBodySymmetryFunctions: (key: name, # of parameters)\n");
-  printf("0: BehlerG2, 2\n");
-  printf("ThreeBodySymmetryFunctions: (key: name, # of parameters)\n");
-  printf("0: BehlerG4, 3\n");
-// AUTOMATIC available_symFuns end
 }
 
 int SymmetryFunctionSet::get_G_vector_size(int num_atoms, int* types)
@@ -688,54 +630,4 @@ void SymmetryFunctionSet::eval_derivatives(
     }
   }
   delete[] pos_atoms;
-}
-
-std::shared_ptr<CutoffFunction> SymmetryFunctionSet::switch_CutFun(
-  int cutoff_type, double cutoff)
-{
-  std::shared_ptr<CutoffFunction> cutfun;
-  switch (cutoff_type) {
-    case 0:
-      cutfun = std::make_shared<ConstCutoffFunction>(cutoff);
-      break;
-    case 1:
-      cutfun = std::make_shared<CosCutoffFunction>(cutoff);
-      break;
-    case 2:
-      cutfun = std::make_shared<TanhCutoffFunction>(cutoff);
-      break;
-  }
-  return cutfun;
-}
-
-std::shared_ptr<TwoBodySymmetryFunction> SymmetryFunctionSet::switch_TwoBodySymFun(
-  int funtype, int num_prms, double* prms, std::shared_ptr<CutoffFunction> cutfun)
-{
-  std::shared_ptr<TwoBodySymmetryFunction> symFun;
-  switch (funtype){
-// AUTOMATIC TwoBodySymmetryFunction switch start
-    case 0:
-      symFun = std::make_shared<BehlerG2>(num_prms, prms, cutfun);
-      break;
-// AUTOMATIC TwoBodySymmetryFunction switch end
-    default:
-      printf("No function type %d\n", funtype);
-  }
-  return symFun;
-}
-
-std::shared_ptr<ThreeBodySymmetryFunction> SymmetryFunctionSet::switch_ThreeBodySymFun(
-  int funtype, int num_prms, double* prms, std::shared_ptr<CutoffFunction> cutfun)
-{
-  std::shared_ptr<ThreeBodySymmetryFunction> symFun;
-  switch (funtype){
-// AUTOMATIC ThreeBodySymmetryFunction switch start
-    case 0:
-      symFun = std::make_shared<BehlerG4>(num_prms, prms, cutfun);
-      break;
-// AUTOMATIC ThreeBodySymmetryFunction switch end
-    default:
-      printf("No function type %d\n", funtype);
-  }
-  return symFun;
 }

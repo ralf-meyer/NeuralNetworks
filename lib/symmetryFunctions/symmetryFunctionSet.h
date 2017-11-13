@@ -24,10 +24,6 @@ class SymmetryFunctionSet
     void eval_derivatives_old(
       int num_atoms, int* types, double* xyzs, double* dG_tensor);
 
-    static int get_CutFun_by_name(const char* name);
-    static int get_TwoBodySymFun_by_name(const char* name);
-    static int get_ThreeBodySymFun_by_name(const char* name);
-    void available_symFuns();
     void print_symFuns();
 
   private:
@@ -40,15 +36,6 @@ class SymmetryFunctionSet
       threeBodySymFuns;
     int* pos_threeBody;
     int* max_cutoff;
-
-    std::shared_ptr<CutoffFunction> switch_CutFun(
-      int cutoff_type, double cutoff);
-    std::shared_ptr<TwoBodySymmetryFunction> switch_TwoBodySymFun(
-      int funtype, int num_prms, double* prms,
-      std::shared_ptr<CutoffFunction> cutfun);
-    std::shared_ptr<ThreeBodySymmetryFunction> switch_ThreeBodySymFun(
-      int funtype, int num_prms, double* prms,
-      std::shared_ptr<CutoffFunction> cutfun);
 };
 
 // Wrap the C++ classes for C usage in python ctypes:
@@ -74,25 +61,25 @@ extern "C" {
   void SymmetryFunctionSet_print_symFuns(SymmetryFunctionSet* symFunSet){
     symFunSet->print_symFuns();
   }
-  void SymmetryFunctionSet_available_symFuns(SymmetryFunctionSet* symFunSet){
-    symFunSet->available_symFuns();
+  void SymmetryFunctionSet_available_symFuns(){
+    available_symFuns();
   }
   int SymmetryFunctionSet_get_CutFun_by_name(const char* name)
   {
-    SymmetryFunctionSet::get_CutFun_by_name(name);
+    return get_CutFun_by_name(name);
   }
   int SymmetryFunctionSet_get_TwoBodySymFun_by_name(const char* name)
   {
-    SymmetryFunctionSet::get_TwoBodySymFun_by_name(name);
+    return get_TwoBodySymFun_by_name(name);
   }
   int SymmetryFunctionSet_get_ThreeBodySymFun_by_name(const char* name)
   {
-    SymmetryFunctionSet::get_ThreeBodySymFun_by_name(name);
+    return get_ThreeBodySymFun_by_name(name);
   }
   int SymmetryFunctionSet_get_G_vector_size(SymmetryFunctionSet* symFunSet,
     int num_atoms, int* types)
   {
-    symFunSet->get_G_vector_size(num_atoms, types);
+    return symFunSet->get_G_vector_size(num_atoms, types);
   }
   void SymmetryFunctionSet_eval(SymmetryFunctionSet* symFunSet, int num_atoms,
     int* types, double* xyzs, double* out)

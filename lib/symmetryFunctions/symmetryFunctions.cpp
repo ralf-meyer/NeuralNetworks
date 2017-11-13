@@ -9,6 +9,7 @@ anything between these tags.
 #include <stdio.h>
 #include <math.h>
 #include <limits>
+#include <string.h>
 
 SymmetryFunction::SymmetryFunction(int num_prms, double* prms_i,
   std::shared_ptr<CutoffFunction> cutfun_i):cutfun(cutfun_i)
@@ -76,3 +77,103 @@ void BehlerG4::derivatives(double rij, double rik, double costheta,
   dcostheta = prms[0]*prms[1]*pow(x0, prms[1] - 1)*x3*x7;
 };
 // AUTOMATIC End of custom ThreeBodySymFuns
+
+std::shared_ptr<CutoffFunction> switch_CutFun(
+  int cutoff_type, double cutoff)
+{
+  std::shared_ptr<CutoffFunction> cutfun;
+  switch (cutoff_type) {
+    case 0:
+      cutfun = std::make_shared<ConstCutoffFunction>(cutoff);
+      break;
+    case 1:
+      cutfun = std::make_shared<CosCutoffFunction>(cutoff);
+      break;
+    case 2:
+      cutfun = std::make_shared<TanhCutoffFunction>(cutoff);
+      break;
+  }
+  return cutfun;
+}
+
+std::shared_ptr<TwoBodySymmetryFunction> switch_TwoBodySymFun(int funtype,
+  int num_prms, double* prms, std::shared_ptr<CutoffFunction> cutfun)
+{
+  std::shared_ptr<TwoBodySymmetryFunction> symFun;
+  switch (funtype){
+// AUTOMATIC TwoBodySymmetryFunction switch start
+    case 0:
+      symFun = std::make_shared<BehlerG2>(num_prms, prms, cutfun);
+      break;
+// AUTOMATIC TwoBodySymmetryFunction switch end
+    default:
+      printf("No function type %d\n", funtype);
+  }
+  return symFun;
+}
+
+std::shared_ptr<ThreeBodySymmetryFunction> switch_ThreeBodySymFun(int funtype,
+  int num_prms, double* prms, std::shared_ptr<CutoffFunction> cutfun)
+{
+  std::shared_ptr<ThreeBodySymmetryFunction> symFun;
+  switch (funtype){
+// AUTOMATIC ThreeBodySymmetryFunction switch start
+    case 0:
+      symFun = std::make_shared<BehlerG4>(num_prms, prms, cutfun);
+      break;
+// AUTOMATIC ThreeBodySymmetryFunction switch end
+    default:
+      printf("No function type %d\n", funtype);
+  }
+  return symFun;
+}
+
+int get_CutFun_by_name(const char* name)
+{
+  int id = -1;
+  if (strcmp(name, "const") == 0)
+  {
+    id = 0;
+  } else if (strcmp(name, "cos") == 0)
+  {
+    id = 1;
+  } else if (strcmp(name, "tanh") == 0)
+  {
+    id = 2;
+  }
+  return id;
+}
+
+int get_TwoBodySymFun_by_name(const char* name)
+{
+  int id = -1;
+// AUTOMATIC get_TwoBodySymFuns start
+  if (strcmp(name, "BehlerG2") == 0)
+  {
+    id = 0;
+  }
+// AUTOMATIC get_TwoBodySymFuns end
+  return id;
+}
+
+int get_ThreeBodySymFun_by_name(const char* name)
+{
+  int id = -1;
+// AUTOMATIC get_ThreeBodySymFuns start
+  if (strcmp(name, "BehlerG4") == 0)
+  {
+    id = 0;
+  }
+// AUTOMATIC get_ThreeBodySymFuns end
+  return id;
+}
+
+void available_symFuns()
+{
+// AUTOMATIC available_symFuns start
+  printf("TwoBodySymmetryFunctions: (key: name, # of parameters)\n");
+  printf("0: BehlerG2, 2\n");
+  printf("ThreeBodySymmetryFunctions: (key: name, # of parameters)\n");
+  printf("0: BehlerG4, 3\n");
+// AUTOMATIC available_symFuns end
+}

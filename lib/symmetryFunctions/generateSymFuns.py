@@ -53,6 +53,17 @@ void {}::derivatives(double rij, double rik, double costheta,
 }};
 """
 
+case_string = """    case {}:
+      symFun = std::make_shared<{}>(num_prms, prms, cutfun);
+      break;
+"""
+
+switch_string = """  if (strcmp(name, "{}") == 0)
+  {{
+    id = {};
+  }}
+"""
+
 user_funs = {"fcut":"cutfun->eval", "dfcut":"cutfun->derivative"}
 
 def format_prms(num_prms, s):
@@ -101,6 +112,16 @@ lines = (lines[0:(lines.index("// AUTOMATIC Start of custom TwoBodySymFuns\n")+1
     lines[lines.index("// AUTOMATIC End of custom TwoBodySymFuns\n")::])
 lines = (lines[0:(lines.index("// AUTOMATIC Start of custom ThreeBodySymFuns\n")+1)] +
     lines[lines.index("// AUTOMATIC End of custom ThreeBodySymFuns\n")::])
+lines = (lines[0:(lines.index("// AUTOMATIC TwoBodySymmetryFunction switch start\n")+1)] +
+    lines[lines.index("// AUTOMATIC TwoBodySymmetryFunction switch end\n")::])
+lines = (lines[0:(lines.index("// AUTOMATIC ThreeBodySymmetryFunction switch start\n")+1)] +
+    lines[lines.index("// AUTOMATIC ThreeBodySymmetryFunction switch end\n")::])
+lines = (lines[0:(lines.index("// AUTOMATIC available_symFuns start\n")+1)] +
+    lines[lines.index("// AUTOMATIC available_symFuns end\n")::])
+lines = (lines[0:(lines.index("// AUTOMATIC get_TwoBodySymFuns start\n")+1)] +
+    lines[lines.index("// AUTOMATIC get_TwoBodySymFuns end\n")::])
+lines = (lines[0:(lines.index("// AUTOMATIC get_ThreeBodySymFuns start\n")+1)] +
+    lines[lines.index("// AUTOMATIC get_ThreeBodySymFuns end\n")::])
 
 with open("symmetryFunctions.cpp", "w") as fout:
     for line in lines:
@@ -173,36 +194,7 @@ with open("symmetryFunctions.cpp", "w") as fout:
 
                 fout.write(derivative_threeBody.format(symfun[0],
                     ";\n  ".join(method_body)))
-
-with open("symmetryFunctionSet.cpp", "r") as fin:
-    lines = fin.readlines()
-
-lines = (lines[0:(lines.index("// AUTOMATIC TwoBodySymmetryFunction switch start\n")+1)] +
-    lines[lines.index("// AUTOMATIC TwoBodySymmetryFunction switch end\n")::])
-lines = (lines[0:(lines.index("// AUTOMATIC ThreeBodySymmetryFunction switch start\n")+1)] +
-    lines[lines.index("// AUTOMATIC ThreeBodySymmetryFunction switch end\n")::])
-lines = (lines[0:(lines.index("// AUTOMATIC available_symFuns start\n")+1)] +
-    lines[lines.index("// AUTOMATIC available_symFuns end\n")::])
-lines = (lines[0:(lines.index("// AUTOMATIC get_TwoBodySymFuns start\n")+1)] +
-    lines[lines.index("// AUTOMATIC get_TwoBodySymFuns end\n")::])
-lines = (lines[0:(lines.index("// AUTOMATIC get_ThreeBodySymFuns start\n")+1)] +
-    lines[lines.index("// AUTOMATIC get_ThreeBodySymFuns end\n")::])
-
-case_string = """    case {}:
-      symFun = std::make_shared<{}>(num_prms, prms, cutfun);
-      break;
-"""
-
-switch_string = """  if (strcmp(name, "{}") == 0)
-  {{
-    id = {};
-  }}
-"""
-
-with open("symmetryFunctionSet.cpp", "w") as fout:
-    for line in lines:
-        fout.write(line)
-        if line.startswith("// AUTOMATIC available_symFuns start"):
+        elif line.startswith("// AUTOMATIC available_symFuns start"):
             fout.write('  printf("TwoBodySymmetryFunctions: (key: name, # of parameters)\\n");\n')
             for i, symfun in enumerate(twoBodySymFuns):
                 fout.write('  printf("{}: {}, {}\\n");\n'.format(i, symfun[0], symfun[1]))

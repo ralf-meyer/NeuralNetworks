@@ -72,3 +72,16 @@ class BehlerG4: public ThreeBodySymmetryFunction
       double &drij, double &drik, double &dcostheta);
 };
 // AUTOMATIC End of custom ThreeBodySymFuns
+
+std::shared_ptr<CutoffFunction> switch_CutFun(
+  int cutoff_type, double cutoff);
+std::shared_ptr<TwoBodySymmetryFunction> switch_TwoBodySymFun(
+  int funtype, int num_prms, double* prms,
+  std::shared_ptr<CutoffFunction> cutfun);
+std::shared_ptr<ThreeBodySymmetryFunction> switch_ThreeBodySymFun(
+  int funtype, int num_prms, double* prms,
+  std::shared_ptr<CutoffFunction> cutfun);
+int get_CutFun_by_name(const char* name);
+int get_TwoBodySymFun_by_name(const char* name);
+int get_ThreeBodySymFun_by_name(const char* name);
+void available_symFuns();
