@@ -92,3 +92,13 @@ ENV/
 .vscode/
 
 .idea/
+
+bin/
+
+include/
+
+lib/python2\.7/
+
+local/
+
+pip-selfcheck\.json
