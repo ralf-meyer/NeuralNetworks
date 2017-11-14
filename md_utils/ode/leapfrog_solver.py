@@ -19,7 +19,7 @@ import numpy as np
 from NeuralNetworks.md_utils.ode import ode_solver as os
 from NeuralNetworks.md_utils import thermostats
 
-class LeapfrogSolver( os.OdeSolver ) :
+class LeapfrogSolverBerendsen( os.OdeSolver ) :
     def __init__( self , force , p_set , dt ):
         super(LeapfrogSolver,self).__init__( force , p_set , dt )
         self.__Ai = np.zeros( self.force.A.shape )
