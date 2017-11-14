@@ -3,7 +3,7 @@ from scipy.optimize import fmin_bfgs
 from scipy.optimize import approx_fprime
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
-import numpy as np
+import numpy as _np
 
 def get_type_and_xyz(geom):
     xyz=[]
@@ -12,7 +12,7 @@ def get_type_and_xyz(geom):
         types.append(atom[0])
         xyz.append(atom[1])
 
-    return types,np.asarray(xyz)
+    return types,_np.asarray(xyz)
 
 
 class Optimizer(object):
@@ -41,10 +41,10 @@ class Optimizer(object):
 
     def update_plot(self,x):
         """Update the scatter plot."""
-        reshaped_x = np.asarray(x).reshape(self.nr_atoms, 3)
-        self.scat._offsets3d = (np.ma.ravel(reshaped_x[:, 0]),
-                                np.ma.ravel(reshaped_x[:, 1]),
-                                np.ma.ravel(reshaped_x[:, 2])
+        reshaped_x = _np.asarray(x).reshape(self.nr_atoms, 3)
+        self.scat._offsets3d = (_np.ma.ravel(reshaped_x[:, 0]),
+                                _np.ma.ravel(reshaped_x[:, 1]),
+                                _np.ma.ravel(reshaped_x[:, 2])
                                 )
 
         self.fig.canvas.draw()
@@ -56,10 +56,10 @@ class Optimizer(object):
 
     def to_nn_input(self,x):
         """Converts the raw geometry into a
-        ("type",np.array(geometry)) geometry"""
+        ("type",_np.array(geometry)) geometry"""
 
         nn_geom=[]
-        reshaped_x=np.asarray(x).reshape(self.nr_atoms,3)
+        reshaped_x=_np.asarray(x).reshape(self.nr_atoms,3)
         for i,type in enumerate(self.types):
             nn_geom.append((type,reshaped_x[i]))
 
@@ -73,7 +73,7 @@ class Optimizer(object):
     def der_fun(self,x):
         """TODO: Fix force calculation"""
         self.update_plot(x)
-        #force=np.asarray(self.Net.force_for_geometry(self.to_nn_input(x)))
+        #force=_np.asarray(self.Net.force_for_geometry(self.to_nn_input(x)))
         #grad1=-force.flatten()
         #print(grad)
         grad=approx_fprime(x,self.fun,epsilon=1e-7)

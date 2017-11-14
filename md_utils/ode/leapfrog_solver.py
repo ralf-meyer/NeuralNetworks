@@ -21,7 +21,7 @@ from NeuralNetworks.md_utils import thermostats
 
 class LeapfrogSolverBerendsen( os.OdeSolver ) :
     def __init__( self , force , p_set , dt ):
-        super(LeapfrogSolver,self).__init__( force , p_set , dt )
+        super(LeapfrogSolverBerendsen,self).__init__( force , p_set , dt )
         self.__Ai = np.zeros( self.force.A.shape )
         self.__thermo = thermostats.BerensdenNVT(p_set, dt, p_set.thermostat_coupling_time,
                                                  p_set.thermostat_temperature)
