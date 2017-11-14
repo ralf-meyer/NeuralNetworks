@@ -305,5 +305,29 @@ class TestQEMDReader(_BaseTestsWrapper.DataReadersTestUtilities):
     def test_forces(self):
         self._check_forces(self._reader)
 
+    def test_interface_read(self):
+        reader = data_readers.QE_MD_Reader()
+
+        try:
+            reader.read(self._out_file)
+        except Exception as ex:
+            self.fail("Could not read file: {0}".format(ex.message))
+
+        self._check_species(reader)
+        self._check_geometry(reader)
+        self._check_forces(reader)
+
+    def test_interface_read_folder(self):
+        reader = data_readers.QE_MD_Reader()
+
+        try:
+            reader.read_folder(dirname(self._out_file))
+        except Exception as ex:
+            self.fail("Could not read folder: {0}".format(ex.message))
+
+        self._check_species(reader)
+        self._check_geometry(reader)
+        self._check_forces(reader)
+
 if __name__ == '__main__':
     unittest.main()

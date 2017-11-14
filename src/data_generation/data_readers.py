@@ -620,8 +620,34 @@ class QE_MD_Reader(object):
         self.E_conv_factor=1 # 1 if calcualtions are in ev
         self.Geom_conv_factor=1 #1 if calculations are in Angstroem
         self.nr_atoms_per_type=[]
-        
-    def get_files(self,folder):
+
+    def read(self, file):
+        """Read data from specified file."""
+        self.get_files(file)
+        self.read_all_files()
+
+    def read_folder(self, folder):
+        """Read data from all files in folder"""
+
+        # extract folder if file path is given
+        if isfile(folder):
+            folder = dirname(folder)
+        elif not isdir(folder):
+            folder = dirname(folder)
+
+        # check if result is actually an exiting folder
+        if not isdir(folder):
+            raise ValueError("Folder does not exist at {0}!".format(folder))
+
+        # read all files in folder.
+        self.get_files(folder)
+        self.read_all_files()
+
+    def get_files(self, folder):
+        """Stores the path to all relevant files in given folder.
+        If just a file is given (extension .out) it will be used (all others
+        in same directory are ignored).
+        """
         if ".out" in folder:
             temp=open(folder,"r").read()
             if 'JOB DONE' in temp:
