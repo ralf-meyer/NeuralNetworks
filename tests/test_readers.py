@@ -226,6 +226,21 @@ class TestLammpsReader(_BaseTestsWrapper.DataReadersTestUtilities):
         self._check_geometry(reader)
         self._check_forces(reader)
 
+    def test_read_folder_with_filename(self):
+        reader = data_readers.LammpsReader()
+        try:
+            reader.read_folder(
+                join(self.path_provider.LAMMPS_test_files_dir, "Au_md.out")
+            )
+        except Exception as ex:
+            warn(ex.message)
+            self.fail("Could not read files from folder.")
+
+        self._check_species(reader)
+        self._check_geometry(reader)
+        self._check_forces(reader)
+
+
 class TestQEMDReader(_BaseTestsWrapper.DataReadersTestUtilities):
     """Tests the QEReader's read functions
     

@@ -908,6 +908,9 @@ class LammpsReader(object):
         # if instead of a folder a file is given, use folder file is in.
         if isfile(folder):
             folder = dirname(folder)
+        elif not isdir(folder):
+            folder = dirname(folder)
+
 
         if not isdir(folder):
             raise ValueError("Folder does not exist at {0}!".format(folder))
