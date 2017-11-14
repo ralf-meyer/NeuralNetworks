@@ -23,15 +23,12 @@ class SymmetryFunctionSet
       int num_atoms, int* types, double* xyzs, double* dG_tensor);
     void eval_derivatives_old(
       int num_atoms, int* types, double* xyzs, double* dG_tensor);
-
-    static int get_CutFun_by_name(const char* name);
-    static int get_TwoBodySymFun_by_name(const char* name);
-    static int get_ThreeBodySymFun_by_name(const char* name);
-    void available_symFuns();
+    void eval_with_derivatives(int num_atoms, int* types, double* xyzs,
+      double* G_vector, double* dG_tensor);
     void print_symFuns();
 
   private:
-    int num_atomtypes, num_atomtypes2;
+    int num_atomtypes, num_atomtypes_sq;
     int* num_symFuns;
     std::vector <std::vector<std::shared_ptr<TwoBodySymmetryFunction> > >
       twoBodySymFuns;
@@ -39,15 +36,7 @@ class SymmetryFunctionSet
     std::vector <std::vector<std::shared_ptr<ThreeBodySymmetryFunction> > >
       threeBodySymFuns;
     int* pos_threeBody;
-
-    std::shared_ptr<CutoffFunction> switch_CutFun(
-      int cutoff_type, double cutoff);
-    std::shared_ptr<TwoBodySymmetryFunction> switch_TwoBodySymFun(
-      int funtype, int num_prms, double* prms,
-      std::shared_ptr<CutoffFunction> cutfun);
-    std::shared_ptr<ThreeBodySymmetryFunction> switch_ThreeBodySymFun(
-      int funtype, int num_prms, double* prms,
-      std::shared_ptr<CutoffFunction> cutfun);
+    int* max_cutoff;
 };
 
 // Wrap the C++ classes for C usage in python ctypes:
@@ -73,44 +62,51 @@ extern "C" {
   void SymmetryFunctionSet_print_symFuns(SymmetryFunctionSet* symFunSet){
     symFunSet->print_symFuns();
   }
-  void SymmetryFunctionSet_available_symFuns(SymmetryFunctionSet* symFunSet){
-    symFunSet->available_symFuns();
+  void SymmetryFunctionSet_available_symFuns(){
+    available_symFuns();
   }
   int SymmetryFunctionSet_get_CutFun_by_name(const char* name)
   {
-    SymmetryFunctionSet::get_CutFun_by_name(name);
+    return get_CutFun_by_name(name);
   }
   int SymmetryFunctionSet_get_TwoBodySymFun_by_name(const char* name)
   {
-    SymmetryFunctionSet::get_TwoBodySymFun_by_name(name);
+    return get_TwoBodySymFun_by_name(name);
   }
   int SymmetryFunctionSet_get_ThreeBodySymFun_by_name(const char* name)
   {
-    SymmetryFunctionSet::get_ThreeBodySymFun_by_name(name);
+    return get_ThreeBodySymFun_by_name(name);
   }
   int SymmetryFunctionSet_get_G_vector_size(SymmetryFunctionSet* symFunSet,
     int num_atoms, int* types)
   {
-    symFunSet->get_G_vector_size(num_atoms, types);
+    return symFunSet->get_G_vector_size(num_atoms, types);
   }
   void SymmetryFunctionSet_eval(SymmetryFunctionSet* symFunSet, int num_atoms,
-    int* types, double* xyzs, double* out)
+    int* types, double* xyzs, double* G_vector)
   {
-    symFunSet->eval(num_atoms, types, xyzs, out);
+    symFunSet->eval(num_atoms, types, xyzs, G_vector);
   }
   void SymmetryFunctionSet_eval_old(SymmetryFunctionSet* symFunSet,
-    int num_atoms, int* types, double* xyzs, double* out)
+    int num_atoms, int* types, double* xyzs, double* G_vector)
   {
-    symFunSet->eval_old(num_atoms, types, xyzs, out);
+    symFunSet->eval_old(num_atoms, types, xyzs, G_vector);
   }
   void SymmetryFunctionSet_eval_derivatives(SymmetryFunctionSet* symFunSet,
-    int num_atoms, int* types, double* xyzs, double* out)
+    int num_atoms, int* types, double* xyzs, double* dG_tensor)
   {
-    symFunSet->eval_derivatives(num_atoms, types, xyzs, out);
+    symFunSet->eval_derivatives(num_atoms, types, xyzs, dG_tensor);
   }
   void SymmetryFunctionSet_eval_derivatives_old(SymmetryFunctionSet* symFunSet,
-    int num_atoms, int* types, double* xyzs, double* out)
+    int num_atoms, int* types, double* xyzs, double* dG_tensor)
   {
-    symFunSet->eval_derivatives_old(num_atoms, types, xyzs, out);
+    symFunSet->eval_derivatives_old(num_atoms, types, xyzs, dG_tensor);
+  }
+  void SymmetryFunctionSet_eval_with_derivatives(
+    SymmetryFunctionSet* symFunSet, int num_atoms, int* types, double* xyzs,
+    double* G_vector, double* dG_tensor)
+  {
+    symFunSet->eval_with_derivatives(
+      num_atoms, types, xyzs, G_vector, dG_tensor);
   }
 };

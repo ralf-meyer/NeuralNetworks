@@ -573,7 +573,10 @@ class QE_MD_Reader(object):
             self.temperature+=temperature
             self.e_tot+=e_tot
             print("Reading geometries in file "+str(ct)+"...")
+            starting_geometry=read_geometry_scf(this,self.Geom_conv_factor)#starting geometry
+            self.geometries=[starting_geometry]
             self.geometries+=read_geometries(this,self.Geom_conv_factor,self.atom_types)
+            self.geometries.pop(-1)#remove last geometry because no forces and energies are available
             ct+=1
         if(len(self.e_kin)==len(self.e_tot)):
             self.e_pot=np.subtract(self.e_tot,self.e_kin)

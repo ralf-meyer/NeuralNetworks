@@ -9,7 +9,9 @@ from scipy.misc import comb
 
 try:
     module_path = dirname(abspath(getsourcefile(lambda:0)))
-    lib = _ct.cdll.LoadLibrary(join(module_path,"lib/symmetryFunctions/libSymFunSet.so"))
+    lib = _ct.cdll.LoadLibrary(join(module_path,
+        "lib/symmetryFunctions/libSymFunSet.so"))
+    flags = "C_CONTIGUOUS"
     lib.SymmetryFunctionSet_add_TwoBodySymmetryFunction.argtypes = (
         _ct.c_void_p, _ct.c_int, _ct.c_int, _ct.c_int, _ct.c_int,
         _ct.POINTER(_ct.c_double), _ct.c_int, _ct.c_double)
@@ -18,20 +20,25 @@ try:
         _ct.POINTER(_ct.c_double), _ct.c_int, _ct.c_double)
     lib.SymmetryFunctionSet_eval.argtypes = (
         _ct.c_void_p, _ct.c_int, _ct.POINTER(_ct.c_int),
-        _np.ctypeslib.ndpointer(dtype=_np.float64, ndim = 2, flags = "C_CONTIGUOUS"),
-        _np.ctypeslib.ndpointer(dtype=_np.float64, ndim = 1, flags = "C_CONTIGUOUS"))
+        _np.ctypeslib.ndpointer(dtype=_np.float64, ndim = 2, flags = flags),
+        _np.ctypeslib.ndpointer(dtype=_np.float64, ndim = 1, flags = flags))
     lib.SymmetryFunctionSet_eval_old.argtypes = (
         _ct.c_void_p, _ct.c_int, _ct.POINTER(_ct.c_int),
-        _np.ctypeslib.ndpointer(dtype=_np.float64, ndim = 2, flags = "C_CONTIGUOUS"),
-        _np.ctypeslib.ndpointer(dtype=_np.float64, ndim = 1, flags = "C_CONTIGUOUS"))
+        _np.ctypeslib.ndpointer(dtype=_np.float64, ndim = 2, flags = flags),
+        _np.ctypeslib.ndpointer(dtype=_np.float64, ndim = 1, flags = flags))
     lib.SymmetryFunctionSet_eval_derivatives.argtypes = (
         _ct.c_void_p, _ct.c_int, _ct.POINTER(_ct.c_int),
-        _np.ctypeslib.ndpointer(dtype=_np.float64, ndim = 2, flags = "C_CONTIGUOUS"),
-        _np.ctypeslib.ndpointer(dtype=_np.float64, ndim = 2, flags = "C_CONTIGUOUS"))
+        _np.ctypeslib.ndpointer(dtype=_np.float64, ndim = 2, flags = flags),
+        _np.ctypeslib.ndpointer(dtype=_np.float64, ndim = 2, flags = flags))
     lib.SymmetryFunctionSet_eval_derivatives_old.argtypes = (
         _ct.c_void_p, _ct.c_int, _ct.POINTER(_ct.c_int),
-        _np.ctypeslib.ndpointer(dtype=_np.float64, ndim = 2, flags = "C_CONTIGUOUS"),
-        _np.ctypeslib.ndpointer(dtype=_np.float64, ndim = 2, flags = "C_CONTIGUOUS"))
+        _np.ctypeslib.ndpointer(dtype=_np.float64, ndim = 2, flags = flags),
+        _np.ctypeslib.ndpointer(dtype=_np.float64, ndim = 2, flags = flags))
+    lib.SymmetryFunctionSet_eval_with_derivatives.argtypes = (
+        _ct.c_void_p, _ct.c_int, _ct.POINTER(_ct.c_int),
+        _np.ctypeslib.ndpointer(dtype=_np.float64, ndim = 2, flags = flags),
+        _np.ctypeslib.ndpointer(dtype=_np.float64, ndim = 1, flags = flags),
+        _np.ctypeslib.ndpointer(dtype=_np.float64, ndim = 2, flags = flags))
     lib.SymmetryFunctionSet_get_CutFun_by_name.argtypes = (_ct.c_char_p,)
     lib.SymmetryFunctionSet_get_TwoBodySymFun_by_name.argtypes = (_ct.c_char_p,)
     lib.SymmetryFunctionSet_get_ThreeBodySymFun_by_name.argtypes = (
@@ -123,20 +130,27 @@ class SymmetryFunctionSet(object):
     def eval(self, types, xyzs):
         int_types = [self.type_dict[ti] for ti in types]
         types_ptr = (_ct.c_int*len(types))(*int_types)
-        #len_G_vector = lib.SymmetryFunctionSet_get_G_vector_size(self.obj,
-        #    len(types), types_ptr)
-        # For each atom save how many symmetry functions are centered on it:
         num_Gs_per_atom = [self.num_Gs[ti] for ti in int_types]
         out = _np.zeros(sum(num_Gs_per_atom))
         lib.SymmetryFunctionSet_eval(self.obj, len(types), types_ptr, xyzs, out)
         cum_num_Gs = _np.cumsum([0]+num_Gs_per_atom)
         return [out[cum_num_Gs[i]:cum_num_Gs[i+1]] for i in range(len(types))]
 
+    def eval_with_derivatives(self, types, xyzs):
+        int_types = [self.type_dict[ti] for ti in types]
+        types_ptr = (_ct.c_int*len(types))(*int_types)
+        num_Gs_per_atom = [self.num_Gs[ti] for ti in int_types]
+        G_out = _np.zeros(sum(num_Gs_per_atom))
+        dG_out = _np.zeros((sum(num_Gs_per_atom), 3*len(types)))
+        lib.SymmetryFunctionSet_eval_with_derivatives(self.obj, len(types),
+            types_ptr, xyzs, G_out, dG_out)
+        cum_num_Gs = _np.cumsum([0]+num_Gs_per_atom)
+        return ([out[cum_num_Gs[i]:cum_num_Gs[i+1]] for i in range(len(types))],
+            [out[cum_num_Gs[i]:cum_num_Gs[i+1],:] for i in range(len(types))])
+
     def eval_old(self, types, xyzs):
         int_types = [self.type_dict[ti] for ti in types]
         types_ptr = (_ct.c_int*len(types))(*int_types)
-        #len_G_vector = lib.SymmetryFunctionSet_get_G_vector_size(self.obj,
-        #    len(types), types_ptr)
         num_Gs_per_atom = [self.num_Gs[ti] for ti in int_types]
         out = _np.zeros(sum(num_Gs_per_atom))
         lib.SymmetryFunctionSet_eval_old(
@@ -153,6 +167,11 @@ class SymmetryFunctionSet(object):
         types = [a[0] for a in geo]
         xyzs = _np.array([a[1] for a in geo])
         return self.eval_derivatives(types, xyzs)
+
+    def eval_geometry_and_derivatives(self, geo):
+        types = [a[0] for a in geo]
+        xyzs = _np.array([a[1] for a in geo])
+        return self.eval_with_derivatives(types, xyzs)
 
     def eval_geometry_old(self, geo):
         types = [a[0] for a in geo]

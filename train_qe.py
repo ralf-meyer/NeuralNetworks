@@ -4,11 +4,11 @@ from NeuralNetworks import NeuralNetworkUtilities as _NN
 
 #Get input
 plots=False
-learning_rate=0.0001
+learning_rate=0.001
 epochs=5000
 data_file=""
 force=False
-e_unit="eV"
+e_unit="Ry"
 dist_unit="A"
 load_model=True
 model=""

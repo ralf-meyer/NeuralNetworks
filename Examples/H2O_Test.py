@@ -17,7 +17,7 @@ import copy
 #from NeuralNetworks import ClusterGeometries
 import scipy
 import pyQChem as qc
-
+plt.ioff()
 plt.close("all")
 #parsing q-chem format to NN compatible format
 def parse_geometries(in_geoms):
@@ -54,8 +54,8 @@ def parse_geometries(in_geoms):
 
 #Create surface data
 
-theta=np.linspace(90*np.pi/180,130*np.pi/180,61)
-rhs=np.linspace(2,4,49)
+theta=np.linspace(0*np.pi/180,360*np.pi/180,50)
+rhs=np.linspace(2,5,50)
 
 ct=0
 geoms=[]
@@ -71,7 +71,7 @@ for w in theta:
                 y=0
                 z=0
                 ct=ct+1
-                geom.append(("Ni",np.zeros(3)))
+                geom.append(("Au",np.zeros(3)))
                 h1=[x,y,z]
                 geom.append(("Au",np.asarray(h1)))
             else:
@@ -110,27 +110,27 @@ Evaluation=NN.AtomicNeuralNetInstance()
 #scf_geoms=scf_reader.geometries
 ##Rescale
 #ref_e=ref_e-min(ref_e)
-nr_atoms=2
-md_reader_h=reader.QE_MD_Reader()
-#for i in range(nr_atoms):
-#    md_reader_h.atom_types.append("H"+str(i+1))
-md_reader_h.E_conv_factor=13.605698066
-md_reader_h.Geom_conv_factor=0.529177249
-md_reader_h.get_files("/home/afuchs/QE-Rechnungen/pw.x/H_MD/Md_run/H_2.out")
-md_reader_h.read_all_files()
-#md_reader_h.Calibration.append(("/home/afuchs/QE-Rechnungen/pw.x/H2O/single_atoms/h.out",6))
-md_reader_h.calibrate_energy()
+# nr_atoms=2
+# md_reader_h=reader.QE_MD_Reader()
+# #for i in range(nr_atoms):
+# #    md_reader_h.atom_types.append("H"+str(i+1))
+# md_reader_h.E_conv_factor=13.605698066
+# md_reader_h.Geom_conv_factor=0.529177249
+# md_reader_h.get_files("/home/afuchs/QE-Rechnungen/pw.x/H_MD/Md_run/H_2.out")
+# md_reader_h.read_all_files()
+# #md_reader_h.Calibration.append(("/home/afuchs/QE-Rechnungen/pw.x/H2O/single_atoms/h.out",6))
+# md_reader_h.calibrate_energy()
 
 
-md_reader=reader.QE_MD_Reader()
-md_reader.E_conv_factor=13.605698066
-md_reader.Geom_conv_factor=1
-md_reader.get_files("/home/afuchs/QE-Rechnungen/pw.x/MD_pbe")
-md_reader.read_all_files()
-md_reader.Calibration.append(("/home/afuchs/QE-Rechnungen/pw.x/Single_Au_pbe/Au.out",7))
-md_reader.Calibration.append(("/home/afuchs/QE-Rechnungen/pw.x/Single_Ni_pbe/Ni.out",6))
-md_reader.calibrate_energy()
-niau_energies=md_reader.e_pot_rel-min(md_reader.e_pot_rel)
+# md_reader=reader.QE_MD_Reader()
+# md_reader.E_conv_factor=13.605698066
+# md_reader.Geom_conv_factor=1
+# md_reader.get_files("/home/afuchs/QE-Rechnungen/pw.x/MD_pbe")
+# md_reader.read_all_files()
+# md_reader.Calibration.append(("/home/afuchs/QE-Rechnungen/pw.x/Single_Au_pbe/Au.out",7))
+# md_reader.Calibration.append(("/home/afuchs/QE-Rechnungen/pw.x/Single_Ni_pbe/Ni.out",6))
+# md_reader.calibrate_energy()
+# niau_energies=md_reader.e_pot_rel-min(md_reader.e_pot_rel)
 
 #ds_r_min,ds_r_max=NN.get_ds_r_min_r_max(md_reader.geometries)
 #N_zero=50
@@ -141,42 +141,42 @@ niau_energies=md_reader.e_pot_rel-min(md_reader.e_pot_rel)
 #all_energies =  list((np_energies-np.min(np_energies)))
 #train_e=list(ref_e)+list(ref_e2)
 #train_geoms=scf_geoms+md_reader.geometries
-Training.UseForce=True
-Training.Structures=[]
-Training.NumberOfAtomsPerType=[]
-Training.Atomtypes=["H"]
-Training.NumberOfRadialFunctions=20
-NrH=4
-Training.NumberOfAtomsPerType.append(NrH)
-#angular symmetry function settings
-Training.Lambs=[1.0,-1.0]
-Training.Zetas=[0.025,0.045,0.075,0.1,0.15,0.2,0.3,0.5,0.7,1,1.5,2,3,5,10,18,36,100]
-Training.Etas=[0.1]   
-Training.create_symmetry_functions()
-#Training.init_dataset(train_geoms,train_e)
-h_energies=md_reader_h.e_pot_rel-min(md_reader_h.e_pot_rel)
-#Training.init_dataset(md_reader_h.geometries,h_energies,md_reader_h.forces)
-#Training.make_training_and_validation_data(20,70,30)
-
-MyGeom=md_reader_h.geometries[0]
-GeomMdx=copy.deepcopy(MyGeom)
-GeomPdx=copy.deepcopy(MyGeom)
-dx=np.zeros(3)
-
-h=1E-6
-dx[0]=dx[0]+h
-Mdx=MyGeom[0][1]-dx
-Pdx=MyGeom[0][1]+dx
-
-
-
-GeomMdx[0][1][0]=Mdx[0]
-GeomMdx[0][1][1]=Mdx[1]
-GeomMdx[0][1][2]=Mdx[2]
-
-GeomPdx[0][1][0]=Pdx[0]
-GeomPdx[0][1][1]=Pdx[1]
-GeomPdx[0][1][2]=Pdx[2]
+# Training.UseForce=True
+# Training.Structures=[]
+# Training.NumberOfAtomsPerType=[]
+# Training.Atomtypes=["H"]
+# Training.NumberOfRadialFunctions=20
+# NrH=4
+# Training.NumberOfAtomsPerType.append(NrH)
+# #angular symmetry function settings
+# Training.Lambs=[1.0,-1.0]
+# Training.Zetas=[0.025,0.045,0.075,0.1,0.15,0.2,0.3,0.5,0.7,1,1.5,2,3,5,10,18,36,100]
+# Training.Etas=[0.1]
+# Training.create_symmetry_functions()
+# #Training.init_dataset(train_geoms,train_e)
+# h_energies=md_reader_h.e_pot_rel-min(md_reader_h.e_pot_rel)
+# #Training.init_dataset(md_reader_h.geometries,h_energies,md_reader_h.forces)
+# #Training.make_training_and_validation_data(20,70,30)
+#
+# MyGeom=md_reader_h.geometries[0]
+# GeomMdx=copy.deepcopy(MyGeom)
+# GeomPdx=copy.deepcopy(MyGeom)
+# dx=np.zeros(3)
+#
+# h=1E-6
+# dx[0]=dx[0]+h
+# Mdx=MyGeom[0][1]-dx
+# Pdx=MyGeom[0][1]+dx
+#
+#
+#
+# GeomMdx[0][1][0]=Mdx[0]
+# GeomMdx[0][1][1]=Mdx[1]
+# GeomMdx[0][1][2]=Mdx[2]
+#
+# GeomPdx[0][1][0]=Pdx[0]
+# GeomPdx[0][1][1]=Pdx[1]
+# GeomPdx[0][1][2]=Pdx[2]
 
 #Data=Training.create_eval_data()
 
@@ -185,132 +185,129 @@ GeomPdx[0][1][2]=Pdx[2]
 #Train with data 
 #NrO=3
 
-
-Training.Structures.append([Training.SizeOfInputsPerType[0],80,80,20,1])
-Training.Dropout=[0,0]
-#Training.NumberOfAtomsPerType.append(NrO)
-#Training.Structures.append([Training.SizeOfInputs[1],80,25,1])
-
-Training.HiddenType="truncated_normal"
-Training.HiddenData=list()
-Training.BiasData=list()
-Training.ActFun="elu"
-Training.LearningRate=0.005
-Training.dE_Criterium=0
-Training.Epochs=200
-Training.MakePlots=True
-Training.OptimizerType="Adam"
-Training.Regularization="none"
-Training.CostFunType="Adaptive_2"
-Training.LearningRateType="exponential_decay"
-Training.SavingDirectory="pretraining"
-Training.LearningDecayEpochs=100
-Training.RegularizationParam=0.01
-#Training.MakeLastLayerConstant=True
-Training.make_and_initialize_network()
-#Training.expand_existing_net(ModelName="save_h2o/trained_variables")
-#Start first training
-Pred=Training.energy_for_geometry([GeomMdx,GeomPdx,MyGeom])
-print(Pred[0])
-print(Pred[1])
-F=(Pred[1]-Pred[0])/(2*h)
-F_a=Training.force_for_geometry([GeomMdx,GeomPdx,MyGeom])[-1][0]
-print([F[0],F_a])
-#Training.start_batch_training()
-time.sleep(10000)
 #
-#Load second trainings data
-
-#Training2.TrainingBatches=Training.TrainingBatches
-#Training2.ValidationBatches=Training.ValidationBatches
-Training2.Atomtypes=["Ni","Au"]
-Training2.NumberOfRadialFunctions=20
-Training2.Lambs=[1.0,-1.0]
-Training2.Zetas=[0.025,0.045,0.075,0.1,0.15,0.2,0.3,0.5,0.7,1,1.5,2,3,5,10,18,36,100]
-Training2.Etas=[0.1]   
-#Training2.init_dataset(train_geoms,train_e)
-Training2.init_dataset(md_reader.geometries,md_reader.e_pot_rel)
-Training2.make_training_and_validation_data(2,70,10)
-#Train with second data
-Training2.Structures=[]
-Training2.Structures.append([Training2.SizeOfInputs[0],100,100,40,20,1])
-Training2.Structures.append([Training2.SizeOfInputs[1],100,100,40,20,1])
-Training2.Dropout=[0,0,0,0,0]
-Training2.LearningRate=0.0001
-Training2.CostCriterium=0
-Training2.dE_Criterium=0
-Training2.RegularizationParam=0.1
-Training2.Epochs=1500
-Training2.MakePlots=True
-Training2.ActFun="elu"
-Training2.CostFunType="Adaptive_2"
-Training2.OptimizerType="Adam"
-Training2.SavingDirectory="save_NiAu"
-Training2.MakeLastLayerConstant=True
-Training2.MakeAllVariable=False
-
-#Evaluate quality of learning transfer
-NrNi=6
-NrAu=7
-Training2.NumberOfAtomsPerType=[]
-Training2.NumberOfAtomsPerType.append(NrNi)
-Training2.NumberOfAtomsPerType.append(NrAu)
-Training2.expand_existing_net(ModelName="pretraining/trained_variables")
-Training2.start_batch_training()
+# Training.Structures.append([Training.SizeOfInputsPerType[0],80,80,20,1])
+# Training.Dropout=[0,0]
+# #Training.NumberOfAtomsPerType.append(NrO)
+# #Training.Structures.append([Training.SizeOfInputs[1],80,25,1])
+#
+# Training.HiddenType="truncated_normal"
+# Training.HiddenData=list()
+# Training.BiasData=list()
+# Training.ActFun="elu"
+# Training.LearningRate=0.005
+# Training.dE_Criterium=0
+# Training.Epochs=200
+# Training.MakePlots=True
+# Training.OptimizerType="Adam"
+# Training.Regularization="none"
+# Training.CostFunType="Adaptive_2"
+# Training.LearningRateType="exponential_decay"
+# Training.SavingDirectory="pretraining"
+# Training.LearningDecayEpochs=100
+# Training.RegularizationParam=0.01
+# #Training.MakeLastLayerConstant=True
+# Training.make_and_initialize_network()
+# #Training.expand_existing_net(ModelName="save_h2o/trained_variables")
+# #Start first training
+# Pred=Training.energy_for_geometry([GeomMdx,GeomPdx,MyGeom])
+# print(Pred[0])
+# print(Pred[1])
+# F=(Pred[1]-Pred[0])/(2*h)
+# F_a=Training.force_for_geometry([GeomMdx,GeomPdx,MyGeom])[-1][0]
+# print([F[0],F_a])
+# #Training.start_batch_training()
+# time.sleep(10000)
+# #
+# #Load second trainings data
+#
+# #Training2.TrainingBatches=Training.TrainingBatches
+# #Training2.ValidationBatches=Training.ValidationBatches
+# Training2.Atomtypes=["Ni","Au"]
+# Training2.NumberOfRadialFunctions=20
+# Training2.Lambs=[1.0,-1.0]
+# Training2.Zetas=[0.025,0.045,0.075,0.1,0.15,0.2,0.3,0.5,0.7,1,1.5,2,3,5,10,18,36,100]
+# Training2.Etas=[0.1]
+# #Training2.init_dataset(train_geoms,train_e)
+# Training2.init_dataset(md_reader.geometries,md_reader.e_pot_rel)
+# Training2.make_training_and_validation_data(2,70,10)
+# #Train with second data
+# Training2.Structures=[]
+# Training2.Structures.append([Training2.SizeOfInputs[0],100,100,40,20,1])
+# Training2.Structures.append([Training2.SizeOfInputs[1],100,100,40,20,1])
+# Training2.Dropout=[0,0,0,0,0]
+# Training2.LearningRate=0.0001
+# Training2.CostCriterium=0
+# Training2.dE_Criterium=0
+# Training2.RegularizationParam=0.1
+# Training2.Epochs=1500
+# Training2.MakePlots=True
+# Training2.ActFun="elu"
+# Training2.CostFunType="Adaptive_2"
+# Training2.OptimizerType="Adam"
+# Training2.SavingDirectory="save_NiAu"
+# Training2.MakeLastLayerConstant=True
+# Training2.MakeAllVariable=False
+#
+# #Evaluate quality of learning transfer
+# NrNi=6
+# NrAu=7
+# Training2.NumberOfAtomsPerType=[]
+# Training2.NumberOfAtomsPerType.append(NrNi)
+# Training2.NumberOfAtomsPerType.append(NrAu)
+# Training2.expand_existing_net(ModelName="pretraining/trained_variables")
+# Training2.start_batch_training()
 
 #start evaluation
-Evaluation.atomtypes=["Ni","Au"]
-Evaluation.NumberOfRadialFunctions=20
+#Evaluation.Atomtypes=["Au"]
+#Evaluation.NumberOfRadialFunctions=25
 #angular symmetry function settings
-Evaluation.Lambs=[1.0,-1.0]
-Evaluation.Zetas=[0.025,0.045,0.075,0.1,0.15,0.2,0.3,0.5,0.7,1,1.5,2,3,5,10,18,36,100]
-Evaluation.Etas=[0.1]  
-Evaluation.Structures=[]
-Evaluation.Structures.append([Training2.SizeOfInputs[0],100,100,40,20,1])
-Evaluation.Structures.append([Training2.SizeOfInputs[1],100,100,40,20,1])
+#Evaluation.Lambs=[1.0,-1.0]
+#Evaluation.Zetas=[0.025,0.045,0.075,0.1,0.15,0.2,0.3,0.5,0.7,1,1.5,2,3,5,10,18,36,100]
+#Evaluation.Etas=[0.1]
+#
+#Evaluation.Structures.append([61,100,100,40,20,1])
+#Evaluation.Structures.append([Training2.SizeOfInputs[1],100,100,40,20,1])
 
+Evaluation.prepare_evaluation("/home/afuchs/Git/NeuralNetworks/Au_test2",atom_types=["Au"],
+                              nr_atoms_per_type=[3])
 Evaluation.create_eval_data(geoms)
-NrNi=1
-NrAu=2
-Evaluation.NumberOfAtomsPerType=[]
-Evaluation.NumberOfAtomsPerType.append(NrNi)
-Evaluation.NumberOfAtomsPerType.append(NrAu)
-out=Evaluation.start_evaluation(Evaluation.NumberOfAtomsPerType,ModelName="save_NiAu/trained_variables")
-#plot 3d
+out=Evaluation.eval_dataset_energy(Evaluation.EvalData,0)
+print(out)
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
-r = []
-t = []
-e = []
+# r = []
+# t = []
+# e = []
+#
+# with open("Q-Chem/scan_files/H20surface.txt", "r") as fin:
+#     fin.next() # Skip header line
+#     for line in fin:
+#         sp = line.split()
+#         r.append(float(sp[0]))
+#         t.append(float(sp[1]))
+#         e.append(float(sp[2]))
+#
+# Nr = len(np.unique(r))
+# Nt = len(np.unique(t))
+# r = np.array(r).reshape((Nr, Nt))
+# t = np.array(t).reshape((Nr, Nt))
+# e = np.array(e).reshape((Nr, Nt))
+# #interpolate
+# for i,line in enumerate(e):
+#     L=line>-60
+#     idx=np.where(L)
+#     if idx[0].size!=0:
+#         min_idx=idx[0][0]
+#         max_idx=idx[0][-1]
+#         y1=line[min_idx-1]
+#         y2=line[max_idx+1]
+#         y_int=np.linspace(y1,y2,len(idx))
+#         line[L]=y_int
+#         e[i]=line
 
-with open("Q-Chem/scan_files/H20surface.txt", "r") as fin:
-    fin.next() # Skip header line
-    for line in fin:
-        sp = line.split()
-        r.append(float(sp[0]))
-        t.append(float(sp[1]))
-        e.append(float(sp[2]))
-
-Nr = len(np.unique(r))
-Nt = len(np.unique(t))
-r = np.array(r).reshape((Nr, Nt))
-t = np.array(t).reshape((Nr, Nt))
-e = np.array(e).reshape((Nr, Nt))
-#interpolate
-for i,line in enumerate(e):
-    L=line>-60
-    idx=np.where(L)
-    if idx[0].size!=0:
-        min_idx=idx[0][0]
-        max_idx=idx[0][-1]
-        y1=line[min_idx-1]
-        y2=line[max_idx+1]
-        y_int=np.linspace(y1,y2,len(idx))
-        line[L]=y_int
-        e[i]=line
-
-e=(e-np.min(e))*27.211427
-ax.set_zlim(0,0.2)
+# e=(e-np.min(e))*27.211427
+ax.set_zlim(0,10)
 #out=out-np.min(out)
 meshX,meshY=np.meshgrid(rhs,theta*180/np.pi)
 meshZ=out.reshape(len(theta),len(rhs))
@@ -322,6 +319,7 @@ m=np.min(meshZ)
 L=meshZ==m
 print(str(meshX[L])+" Angstroem")
 print(str(meshY[L])+" grad")
+plt.show()
 #ax.plot_surface(r,t,e)
 
 #num_e=len(reference_energies)
