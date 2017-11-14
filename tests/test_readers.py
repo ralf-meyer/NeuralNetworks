@@ -2,6 +2,7 @@ import unittest
 from os.path import normpath, dirname, join
 import numpy as _np
 from NeuralNetworks.data_generation import data_readers
+from warnings import warn
 
 class PathProvider(object):
     """This class is just used to provide hard coded file paths"""
@@ -132,7 +133,7 @@ class TestLammpsReader(_BaseTestsWrapper.DataReadersTestUtilities):
         reader = data_readers.LammpsReader()
 
         # read from dump file
-        reader.read_lammps(self._dump_path, self._xyz_path, self._thermo_path)
+        reader.read(self._dump_path, self._xyz_path, self._thermo_path)
 
         # test results
         self._check_species(reader)
@@ -162,7 +163,7 @@ class TestLammpsReader(_BaseTestsWrapper.DataReadersTestUtilities):
         reader = data_readers.LammpsReader()
 
         try:
-            reader.read_lammps(
+            reader.read(
                 "bad/path/to/no_where.dump", 
                 self._thermo_path, 
                 self._xyz_path)            
@@ -191,7 +192,7 @@ class TestLammpsReader(_BaseTestsWrapper.DataReadersTestUtilities):
         reader.atom_types = new_types
         reader.nr_atoms_per_type = new_count_per_type
 
-        reader.read_lammps(self._dump_path, self._thermo_path)
+        reader.read(self._dump_path, self._thermo_path)
 
         # check if set species persisted or where overwritten
         self.assertItemsEqual(new_types, reader.atom_types)
@@ -212,6 +213,18 @@ class TestLammpsReader(_BaseTestsWrapper.DataReadersTestUtilities):
 
         except IndexError:
             self.fail("Atom types/counts per type, does not match read data!")
+
+    def test_read_folder(self):
+        reader = data_readers.LammpsReader()
+        try:
+            reader.read_folder(self.path_provider.LAMMPS_test_files_dir)
+        except Exception as ex:
+            warn(ex.message)
+            self.fail("Could not read files from folder.")
+        
+        self._check_species(reader)
+        self._check_geometry(reader)
+        self._check_forces(reader)
 
 class TestQEMDReader(_BaseTestsWrapper.DataReadersTestUtilities):
     """Tests the QEReader's read functions

@@ -15,11 +15,14 @@ Authors:
 """
 import re as _re
 import os 
-from os.path import isfile
+from os import listdir
+from os.path import isfile, isdir, dirname, join
 from abc import ABCMeta, abstractmethod
 import numpy as _np
 import matplotlib.pyplot as plt
 from progressbar import ProgressBar
+
+from warnings import warn 
 
 class _AbstractReader(object): 
     """This class is used to define a common interface for all 
@@ -54,11 +57,11 @@ class _AbstractReader(object):
 
         self.energy_calibration
 
-    def read(*args, **kwargs):
+    def read(self, *args, **kwargs):
         """Read data from files specified in args/kwargs"""
         raise NotImplementedError("Abstract method must be overridden!")
     
-    def read_folder(*args, **kwargs):
+    def read_folder(self, *args, **kwargs):
         """Read all data from result files in folder specified by args/kwargs"""
         raise NotImplementedError("Abstract method must be overridden!")
 
@@ -857,7 +860,7 @@ class LammpsReader(object):
             [species for count_and_species in self._species for species in count_and_species ]
     #---
     
-    def read_lammps(self, dumpfile, thermofile, xyzfile=""):
+    def read(self, dumpfile, thermofile, xyzfile=""):
         """Extracts data like atom types. geometries and forces from LAMPS
         result files (thermo file, custom dum and xyz-files).
         It will try to use the dump file first to find geometries and forces.
@@ -879,7 +882,7 @@ class LammpsReader(object):
         if isfile(dumpfile):
             self._read_from_dump(dumpfile)
         else:
-            print("Dump file not found at {0}.\n".format(dumpfile))
+            warn("Dump file not found at {0}.\n".format(dumpfile))
 
             if xyzfile != "":
 
@@ -888,13 +891,63 @@ class LammpsReader(object):
                 if isfile(xyzfile):
                     self._read_geometries_from_xyz(xyzfile)
                 else:
-                    print("XYZ file not found at {0}.\n".format(xyzfile))
+                    warn(
+                        "XYZ file not found at {0}.\n".format(xyzfile), 
+                        RuntimeWarning
+                    )
 
         # read energies and potentials
         if isfile(thermofile):
             self._read_energies_from_thermofile(thermofile)
         else:
-            print("Invalid file path: {0} is not a file!".format(thermofile))                 
+            warn("Invalid file path: {0} is not a file!".format(thermofile), RuntimeWarning)                 
+
+    def read_folder(self, folder):
+        """Find all LAMMPS results files in a folder and read from them."""
+
+        # if instead of a folder a file is given, use folder file is in.
+        if isfile(folder):
+            folder = dirname(folder)
+
+        if not isdir(folder):
+            raise ValueError("Folder does not exist at {0}!".format(folder))
+
+        files_in_folder = listdir(folder)
+
+        # find result files files
+        dump_files = [join(folder, x) for x in files_in_folder if ".dump" in x]
+        xyz_files =  [join(folder, x) for x in files_in_folder if ".xyz" in x]
+        thermo_files = \
+            [join(folder, x) for x in files_in_folder if (".log" in x or ".out" in x)]
+
+        #--- read if files where found ---
+        msg = "{0} {1} files found! Using {2} ..."
+        if len(dump_files) > 0:
+            if len(dump_files) > 1:
+                warn(
+                    msg.format(
+                        len(dump_files), ".dump", dump_files[0]
+                    ), 
+                    RuntimeWarning
+                )
+            self._read_from_dump(dump_files[0])
+        else:
+            if len(xyz_files) > 0:
+                if len(xyz_files) > 1:
+                    warn(msg.format(
+                        len(xyz_files), ".xyz", xyz_files[0]),
+                        RuntimeWarning
+                    )
+                self._read_geometries_from_xyz(xyz_files[0])
+
+        if len(thermo_files) > 0:
+            if len(thermo_files) > 1:
+                warn(msg.format(
+                    len(thermo_files), ".log/.out", thermo_files[0]),
+                    RuntimeWarning
+                )
+            self._read_energies_from_thermofile(thermo_files[0])
+        # ---
 
     def _read_from_dump(self, dumpfile):
         """reads species, geometries and forces from dump file.
@@ -1066,7 +1119,7 @@ class LammpsReader(object):
         except Exception as e:
             print("Error reading thermodynamics file: {0}".format(e.message))
 
-    def calibrate_energy():
+    def calibrate_energy(self):
         """Will shift the zero point of the energy so the difference in energies
         becomes more dominant (easier to learn)"""
 
@@ -1081,3 +1134,8 @@ class LammpsReader(object):
 
         # shift energies
         self.energies = (_np.array(self.energies) - offset).tolist()
+
+if __name__ == '__main__':
+    reader = LammpsReader()
+    reader.read_folder("../../tests/TestData/Lammps")
+    pass
