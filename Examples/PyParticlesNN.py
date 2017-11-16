@@ -44,9 +44,9 @@ bound = None
 pset.set_boundary( bound )
 pset.enable_log( True , log_max_size=1000 )
 
-#NNForce=nn_force.NNForce(Training,pset.size)
-#NNForce.set_masses(pset.M)
-#NNForce.update_force(pset)
+NNForce=nn_force.NNForce(Training,pset.size)
+NNForce.set_masses(pset.M)
+NNForce.update_force(pset)
 
 solver = svs.LeapfrogSolverBerendsen( NNForce , pset , dt )
 solver.start()
