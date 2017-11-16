@@ -1,5 +1,7 @@
 import numpy as _np
 from scipy.optimize import approx_fprime
+from mpl_toolkits.mplot3d import Axes3D
+import matplotlib.pyplot as plt
 
 class NNForce(object):
 
@@ -8,6 +10,7 @@ class NNForce(object):
         self.__dim = dim
         self.__size = size
         self.__A = _np.zeros((size, dim))
+        self.__E = 0
         self.__Fm = _np.zeros( ( size , size ) )
         self.__V = _np.zeros( ( size , size ) )
         self.__D = _np.zeros( ( size , size ) )
@@ -38,15 +41,14 @@ class NNForce(object):
 
     def update_force(self,pset):
         """Evaluates the force and calulates the acceleration
-        for a given PyParticels particle set"""
+        for a given PyParticles particle set"""
         coordinates=pset.X
         self.types=list(pset.label[:])
         geometry=[]
         for i in range(len(pset.label)):
             geometry.append((pset.label[i],_np.asarray(coordinates[i])))
 
-        #energy,forces=self.Net.energy_and_force_for_geometry(geometry)
-        energy=self.Net.energy_and_force_for_geometry(geometry)
+        self.__E,forces=self.Net.energy_and_force_for_geometry(geometry)
         x=_np.asarray(pset.X[:]).flatten()
         grad=approx_fprime(x,self.fun,1e-7)
         forces=-_np.asarray(grad)
@@ -62,7 +64,15 @@ class NNForce(object):
         """
         return self.__A
 
-    A = property(getA, doc="Return the currents accelerations of the particles (getter only)")
+    A = property(getA, doc="Return the current accelerations of the particles (getter only)")
+
+    def getE(self):
+        """
+        Return the currents energy of the particles
+        """
+        return self.__E
+
+    E = property(getE, doc="Return the current energy of the particles (getter only)")
 
     def getF(self):
         """
@@ -70,4 +80,4 @@ class NNForce(object):
         """
         return (self.__A.T * self.__M[:, 0]).T
 
-    F = property(getF, doc="Return the currents forces on the particles (getter only)")
+    F = property(getF, doc="Return the current forces on the particles (getter only)")
