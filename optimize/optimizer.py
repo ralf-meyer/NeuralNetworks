@@ -1,6 +1,8 @@
+import scipy.optimize
 from scipy.optimize import minimize
 from scipy.optimize import fmin_bfgs
 from scipy.optimize import approx_fprime
+
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 import numpy as _np
@@ -67,20 +69,26 @@ class Optimizer(object):
 
     def fun(self,x):
         """Wrapper for energy evaluation"""
-        e=self.Net.energy_for_geometry(self.to_nn_input(x))
-        return e
+        return self.Net.energy_for_geometry(self.to_nn_input(x))
 
     def der_fun(self,x):
         """TODO: Fix force calculation"""
         self.update_plot(x)
-        #force=_np.asarray(self.Net.force_for_geometry(self.to_nn_input(x)))
-        #grad1=-force.flatten()
-        #print(grad)
-        grad=approx_fprime(x,self.fun,epsilon=1e-7)
-        #print(str(grad1)+" analytical")
-        #print(str(grad2)+" approx.")
+        force=_np.asarray(self.Net.force_for_geometry(self.to_nn_input(x)))
+        grad=-force.flatten()
+
         return grad
 
+    def der_fun_approx(self,x):
+
+        return approx_fprime(x.flatten(),self.fun,epsilon=1e-7)
+
+
+    def check_gradient(self):
+        analytic=self.der_fun(self.x0)
+        approx=self.der_fun_approx(self.x0)
+        print([analytic,approx])
+        print([_np.abs(analytic-approx)])
 
     def start_bfgs(self):
         """Starts a geometry optimization using the BFGS method"""
@@ -91,7 +99,7 @@ class Optimizer(object):
         [res,fopt,gopt,Bopt, func_calls, grad_calls, warnflg]=fmin_bfgs(self.fun,
                                                                         self.x0,
                                                                         self.der_fun,
-                                                                        gtol=1e-05,
+                                                                        gtol=1e-09,
                                                                         full_output=True,
                                                                         disp=True)
         print("E optimal = "+str(fopt))

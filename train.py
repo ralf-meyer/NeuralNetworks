@@ -1,7 +1,11 @@
 #model training script
 import sys 
 from NeuralNetworks import NeuralNetworkUtilities as _NN
+import os
 
+
+def str2bool(v):
+  return v.lower() in ("yes", "true", "t", "1")
 #Get input
 plots=False
 learning_rate=0.001
@@ -14,6 +18,7 @@ load_model=True
 model=""
 model_dir="save_no_name"
 source=""
+percentage_of_data=100
 
 for i,arg in enumerate(sys.argv):
     if "-input" in arg:
@@ -23,9 +28,9 @@ for i,arg in enumerate(sys.argv):
     if "-epochs" in arg:
         epochs=int(sys.argv[i+1])
     if "-force" in arg:
-        force=bool(sys.argv[i+1])
+        force=str2bool(sys.argv[i+1])
     if "-load_model" in arg:
-        load_model=bool(sys.argv[i+1])
+        load_model=str2bool(sys.argv[i+1])
     if "-v" in arg:
         plots=True
     if "-lr" in arg:
@@ -38,6 +43,8 @@ for i,arg in enumerate(sys.argv):
         model=sys.argv[i+1]
     if "-source" in arg:
         source = sys.argv[i + 1]
+    if "-data_percentage" in arg:
+        percentage_of_data = float(sys.argv[i + 1])
 
 if data_file=="":
     print("Please specify a MD file")
@@ -48,6 +55,18 @@ if source == "":
     print("Please specify your source (QE = Quantum Espresso, LAMMPS=Lammps")
     print("Option: -source x")
     exit
+
+print("Learning rate = "+str(learning_rate))
+print("Epochs = "+str(epochs))
+print("Energy unit = "+e_unit)
+print("Distance unit = "+ dist_unit)
+print("Training file : "+data_file)
+print("Used percentage of data : "+str(percentage_of_data)+" %")
+print("Force training = "+str(force))
+print("Use model = "+str(load_model))
+if load_model:
+    print("Loaded model = "+model)
+print("Save path : "+os.path.join(os.getcwd(),model_dir))
 
 
 #Load trainings instance
@@ -60,9 +79,9 @@ Training.Zetas=[0.025,0.045,0.075,0.1,0.15,0.2,0.3,0.5,0.7,1,1.5,2,3,5,10,18,36,
 Training.Etas=[0.1]   
 #Read file
 if source == "QE":
-    Training.read_qe_md_files(data_file,e_unit,dist_unit)
+    Training.read_qe_md_files(data_file,e_unit,dist_unit,DataPointsPercentage=percentage_of_data)
 else:
-    Training.read_lammps_files(data_file,energy_unit=e_unit,dist_unit=dist_unit)
+    Training.read_lammps_files(data_file,energy_unit=e_unit,dist_unit=dist_unit,DataPointsPercentage=percentage_of_data)
 
 #Default trainings settings
 for i in range(len(Training.Atomtypes)):
@@ -88,10 +107,13 @@ Training.MakeAllVariable=True
 
 if load_model:
     #Load pretrained net
-    if model=="":
-        Training.expand_existing_net(ModelName="pretraining_"+str(len(Training.Atomtypes))+"_species/trained_variables")
-    else:
-        Training.expand_existing_net(ModelName=model+"/trained_variables")
+    try:
+        if model=="":
+            Training.expand_existing_net(ModelName="pretraining_"+str(len(Training.Atomtypes))+"_species/trained_variables")
+        else:
+            Training.expand_existing_net(ModelName=model+"/trained_variables")
+    except:
+        raise IOError("Model not found, please specify model directory via -model x")
 else:
     Training.make_and_initialize_network()
 

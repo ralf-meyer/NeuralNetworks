@@ -65,7 +65,8 @@ class OdeSolver(object) :
         
         self.__steps_cnt = 0
         self.all_forces=[]
-        self.all_energies=[]
+        self.all_epot=[]
+        self.all_etot=[]
         self.steps=1000
         self.plot = True
         self.fig = None
@@ -90,10 +91,12 @@ class OdeSolver(object) :
                                     x[:, 1],
                                     x[:, 2],
                                     animated=False, marker='o', alpha=1, s=50,c='b')
-        plt_e = np.asarray(self.all_energies).flatten()
-        self.eplot,=self.ax2.plot(np.arange(1,len(plt_e)+1),plt_e,c='b')
+        plt_epot = np.asarray(self.all_epot).flatten()
+        plt_etot = np.asarray(self.all_etot).flatten()
+        self.epot_plot,=self.ax2.plot(np.arange(1,len(plt_epot)+1),plt_epot,c='b',label="E_pot")
+        self.etot_plot, = self.ax2.plot(np.arange(1, len(plt_etot) + 1), plt_etot, c='r',label="E_tot")
+        plt.legend(handles=[self.epot_plot,self.etot_plot],loc=1)
         plt.show(block=False)
-        return self.scat,self.eplot
 
     def update_plot(self,i):
         """Update the plots."""
@@ -101,13 +104,13 @@ class OdeSolver(object) :
                                 _np.ma.ravel(self.pset.X[:, 1]),
                                 _np.ma.ravel(self.pset.X[:, 2])
                                 )
-        plt_e=np.asarray(self.all_energies).flatten()
+        plt_epot = np.asarray(self.all_epot).flatten()
+        plt_etot = np.asarray(self.all_etot).flatten()
 
-        self.eplot, = self.ax2.plot(np.arange(1, len(plt_e) + 1), plt_e, c='b')
+        self.epot_plot,=self.ax2.plot(np.arange(1,len(plt_epot)+1),plt_epot,c='b')
+        self.etot_plot, = self.ax2.plot(np.arange(1, len(plt_etot) + 1), plt_etot, c='r')
         self.fig.canvas.draw()
         self.fig.canvas.flush_events()
-
-        return self.scat,self.eplot
 
 
     def start(self):
