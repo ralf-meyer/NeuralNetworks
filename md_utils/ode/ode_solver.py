@@ -19,6 +19,12 @@ import numpy as np
 import sys
 
 from NeuralNetworks.md_utils.ode import sim_time as st
+from mpl_toolkits.mplot3d import Axes3D
+import matplotlib.pyplot as plt
+from matplotlib import animation
+import numpy as _np
+import time as _time
+
 
 class OdeSolver(object) :
     """
@@ -57,7 +63,62 @@ class OdeSolver(object) :
         
         self.__sim_time = st.SimTime( self )
         
-        self.__steps_cnt = 0        
+        self.__steps_cnt = 0
+        self.all_forces=[]
+        self.all_energies=[]
+        self.steps=1000
+        self.plot = True
+        self.fig = None
+        self.ax1 = None
+        self.scat = None
+        self.eplot=None
+
+
+    def init_plot(self, x):
+        """Initialize the animation"""
+        self.fig = plt.figure(figsize=plt.figaspect(2.))
+        self.ax1 = self.fig.add_subplot(211, projection='3d')
+        self.ax2 = self.fig.add_subplot(212)
+
+        self.setup_plot()
+
+
+    def setup_plot(self):
+        """Sets up the plots"""
+        x=self.__p_set.X[:]
+        self.scat = self.ax1.scatter(x[:, 0],
+                                    x[:, 1],
+                                    x[:, 2],
+                                    animated=False, marker='o', alpha=1, s=50,c='b')
+        plt_e = np.asarray(self.all_energies).flatten()
+        self.eplot,=self.ax2.plot(np.arange(1,len(plt_e)+1),plt_e,c='b')
+        plt.show(block=False)
+        return self.scat,self.eplot
+
+    def update_plot(self,i):
+        """Update the plots."""
+        self.scat._offsets3d = (_np.ma.ravel(self.pset.X[:, 0]),
+                                _np.ma.ravel(self.pset.X[:, 1]),
+                                _np.ma.ravel(self.pset.X[:, 2])
+                                )
+        plt_e=np.asarray(self.all_energies).flatten()
+
+        self.eplot, = self.ax2.plot(np.arange(1, len(plt_e) + 1), plt_e, c='b')
+        self.fig.canvas.draw()
+        self.fig.canvas.flush_events()
+
+        return self.scat,self.eplot
+
+
+    def start(self):
+        if self.fig == None:
+            self.init_plot(self.pset.X[:])
+
+        for i in range(self.steps):
+            if self.plot:
+                self.update_plot(i)
+            self.step(self.dt)
+
     
     def get_dt( self ):
         return self.__dt

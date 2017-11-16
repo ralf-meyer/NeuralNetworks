@@ -15,7 +15,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-import numpy as np
+import numpy as _np
 from NeuralNetworks.md_utils.ode import ode_solver as os
 from NeuralNetworks.md_utils import thermostats
 from scipy.constants import k as k_B
@@ -24,21 +24,22 @@ class LeapfrogSolverBerendsen( os.OdeSolver ) :
     """acutally velocity-verlet"""
     def __init__( self , force , p_set , dt ):
         super(LeapfrogSolverBerendsen,self).__init__( force , p_set , dt )
-        self.__Ai = np.zeros( self.force.A.shape )
+        self.__Ai = _np.zeros( self.force.A.shape )
         self.__thermo = thermostats.BerensdenNVT(p_set, dt, p_set.thermostat_coupling_time,
                                                  p_set.thermostat_temperature)
-    
+
+
     def __step__( self , dt ):
             
         self.pset.X[:] = self.pset.X + self.pset.V * dt + 0.5*self.force.A * dt**2.0
         self.__Ai[:] = self.force.A
-        
         self.force.update_force( self.pset )
+        self.all_energies.append(self.force.E)
+        self.all_forces.append(self.force.F)
         lamb = self.__thermo.get_lambda()
         self.pset.V[:] = self.pset.V* lamb + 0.5 * ( self.__Ai + self.force.A ) * dt
-        
-        
-        self.pset.update_boundary()
+
+        self.pset.update_boundary() 
 
 
 

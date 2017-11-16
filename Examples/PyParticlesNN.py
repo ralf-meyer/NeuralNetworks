@@ -1,19 +1,8 @@
-import numpy as np
-import pyparticles.pset.particles_set as ps
-import pyparticles.forces.gravity as gr
-import pyparticles.ode.euler_solver as els
-import pyparticles.ode.leapfrog_solver as lps
-import pyparticles.ode.runge_kutta_solver as rks
 from NeuralNetworks.md_utils.ode import leapfrog_solver as svs
-import pyparticles.ode.midpoint_solver as mds
-import pyparticles.animation.animated_ogl as aogl
-import pyparticles.animation.animated_scatter as  anim
-import pyparticles.animation.animated_cli as acli
 from NeuralNetworks import NeuralNetworkUtilities
-from md_utils import nn_force
-from NeuralNetworks import ReadLammpsData as _ReaderLammps
+from NeuralNetworks.md_utils import nn_force
+from NeuralNetworks.md_utils.pset import particles_set as ps
 import numpy as np
-import time
 
 import pyparticles.forces.gravity as grav
 
@@ -23,16 +12,16 @@ start_geom=[('Au', np.asarray([ 0.,  0.,  0.])),
             ('Au', np.asarray([-0.87803, -2.53645,  0.19258])),
             ]
 print(len(start_geom))
-#Training=NeuralNetworkUtilities.AtomicNeuralNetInstance()
-#Training.prepare_evaluation("/home/jcartus/Downloads/Model_Gold",atom_types=["Au"],nr_atoms_per_type=[len(start_geom)])
+Training=NeuralNetworkUtilities.AtomicNeuralNetInstance()
+Training.prepare_evaluation("/home/afuchs/Documents/Au_training/Au_test4",atom_types=["Au"],nr_atoms_per_type=[len(start_geom)])
 
-dt = 2e-15
+dt = 2e-14
 steps = 1000
 
 
 pset = ps.ParticlesSet( len(start_geom) , 3 , label=True,mass=True)
 pset.thermostat_coupling_time=dt*10
-pset.thermostat_temperature=1000
+pset.thermostat_temperature=3000
 geom=[]
 masses=[]
 for i,atom in enumerate(start_geom):
@@ -59,28 +48,6 @@ pset.enable_log( True , log_max_size=1000 )
 #NNForce.set_masses(pset.M)
 #NNForce.update_force(pset)
 
-force=grav.Gravity(pset.size)
-
-#solver = rks.RungeKuttaSolver( grav , pset , dt )
-
-#solver = mds.MidpointSolver( grav , pset , dt )
-#solver = els.EulerSolver( grav , pset , dt )
-#solver = lps.LeapfrogSolver( grav , pset , dt )
-#solver = svs.LeapfrogSolverBerendsen( NNForce , pset , dt )
-solver = svs.LeapfrogSolverBerendsen( force , pset , dt )
-
-#a = aogl.AnimatedGl()
-
-a = anim.AnimatedScatter()
-a.xlim=(-5e-10,5e-10)
-a.ylim=(-5e-10,5e-10)
-a.zlim=(-5e-10,5e-10)
-#a=acli.AnimatedCLI()
-a.trajectory = True
-a.trajectory_step = 1
-a.ode_solver = solver
-a.pset = pset
-a.steps = steps
-a.build_animation(interval=0.1)
-a.start()
+solver = svs.LeapfrogSolverBerendsen( NNForce , pset , dt )
+solver.start()
 
