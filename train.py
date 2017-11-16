@@ -13,6 +13,7 @@ dist_unit="A"
 load_model=True
 model=""
 model_dir="save_no_name"
+source=""
 
 for i,arg in enumerate(sys.argv):
     if "-input" in arg:
@@ -35,10 +36,17 @@ for i,arg in enumerate(sys.argv):
         dist_unit=sys.argv[i+1]
     if "-model" in arg:
         model=sys.argv[i+1]
-  
+    if "-source" in arg:
+        source = sys.argv[i + 1]
+
 if data_file=="":
     print("Please specify a MD file")
     print("Option: -input x")
+    exit
+
+if source == "":
+    print("Please specify your source (QE = Quantum Espresso, LAMMPS=Lammps")
+    print("Option: -source x")
     exit
 
 
@@ -51,7 +59,11 @@ Training.Lambs=[1.0,-1.0]
 Training.Zetas=[0.025,0.045,0.075,0.1,0.15,0.2,0.3,0.5,0.7,1,1.5,2,3,5,10,18,36,100]
 Training.Etas=[0.1]   
 #Read file
-Training.read_qe_md_files(data_file,e_unit,dist_unit)
+if source == "QE":
+    Training.read_qe_md_files(data_file,e_unit,dist_unit)
+else:
+    Training.read_lammps_files(data_file,energy_unit=e_unit,dist_unit=dist_unit)
+
 #Default trainings settings
 for i in range(len(Training.Atomtypes)):
     Training.Structures.append([Training.SizeOfInputsPerType[i],100,100,40,20,1])

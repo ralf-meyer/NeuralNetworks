@@ -14,8 +14,7 @@ import matplotlib.pyplot as _plt
 import multiprocessing as _multiprocessing
 import time as _time
 import os as _os
-import ReadLammpsData as _ReaderLammps
-import ReadQEData as _ReaderQE
+from data_generation import data_readers as _readers
 from psutil import virtual_memory
 import warnings
 
@@ -1707,7 +1706,7 @@ class AtomicNeuralNetInstance(object):
 
 
         self._DataSet = _DataSet.DataSet()
-        self._Reader = _ReaderQE.QE_MD_Reader()
+        self._Reader = _readers.QE_MD_Reader()
         if energy_unit == "Ry":
             self._Reader.E_conv_factor = 13.605698066
         elif energy_unit == "H":
@@ -1740,9 +1739,7 @@ class AtomicNeuralNetInstance(object):
 
     def read_lammps_files(
             self,
-            DumpFile,
-            XYZFile,
-            ThermoFile,
+            path,
             energy_unit="eV",
             dist_unit="A",
             TakeAsReference=True,
@@ -1759,7 +1756,7 @@ class AtomicNeuralNetInstance(object):
 
 
         self._DataSet = _DataSet.DataSet()
-        self._Reader = _ReaderLammps.LammpsReader()
+        self._Reader = _readers.LammpsReader()
         if energy_unit == "Ry":
             self._Reader.E_conv_factor = 13.605698066
         elif energy_unit == "H":
@@ -1776,7 +1773,8 @@ class AtomicNeuralNetInstance(object):
         else:
             self._Reader.Geom_conv_factor = 1
 
-        self._Reader.read_lammps(DumpFile,XYZFile,ThermoFile)
+        self._Reader.read_folder(path)
+        #self._Reader.calibrate_energy()
         self.Atomtypes = self._Reader.atom_types
         self.NumberOfAtomsPerType = self._Reader.nr_atoms_per_type
         self.init_dataset(self._Reader.geometries,self._Reader.energies,
@@ -1826,7 +1824,7 @@ class AtomicNeuralNetInstance(object):
         self.create_symmetry_functions()
 
         if len(structure)==0:
-            MyStructure=[100,100,1]
+            MyStructure=[100,100,40,20,1]
         else:
             MyStructure=structure
             
@@ -2183,7 +2181,7 @@ class _StandardAtomicNetwork(object):
         Returns:
             A tensor which represents the force output of the network"""
 
-        F = []
+        F = None
         Fi = []
         for i in range(0, len(self.AtomicNNs)):
             AtomicNet = self.AtomicNNs[i]
@@ -2203,8 +2201,10 @@ class _StandardAtomicNetwork(object):
             if i == 0:
                 F = dim_red
             else:
-                F = _tf.scalar_mul(-1,_tf.add(F, dim_red))
+                F +=  dim_red
             Fi.append(dim_red)
+
+        F=_tf.scalar_mul(-1,F)
 
         return F, Fi
 
