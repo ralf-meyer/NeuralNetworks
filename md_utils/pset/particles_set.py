@@ -82,27 +82,27 @@ class ParticlesSet(object):
         self.__bound = boundary
 
         self.thermostat_temperature=0
-	self.thermostat_coupling_time=1
+        self.thermostat_coupling_time=1
 
         self.__unit = 1.0
         self.__mass_unit = 1.0
-                
+
         self.__log = dict()
         self.__default_logger = None
-        
+
         self.__property_dict = dict()
         self.__property_dict['X'] = self.__X
         self.__property_dict['V'] = self.__V
-        
+
         if np.all(self.__mass  != None) :
             self.__property_dict['M'] = self.__mass
-        
+
         if self.__label != None :
             self.__property_dict['label'] = self.__label
-            
+
         if self.__Q != None :
             self.__property_dict['Q'] = self.__Q
-        
+
         self.__notify_set_changed = []
         
         

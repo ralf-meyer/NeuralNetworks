@@ -15,14 +15,16 @@ from NeuralNetworks import ReadLammpsData as _ReaderLammps
 import numpy as np
 import time
 
+import pyparticles.forces.gravity as grav
+
 
 start_geom=[('Au', np.asarray([ 0.,  0.,  0.])),
             ('Au', np.asarray([-2.87803, -0.53645,  0.19258])),
             ('Au', np.asarray([-0.87803, -2.53645,  0.19258])),
             ]
 print(len(start_geom))
-Training=NeuralNetworkUtilities.AtomicNeuralNetInstance()
-Training.prepare_evaluation("/home/afuchs/Git/NeuralNetworks/Au_test2",atom_types=["Au"],nr_atoms_per_type=[len(start_geom)])
+#Training=NeuralNetworkUtilities.AtomicNeuralNetInstance()
+#Training.prepare_evaluation("/home/jcartus/Downloads/Model_Gold",atom_types=["Au"],nr_atoms_per_type=[len(start_geom)])
 
 dt = 2e-15
 steps = 1000
@@ -53,16 +55,20 @@ bound = None
 pset.set_boundary( bound )
 pset.enable_log( True , log_max_size=1000 )
 
-NNForce=nn_force.NNForce(Training,pset.size)
-NNForce.set_masses(pset.M)
-NNForce.update_force(pset)
+#NNForce=nn_force.NNForce(Training,pset.size)
+#NNForce.set_masses(pset.M)
+#NNForce.update_force(pset)
+
+force=grav.Gravity(pset.size)
 
 #solver = rks.RungeKuttaSolver( grav , pset , dt )
 
 #solver = mds.MidpointSolver( grav , pset , dt )
 #solver = els.EulerSolver( grav , pset , dt )
 #solver = lps.LeapfrogSolver( grav , pset , dt )
-solver = svs.LeapfrogSolver( NNForce , pset , dt )
+#solver = svs.LeapfrogSolverBerendsen( NNForce , pset , dt )
+solver = svs.LeapfrogSolverBerendsen( force , pset , dt )
+
 #a = aogl.AnimatedGl()
 
 a = anim.AnimatedScatter()
