@@ -1,12 +1,11 @@
 import numpy as _np
-
+from scipy.constants import k as k_B
 
 
 def get_temperature(pset):
 
-    kb=1.38064852e-23
     abs_v=_np.linalg.norm(pset.V,axis=1)/pset.unit
-    T=_np.mean(abs_v**2*pset.M[:]/pset.mass_unit)/(3*kb)
+    T=_np.mean(abs_v**2*pset.M[:]/pset.mass_unit)/(3*k_B)
 
     return T
 
