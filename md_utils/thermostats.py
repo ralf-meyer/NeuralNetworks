@@ -17,10 +17,12 @@ class BerensdenNVT(object):
         self.deltat=deltat
         self.t_thermo=t_thermo
         self.hb_temp=hb_temp
+        self.temperature=0
 
     def get_lambda(self):
 
-        lamb = _np.sqrt(1 + self.deltat / self.t_thermo * (self.hb_temp / get_temperature(self.pset) - 1))
+        self.temperature = get_temperature(self.pset)
+        lamb = _np.sqrt(1 + self.deltat / self.t_thermo * (self.hb_temp /self.temperature  - 1))
 
         #hard borders
         if lamb< 0.9:

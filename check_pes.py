@@ -53,5 +53,5 @@ def pes_check(model_name):
     print(str(meshY[L])+" grad")
     plt.show()
 
-model="/home/afuchs/Documents/Au_training/Au_test"
+model="/home/afuchs/Documents/Au_training/Au_test4"
 pes_check(model_name=model)

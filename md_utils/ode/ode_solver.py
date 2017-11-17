@@ -20,6 +20,7 @@ import sys
 
 from NeuralNetworks.md_utils.ode import sim_time as st
 from mpl_toolkits.mplot3d import Axes3D
+import NeuralNetworks.md_utils.thermostats as thermo
 import matplotlib.pyplot as plt
 from matplotlib import animation
 import numpy as _np
@@ -62,11 +63,12 @@ class OdeSolver(object) :
         self.__dt = dt
         
         self.__sim_time = st.SimTime( self )
-        
+        self.logger=Logger()
         self.__steps_cnt = 0
         self.all_forces=[]
         self.all_epot=[]
         self.all_etot=[]
+        self.all_temp=[]
         self.steps=1000
         self.plot = True
         self.fig = None
@@ -184,15 +186,29 @@ class OdeSolver(object) :
         """
         if dt == None:
             dt = self.dt
-        
+
         self.__sim_time.time += dt
-        
         self.__steps_cnt += 1
-        
         self.__step__( dt )
+
+        self.all_epot.append(self.force.Epot)
+        self.all_etot.append(self.force.Etot)
+        self.all_forces.append(self.force.F)
+        self.all_temp.append(thermo.get_temperature(self.pset))
+
+        self.logger.log(self)
+
         
     def __step__( self , dt ):
         """
         Abstract methos that contain the code for computing the new status of the particles system. This methos must be overidden by the user.
         """
         NotImplementedError(" %s : is virtual and must be overridden." % sys._getframe().f_code.co_name )
+
+class Logger(object):
+
+    def __init__(self):
+        self.path=""
+
+    def log(self,solver):
+        a=0

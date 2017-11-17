@@ -103,7 +103,7 @@ Training.CostFunType="Adaptive_2"
 Training.OptimizerType="Adam"
 Training.SavingDirectory=model_dir
 Training.MakeLastLayerConstant=False
-Training.MakeAllVariable=True
+Training.MakeAllVariable=False
 
 if load_model:
     #Load pretrained net
@@ -118,7 +118,7 @@ else:
     Training.make_and_initialize_network()
 
 #Create batches
-batch_size=len(Training._DataSet.energies)/50 
+batch_size=len(Training._DataSet.energies)*percentage_of_data/50
 Training.make_training_and_validation_data(batch_size,90,10)
 
 
