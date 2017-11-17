@@ -92,3 +92,5 @@ class NNForce(object):
         return (self.__A.T * self.__M[:, 0]).T
 
     F = property(getF, doc="Return the current forces on the particles (getter only)")
+
+
