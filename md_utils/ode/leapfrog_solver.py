@@ -112,10 +112,6 @@ class LeapfrogSolverLangevin(os.OdeSolver):
         # calculate f(t + dt)
         self.force.update_force(self.pset)
 
-        if hasattr(self.force, 'E'):
-            self.all_energies.append(self.force.E)
-        self.all_forces.append(self.force.F)
-
         # calculate v(t + dt)
         self.pset.V[:] = \
             self.pset.V + 0.5 * (
