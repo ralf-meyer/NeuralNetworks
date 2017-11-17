@@ -50,8 +50,10 @@ class NNForce(object):
             geometry.append((pset.label[i],_np.asarray(coordinates[i])))
 
         self.__Epot,forces=self.Net.energy_and_force_for_geometry(geometry)
+        self.__Epot=self.__Epot/len(pset.label[:])
         abs_v = _np.linalg.norm(pset.V, axis=1) / pset.unit
         self.__Etot=self.__Epot+_np.sum(abs_v**2*(pset.M[:]/pset.mass_unit)/2)*6.242e18
+        self.__Etot=self.__Etot/len(pset.label[:])
         x=_np.asarray(pset.X[:]).flatten()
         grad=approx_fprime(x,self.fun,1e-7)
         forces=-_np.asarray(grad)

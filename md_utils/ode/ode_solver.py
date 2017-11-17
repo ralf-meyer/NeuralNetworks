@@ -73,15 +73,18 @@ class OdeSolver(object) :
         self.plot = True
         self.fig = None
         self.ax1 = None
+        self.ax2 = None
+        self.ax3 = None
         self.scat = None
         self.eplot=None
 
 
     def init_plot(self, x):
         """Initialize the animation"""
-        self.fig = plt.figure(figsize=plt.figaspect(2.))
-        self.ax1 = self.fig.add_subplot(211, projection='3d')
-        self.ax2 = self.fig.add_subplot(212)
+        self.fig = plt.figure(figsize=plt.figaspect(3))
+        self.ax1 = self.fig.add_subplot(311, projection='3d')
+        self.ax2 = self.fig.add_subplot(312)
+        self.ax3 = self.fig.add_subplot(313)
 
         self.setup_plot()
 
@@ -95,9 +98,12 @@ class OdeSolver(object) :
                                     animated=False, marker='o', alpha=1, s=50,c='b')
         plt_epot = np.asarray(self.all_epot).flatten()
         plt_etot = np.asarray(self.all_etot).flatten()
+        plt_temp = np.asarray(self.all_temp).flatten()
         self.epot_plot,=self.ax2.plot(np.arange(1,len(plt_epot)+1),plt_epot,c='b',label="E_pot")
         self.etot_plot, = self.ax2.plot(np.arange(1, len(plt_etot) + 1), plt_etot, c='r',label="E_tot")
+        self.temp_plot, = self.ax3.plot(np.arange(1, len(plt_temp) + 1), plt_temp, c='b', label="Temperature /K")
         plt.legend(handles=[self.epot_plot,self.etot_plot],loc=1)
+        plt.legend(handles=[self.temp_plot], loc=1)
         plt.show(block=False)
 
     def update_plot(self,i):
@@ -108,9 +114,10 @@ class OdeSolver(object) :
                                 )
         plt_epot = np.asarray(self.all_epot).flatten()
         plt_etot = np.asarray(self.all_etot).flatten()
-
+        plt_temp = np.asarray(self.all_temp).flatten()
         self.epot_plot,=self.ax2.plot(np.arange(1,len(plt_epot)+1),plt_epot,c='b')
         self.etot_plot, = self.ax2.plot(np.arange(1, len(plt_etot) + 1), plt_etot, c='r')
+        self.temp_plot, = self.ax3.plot(np.arange(1, len(plt_temp) + 1), plt_temp, c='b', label="Temperature /K")
         self.fig.canvas.draw()
         self.fig.canvas.flush_events()
 
