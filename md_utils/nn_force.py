@@ -10,7 +10,8 @@ class NNForce(object):
         self.__dim = dim
         self.__size = size
         self.__A = _np.zeros((size, dim))
-        self.__E = 0
+        self.__Epot = 0
+        self.__Etot = 0
         self.__Fm = _np.zeros( ( size , size ) )
         self.__V = _np.zeros( ( size , size ) )
         self.__D = _np.zeros( ( size , size ) )
@@ -48,7 +49,9 @@ class NNForce(object):
         for i in range(len(pset.label)):
             geometry.append((pset.label[i],_np.asarray(coordinates[i])))
 
-        self.__E,forces=self.Net.energy_and_force_for_geometry(geometry)
+        self.__Epot,forces=self.Net.energy_and_force_for_geometry(geometry)
+        abs_v = _np.linalg.norm(pset.V, axis=1) / pset.unit
+        self.__Etot=self.__Epot+_np.sum(abs_v**2*(pset.M[:]/pset.mass_unit)/2)*6.242e18
         x=_np.asarray(pset.X[:]).flatten()
         grad=approx_fprime(x,self.fun,1e-7)
         forces=-_np.asarray(grad)
@@ -66,13 +69,21 @@ class NNForce(object):
 
     A = property(getA, doc="Return the current accelerations of the particles (getter only)")
 
-    def getE(self):
+    def getEpot(self):
         """
         Return the currents energy of the particles
         """
-        return self.__E
+        return self.__Epot
 
-    E = property(getE, doc="Return the current energy of the particles (getter only)")
+    Epot = property(getEpot, doc="Return the current potential energy of the particles (getter only)")
+
+    def getEtot(self):
+        """
+        Return the currents energy of the particles
+        """
+        return self.__Etot
+
+    Etot = property(getEtot, doc="Return the current total energy of the particles (getter only)")
 
     def getF(self):
         """
