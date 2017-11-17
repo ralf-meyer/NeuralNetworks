@@ -230,7 +230,7 @@ class Logger(object):
         step = self._step_index
         time = solver.sim_time.time
 
-        species = ["??" for i in range(solver.pset.size)]
+        species = solver.pset.label
         positions = solver.pset.X
         velocities = solver.pset.V
         forces = solver.force.F
@@ -275,6 +275,9 @@ class Logger(object):
             ) + linesep
 
         self._log_file.write(log_str)
+
+        self._step_index += 1
+
 
     def _atmic_data_to_string(self, species, postions, velocities, forces):
         log_str = species + " "
