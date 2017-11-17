@@ -236,7 +236,17 @@ class Logger(object):
         forces = solver.force.F
 
         E_tot = solver.force.Etot
+        if type(E_tot) == type(np.array([])):
+            E_tot = E_tot.flatten()
+            if len(E_tot) == 1:
+                E_tot = E_tot[0]
+
+
         E_pot = solver.force.Epot
+        if type(E_pot) == type(np.array([])):
+            E_pot = E_pot.flatten()
+            if len(E_pot) == 1:
+                E_pot = E_pot[0]
 
         temperature = thermo.get_temperature(solver.pset)
 
