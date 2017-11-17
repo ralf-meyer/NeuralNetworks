@@ -741,8 +741,8 @@ class AtomicNeuralNetInstance(object):
         self.InputDerivatives = False
         self.Multiple = False
         self.UseForce = False
-        self.CostCriterium = 0
-        self.dE_Criterium = 0
+        self.CostCriterion = 0
+        self.dE_Criterion = 0
         self.OptimizerType = None
         self.OptimizerProp = None
         self.DeltaE = 0
@@ -1087,7 +1087,7 @@ class AtomicNeuralNetInstance(object):
                             RunningMeanPlot)
                 print(str(100 * i / self.Epochs) + " %")
 
-            if TrainCost[-1] < self.CostCriterium:
+            if TrainCost[-1] < self.CostCriterion:
                 print(TrainCost[-1])
                 break
 
@@ -1508,10 +1508,10 @@ class AtomicNeuralNetInstance(object):
                                   self._MinOfOut])
 
                     # Abort criteria
-                    if self.TrainingCosts != 0 and self.TrainingCosts <= self.CostCriterium and self.ValidationCosts <= self.CostCriterium or self.DeltaE < self.dE_Criterium:
+                    if self.TrainingCosts != 0 and self.TrainingCosts <= self.CostCriterion and self.ValidationCosts <= self.CostCriterion or self.DeltaE < self.dE_Criterion:
 
                         if self.ValidationCosts != 0:
-                            print("Reached criterium!")
+                            print("Reached Criterion!")
                             print(
                                 "Cost= " + str((self.TrainingCosts + self.ValidationCosts) / 2))
                             print("delta E = " + str(self.DeltaE) + " ev")
@@ -1520,7 +1520,7 @@ class AtomicNeuralNetInstance(object):
                             print("")
 
                         else:
-                            print("Reached criterium!")
+                            print("Reached Criterion!")
                             print("Cost= " + str(self.TrainingCosts))
                             print("delta E = " + str(self.DeltaE) + " ev")
                             print("t = " + str(_time.time() - start) + " s")
@@ -3266,8 +3266,8 @@ class MultipleInstanceTraining(object):
         self.GlobalEpochs = 100
         self.GlobalStructures = list()
         self.GlobalLearningRate = 0.001
-        self.GlobalCostCriterium = 0
-        self.Global_dE_Criterium = 0
+        self.GlobalCostCriterion = 0
+        self.Global_dE_Criterion = 0
         self.GlobalRegularization = "L2"
         self.GlobalRegularizationParam = 0.0001
         self.GlobalOptimizer = "Adam"
@@ -3296,8 +3296,8 @@ class MultipleInstanceTraining(object):
                 Instance.Session = self.GlobalSession
                 Instance.MakePlots = False
                 Instance.ActFun = "relu"
-                Instance.CostCriterium = 0
-                Instance.dE_Criterium = 0
+                Instance.CostCriterion = 0
+                Instance.dE_Criterion = 0
                 Instance.IsPartitioned = self.IsPartitioned
                 Instance.WeightType = "truncated_normal"
                 Instance.LearningRate = self.GlobalLearningRate
@@ -3370,12 +3370,12 @@ class MultipleInstanceTraining(object):
                     _np.save("trained_variables", LastStepsModelData)
                 ct = ct + 1
                 # Abort criteria
-                if self.GlobalTrainingCosts <= self.GlobalCostCriterium and \
-                self.GlobalValidationCosts <= self.GloablCostCriterium or \
-                Instance.DeltaE < self.Global_dE_Criterium:
+                if self.GlobalTrainingCosts <= self.GlobalCostCriterion and \
+                self.GlobalValidationCosts <= self.GloablCostCriterion or \
+                Instance.DeltaE < self.Global_dE_Criterion:
 
                     if self.GlobalValidationCosts != 0:
-                        print("Reached criterium!")
+                        print("Reached Criterion!")
                         print(
                             "Cost= " + str((self.GlobalTrainingCosts + \
                                             self.GlobalValidationCosts) / 2))
@@ -3384,7 +3384,7 @@ class MultipleInstanceTraining(object):
                         print("")
 
                     else:
-                        print("Reached criterium!")
+                        print("Reached Criterion!")
                         print("Cost= " + str(self.GlobalTrainingCosts))
                         print("delta E = " + str(Instance.DeltaE) + " ev")
                         print("Epoch = " + str(i))

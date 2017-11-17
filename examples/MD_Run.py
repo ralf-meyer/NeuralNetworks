@@ -4,7 +4,6 @@ from NeuralNetworks.md_utils import nn_force
 from NeuralNetworks.md_utils.pset import particles_set as ps
 import numpy as np
 
-import pyparticles.forces.gravity as grav
 
 
 start_geom=[('Au', np.asarray([ 0.,  0.,  0.])),
@@ -13,15 +12,15 @@ start_geom=[('Au', np.asarray([ 0.,  0.,  0.])),
             ]
 print(len(start_geom))
 Training=NeuralNetworkUtilities.AtomicNeuralNetInstance()
-Training.prepare_evaluation("/home/jcartus/Downloads/Model_Gold",atom_types=["Au"],nr_atoms_per_type=[len(start_geom)])
+Training.prepare_evaluation("/home/afuchs/Documents/Au_training/Au_test4",atom_types=["Au"],nr_atoms_per_type=[len(start_geom)])
 
 dt = 2e-14
 steps = 1000
 
 
 pset = ps.ParticlesSet( len(start_geom) , 3 , label=True,mass=True)
-#pset.thermostat_coupling_time=dt*10
-pset.thermostat_temperature=700
+pset.thermostat_coupling_time=dt*10
+pset.thermostat_temperature=3000
 geom=[]
 masses=[]
 for i,atom in enumerate(start_geom):
@@ -48,6 +47,6 @@ NNForce=nn_force.NNForce(Training,pset.size)
 NNForce.set_masses(pset.M)
 NNForce.update_force(pset)
 
-solver = svs.LeapfrogSolverLangevin( NNForce , pset , dt , 1e-1)
+solver = svs.LeapfrogSolverBerendsen( NNForce , pset , dt )
 solver.start()
 
