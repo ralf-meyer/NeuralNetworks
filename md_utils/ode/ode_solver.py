@@ -57,13 +57,13 @@ class OdeSolver(object) :
     :param p_set:      the particle set
     :param dt:         delta time
     """
-    def __init__( self , force , p_set , dt ):
+    def __init__( self , force , p_set , dt, log_file_path = "" ):
         self.__force = force
         self.__p_set = p_set
         self.__dt = dt
         
         self.__sim_time = st.SimTime( self )
-        self.logger=Logger()
+        self.logger=Logger(log_file_path)
         self.__steps_cnt = 0
         self.all_forces=[]
         self.all_epot=[]
@@ -214,8 +214,69 @@ class OdeSolver(object) :
 
 class Logger(object):
 
-    def __init__(self):
-        self.path=""
+    def __init__(self, log_file_path="./mdrun.log", step_index=0):
 
-    def log(self,solver):
-        a=0
+        if not log_file_path:
+            log_file_path = "./mdrun.log"
+
+        self._log_file = open(log_file_path, 'a')
+
+        self._step_index = step_index
+
+
+    def log(self, solver):
+        from os import linesep
+
+        step = self._step_index
+        time = solver.sim_time.time
+
+        species = ["??" for i in range(solver.pset.size)]
+        positions = solver.pset.X
+        velocities = solver.pset.V
+        forces = solver.force.F
+
+        E_tot = solver.force.Etot
+        E_pot = solver.force.Epot
+
+        temperature = thermo.get_temperature(solver.pset)
+
+        # write system properties
+        log_str = "Step: " + str(step) + linesep
+        log_str += "Time: " + str(time) + linesep
+        log_str += "Total Energy: " + str(E_tot) + linesep
+        log_str += "Potential Energy: " + str(E_pot) + linesep
+        log_str += "Temperature: " + str(temperature) + linesep
+
+        #write header for particle properties
+        log_str += self._atmic_data_to_string(
+            "Species",
+            ["x","y", "z"],
+            ["v_x", "v_y", "v_z"],
+            ["f_x", "f_y", "f_z"]
+        ) + linesep
+
+        # wirte particle properties
+        for i in range(solver.pset.size):
+            log_str += self._atmic_data_to_string(
+                species[i],
+                positions[i],
+                velocities[i],
+                forces[i]
+            ) + linesep
+
+        self._log_file.write(log_str)
+
+    def _atmic_data_to_string(self, species, postions, velocities, forces):
+        log_str = species + " "
+        log_str += " ".join(map(str, postions)) + " "
+        log_str += " ".join(map(str, velocities)) + " "
+        log_str += " ".join(map(str, forces))
+
+        return log_str
+
+
+
+
+
+
+
