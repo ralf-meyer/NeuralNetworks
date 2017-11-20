@@ -1672,7 +1672,7 @@ class AtomicNeuralNetInstance(object):
                         self._VarianceOfDs[ct] = _np.var(InputsForTypeX, axis=0)
                     else:
                         self._MeansOfDs[ct]=_np.multiply(_np.ones((self.SizeOfInputsPerType[ct])),6)
-                        self._VarianceOfDs[ct]=_np.multiply(_np.ones((self.SizeOfInputsPerType[ct])),72)
+                        self._VarianceOfDs[ct]=_np.multiply(_np.ones((self.SizeOfInputsPerType[ct])),25)
         
                     InputsForTypeX = []
                     ct += 1
