@@ -1774,7 +1774,7 @@ class AtomicNeuralNetInstance(object):
             self._Reader.Geom_conv_factor = 1
 
         self._Reader.read_folder(path)
-        #self._Reader.calibrate_energy()
+        self._Reader.calibrate_energy()
         self.Atomtypes = self._Reader.atom_types
         self.NumberOfAtomsPerType = self._Reader.nr_atoms_per_type
         self.init_dataset(self._Reader.geometries,self._Reader.energies,
