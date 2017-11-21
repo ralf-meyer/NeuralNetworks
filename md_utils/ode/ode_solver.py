@@ -25,6 +25,7 @@ import matplotlib.pyplot as plt
 from matplotlib import animation
 import numpy as _np
 import time as _time
+from os import linesep
 
 
 class OdeSolver(object) :
@@ -57,7 +58,7 @@ class OdeSolver(object) :
     :param p_set:      the particle set
     :param dt:         delta time
     """
-    def __init__( self , force , p_set , dt, log_file_path = "" ):
+    def __init__( self , force , p_set , dt, log_file_path = "", xyz_file_path = "" ):
         self.__force = force
         self.__p_set = p_set
         self.__dt = dt
@@ -214,7 +215,12 @@ class OdeSolver(object) :
 
 class Logger(object):
 
-    def __init__(self, log_file_path="./mdrun.log", step_index=0):
+    def __init__(
+            self,
+            log_file_path="./mdrun.log",
+            step_index=0,
+            enable_xyz=True,
+            xyz_file_path="./mdrun.xyz"):
 
         if not log_file_path:
             log_file_path = "./mdrun.log"
@@ -223,10 +229,15 @@ class Logger(object):
 
         self._step_index = step_index
 
+        # todo: implement a default file name and make full log optional ...
+        # ... (i.e. make xyz log default)
+        self._enable_xyz = enable_xyz
+        self._log_file_xyz = open(xyz_file_path, 'a')
+
+
+
 
     def log(self, solver):
-        from os import linesep
-
         step = self._step_index
         time = solver.sim_time.time
 
@@ -250,6 +261,7 @@ class Logger(object):
 
         temperature = thermo.get_temperature(solver.pset)
 
+        #--- TODO: refactor this to sepearete funciton! ---
         # write system properties
         log_str = "Step: " + str(step) + linesep
         log_str += "Time: " + str(time) + linesep
@@ -258,7 +270,7 @@ class Logger(object):
         log_str += "Temperature: " + str(temperature) + linesep
 
         #write header for particle properties
-        log_str += self._atmic_data_to_string(
+        log_str += self._atmic_data_to_complete_string(
             "Species",
             ["x","y", "z"],
             ["v_x", "v_y", "v_z"],
@@ -267,12 +279,13 @@ class Logger(object):
 
         # wirte particle properties
         for i in range(solver.pset.size):
-            log_str += self._atmic_data_to_string(
+            log_str += self._atmic_data_to_complete_string(
                 species[i],
                 positions[i],
                 velocities[i],
                 forces[i]
             ) + linesep
+        #---
 
         self._log_file.write(log_str)
 
@@ -282,14 +295,37 @@ class Logger(object):
     def _atmic_data_to_string(self, species, postions, velocities, forces):
         log_str = species + " "
         log_str += " ".join(map(str, postions)) + " "
+        # log xyz
+        if self._enable_xyz:
+            self._log_file_xyz.write(
+                self._make_xyz_log_str(species, positions, step)
+            )
+
+
+        self._step_index += 1
+
+
+    def _atmic_data_to_complete_string(self, species, positions, velocities, forces):
+        log_str = self._atomic_data_to_xyz_string(species, positions) + " "
         log_str += " ".join(map(str, velocities)) + " "
         log_str += " ".join(map(str, forces))
 
         return log_str
 
+    def _atomic_data_to_xyz_string(self, species, positions):
+        log_str = species + " " + " ".join(map(str, positions)) + " "
 
+        return log_str
 
+    def _make_xyz_log_str(self, species, positions, time_step):
+        number_of_atoms = len(species)
 
+        log_str = str(number_of_atoms) + linesep
+        log_str += "Atoms. Timestep: " + str(time_step) + linesep
 
+        for i in range(number_of_atoms):
+            log_str += \
+                self._atomic_data_to_xyz_string(species[i], positions[i]) + linesep
 
-
+        log_str.rstrip(linesep)
+        return log_str
