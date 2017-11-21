@@ -92,7 +92,7 @@ Training.OptimizerType="Adam"
 Training.Regularization="L2"
 Training.CostFunType="Adaptive_2"
 Training.LearningRateType="exponential_decay"
-Training.SavingDirectory="pretraining_"+str(nr_species)+"_species"
+Training.SavingDirectory="../data/pretraining_"+str(nr_species)+"_species"
 Training.LearningDecayEpochs=100
 Training.MakeLastLayerConstant=True
 Training.make_and_initialize_network()

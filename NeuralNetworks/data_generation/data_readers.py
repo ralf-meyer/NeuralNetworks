@@ -288,7 +288,7 @@ def read_geometries(my_file,Geom_conv_factor,atom_types):
             
     return all_geometries
 
-def read_geometry_scf(my_file,Geom_conv_factor):
+def read_geometry_scf(my_file,Geom_conv_factor,atom_types=[]):
     #get lattice constant for scaling
     a_idx=[i.start() for i in  _re.finditer('alat', my_file)]
 
@@ -307,6 +307,7 @@ def read_geometry_scf(my_file,Geom_conv_factor):
     y=[]
     z=[]
     eq_i=10e10
+    iterate=0
     for line in lines:
         parts=line.replace("\t"," ").split(" ")
         ct=0
@@ -318,7 +319,14 @@ def read_geometry_scf(my_file,Geom_conv_factor):
             if ct2==1 and part!='':
                 sites.append(part)
             elif ct2==2 and part!='':
-                types.append(part)
+                if len(atom_types) == 0:
+                    types.append(part)
+                else:
+                    types.append(atom_types[iterate])
+                    if iterate < len(atom_types) - 1:
+                        iterate += 1
+                    else:
+                        iterate = 0
                 
             if "=" in part:
                 eq_i=i
@@ -681,7 +689,7 @@ class QE_MD_Reader(object):
             print("Reading geometries in file "+str(ct)+"...")
 
             # read starting geometry, and convert it from lattice unit to angstr.
-            starting_geometry=read_geometry_scf(this,self.Geom_conv_factor) 
+            starting_geometry=read_geometry_scf(this,self.Geom_conv_factor,self.atom_types)
             self.geometries=[starting_geometry]
 
             self.geometries+=read_geometries(

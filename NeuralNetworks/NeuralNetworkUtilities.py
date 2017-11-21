@@ -8,7 +8,7 @@ Created on Thu Apr  6 11:30:10 2017
 import numpy as _np
 import tensorflow as _tf
 from NeuralNetworks import DataSet as _DataSet
-import NeuralNetworks.descriptors as _SymmetryFunctionSet
+import NeuralNetworks.descriptors.SymmetryFunctionSet as _SymmetryFunctionSet
 import random as _rand
 import matplotlib.pyplot as _plt
 import multiprocessing as _multiprocessing
@@ -1825,7 +1825,7 @@ class AtomicNeuralNetInstance(object):
         self.create_symmetry_functions()
 
         if len(structure)==0:
-            MyStructure=[80,60,40,20,1]
+            MyStructure=[100,100,40,20,1]
         else:
             MyStructure=structure
             

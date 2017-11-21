@@ -8,7 +8,7 @@ learning_rate=0.05
 epochs=20000
 data_file=""
 nr_species=0
-e_unit="eV"
+e_unit="Ry"
 dist_unit="A"
 force=False
 
@@ -92,7 +92,7 @@ Training.OptimizerType="Adam"
 Training.Regularization="L2"
 Training.CostFunType="Adaptive_2"
 Training.LearningRateType="exponential_decay"
-Training.SavingDirectory="pretraining_"+str(nr_species)+"_species"
+Training.SavingDirectory="../data/pretraining_"+str(nr_species)+"_species"
 Training.LearningDecayEpochs=100
 Training.MakeLastLayerConstant=True
 Training.make_and_initialize_network()
