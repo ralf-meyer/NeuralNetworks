@@ -40,11 +40,19 @@ setup(
     packages=[
         "NeuralNetworks",
         "NeuralNetworks.data_generation",
+        "NeuralNetworks.optimize",
+        "NeuralNetworks.md_utils",
+        "NeuralNetworks.md_utils.ode",
+        "NeuralNetworks.md_utils.pset",
         "NeuralNetworks.descriptors"
     ],
     package_dir={
         "NeuralNetworks": "src", 
         "NeuralNetworks.data_generation": "src/data_generation", 
+        "NeuralNetworks.optimize": "src/optimize",
+        "NeuralNetworks.md_utils": "src/md_utils",
+        "NeuralNetworks.md_utils.ode": "src/md_utils/ode",
+        "NeuralNetworks.md_utils.pset": "src/md_utils/pset",
         "NeuralNetworks.descriptors": "lib/symmetryFunctions"
     },
     package_data={"NeuralNetworks.descriptors": ["libSymFunSet.so"]},
