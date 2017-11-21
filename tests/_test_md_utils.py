@@ -7,16 +7,17 @@ TODO:
 
 """
 
-import pyparticles.pset.particles_set as ps
-import pyparticles.forces.gravity as gr
+
 
 from scipy.constants import gravitational_constant as G
 from scipy.constants import Boltzmann as k_B
 import numpy as np
 
 from NeuralNetworks import NeuralNetworkUtilities
+from NeuralNetworks.md_utils import nn_force, thermostats
 from NeuralNetworks.md_utils.ode import leapfrog_solver as svs
-from md_utils import nn_force, thermostats
+import NeuralNetworks.md_utils.pset.particles_set as ps
+
 
 import unittest
 
@@ -94,17 +95,13 @@ class PSetProvider(object):
         return pset
 
 class ForceModelProvider(object):
-    @staticmethod
-    def provide_gravity_force(pset):
-        grav = gr.Gravity(pset.size, Consts=G)
-        return grav
 
     @staticmethod
-    def provide_NN_force(pset):
+    def provide_NN_force_Au(pset):
         # --- get Network and force ---
         Training = NeuralNetworkUtilities.AtomicNeuralNetInstance()
         Training.prepare_evaluation(
-            "/home/jcartus/Downloads/Au_test2",
+            "TestData/NNForce/",
             atom_types=["Au"],
             nr_atoms_per_type=[pset.size]
         )
@@ -156,6 +153,7 @@ class _BaseTestWarpper(object):
             raise NotImplementedError()
 
         def _check_conservation_of_temperature(self, solver, steps=800):
+            raise NotImplementedError()
 
             T = solver.pset.thermostat_temperature
 
@@ -170,13 +168,7 @@ class _BaseTestWarpper(object):
         def _temerature_of_system(self, pset):
             """Based on: E_kin = mv^2/2; <E> = 3 N k_B T / 2 in Md System
             """
-
-            # sum first over vx,vy,vz for each particle, multiply by mass and sum again
-            kinetic_energy = np.sum(np.sum(pset.V**2, 1) * pset.M[:]) / 2
-            N = pset.size
-            temperature = kinetic_energy * 2 / (3 * N * k_B)
-
-            return  temperature
+            return  thermostats.get_temperature(pset)
 
 class TestLangevinVelocityVerlet(_BaseTestWarpper.TestODESolver):
     def setUp(self):
@@ -189,17 +181,41 @@ class TestLangevinVelocityVerlet(_BaseTestWarpper.TestODESolver):
         self._solver_provider = \
             ODESolverProvider.provide_langevin_velocity_verlet
 
+    def test_no_crash_nn_field(self):
+        dt = 2e-15
+        steps = 100
+        gamma = 1e-3
+        v_max=1e-8
+        pset = self._pset_provider()
 
+        solver = self._solver_provider(
+            pset,
+            ForceModelProvider.provide_NN_force(pset)
+            dt=dt,
+            steps=steps,
+            gamma=gamma
+        )
+
+        try:
+            self._advance_solver(solver, steps)
+        else:
+            self.fail("Langevin Velocity-Verlet failed!")
+    
 
     def test_temperature_conservation_in_gravity_field(self):
+        
+        self.skipTest("Not implemented yet!")
+
+        # Todo: provide unit test that checks if mean of temperature is conserved.
         dt = 2e-15
         steps = 10000
         gamma = 1e-3
         v_max=1e-8
+        pset = self._pset_provider()
 
         solver = self._solver_provider(
-            PSetProvider.provide_Au3_fast_start(v_max),
-            ForceModelProvider.provide_gravity_force,
+            pset,
+            ForceModelProvider.provide_NN_force(pset)
             dt=dt,
             steps=steps,
             gamma=gamma
@@ -213,7 +229,6 @@ class TestThermostat(unittest.TestCase):
         #test 0 K ensemble
         pset_0K = PSetProvider.provide_Au3_Zero_Kelvin()
         self.assertEqual(0, thermostats.get_temperature(pset_0K))
-
 
 
 if __name__ == '__main__':
