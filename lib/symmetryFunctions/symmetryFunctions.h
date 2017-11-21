@@ -27,6 +27,8 @@ class TwoBodySymmetryFunction: public SymmetryFunction
           SymmetryFunction(num_prms, prms_i, cutfun_i){};
         virtual double eval(double rij) = 0;
         virtual double drij(double rij) = 0;
+        virtual void eval_with_derivatives(
+          double rij, double &G, double &dGdrij) = 0;
 };
 
 // AUTOMATIC Start of custom TwoBodySymFuns
@@ -39,6 +41,7 @@ class BehlerG2: public TwoBodySymmetryFunction
           TwoBodySymmetryFunction(num_prms, prms_i, cutfun_i){};
         double eval(double rij);
         double drij(double rij);
+        void eval_with_derivatives(double rij, double &G, double &dGdrij);
 };
 // AUTOMATIC End of custom TwoBodySymFuns
 
@@ -48,10 +51,15 @@ class ThreeBodySymmetryFunction: public SymmetryFunction
       ThreeBodySymmetryFunction(int num_prms, double* prms,
         std::shared_ptr<CutoffFunction> cutfun_i):
         SymmetryFunction(num_prms, prms, cutfun_i){};
-      virtual double eval(double rij, double rik, double theta) = 0;
-      virtual double drij(double rij, double rik, double theta) = 0;
-      virtual double drik(double rij, double rik, double theta) = 0;
-      virtual double dtheta(double rij, double rik, double theta) = 0;
+      virtual double eval(double rij, double rik, double costheta) = 0;
+      virtual double drij(double rij, double rik, double costheta) = 0;
+      virtual double drik(double rij, double rik, double costheta) = 0;
+      virtual double dcostheta(double rij, double rik, double costheta) = 0;
+      virtual void derivatives(double rij, double rik, double costheta,
+        double &dGdrij, double &dGdrik, double &dGdcostheta) = 0;
+      virtual void eval_with_derivatives(
+        double rij, double rik, double costheta,
+        double &G, double &dGdrij, double &dGdrik, double &dGdcostheta) = 0;
 };
 
 // AUTOMATIC Start of custom ThreeBodySymFuns
@@ -62,9 +70,26 @@ class BehlerG4: public ThreeBodySymmetryFunction
     BehlerG4(int num_prms, double* prms,
       std::shared_ptr<CutoffFunction> cutfun_i):
       ThreeBodySymmetryFunction(num_prms, prms, cutfun_i){};
-    double eval(double rij, double rik, double theta);
-    double drij(double rij, double rik, double theta);
-    double drik(double rij, double rik, double theta);
-    double dtheta(double rij, double rik, double theta);
+    double eval(double rij, double rik, double costheta);
+    double drij(double rij, double rik, double costheta);
+    double drik(double rij, double rik, double costheta);
+    double dcostheta(double rij, double rik, double costheta);
+    void derivatives(double rij, double rik, double costheta,
+      double &dGdrij, double &dGdrik, double &dGdcostheta);
+    void eval_with_derivatives(double rij, double rik, double costheta,
+      double &G, double &dGdrij, double &dGdrik, double &dGdcostheta);
 };
 // AUTOMATIC End of custom ThreeBodySymFuns
+
+std::shared_ptr<CutoffFunction> switch_CutFun(
+  int cutoff_type, double cutoff);
+std::shared_ptr<TwoBodySymmetryFunction> switch_TwoBodySymFun(
+  int funtype, int num_prms, double* prms,
+  std::shared_ptr<CutoffFunction> cutfun);
+std::shared_ptr<ThreeBodySymmetryFunction> switch_ThreeBodySymFun(
+  int funtype, int num_prms, double* prms,
+  std::shared_ptr<CutoffFunction> cutfun);
+int get_CutFun_by_name(const char* name);
+int get_TwoBodySymFun_by_name(const char* name);
+int get_ThreeBodySymFun_by_name(const char* name);
+void available_symFuns();

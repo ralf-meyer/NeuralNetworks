@@ -4,30 +4,45 @@ from NeuralNetworks import NeuralNetworkUtilities as _NN
 
 #Get input
 plots=False
-learning_rate=0.005
+learning_rate=0.05
 epochs=20000
 data_file=""
 nr_species=0
 e_unit="eV"
 dist_unit="A"
 force=False
+
+def str2bool(v):
+
+  return v.lower() in ("yes", "true", "t", "1")
+
 for i,arg in enumerate(sys.argv):
     if "-input" in arg:
         data_file=sys.argv[i+1]
-    if "-nr_species" in arg:
-        nr_species=int(sys.argv[i+1])
+    if "-output" in arg:
+        model_dir=sys.argv[i+1]
     if "-epochs" in arg:
-        epochs=sys.argv[i+1]
+        epochs=int(sys.argv[i+1])
+    if "-force" in arg:
+        force=str2bool(sys.argv[i+1])
+    if "-load_model" in arg:
+        load_model=str2bool(sys.argv[i+1])
     if "-v" in arg:
         plots=True
+    if "-lr" in arg:
+        learning_rate = float(sys.argv[i+1])
     if "-e_unit" in arg:
         e_unit=sys.argv[i+1]
     if "-dist_unit" in arg:
         dist_unit=sys.argv[i+1]
-    if "-lr" in arg:
-        learning_rate = float(sys.argv[i+1])
-    if "-force" in arg:
-        force = bool(sys.argv[i+1])
+    if "-model" in arg:
+        model=sys.argv[i+1]
+    if "-source" in arg:
+        source = sys.argv[i + 1]
+    if "-data_percentage" in arg:
+        percentage_of_data = float(sys.argv[i + 1])
+    if "-nr_species" in arg:
+        nr_species = int(sys.argv[i + 1])
 
 if data_file=="":
     print("Please specify a MD file")
@@ -61,7 +76,7 @@ Training.make_training_and_validation_data(batch_size,90,10)
 
 #Default trainings settings
 for i in range(nr_species):
-    Training.Structures.append([Training.SizeOfInputsPerType[i],100,100,1])
+    Training.Structures.append([Training.SizeOfInputsPerType[i],80,60,1])
 
 #Dropout and regularization for generalizing the net
 Training.Dropout=[0,0.5,0]
@@ -69,7 +84,9 @@ Training.RegularizationParam=0.1
 Training.HiddenType="truncated_normal"
 Training.ActFun="elu"
 Training.LearningRate=learning_rate
+Training.LearningDecayEpochs=10000
 Training.Epochs=epochs
+Training.ForceCostParam=0.001
 Training.MakePlots=plots
 Training.OptimizerType="Adam"
 Training.Regularization="L2"
