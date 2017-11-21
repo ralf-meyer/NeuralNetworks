@@ -1,12 +1,20 @@
 import unittest
 
-from NeuralNetworks.SymmetryFunctionSet import SymmetryFunctionSet as SymFunSet_cpp
+#from NeuralNetworks.descriptors import SymmetryFunctions
+
+#from SymmetryFunctionSet import SymmetryFunctionSet as SymFunSet_cpp
+from NeuralNetworks.descriptors.SymmetryFunctionSet import SymmetryFunctionSet as SymFunSet_cpp
+#from NeuralNetworks.descriptors import SymmetryFunctionSet
+#from SymmetryFunctionSet import SymmetryFunctionSet as SymFunSet_cpp
 import numpy as np
 
 class LibraryTest(unittest.TestCase):
 
     def test_derivaties(self):
-        sfs_cpp = SymFunSet_cpp(["Ni", "Au"], cutoff = 10.)
+        sfs_cpp = SymFunSet_cpp(
+            ["Ni", "Au"], 
+            cutoff = 10.
+        )
         pos = np.array([[0.0, 0.0, 0.0],
                 [1.0, 0.0, 0.0],
                 [0.0, 1.0, 0.0],

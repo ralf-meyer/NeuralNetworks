@@ -35,10 +35,19 @@ setup(
     name="NeuralNetworks",
     version="0.1",
     description="Neural Networks Potentials",
+    setup_requires=["numpy"],
     install_requires=["numpy", "scipy", "progressbar2", "tensorflow", "matplotlib"],
-    packages=["NeuralNetworks"],
-    package_dir={"": "../"},
-    package_data={"": ["lib/symmetryFunctions/libSymFunSet.so"]},
+    packages=[
+        "NeuralNetworks",
+        "NeuralNetworks.data_generation",
+        "NeuralNetworks.descriptors"
+    ],
+    package_dir={
+        "NeuralNetworks": "src", 
+        "NeuralNetworks.data_generation": "src/data_generation", 
+        "NeuralNetworks.descriptors": "lib/symmetryFunctions"
+    },
+    package_data={"NeuralNetworks.descriptors": ["libSymFunSet.so"]},
     include_package_data=True,
     cmdclass={"install": CustomInstall, "build_py": CustomBuild}
 )
