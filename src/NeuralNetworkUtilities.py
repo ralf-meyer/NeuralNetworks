@@ -7,8 +7,8 @@ Created on Thu Apr  6 11:30:10 2017
 """
 import numpy as _np
 import tensorflow as _tf
-import DataSet as _DataSet
-import SymmetryFunctionSet as _SymmetryFunctionSet
+from NeuralNetworks import DataSet as _DataSet
+import NeuralNetworks.descriptors as _SymmetryFunctionSet
 import random as _rand
 import matplotlib.pyplot as _plt
 import multiprocessing as _multiprocessing
