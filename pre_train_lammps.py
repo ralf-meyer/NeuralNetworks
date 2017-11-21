@@ -4,7 +4,7 @@ from NeuralNetworks import NeuralNetworkUtilities as _NN
 
 #Get input
 plots=False
-learning_rate=0.005
+learning_rate=0.05
 epochs=20000
 dump_file=""
 xyz_file=""
@@ -78,7 +78,7 @@ Training.make_training_and_validation_data(batch_size,90,10)
 
 #Default trainings settings
 for i in range(nr_species):
-    Training.Structures.append([Training.SizeOfInputsPerType[i],100,100,1])
+    Training.Structures.append([Training.SizeOfInputsPerType[i],80,60,1])
 
 #Dropout and regularization for generalizing the net
 Training.Dropout=[0,0.5,0]

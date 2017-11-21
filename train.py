@@ -85,7 +85,7 @@ else:
 
 #Default trainings settings
 for i in range(len(Training.Atomtypes)):
-    Training.Structures.append([Training.SizeOfInputsPerType[i],100,100,40,20,1])
+    Training.Structures.append([Training.SizeOfInputsPerType[i],80,60,40,20,1])
 
 
 Training.Dropout=[0,0,0,0,0]

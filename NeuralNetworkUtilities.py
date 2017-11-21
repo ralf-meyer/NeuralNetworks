@@ -1725,10 +1725,11 @@ class AtomicNeuralNetInstance(object):
 
         if len(self.Atomtypes) != 0:
             self._Reader.atom_types = self.Atomtypes
-            
+
         self._Reader.get_files(path)
         self._Reader.read_all_files()
         self._Reader.calibrate_energy()
+
         self.Atomtypes = self._Reader.atom_types
         self.NumberOfAtomsPerType = self._Reader.nr_atoms_per_type
         self.init_dataset(self._Reader.geometries,self._Reader.energies,
@@ -1824,7 +1825,7 @@ class AtomicNeuralNetInstance(object):
         self.create_symmetry_functions()
 
         if len(structure)==0:
-            MyStructure=[100,100,40,20,1]
+            MyStructure=[80,60,40,20,1]
         else:
             MyStructure=structure
             
