@@ -5,7 +5,7 @@ from setuptools import setup
 from subprocess import call
 
 base_path = os.path.dirname(os.path.abspath(__file__))
-lib_path = os.path.join(base_path, "lib/symmetryFunctions")
+lib_path = os.path.join(base_path, "NeuralNetworks/descriptors")
 
 class CustomInstall(install):
     """
@@ -47,13 +47,13 @@ setup(
         "NeuralNetworks.descriptors"
     ],
     package_dir={
-        "NeuralNetworks": "src", 
-        "NeuralNetworks.data_generation": "src/data_generation", 
-        "NeuralNetworks.optimize": "src/optimize",
-        "NeuralNetworks.md_utils": "src/md_utils",
-        "NeuralNetworks.md_utils.ode": "src/md_utils/ode",
-        "NeuralNetworks.md_utils.pset": "src/md_utils/pset",
-        "NeuralNetworks.descriptors": "lib/symmetryFunctions"
+        "NeuralNetworks": "NeuralNetworks", 
+        "NeuralNetworks.data_generation": "NeuralNetworks/data_generation", 
+        "NeuralNetworks.optimize": "NeuralNetworks/optimize",
+        "NeuralNetworks.md_utils": "NeuralNetworks/md_utils",
+        "NeuralNetworks.md_utils.ode": "NeuralNetworks/md_utils/ode",
+        "NeuralNetworks.md_utils.pset": "NeuralNetworks/md_utils/pset",
+        "NeuralNetworks.descriptors": "NeuralNetworks/descriptors"
     },
     package_data={"NeuralNetworks.descriptors": ["libSymFunSet.so"]},
     include_package_data=True,
