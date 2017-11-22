@@ -30,6 +30,7 @@ from os import linesep
 
 class OdeSolver(object) :
     """
+    ToDO: this should be replaced by a propper doc string with the new funcitonalities!!
     Base abstract class for defining the integration method of the ordinary differential equation like Runge Kutta or Euler method,
     the user must overide the method **__step__**
     
@@ -58,20 +59,19 @@ class OdeSolver(object) :
     :param p_set:      the particle set
     :param dt:         delta time
     """
-    def __init__( self , force , p_set , dt, log_file_path = "", xyz_file_path = "" ):
+    def __init__( self , force , p_set , dt):
         self.__force = force
         self.__p_set = p_set
         self.__dt = dt
         
         self.__sim_time = st.SimTime( self )
-        self.logger=Logger(log_file_path)
         self.__steps_cnt = 0
         self.all_forces=[]
         self.all_epot=[]
         self.all_etot=[]
         self.all_temp=[]
         self.steps=1000
-        self.plot = True
+        self.plot = True # if no live plotting is desired, this should be set false
         self.fig = None
         self.ax1 = None
         self.ax2 = None
@@ -79,6 +79,21 @@ class OdeSolver(object) :
         self.scat = None
         self.eplot=None
 
+        # Instatiate a logger (but deactivate logging by default)
+        #TODO: log file paths should not be speciefied in ctor of solver
+        self._logger=Logger("", "")
+        self._enable_full_log = ""
+        self._enable_xyz_log = ""
+ 
+    def enable_full_log(self, path="./mdrun.log"):
+        """Activates logging of positions, forces, etc. log file in path
+        To deactivate set path to empty string."""
+        self._logger.full_log_file = path
+
+    def enable_xyz_log(self, path="./mdrun.xyz"):
+        """Activates logging to xyz file in path. To deactivate set path to 
+        empty string."""
+        self._logger.xyz_log_file = path
 
     def init_plot(self, x):
         """Initialize the animation"""
@@ -204,7 +219,8 @@ class OdeSolver(object) :
         self.all_forces.append(self.force.F)
         self.all_temp.append(thermo.get_temperature(self.pset))
 
-        self.logger.log(self)
+        # will log current positons/forces etc. if for activated logging types
+        self._logger.log(self)
 
         
     def __step__( self , dt ):
@@ -216,33 +232,111 @@ class OdeSolver(object) :
 class Logger(object):
 
     def __init__(
-            self,
-            log_file_path="./mdrun.log",
-            step_index=0,
-            enable_xyz=True,
-            xyz_file_path="./mdrun.xyz"):
+        self, 
+        log_file_path="./mdrun.log",
+        xyz_file_path="./mdrun.xyz",
+        step_index=0
+        ):
 
-        if not log_file_path:
-            log_file_path = "./mdrun.log"
+        if log_file_path:
+            self._log_file = open(log_file_path, 'a')
+        else:
+            self._log_file = False
 
-        self._log_file = open(log_file_path, 'a')
+        if xyz_file_path:
+            self._log_file_xyz = open(xyz_file_path, 'a')
+        else:
+            self._log_file_xyz = False
+            
 
         self._step_index = step_index
 
-        # todo: implement a default file name and make full log optional ...
-        # ... (i.e. make xyz log default)
-        self._enable_xyz = enable_xyz
-        self._log_file_xyz = open(xyz_file_path, 'a')
+    @property
+    def full_log_file(self):
+        return self._log_file
 
+    @full_log_file.setter
+    def full_log_file(self, value):
+        if value:
+            self._log_file = open(value, 'a')
+        else:
+            raise ValueError("Invalid file path!")
+    
+    @property
+    def xyz_log_file(self):
+        return self._log_file_xyz
 
-
+    @xyz_log_file.setter
+    def xyz_log_file(self, value):
+        if value:
+            self._log_file_xyz = open(value, 'a')
+        else:
+            raise ValueError("Invalid file path!")
 
     def log(self, solver):
+        
+        # log to .xyz if endabled
+        if self._log_file_xyz:
+            log_str = self._make_xyz_log_str(solver.pset)
+            self._log_file_xyz.write(log_str)
+
+        # do full log if enabled
+        if self._log_file:
+            log_str = self._make_full_log_str(solver)
+            self._log_file.write(log_str)
+
+        self._step_index += 1
+
+    def _atmic_data_to_string(self, species, postions, velocities, forces):
+        log_str = species + " "
+        log_str += " ".join(map(str, postions)) + " "
+        # log xyz
+        if self._enable_xyz:
+            self._log_file_xyz.write(
+                self._make_xyz_log_str(species, positions, step)
+            )
+
+
+        self._step_index += 1
+
+    def _atmic_data_to_complete_string(self, species, positions, velocities, forces):
+        log_str = self._atomic_data_to_xyz_string(species, positions) + " "
+        log_str += " ".join(map(str, velocities)) + " "
+        log_str += " ".join(map(str, forces))
+
+        return log_str
+
+    def _atomic_data_to_xyz_string(self, species, positions):
+        log_str = species + " " + " ".join(map(str, positions)) + " "
+
+        return log_str
+
+    def _make_xyz_log_str(self, pset):
+        time_step = self._step_index
+        species = pset.label
+        positions = pset.X
+
+        number_of_atoms = len(species)
+
+        log_str = str(number_of_atoms) + linesep
+        log_str += "Atoms. Timestep: " + str(time_step) + linesep
+
+        for i in range(number_of_atoms):
+            log_str += \
+                self._atomic_data_to_xyz_string(species[i], positions[i]) + linesep
+
+        log_str.rstrip(linesep)
+        return log_str
+
+    def _make_full_log_str(self, solver):
+
         step = self._step_index
         time = solver.sim_time.time
-
         species = solver.pset.label
         positions = solver.pset.X
+
+
+        # calculate all other properties
         velocities = solver.pset.V
         forces = solver.force.F
 
@@ -287,45 +381,4 @@ class Logger(object):
             ) + linesep
         #---
 
-        self._log_file.write(log_str)
-
-        self._step_index += 1
-
-
-    def _atmic_data_to_string(self, species, postions, velocities, forces):
-        log_str = species + " "
-        log_str += " ".join(map(str, postions)) + " "
-        # log xyz
-        if self._enable_xyz:
-            self._log_file_xyz.write(
-                self._make_xyz_log_str(species, positions, step)
-            )
-
-
-        self._step_index += 1
-
-
-    def _atmic_data_to_complete_string(self, species, positions, velocities, forces):
-        log_str = self._atomic_data_to_xyz_string(species, positions) + " "
-        log_str += " ".join(map(str, velocities)) + " "
-        log_str += " ".join(map(str, forces))
-
-        return log_str
-
-    def _atomic_data_to_xyz_string(self, species, positions):
-        log_str = species + " " + " ".join(map(str, positions)) + " "
-
-        return log_str
-
-    def _make_xyz_log_str(self, species, positions, time_step):
-        number_of_atoms = len(species)
-
-        log_str = str(number_of_atoms) + linesep
-        log_str += "Atoms. Timestep: " + str(time_step) + linesep
-
-        for i in range(number_of_atoms):
-            log_str += \
-                self._atomic_data_to_xyz_string(species[i], positions[i]) + linesep
-
-        log_str.rstrip(linesep)
         return log_str
