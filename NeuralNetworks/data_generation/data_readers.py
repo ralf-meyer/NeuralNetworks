@@ -959,6 +959,7 @@ class LammpsReader(object):
 
         #--- read if files where found ---
         msg = "{0} {1} files found! Using {2} ..."
+
         if len(dump_files) > 0:
             if len(dump_files) > 1:
                 warn(
@@ -984,6 +985,12 @@ class LammpsReader(object):
                     RuntimeWarning
                 )
             self._read_energies_from_thermofile(thermo_files[0])
+            
+            # drop first energy if xyz was used as xyz does not log 0th step.
+            if len(dump_files) == 0:
+                if len(self.energies) > 0:
+                    self.energies.pop(0)
+
         # ---
 
     def _read_from_dump(self, dumpfile):
