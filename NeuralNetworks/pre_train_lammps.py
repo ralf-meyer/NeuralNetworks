@@ -82,7 +82,7 @@ for i in range(nr_species):
 
 #Dropout and regularization for generalizing the net
 Training.Dropout=[0,0.5,0]
-Training.RegularizationParam=0.1
+Training.RegularizationParam=0.05
 Training.HiddenType="truncated_normal"
 Training.ActFun="elu"
 Training.LearningRate=learning_rate
@@ -93,7 +93,7 @@ Training.Regularization="L2"
 Training.CostFunType="Adaptive_2"
 Training.LearningRateType="exponential_decay"
 Training.SavingDirectory="../data/pretraining_"+str(nr_species)+"_species"
-Training.LearningDecayEpochs=100
+Training.LearningDecayEpochs=1000
 Training.MakeLastLayerConstant=True
 Training.make_and_initialize_network()
 

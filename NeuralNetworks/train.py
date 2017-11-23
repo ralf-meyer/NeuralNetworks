@@ -83,18 +83,24 @@ if source == "QE":
 else:
     Training.read_lammps_files(data_file,energy_unit=e_unit,dist_unit=dist_unit,DataPointsPercentage=percentage_of_data)
 
+print("Starting training for:")
+for i in range(0,len(Training.Atomtypes)):
+    print(Training.Atomtypes[i]+" "+str(Training.NumberOfAtomsPerType[i]))
+
 #Default trainings settings
 for i in range(len(Training.Atomtypes)):
     Training.Structures.append([Training.SizeOfInputsPerType[i],80,60,40,20,1])
 
 
-Training.Dropout=[0,0,0,0,0]
+Training.Dropout=[0,0,0,0]
 Training.RegularizationParam=0.001
-
+Training.InitStddev=1
 Training.LearningRate=learning_rate
+Training.LearningDecayEpochs=1000
 Training.CostCriterium=0
 Training.dE_Criterium=0.02
-
+Training.WeightType="truncated_normal"
+Training.BiasType="truncated_normal"
 Training.Epochs=epochs
 Training.ForceCostParam=0.001
 Training.MakePlots=plots
@@ -103,22 +109,24 @@ Training.CostFunType="Adaptive_2"
 Training.OptimizerType="Adam"
 Training.SavingDirectory=model_dir
 Training.MakeLastLayerConstant=False
-Training.MakeAllVariable=False
 
 if load_model:
+    Training.MakeAllVariable = False
     #Load pretrained net
     try:
         if model=="":
-            Training.expand_existing_net(ModelName="pretraining_"+str(len(Training.Atomtypes))+"_species/trained_variables")
+            Training.expand_existing_net(ModelName="../data/pretraining_"+str(len(Training.Atomtypes))+"_species/trained_variables",MakeAllVariable=Training.MakeAllVariable)
         else:
-            Training.expand_existing_net(ModelName=model+"/trained_variables")
+            Training.expand_existing_net(ModelName=model+"/trained_variables",MakeAllVariable=Training.MakeAllVariable)
     except:
         raise IOError("Model not found, please specify model directory via -model x")
 else:
+    Training.MakeAllVariable = True
     Training.make_and_initialize_network()
 
 #Create batches
-batch_size=len(Training._DataSet.energies)*percentage_of_data/50
+batch_size=len(Training._DataSet.energies)*(percentage_of_data/100)/50
+
 Training.make_training_and_validation_data(batch_size,90,10)
 
 

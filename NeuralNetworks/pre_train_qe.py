@@ -4,13 +4,15 @@ from NeuralNetworks import NeuralNetworkUtilities as _NN
 
 #Get input
 plots=False
-learning_rate=0.05
+learning_rate=0.01
 epochs=20000
 data_file=""
 nr_species=0
 e_unit="Ry"
 dist_unit="A"
 force=False
+load_model=False
+model=""
 
 def str2bool(v):
 
@@ -86,7 +88,7 @@ Training.ActFun="elu"
 Training.LearningRate=learning_rate
 Training.LearningDecayEpochs=10000
 Training.Epochs=epochs
-Training.ForceCostParam=0.001
+Training.ForceCostParam=0.05
 Training.MakePlots=plots
 Training.OptimizerType="Adam"
 Training.Regularization="L2"
@@ -95,7 +97,18 @@ Training.LearningRateType="exponential_decay"
 Training.SavingDirectory="../data/pretraining_"+str(nr_species)+"_species"
 Training.LearningDecayEpochs=100
 Training.MakeLastLayerConstant=True
-Training.make_and_initialize_network()
+if load_model:
+    #Load pretrained net
+    try:
+        if model=="":
+            Training.expand_existing_net(ModelName="../data/pretraining_"+str(nr_species)+"_species/trained_variables")
+        else:
+            Training.expand_existing_net(ModelName=model+"/trained_variables")
+    except:
+        raise IOError("Model not found, please specify model directory via -model x")
+else:
+    Training.make_and_initialize_network()
+
 
 #Start pre-training
 Training.start_batch_training()

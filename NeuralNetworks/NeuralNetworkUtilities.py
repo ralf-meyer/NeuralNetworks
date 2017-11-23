@@ -933,10 +933,6 @@ class AtomicNeuralNetInstance(object):
                 self._Net.get_weights_biases_from_data(
                     self.TrainedVariables, self.Multiple)
 
-            self.WeightType = "truncated_normal"
-            self.InitMean = 0
-            self.InitStddev = 0.01
-            self.BiasType = "zeros"
             self.MakeAllVariable = MakeAllVariable
             # try:
             self.make_and_initialize_network()
@@ -1200,7 +1196,7 @@ class AtomicNeuralNetInstance(object):
                 train_dE = self.evaluate(self._dE_Fun, Layers, TrainingData)
             else:
                 temp = self.evaluate(self._dE_Fun, Layers, TrainingData)
-                train_dE = _tf.concat([train_dE, temp], 0)
+                train_dE = _np.concatenate((train_dE, temp))
 
         for i in range(0, len(self.ValidationBatches)):
             ValidationInputs = self.ValidationBatches[i][0]
@@ -1213,11 +1209,11 @@ class AtomicNeuralNetInstance(object):
                 val_dE = self.evaluate(self._dE_Fun, Layers, ValidationData)
             else:
                 temp = self.evaluate(self._dE_Fun, Layers, ValidationData)
-                val_dE = _tf.concat([val_dE, temp], 0)
+                val_dE = _np.concentenate((val_dE, temp))
 
-        with self._Session.as_default():
-            train_dE = train_dE.eval().tolist()
-            val_dE = val_dE.eval().tolist()
+        #with self._Session.as_default():
+        #    train_dE = train_dE.eval().tolist()
+        #    val_dE = val_dE.eval().tolist()
 
         train_mean = _np.mean(train_dE)
         train_var = _np.var(train_dE)
@@ -1835,7 +1831,7 @@ class AtomicNeuralNetInstance(object):
             
         self.ActFun="elu"
         self.MakeLastLayerConstant=False
-        self.expand_existing_net(ModelName=model_name+"/trained_variables")
+        self.expand_existing_net(ModelName=model_name+"/trained_variables",MakeAllVariable=self.MakeAllVariable)
 
     def create_eval_data(self, geometries, NoBatches=True):
         """Converts the geometries in compatible format and prepares the data
