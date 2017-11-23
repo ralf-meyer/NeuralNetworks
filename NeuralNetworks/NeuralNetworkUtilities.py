@@ -727,7 +727,7 @@ class AtomicNeuralNetInstance(object):
         self.LearningRate = 0.01
         self.LearningRateFun = None
         self.LearningRateType = "none"
-        self.LearningDecayEpochs = 100
+        self.LearningDecayEpochs = 1000
         self.LearningRateBounds = []
         self.LearningRateValues = []
         self.CostFun = None
@@ -1825,7 +1825,7 @@ class AtomicNeuralNetInstance(object):
         self.create_symmetry_functions()
 
         if len(structure)==0:
-            MyStructure=[100,100,40,20,1]
+            MyStructure=[80,60,40,20,1]
         else:
             MyStructure=structure
             
@@ -2088,37 +2088,39 @@ class AtomicNeuralNetInstance(object):
         DerInputs = []
         Norm = []
         ct = 0
-
-        for VarianceOfDs, MeanOfDs, NrAtoms in zip(
-                self._VarianceOfDs, self._MeansOfDs, self.NumberOfAtomsPerType):
-            for i in range(NrAtoms):
-                Inputs.append(
-                    _np.zeros((BatchSize, self.SizeOfInputsPerAtom[ct])))
-                if len(GDerivativesData) > 0:
-                    DerInputs.append(_np.zeros(
-                        (BatchSize, self.SizeOfInputsPerAtom[ct], 3 * sum(self.NumberOfAtomsPerType))))
-                    Norm.append(
+        try:
+            for VarianceOfDs, MeanOfDs, NrAtoms in zip(
+                    self._VarianceOfDs, self._MeansOfDs, self.NumberOfAtomsPerType):
+                for i in range(NrAtoms):
+                    Inputs.append(
                         _np.zeros((BatchSize, self.SizeOfInputsPerAtom[ct])))
-                    
-                # exclude nan values
-                L = _np.nonzero(VarianceOfDs)
+                    if len(GDerivativesData) > 0:
+                        DerInputs.append(_np.zeros(
+                            (BatchSize, self.SizeOfInputsPerAtom[ct], 3 * sum(self.NumberOfAtomsPerType))))
+                        Norm.append(
+                            _np.zeros((BatchSize, self.SizeOfInputsPerAtom[ct])))
 
-                if L[0].size > 0:
-                    for j in range(0, len(GData)):
-                        temp = _np.divide(
-                            _np.subtract(
-                                GData[j][ct][L], MeanOfDs[L]), _np.sqrt(
-                                VarianceOfDs[L]))
-                        temp[_np.isinf(temp)] = 0
-                        temp[_np.isneginf(temp)] = 0
-                        temp[_np.isnan(temp)] = 0
-                        Inputs[ct][j][L] = temp
-                        if len(GDerivativesData) > 0:
-                            DerInputs[ct][j] = GDerivativesData[j][ct]
-                            Norm[ct] = _np.tile(_np.divide(
-                                1, _np.sqrt(VarianceOfDs)), (BatchSize, 1))
+                    # exclude nan values
+                    L = _np.nonzero(VarianceOfDs)
 
-                ct += 1
+                    if L[0].size > 0:
+                        for j in range(0, len(GData)):
+                            temp = _np.divide(
+                                _np.subtract(
+                                    GData[j][ct][L], MeanOfDs[L]), _np.sqrt(
+                                    VarianceOfDs[L]))
+                            temp[_np.isinf(temp)] = 0
+                            temp[_np.isneginf(temp)] = 0
+                            temp[_np.isnan(temp)] = 0
+                            Inputs[ct][j][L] = temp
+                            if len(GDerivativesData) > 0:
+                                DerInputs[ct][j] = GDerivativesData[j][ct]
+                                Norm[ct] = _np.tile(_np.divide(
+                                    1, _np.sqrt(VarianceOfDs)), (BatchSize, 1))
+
+                    ct += 1
+        except:
+            raise ValueError("Atomtypes or NumberOfAtomsPerType do not match the loaded model!")
 
         return Inputs, DerInputs, Norm
 
@@ -2243,7 +2245,8 @@ class _StandardAtomicNetwork(object):
             NetworkData (list): All the network parameters as a list"""
 
         NetworkData = list()
-        for HiddenLayers in self.VariablesDictionary:
+        for i,HiddenLayers in enumerate(self.VariablesDictionary):
+            print("Saving species "+str(i)+"...")
             Layers = list()
             for i in range(0, len(HiddenLayers)):
                 Weights = Session.run(HiddenLayers[i][0])
@@ -2351,7 +2354,6 @@ class _StandardAtomicNetwork(object):
         Returns:
             Weights (list):List of numpy arrays
             Biases (list):List of numpy arrays"""
-
         Weights = list()
         Biases = list()
         for i in range(0, len(TrainedVariables)):
@@ -2487,9 +2489,7 @@ class _StandardAtomicNetwork(object):
                 HiddenLayers = list()
                 Structure = NetInstance.Structures[i]
                 if len(NetInstance._WeightData) != 0: #if a net was loaded
-
                     RawBias = NetInstance._BiasData[i]
-
                     for j in range(1, len(Structure)):
                         NrIn = Structure[j - 1]
                         NrHidden = Structure[j]
@@ -2502,7 +2502,7 @@ class _StandardAtomicNetwork(object):
                         else:
                             if j >= len(NetInstance._WeightData[i])\
                                     and NetInstance.MakeLastLayerConstant:#if new layers which are not part of the
-                                                                          # loaded model only pass through values
+                                                                          # loaded model, pass through values
                                 tempWeights, tempBias = _construct_hidden_layer(NrIn, NrHidden, NetInstance.WeightType,
                                                                                 [], NetInstance.BiasType, [],
                                                                                 True, NetInstance.InitMean,
@@ -2536,6 +2536,7 @@ class _StandardAtomicNetwork(object):
                                     else:
                                         ThisWeightData = NetInstance._WeightData[i][j - 1]
                                         ThisBiasData = NetInstance._BiasData[i][j - 1]
+
 
                                     HiddenLayers.append(
                                         _construct_hidden_layer(
