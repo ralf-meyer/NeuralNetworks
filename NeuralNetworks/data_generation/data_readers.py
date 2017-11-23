@@ -959,6 +959,7 @@ class LammpsReader(object):
 
         #--- read if files where found ---
         msg = "{0} {1} files found! Using {2} ..."
+
         if len(dump_files) > 0:
             if len(dump_files) > 1:
                 warn(
@@ -984,6 +985,12 @@ class LammpsReader(object):
                     RuntimeWarning
                 )
             self._read_energies_from_thermofile(thermo_files[0])
+            
+            # drop first energy if xyz was used as xyz does not log 0th step.
+            if len(dump_files) == 0:
+                if len(self.energies) > 0:
+                    self.energies.pop(0)
+
         # ---
 
     def _read_from_dump(self, dumpfile):
@@ -1142,19 +1149,30 @@ class LammpsReader(object):
                 
                 print("Reading thermo file ...")
 
+                # this flag will store if the iterator is already 
+                # past the line containing "Setting up xxx run"
+                reached_run_results = False
+                pattern_run_start = \
+                    "Setting up (Verlet|verlet/split|respa|respa/omp) run ..."
+
                 for line in f_thermo:
-                    if line.startswith("Step"):
-                        ind = line.split().index("PotEng")
-                        switch = True
-                    elif switch and line.startswith("Loop time"):
-                        switch = False
-                    elif switch:
-                        self.energies.append(
-                            float(line.split()[ind]) \
-                            * self.E_conv_factor
-                        )
+                    # only search after start of run was reached
+                    if not reached_run_results:
+                        if  not _re.match(pattern_run_start, line) is None:
+                            reached_run_results = True
+                    else:
+                        if line.startswith("Step"):
+                            ind = line.split().index("PotEng")
+                            switch = True
+                        elif switch and line.startswith("Loop time"):
+                            switch = False
+                        elif switch:
+                            self.energies.append(
+                                float(line.split()[ind]) \
+                                * self.E_conv_factor
+                            )
         except Exception as e:
-            print("Error reading thermodynamics file: {0}".format(e.message))
+            print("Error reading thermodynamics file at {0}".format(thermofile))
 
     def calibrate_energy(self):
         """Will shift the zero point of the energy so the difference in energies
@@ -1171,8 +1189,3 @@ class LammpsReader(object):
 
         # shift energies
         self.energies = (_np.array(self.energies) - offset).tolist()
-
-if __name__ == '__main__':
-    reader = LammpsReader()
-    reader.read_folder("../../tests/TestData/Lammps")
-    pass

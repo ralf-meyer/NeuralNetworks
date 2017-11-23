@@ -98,6 +98,12 @@ class TestLammpsReader(_BaseTestsWrapper.DataReadersTestUtilities):
         self._thermo_path = \
             join(self.path_provider.LAMMPS_test_files_dir , "Au.log")
 
+        self._thermo_preoptimized_path = \
+            join(
+                self.path_provider.LAMMPS_test_files_dir, 
+                "AuPreOptimization.out"
+            )
+
         #--- set reference values ---
         # species
         self._expected_atom_types = ["Au"]
@@ -240,6 +246,12 @@ class TestLammpsReader(_BaseTestsWrapper.DataReadersTestUtilities):
         self._check_geometry(reader)
         self._check_forces(reader)
 
+    def test_read_thermo_w_preoptimization(self):
+        """The difference to test_read_thermo is that this out file contains
+        a few lines about preoptimization."""
+        reader = data_readers.LammpsReader()
+        reader._read_energies_from_thermofile(self._thermo_preoptimized_path)
+        self.assertItemsEqual(self._expected_energies, reader.energies)
 
 class TestQEMDReader(_BaseTestsWrapper.DataReadersTestUtilities):
     """Tests the QEReader's read functions
