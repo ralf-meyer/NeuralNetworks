@@ -132,7 +132,7 @@ def read_ekin_temp_etot_force(my_file,E_conv_factor,Geom_conv_factor):
     # as qe plots forces Ry/au, to create the standard case (i.e. having 
     # eV/angstrom) as force unit include this factor
     au=0.529177249 #Angstroem
-    force_factor=E_conv_factor*(Geom_conv_factor/au)
+    force_factor=E_conv_factor/au
 
 
     #Match start and end indices
