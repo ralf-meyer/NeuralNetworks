@@ -114,7 +114,7 @@ def read_atom_types(my_file):
         if types_len!= ct:
             run=False
 
-        return types
+    return types
 
 def read_ekin_temp_etot_force(my_file,E_conv_factor,Geom_conv_factor):
     #find total energies in file
@@ -672,6 +672,7 @@ class QE_MD_Reader(object):
         
         if len(self.files)>0 and len(self.atom_types)==0:
             self.atom_types=read_atom_types(self.files[0])
+            print(self.atom_types)
         else:
             print("No files loaded!")
 
