@@ -2,13 +2,14 @@
 import sys 
 from NeuralNetworks import NeuralNetworkUtilities as _NN
 import os
+from NeuralNetworks import check_pes
 
 
 def str2bool(v):
   return v.lower() in ("yes", "true", "t", "1")
 #Get input
 plots=False
-learning_rate=0.001
+learning_rate=0.0001
 epochs=5000
 data_file=""
 force=False
@@ -93,10 +94,10 @@ for i in range(len(Training.Atomtypes)):
 
 
 Training.Dropout=[0,0,0,0]
-Training.RegularizationParam=0.001
-Training.InitStddev=1
+Training.RegularizationParam=0.1
+Training.InitStddev=0.1
 Training.LearningRate=learning_rate
-Training.LearningDecayEpochs=1000
+Training.LearningDecayEpochs=100
 Training.CostCriterium=0
 Training.dE_Criterium=0.02
 Training.WeightType="truncated_normal"
@@ -109,15 +110,16 @@ Training.CostFunType="Adaptive_2"
 Training.OptimizerType="Adam"
 Training.SavingDirectory=model_dir
 Training.MakeLastLayerConstant=False
+Training.PESCheck=check_pes.PES(model_dir)
 
 if load_model:
-    Training.MakeAllVariable = False
+    Training.MakeAllVariable = True
     #Load pretrained net
     try:
         if model=="":
-            Training.expand_existing_net(ModelName="../data/pretraining_"+str(len(Training.Atomtypes))+"_species/trained_variables",MakeAllVariable=Training.MakeAllVariable)
+            Training.expand_existing_net(ModelName="../data/pretraining_"+str(len(Training.Atomtypes))+"_species",MakeAllVariable=Training.MakeAllVariable)
         else:
-            Training.expand_existing_net(ModelName=model+"/trained_variables",MakeAllVariable=Training.MakeAllVariable)
+            Training.expand_existing_net(ModelName=model,MakeAllVariable=Training.MakeAllVariable)
     except:
         raise IOError("Model not found, please specify model directory via -model x")
 else:

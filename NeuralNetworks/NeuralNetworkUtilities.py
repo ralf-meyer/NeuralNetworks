@@ -715,7 +715,7 @@ class AtomicNeuralNetInstance(object):
         self.MakeLastLayerConstant = False
         self.Dropout = [0]
         self.IsPartitioned = False
-        self.ClippingValue = 100
+        self.ClippingValue = 1e10
         # Data
         self.EvalData = []
         self.TrainingBatches = []
@@ -800,6 +800,8 @@ class AtomicNeuralNetInstance(object):
         self._Reader = None
         self._AllGVectors = []
         self._AllGDerivatives = []
+        self.PESCheck=None
+        self.TextOutput=True
 
     def get_optimizer(self, CostFun):
 
@@ -870,7 +872,8 @@ class AtomicNeuralNetInstance(object):
             # Set optimizer
             self._Optimizer = self.get_optimizer(self.CostFun)
         except BaseException:
-            print("Evaluation only no training\
+            if self.TextOutput:
+                print("Evaluation only no training\
                   supported if all networks are constant!")
             # Initialize session
         self._Session.run(_tf.global_variables_initializer())
@@ -885,11 +888,12 @@ class AtomicNeuralNetInstance(object):
         if ".npy" not in ModelName:
             ModelName = ModelName + ".npy"
             # try:
-            rare_model = _np.load(ModelName)
-            self.TrainedVariables = rare_model[0]
-            self._MeansOfDs = rare_model[1]
-            self._VarianceOfDs = rare_model[2]
-            self._MinOfOut = rare_model[3]
+
+        rare_model = _np.load(ModelName)
+        self.TrainedVariables = rare_model[0]
+        self._MeansOfDs = rare_model[1]
+        self._VarianceOfDs = rare_model[2]
+        self._MinOfOut = rare_model[3]
             # except:
             #     return 0
 
@@ -908,7 +912,6 @@ class AtomicNeuralNetInstance(object):
             ConvertToPartitioned(bool):Converts a StandardAtomicNetwork to a
             PartitionedAtomicNetwork network with the StandardAtomicNetwork
             beeing the force network part."""
-
         if ModelData is None:
             Success = self.load_model(ModelName)
         else:
@@ -916,7 +919,8 @@ class AtomicNeuralNetInstance(object):
             self._MinOfOut = ModelData[1]
             Success = 1
         if Success == 1:
-            print("Model successfully loaded!")
+            if self.TextOutput:
+                print("Model successfully loaded!")
 
             if not self.IsPartitioned:
                 if ConvertToPartitioned:
@@ -1209,7 +1213,7 @@ class AtomicNeuralNetInstance(object):
                 val_dE = self.evaluate(self._dE_Fun, Layers, ValidationData)
             else:
                 temp = self.evaluate(self._dE_Fun, Layers, ValidationData)
-                val_dE = _np.concentenate((val_dE, temp))
+                val_dE = _np.concatenate((val_dE, temp))
 
         #with self._Session.as_default():
         #    train_dE = train_dE.eval().tolist()
@@ -1435,10 +1439,12 @@ class AtomicNeuralNetInstance(object):
                     self.DeltaE = self.calc_dE(Layers, TrainingData)
 
                 if not self.Multiple:
-                    if i % max(int(self.Epochs / 20),
+                    if i % max(int(self.Epochs / 100),
                                1) == 0 or i == (self.Epochs - 1):
                         # Cost plot
                         if self.MakePlots:
+                            if self.PESCheck != None:
+                                self.PESCheck.pes_check()
                             if i == 0:
                                 if find_best_symmfuns:
                                     # only supports force field at the moment
@@ -1810,6 +1816,9 @@ class AtomicNeuralNetInstance(object):
     def prepare_evaluation(self,model_name,atom_types,nr_atoms_per_type,structure=[],use_force=True):
         
         #Default symmetry function set
+        self.Structures=[]
+        self.Atomtypes=[]
+        self.NumberOfAtomsPerType=[]
         self._DataSet = _DataSet.DataSet()
         self.UseForce=use_force
         self.NumberOfRadialFunctions=25
@@ -1967,12 +1976,13 @@ class AtomicNeuralNetInstance(object):
                 NrOfBatches = max(1, int(round(SetLength / BatchSize, 0)))
             else:
                 NrOfBatches = 1
-            print("Creating and normalizing " +
-                  str(NrOfBatches) + " batches...")
+            if self.TextOutput:
+                print("Creating and normalizing " +
+                      str(NrOfBatches) + " batches...")
             for i in range(0, NrOfBatches):
                 Batches.append(self._get_data_batch(BatchSize, NoBatches))
                 if not NoBatches:
-                    if i % max(int(NrOfBatches / 10), 1) == 0:
+                    if i % max(int(NrOfBatches / 10), 1) == 0 and self.TextOutput:
                         print(str(100 * i / NrOfBatches) + " %")
 
             return Batches
@@ -2501,8 +2511,8 @@ class _StandardAtomicNetwork(object):
                                                                           # loaded model, pass through values
                                 tempWeights, tempBias = _construct_hidden_layer(NrIn, NrHidden, NetInstance.WeightType,
                                                                                 [], NetInstance.BiasType, [],
-                                                                                True, NetInstance.InitMean,
-                                                                                NetInstance.InitStddev)
+                                                                                True, Mean=NetInstance.InitMean,
+                                                                                Stddev=NetInstance.InitStddev)
 
                                 tempWeights=_construct_pass_through_weights(tempWeights,OldBiasNr)
 
@@ -2542,7 +2552,9 @@ class _StandardAtomicNetwork(object):
                                             ThisWeightData,
                                             NetInstance.BiasType,
                                             ThisBiasData,
-                                            NetInstance.MakeAllVariable))
+                                            NetInstance.MakeAllVariable,
+                                            Stddev=NetInstance.InitStddev,
+                                            Mean=NetInstance.InitMean))
                                 else:#if the new net is deeper then the loaded one add a trainable layer
                                     HiddenLayers.append(
                                         _construct_hidden_layer(
@@ -2551,7 +2563,9 @@ class _StandardAtomicNetwork(object):
                                             NetInstance.WeightType,
                                             [],
                                             NetInstance.BiasType,
-                                            MakeAllVariable=True))
+                                            MakeAllVariable=True,
+                                            Stddev=NetInstance.InitStddev,
+                                            Mean=NetInstance.InitMean))
 
                 else:#if no net was loaded
                     for j in range(1, len(Structure)):
@@ -2568,7 +2582,11 @@ class _StandardAtomicNetwork(object):
                                     NrHidden,
                                     NetInstance.WeightType,
                                     [],
-                                    NetInstance.BiasType))
+                                    NetInstance.BiasType,
+                                    MakeAllVariable=NetInstance.MakeAllVariable,
+                                    Stddev=NetInstance.InitStddev,
+                                    Mean=NetInstance.InitMean
+                                ))
 
                 AllHiddenLayers.append(HiddenLayers)
                 # create network for each atom
@@ -3349,6 +3367,7 @@ class MultipleInstanceTraining(object):
                 if ct % max(int((self.GlobalEpochs * len(self.TrainingInstances)) / 50),
                             1) == 0 or i == (self.GlobalEpochs - 1):
                     if self.MakePlots:
+
                         if ct == 0:
                             fig, ax, TrainingCostPlot, ValidationCostPlot, RunningMeanPlot = _initialize_cost_plot(
                                 self.GlobalTrainingCosts, self.GlobalValidationCosts)
