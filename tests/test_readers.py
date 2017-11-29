@@ -9,6 +9,7 @@ class PathProvider(object):
     _test_files_dir = join(dirname(__file__), normpath("TestData"))
     LAMMPS_test_files_dir = join(_test_files_dir, "Lammps")
     QE_test_files_dir = join(_test_files_dir, "QuantumEspresso")
+    MD_Utils_test_files_dir = join(_test_files_dir, "MDUtils")
 
 class _BaseTestsWrapper(object):
     """This class is only used to hide the base tests classes,
@@ -340,6 +341,61 @@ class TestQEMDReader(_BaseTestsWrapper.DataReadersTestUtilities):
         self._check_species(reader)
         self._check_geometry(reader)
         self._check_forces(reader)
+
+class TestSimpleInputReader(_BaseTestsWrapper.DataReadersTestUtilities):
+
+    _path_provider = PathProvider
+
+    def setUp(self):
+        self._expected_geometries_Au1 = [("Au", _np.array([0, 0, 0]))]
+        self._expected_geometries_Au13 =\
+            [
+                ("Au", _np.array([-0.000000000, 0.000000000, 0.000000000])),
+                ("Au", _np.array([-0.000000000, 1.538402219, 2.256385110])),
+                ("Au", _np.array([1.538402219, 2.256385110, -0.000000000])),
+                ("Au", _np.array([2.256385110, -0.000000000, 1.538402219])),
+                ("Au", _np.array([-1.538402219, 2.256385110, -0.000000000])),
+                ("Au", _np.array([-2.256385110, 0.000000000, 1.538402219])),
+                ("Au", _np.array([-0.000000000, -1.538402219, 2.256385110])),
+                ("Au", _np.array([-1.538402219, -2.256385110, 0.000000000])),
+                ("Au", _np.array([1.538402219, -2.256385110, 0.000000000])),
+                ("Au", _np.array([2.256385110, 0.000000000, -1.538402219])),
+                ("Au", _np.array([-0.000000000, 1.538402219, -2.256385110])),
+                ("Au", _np.array([-2.256385110, 0.000000000, -1.538402219])),
+                ("Au", _np.array([-0.000000000, -1.538402219, -2.256385110]))
+            ] 
+
+    def test_import_Au1(self):
+        reader = self._provide_reader()
+
+        fpath = join(self._path_provider.MD_Utils_test_files_dir, "Au1.in")
+        reader.read(fpath)
+        
+        self._check_geometry(reader.geometries, self._expected_geometries_Au1)
+
+    def test_import_Au13(self):
+        reader = self._provide_reader()
+
+        fpath = join(self._path_provider.MD_Utils_test_files_dir, "Au13.in")
+        reader.read(fpath)
+
+        self._check_geometry(reader.geometries, self._expected_geometries_Au13)
+
+    def _check_geometry(self, actual, expected):
+
+        # compare number of entries
+        self.assertEqual(len(actual), len(expected))
+
+        # compare read entries to reference
+        for (ex, act) in zip(expected, actual):
+             self._assert_geometry_entries_equal(
+                ex,
+                act
+            )
+
+    def _provide_reader(self):
+        """This will create a new cleared reader, ready for action """
+        return data_readers.SimpleInputReader()
 
 if __name__ == '__main__':
     unittest.main()
