@@ -365,9 +365,21 @@ class TestSimpleInputReader(_BaseTestsWrapper.DataReadersTestUtilities):
                 ("Au", _np.array([-0.000000000, -1.538402219, -2.256385110]))
             ] 
 
+        self._expected_geometries_H2Be3Au4 =\
+            [
+                ('H', _np.array([-1.76043, 3.63762, -1.94854])),
+                ('H', _np.array([-0.13474, -0.25941, 1.69603])),
+                ('Be', _np.array([-2.45685, -0.47551, 0.13657])),
+                ('Be', _np.array([-0.87454, 1.74298, -0.10594])),
+                ('Be', _np.array([-0.00754, -0.65814, -1.09434])),
+                ('Au', _np.array([-3.82522, 2.16585, -0.17945])),
+                ('Au', _np.array([-0.89613, -2.99517, 0.52904])),
+                ('Au', _np.array([-2.18631, 0.67843, -2.60998])),
+                ('Au', _np.array([2.04419, 1.17360, 0.05661]))
+            ]
+
     def test_import_Au1(self):
         reader = self._provide_reader()
-
         fpath = join(self._path_provider.MD_Utils_test_files_dir, "Au1.in")
         reader.read(fpath)
         
@@ -375,11 +387,19 @@ class TestSimpleInputReader(_BaseTestsWrapper.DataReadersTestUtilities):
 
     def test_import_Au13(self):
         reader = self._provide_reader()
-
         fpath = join(self._path_provider.MD_Utils_test_files_dir, "Au13.in")
         reader.read(fpath)
 
         self._check_geometry(reader.geometries, self._expected_geometries_Au13)
+
+    def test_importH2Be3Au4(self):
+        reader = self._provide_reader()
+        fpath = join(self._path_provider.MD_Utils_test_files_dir, "H2Be3Au4.in")
+        reader.read(fpath)
+
+        self._check_geometry(
+            reader.geometries, 
+            self._expected_geometries_H2Be3Au4)
 
     def _check_geometry(self, actual, expected):
 
