@@ -658,14 +658,12 @@ class QE_MD_Reader(object):
         """
         if ".out" in folder:
             temp=open(folder,"r").read()
-            if 'JOB DONE' in temp:
-                self.files.append(temp)
+            self.files.append(temp)
         else:
             for dirpath, dirnames, filenames in os.walk(folder):
                 for filename in [f for f in filenames if f.endswith(".out")]:
                     temp=open(os.path.join(dirpath, filename),"r").read()
-                    if 'JOB DONE' in temp:
-                        self.files.append(temp)
+                    self.files.append(temp)
         return 1
     
     def read_all_files(self):
@@ -690,7 +688,7 @@ class QE_MD_Reader(object):
 
             # read starting geometry, and convert it from lattice unit to angstr.
             starting_geometry=read_geometry_scf(this,self.Geom_conv_factor,self.atom_types)
-            self.geometries=[starting_geometry]
+            self.geometries+=[starting_geometry]
 
             self.geometries+=read_geometries(
                 this, 
@@ -718,10 +716,9 @@ class QE_MD_Reader(object):
                 for dirpath, dirnames, filenames in os.walk(folder):
                     for filename in [f for f in filenames if f.endswith(".out")]:
                         temp=open(os.path.join(dirpath, filename),"r").read()
-                        if 'JOB DONE' in temp:
-                            reader.files=[temp]
-                            reader.read_all_files()
-                            e_cal+=reader.total_energies[0][-1]*NrAtoms*self.E_conv_factor
+                        reader.files=[temp]
+                        reader.read_all_files()
+                        e_cal+=reader.total_energies[0][-1]*NrAtoms*self.E_conv_factor
         else: #Sets minimum as zero point 
             e_cal=min(self.e_pot)
                         
