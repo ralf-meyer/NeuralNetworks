@@ -422,7 +422,7 @@ def cost_for_network(Prediction, ReferenceValue, Type):
         Cost(tensor): The cost function as a tensor."""
 
     if Type == "squared-difference":
-        Cost = 0.5 * _tf.reduce_sum((Prediction - ReferenceValue)**2)
+        Cost = _tf.losses.mean_squared_error(ReferenceValue,Prediction)#0.5 * _tf.reduce_sum((Prediction - ReferenceValue)**2)
     elif Type == "Adaptive_1":
         epsilon = 10e-9
         Cost = 0.5 * _tf.reduce_sum((Prediction - ReferenceValue)**2
@@ -866,7 +866,7 @@ class AtomicNeuralNetInstance(object):
 
             decay_steps = len(self.TrainingBatches) * self.LearningDecayEpochs
             self.GlobalStep, self.LearningRateFun = _get_learning_rate(
-                self.LearningRate, self.LearningRateType, decay_steps, 
+                self.LearningRate, self.LearningRateType, decay_steps,
                 self.LearningRateBounds, self.LearningRateValues)
 
             # Set optimizer
@@ -933,10 +933,11 @@ class AtomicNeuralNetInstance(object):
                 self._WeightData, self._BiasData = \
                 self._convert_standard_to_partitioned_net()
             else:
-                self._WeightData, self._BiasData = \
+                self._WeightData, self._BiasData,struct = \
                 self._Net.get_weights_biases_from_data(
                     self.TrainedVariables, self.Multiple)
-
+            if self.TextOutput:
+                print("Loaded structure: "+str(struct))
             self.MakeAllVariable = MakeAllVariable
             # try:
             self.make_and_initialize_network()
@@ -953,7 +954,7 @@ class AtomicNeuralNetInstance(object):
             Weights (list):List of numpy arrays
             Biases (list):List of numpy arrays"""
 
-        WeightData, BiasData = self._Net.get_weights_biases_from_data(
+        WeightData, BiasData,_ = self._Net.get_weights_biases_from_data(
             self.TrainedVariables, self.Multiple)
         OutWeights = list()
         OutBiases = list()
@@ -1443,8 +1444,7 @@ class AtomicNeuralNetInstance(object):
                                1) == 0 or i == (self.Epochs - 1):
                         # Cost plot
                         if self.MakePlots:
-                            if self.PESCheck != None:
-                                self.PESCheck.pes_check()
+
                             if i == 0:
                                 if find_best_symmfuns:
                                     # only supports force field at the moment
@@ -1467,6 +1467,8 @@ class AtomicNeuralNetInstance(object):
                                     fig_weights, weights_plot = _update_weights_plot(
                                         fig_weights, weights_plot, sparse_weights)
                                 else:
+                                    if self.PESCheck != None:
+                                        self.PESCheck.pes_check()
                                     _update_cost_plot(
                                         fig,
                                         ax,
@@ -1610,8 +1612,8 @@ class AtomicNeuralNetInstance(object):
             TakeAsReference(bool): Specifies if the MinOfOut Parameter should be
                                 set according to this dataset.
         """
-
-        print("Converting data to neural net input format...")
+        if self.TextOutput:
+            print("Converting data to neural net input format...")
         NrGeom = int(len(self._DataSet.geometries)*DataPointsPercentage/100)
         AllTemp = list()
         #Guess size in memory for all geometries
@@ -1639,7 +1641,7 @@ class AtomicNeuralNetInstance(object):
                     _np.asarray(
                         self._SymmFunSet.eval_geometry_derivatives(
                             self._DataSet.geometries[i])))
-            if i % max(int(NrGeom / 25), 1) == 0:
+            if i % max(int(NrGeom / 25), 1) == 0 and self.TextOutput:
                 print(str(100 * i / NrGeom) + " %")
             for j in range(0, len(temp)):
                 if i == 0:
@@ -1671,7 +1673,7 @@ class AtomicNeuralNetInstance(object):
                 if self.NumberOfAtomsPerType[ct] == i + 1:
                     if self.CalcDatasetStatistics:
                         self._MeansOfDs[ct] = _np.mean(InputsForTypeX, axis=0)
-                        self._VarianceOfDs[ct] = _np.var(InputsForTypeX, axis=0)
+                        self._VarianceOfDs[ct] =_np.maximum(1e-3,_np.var(InputsForTypeX, axis=0))
                     else:
                         self._MeansOfDs[ct]=_np.multiply(_np.ones((self.SizeOfInputsPerType[ct])),6)
                         self._VarianceOfDs[ct]=_np.multiply(_np.ones((self.SizeOfInputsPerType[ct])),25)
@@ -1821,16 +1823,16 @@ class AtomicNeuralNetInstance(object):
         self.NumberOfAtomsPerType=[]
         self._DataSet = _DataSet.DataSet()
         self.UseForce=use_force
-        self.NumberOfRadialFunctions=25
+        self.NumberOfRadialFunctions=15
         self.Lambs=[1.0,-1.0]
-        self.Zetas=[0.025,0.045,0.075,0.1,0.15,0.2,0.3,0.5,0.7,1,1.5,2,3,5,10,18,36,100]
-        self.Etas=[0.1]   
+        self.Zetas=[0.2,1,10]#[0.025,0.045,0.075,0.1,0.15,0.2,0.3,0.5,0.7,1,1.5,2,3,5,10,18,36,100]
+        self.Etas=[0.01]
         self.Atomtypes = atom_types
         self.NumberOfAtomsPerType = nr_atoms_per_type
         self.create_symmetry_functions()
 
         if len(structure)==0:
-            MyStructure=[80,60,40,20,1]
+            MyStructure=[80,60,40,1]
         else:
             MyStructure=structure
             
@@ -1970,8 +1972,8 @@ class AtomicNeuralNetInstance(object):
             SetLength = int(EnergyDataSetLength * CoverageOfSetInPercent / 100)
 
             if not NoBatches:
-                if BatchSize > len(self._AllGVectors) / 10:
-                    BatchSize = int(len(self._AllGVectors) / 10)
+                if BatchSize > len(self._AllGVectors) / 2:
+                    BatchSize = int(len(self._AllGVectors) / 2)
                     print("Shrunk batches to size:" + str(BatchSize))
                 NrOfBatches = max(1, int(round(SetLength / BatchSize, 0)))
             else:
@@ -2214,7 +2216,7 @@ class _StandardAtomicNetwork(object):
             Fi.append(dim_red)
 
         F=_tf.scalar_mul(-1,F)
-
+        F=_tf.where(_tf.is_finite(F),F,_tf.zeros_like(F))
         return F, Fi
 
     def energy_of_all_atomic_networks(self):
@@ -2360,19 +2362,24 @@ class _StandardAtomicNetwork(object):
         Returns:
             Weights (list):List of numpy arrays
             Biases (list):List of numpy arrays"""
+        loaded_structure=[]
         Weights = list()
         Biases = list()
         for i in range(0, len(TrainedVariables)):
             NetworkData = TrainedVariables[i]
             ThisWeights = list()
             ThisBiases = list()
+            sub_struct=[]
             for j in range(0, len(NetworkData)):
                 ThisWeights.append(NetworkData[j][0])
                 ThisBiases.append(NetworkData[j][1])
+                sub_struct.append(NetworkData[j][0].shape[0])
+            sub_struct.append(NetworkData[j][0].shape[1])
             Weights.append(ThisWeights)
             Biases.append(ThisBiases)
+            loaded_structure.append(sub_struct)
 
-        return Weights, Biases
+        return Weights, Biases,loaded_structure
 
     def make_parallel_atomic_networks(self, NetInstance):
         """Creates the specified network with separate varibale tensors
@@ -2794,6 +2801,7 @@ class _PartitionedAtomicNetwork(object):
 
         Weights = list()
         Biases = list()
+
         for i in range(0, len(TrainedVariables)):
             NetworkData = TrainedVariables[i]
             ThisWeights = _PartitionedNetworkData()
@@ -2824,7 +2832,7 @@ class _PartitionedAtomicNetwork(object):
             Weights.append(ThisWeights)
             Biases.append(ThisBiases)
 
-        return Weights, Biases
+        return Weights, Biases,[]
 
     def make_parallel_atomic_networks(self, NetInstance):
         """Creates the specified partitioned network with separate varibale

@@ -1,6 +1,7 @@
 #model pretraining script
 import sys 
 from NeuralNetworks import NeuralNetworkUtilities as _NN
+from NeuralNetworks import check_pes
 
 #Get input
 plots=False
@@ -13,6 +14,7 @@ dist_unit="A"
 force=False
 load_model=False
 model=""
+
 
 def str2bool(v):
 
@@ -83,12 +85,13 @@ for i in range(nr_species):
 #Dropout and regularization for generalizing the net
 Training.Dropout=[0,0.5,0]
 Training.RegularizationParam=0.1
+Training.InitStddev=0.1
 Training.HiddenType="truncated_normal"
 Training.ActFun="elu"
 Training.LearningRate=learning_rate
 Training.LearningDecayEpochs=10000
 Training.Epochs=epochs
-Training.ForceCostParam=0.05
+Training.ForceCostParam=0.0001
 Training.MakePlots=plots
 Training.OptimizerType="Adam"
 Training.Regularization="L2"
@@ -97,6 +100,7 @@ Training.LearningRateType="exponential_decay"
 Training.SavingDirectory="../data/pretraining_"+str(nr_species)+"_species"
 Training.LearningDecayEpochs=100
 Training.MakeLastLayerConstant=True
+Training.PESCheck=check_pes.PES(Training.SavingDirectory)
 if load_model:
     #Load pretrained net
     try:

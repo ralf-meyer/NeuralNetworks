@@ -111,7 +111,7 @@ class OdeSolver(object) :
         self.scat = self.ax1.scatter(x[:, 0],
                                     x[:, 1],
                                     x[:, 2],
-                                    animated=False, marker='o', alpha=1, s=50,c='b')
+                                    animated=False, marker='o', alpha=1, s=150,c='b')
         plt_epot = np.asarray(self.all_epot).flatten()
         plt_etot = np.asarray(self.all_etot).flatten()
         plt_temp = np.asarray(self.all_temp).flatten()

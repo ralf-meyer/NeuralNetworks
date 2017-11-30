@@ -43,6 +43,7 @@ class NNForce(object):
     def update_force(self,pset):
         """Evaluates the force and calulates the acceleration
         for a given PyParticles particle set"""
+
         coordinates=pset.X
         self.types=list(pset.label[:])
         geometry=[]
@@ -50,13 +51,14 @@ class NNForce(object):
             geometry.append((pset.label[i],_np.asarray(coordinates[i])))
 
         self.__Epot,forces=self.Net.energy_and_force_for_geometry(geometry)
+
         self.__Epot=self.__Epot/len(pset.label[:])
         abs_v = _np.linalg.norm(pset.V, axis=1) / pset.unit
         self.__Etot=self.__Epot+_np.sum(abs_v**2*(pset.M[:]/pset.mass_unit)/2)*6.242e18
         self.__Etot=self.__Etot/len(pset.label[:])
         x=_np.asarray(pset.X[:]).flatten()
-        grad=approx_fprime(x,self.fun,1e-7)
-        forces=-_np.asarray(grad)
+        #grad=approx_fprime(x,self.fun,1e-7)
+        #forces=-_np.asarray(grad)
         forces=forces.reshape((len(pset.label),3))
 
         self.__A=(forces[:]/pset.M[:])*1e28/1.66

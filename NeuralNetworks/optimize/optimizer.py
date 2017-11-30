@@ -29,6 +29,7 @@ class Optimizer(object):
         self.fig = None
         self.ax = None
         self.scat = None
+        self.update_with_energy=False
 
     def init_plot(self,x):
         """Initialize the scatter plot"""
@@ -37,7 +38,7 @@ class Optimizer(object):
         self.scat = self.ax.scatter( x[:,0] ,
                                      x[:,1] ,
                                      x[:,2] ,
-                                     animated=False , marker='o' , alpha=None , s=50)
+                                     animated=False , marker='o' , alpha=None , s=150)
         plt.show(block=False)
 
 
@@ -69,11 +70,14 @@ class Optimizer(object):
 
     def fun(self,x):
         """Wrapper for energy evaluation"""
+        if self.update_with_energy:
+            self.update_plot(x)
         return self.Net.energy_for_geometry(self.to_nn_input(x))
 
     def der_fun(self,x):
         """TODO: Fix force calculation"""
-        self.update_plot(x)
+        if not(self.update_with_energy):
+            self.update_plot(x)
         force=_np.asarray(self.Net.force_for_geometry(self.to_nn_input(x)))
         grad=-force.flatten()
 
@@ -85,6 +89,8 @@ class Optimizer(object):
 
 
     def check_gradient(self):
+        if self.plot:
+            self.init_plot(self.x0)
         analytic=self.der_fun(self.x0)
         approx=self.der_fun_approx(self.x0)
         print([analytic,approx])
@@ -94,7 +100,6 @@ class Optimizer(object):
         """Starts a geometry optimization using the BFGS method"""
         if self.plot:
             self.init_plot(self.x0)
-
         #res=minimize(self.fun,jac=self.der_fun, x0=self.x0,tol=1e-6,method='BFGS',options={'disp': True, 'gtol': 1e-6})
         [res,fopt,gopt,Bopt, func_calls, grad_calls, warnflg]=fmin_bfgs(self.fun,
                                                                         self.x0,
@@ -108,5 +113,8 @@ class Optimizer(object):
 
     def start_nelder_mead(self):
         """Starts a geometry optimization using the nelder-mead method"""
-        res=minimize(self.fun,self.x0,method='nelder-mead',tol=1e-6,options={'disp': True})
+        if self.plot:
+            self.init_plot(self.x0)
+            self.update_with_energy=True
+        res=minimize(self.fun,self.x0,method='nelder-mead',tol=1e-3,options={'disp': True})
         return self.to_nn_input(res.x)

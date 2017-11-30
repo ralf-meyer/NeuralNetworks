@@ -3,13 +3,14 @@ import sys
 from NeuralNetworks import NeuralNetworkUtilities as _NN
 import os
 from NeuralNetworks import check_pes
+import numpy as _np
 
 
 def str2bool(v):
   return v.lower() in ("yes", "true", "t", "1")
 #Get input
 plots=False
-learning_rate=0.0001
+learning_rate=0.001
 epochs=5000
 data_file=""
 force=False
@@ -72,12 +73,13 @@ print("Save path : "+os.path.join(os.getcwd(),model_dir))
 
 #Load trainings instance
 Training=_NN.AtomicNeuralNetInstance()
+Training.CalcDatasetStatistics=True
 Training.UseForce=force
 #Default symmetry function set
-Training.NumberOfRadialFunctions=25
+Training.NumberOfRadialFunctions=15
 Training.Lambs=[1.0,-1.0]
-Training.Zetas=[0.025,0.045,0.075,0.1,0.15,0.2,0.3,0.5,0.7,1,1.5,2,3,5,10,18,36,100]
-Training.Etas=[0.1]   
+Training.Zetas=[0.2,1,10]#[0.025,0.045,0.075,0.1,0.15,0.2,0.3,0.5,0.7,1,1.5,2,3,5,10,18,36,100]
+Training.Etas=[0.01]
 #Read file
 if source == "QE":
     Training.read_qe_md_files(data_file,e_unit,dist_unit,DataPointsPercentage=percentage_of_data)
@@ -90,20 +92,21 @@ for i in range(0,len(Training.Atomtypes)):
 
 #Default trainings settings
 for i in range(len(Training.Atomtypes)):
-    Training.Structures.append([Training.SizeOfInputsPerType[i],80,60,40,20,1])
+    Training.Structures.append([Training.SizeOfInputsPerType[i],80,60,40,1])
+if not("trained_variables" in model):
+    model=os.path.join(model,"trained_variables.npy")
 
-
-Training.Dropout=[0,0,0,0]
+Training.Dropout=[0,0,0]
 Training.RegularizationParam=0.1
 Training.InitStddev=0.1
 Training.LearningRate=learning_rate
-Training.LearningDecayEpochs=100
+Training.LearningDecayEpochs=1000
 Training.CostCriterium=0
 Training.dE_Criterium=0.02
 Training.WeightType="truncated_normal"
 Training.BiasType="truncated_normal"
 Training.Epochs=epochs
-Training.ForceCostParam=0.001
+Training.ForceCostParam=0.1
 Training.MakePlots=plots
 Training.ActFun="elu"
 Training.CostFunType="Adaptive_2"
@@ -111,9 +114,9 @@ Training.OptimizerType="Adam"
 Training.SavingDirectory=model_dir
 Training.MakeLastLayerConstant=False
 Training.PESCheck=check_pes.PES(model_dir)
+Training.MakeAllVariable = True
 
 if load_model:
-    Training.MakeAllVariable = True
     #Load pretrained net
     try:
         if model=="":
@@ -123,14 +126,13 @@ if load_model:
     except:
         raise IOError("Model not found, please specify model directory via -model x")
 else:
-    Training.MakeAllVariable = True
+
     Training.make_and_initialize_network()
 
 #Create batches
 batch_size=len(Training._DataSet.energies)*(percentage_of_data/100)/50
 
 Training.make_training_and_validation_data(batch_size,90,10)
-
 
 #Start training
 Training.start_batch_training()
