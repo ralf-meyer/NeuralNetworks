@@ -76,10 +76,12 @@ Training=_NN.AtomicNeuralNetInstance()
 Training.CalcDatasetStatistics=True
 Training.UseForce=force
 #Default symmetry function set
-Training.NumberOfRadialFunctions=15
+#Training.NumberOfRadialFunctions=15
 Training.Lambs=[1.0,-1.0]
 Training.Zetas=[0.2,1,10]#[0.025,0.045,0.075,0.1,0.15,0.2,0.3,0.5,0.7,1,1.5,2,3,5,10,18,36,100]
 Training.Etas=[0.01]
+Training.Rs=[1.8,2,2.2,2.4,2.6,2.8,3.0,3.2,3.4,3.6,3.8,4,4.2,4.4,5]
+Training.R_Etas=[0.1,0.5,0.5,0.5,2,2,2,2,2,1,0.5,0.5,0.5,0.5,0.1]
 #Read file
 if source == "QE":
     Training.read_qe_md_files(data_file,e_unit,dist_unit,DataPointsPercentage=percentage_of_data)
@@ -98,7 +100,7 @@ if not("trained_variables" in model):
 
 Training.Dropout=[0,0,0]
 Training.RegularizationParam=0.1
-Training.InitStddev=0.1
+Training.InitStddev=0.2
 Training.LearningRate=learning_rate
 Training.LearningDecayEpochs=1000
 Training.CostCriterium=0
@@ -106,14 +108,14 @@ Training.dE_Criterium=0.02
 Training.WeightType="truncated_normal"
 Training.BiasType="truncated_normal"
 Training.Epochs=epochs
-Training.ForceCostParam=0.1
+Training.ForceCostParam=0.001
 Training.MakePlots=plots
 Training.ActFun="elu"
 Training.CostFunType="Adaptive_2"
 Training.OptimizerType="Adam"
 Training.SavingDirectory=model_dir
 Training.MakeLastLayerConstant=False
-Training.PESCheck=check_pes.PES(model_dir)
+Training.PESCheck=check_pes.PES(model_dir,Training)
 Training.MakeAllVariable = True
 
 if load_model:
