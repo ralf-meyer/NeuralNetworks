@@ -8,6 +8,7 @@ TODO:
 """
 
 
+from os.path import join, dirname, normpath
 
 from scipy.constants import gravitational_constant as G
 from scipy.constants import Boltzmann as k_B
@@ -17,9 +18,17 @@ from NeuralNetworks import NeuralNetworkUtilities
 from NeuralNetworks.md_utils import nn_force, thermostats
 from NeuralNetworks.md_utils.ode import leapfrog_solver as svs
 import NeuralNetworks.md_utils.pset.particles_set as ps
+from NeuralNetworks.data_generation.data_readers import SimpleInputReader
 
+from pyparticles.forces.lennard_jones import LenardJones
 
 import unittest
+
+
+class PathProvider(object):
+    """This class is just used to provide hard coded file paths"""
+    _test_files_dir = join(dirname(__file__), normpath("TestData"))
+    MD_Utils_test_files_dir = join(_test_files_dir, "MDUtils")
 
 
 class PSetProvider(object):
@@ -94,6 +103,39 @@ class PSetProvider(object):
 
         return pset
 
+
+    def provide_Au13_Zero_Kelvin():
+        #read dodecaeder gold cluster config from input file
+        reader = SimpleInputReader()
+        reader.read(join(PathProvider.MD_Utils_test_files_dir, "Au13.in"))
+        start_geom = reader.geometries
+
+        pset = ps.ParticlesSet(len(start_geom), 3, label=True, mass=True)
+        pset.thermostat_temperature = 1000
+
+        geom = []
+        masses = []
+        for i, atom in enumerate(start_geom):
+            pset.label[i] = atom[0]
+            masses.append([196])
+            geom.append(atom[1])
+
+        # Coordinates
+        pset.X[:] = np.array(geom)
+        # Mass
+        pset.M[:] = np.array(masses)
+        # Speed
+        pset.V[:] = np.zeros((len(start_geom), 3))
+
+        pset.unit = 1e10
+        pset.mass_unit = 1.660e+27
+
+        bound = None
+        pset.set_boundary(bound)
+        pset.enable_log(True, log_max_size=1000)
+
+        return pset
+
 class ForceModelProvider(object):
 
     @staticmethod
@@ -101,7 +143,7 @@ class ForceModelProvider(object):
         # --- get Network and force ---
         Training = NeuralNetworkUtilities.AtomicNeuralNetInstance()
         Training.prepare_evaluation(
-            "TestData/NNForce/",
+            join(PathProvider.MD_Utils_test_files_dir, "NNForce","Au"),
             atom_types=["Au"],
             nr_atoms_per_type=[pset.size]
         )
@@ -112,6 +154,14 @@ class ForceModelProvider(object):
         # ---
 
         return NNForce
+
+    @staticmethod
+    def provide_LenardJones_force(pset):
+
+        force = LenardJones(pset.size)
+        force.set_masses(pset.M)
+        force.update_force(pset)
+        return force
 
 class ODESolverProvider(object):
     @staticmethod
@@ -190,7 +240,7 @@ class TestLangevinVelocityVerlet(_BaseTestWarpper.TestODESolver):
 
         solver = self._solver_provider(
             pset,
-            ForceModelProvider.provide_NN_force(pset)
+            ForceModelProvider.provide_LenardJones_force,
             dt=dt,
             steps=steps,
             gamma=gamma
@@ -198,30 +248,36 @@ class TestLangevinVelocityVerlet(_BaseTestWarpper.TestODESolver):
 
         try:
             self._advance_solver(solver, steps)
-        else:
-            self.fail("Langevin Velocity-Verlet failed!")
+        except:
+            steps = solver.get_steps()
+            self.fail(
+                "Langevin Velocity-Verlet failed after {0} steps!".format(
+                    solver.get_steps()
+                )
+            )
     
 
     def test_temperature_conservation_in_gravity_field(self):
         
         self.skipTest("Not implemented yet!")
 
-        # Todo: provide unit test that checks if mean of temperature is conserved.
         dt = 2e-15
         steps = 10000
         gamma = 1e-3
         v_max=1e-8
-        pset = self._pset_provider()
+
+        #Au13 staring at 0 K going for 1000 K
+        pset = PSetProvider.provide_Au13_Zero_Kelvin()
 
         solver = self._solver_provider(
             pset,
-            ForceModelProvider.provide_NN_force(pset)
+            ForceModelProvider.provide_LenardJones_force,
             dt=dt,
             steps=steps,
             gamma=gamma
         )
 
-        self._check_conservation_of_temperature(solver, 7000)
+        self._check_conservation_of_temperature(solver, 1000)
 
 class TestThermostat(unittest.TestCase):
 
