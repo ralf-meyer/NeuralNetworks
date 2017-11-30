@@ -1844,6 +1844,8 @@ class AtomicNeuralNetInstance(object):
         self.NumberOfAtomsPerType=[]
         self._DataSet = _DataSet.DataSet()
         self.UseForce=use_force
+        if not("trained_variables" in model_name):
+            model_name=model_name+"/trained_variables"
         if not(self._IsFromCheck):
             self.load_model(model_name)
         self.Atomtypes = atom_types
@@ -1861,7 +1863,7 @@ class AtomicNeuralNetInstance(object):
             
         self.ActFun="elu"
         self.MakeLastLayerConstant=False
-        self.expand_existing_net(ModelName=model_name+"/trained_variables",MakeAllVariable=self.MakeAllVariable)
+        self.expand_existing_net(ModelName=model_name,MakeAllVariable=self.MakeAllVariable)
 
     def create_eval_data(self, geometries, NoBatches=True):
         """Converts the geometries in compatible format and prepares the data
