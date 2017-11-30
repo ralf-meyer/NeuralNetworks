@@ -101,17 +101,15 @@ class SymmetryFunctionSet(object):
         self.num_Gs[self.type_dict[type1]] += 1
 
     def add_radial_functions(self, rss, etas):
-        for rs in rss:
-            for eta in etas:
-                for (ti, tj) in product(self.atomtypes, repeat = 2):
-                    self.add_TwoBodySymmetryFunction(
-                        ti, tj, "BehlerG2", [eta, rs])
+        for rs, eta in zip(rss, etas):
+            for (ti, tj) in product(self.atomtypes, repeat = 2):
+                self.add_TwoBodySymmetryFunction(
+                    ti, tj, "BehlerG2", [eta, rs])
 
     def add_radial_functions_evenly(self, N):
         rss = _np.linspace(0.,self.cutoff,N)
         etas = [2./(self.cutoff/(N-1))**2]*N
-        for rs, eta in zip(rss, etas):
-            self.add_radial_functions([rs],[eta])
+        self.add_radial_functions(rss, etas)
 
     def add_angular_functions(self, etas, zetas, lambs):
         for eta in etas:
