@@ -1189,3 +1189,54 @@ class LammpsReader(object):
 
         # shift energies
         self.energies = (_np.array(self.energies) - offset).tolist()
+
+
+class SimpleInputReader(object):
+    """This class will read a simple input file with lines
+    of the following structure:
+
+    'Species    X    Y   Z EOL',
+
+    with species the Chemical symbol for the type of the atom and X,Y and Z 
+    being cartesian coordinates. EOL is the end of line marker.
+    It will be mainly used to import starting conditions for MD runs.
+
+    Attributes:
+        geometry: just as the other data readers after reading the input
+        the resulting geometry can be accessed through this attirbute. It
+        will be a list of tupels of the following form:
+        
+            ('Species', np.array([]))
+    """
+
+    def __init__(self):
+        self.geometries = []
+
+    def read(self, fpath):
+        """Reads the contents of an input file line per line and appends
+        the read values to geometry attribute. 
+        
+        Args:
+            fpath: the path to the finput file.
+        Raises:
+            ValueError: if no file can be found at fpath.
+            Any other exception that may occure during parsing of input.
+        """
+
+        if not (fpath and isfile(fpath)):
+            raise ValueError("Input file {0} could not be found!", format(fpath))
+        
+        try:
+            with open(fpath, 'r') as f:
+                for line in f:
+                    sections = line.split()
+
+                    input_data = (sections[0], _np.array(map(float, sections[1:4])))
+                    self.geometries.append(input_data)
+        except Exception as ex:
+            raise ex
+
+
+    def clear(self):
+        self.geometries = []
+
