@@ -4,7 +4,7 @@ from NeuralNetworks import NeuralNetworkUtilities as _NN
 import os
 from NeuralNetworks import check_pes
 import numpy as _np
-
+import matplotlib
 
 def str2bool(v):
   return v.lower() in ("yes", "true", "t", "1")
@@ -69,7 +69,6 @@ print("Use model = "+str(load_model))
 if load_model:
     print("Loaded model = "+model)
 print("Save path : "+os.path.join(os.getcwd(),model_dir))
-
 
 #Load trainings instance
 Training=_NN.AtomicNeuralNetInstance()
@@ -136,5 +135,13 @@ batch_size=len(Training._DataSet.energies)*(percentage_of_data/100)/50
 
 Training.make_training_and_validation_data(batch_size,90,10)
 
+
+
 #Start training
 Training.start_batch_training()
+#Save figures
+figures=[manager.canvas.figure
+         for manager in matplotlib._pylab_helpers.Gcf.get_all_fig_managers()]
+
+for i, figure in enumerate(figures):
+    figure.savefig(os.path.join(model_dir,'figure%d.png' % i))

@@ -2,19 +2,22 @@ import scipy.optimize
 from scipy.optimize import minimize
 from scipy.optimize import fmin_bfgs
 from scipy.optimize import approx_fprime
-
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
+from matplotlib import colors
 import numpy as _np
 
 def get_type_and_xyz(geom):
     xyz=[]
     types=[]
+    diff_types=[]
     for atom in geom:
         types.append(atom[0])
         xyz.append(atom[1])
+        if atom[0] not in diff_types:
+            diff_types.append(atom[0])
 
-    return types,_np.asarray(xyz)
+    return diff_types,types,_np.asarray(xyz)
 
 
 class Optimizer(object):
@@ -23,7 +26,7 @@ class Optimizer(object):
     def __init__(self,Net,start_geom):
         self.Net=Net
         self.start_geom=start_geom
-        self.types,self.x0=get_type_and_xyz(start_geom)
+        self.diff_types,self.types,self.x0=get_type_and_xyz(start_geom)
         self.nr_atoms=len(self.types)
         self.plot=False
         self.fig = None
@@ -33,12 +36,24 @@ class Optimizer(object):
 
     def init_plot(self,x):
         """Initialize the scatter plot"""
+
         self.fig = plt.figure()
         self.ax = self.fig.add_subplot(111, projection='3d')
+        #Get coloring for atoms
+        my_colors=[]
+        for i,atom in enumerate(self.start_geom):
+            type=atom[0]
+            if type=="Ni":
+                my_colors.append('b')
+            elif type=="Au":
+                my_colors.append('y')
+            else:
+                my_colors.append('k')
+
         self.scat = self.ax.scatter( x[:,0] ,
                                      x[:,1] ,
                                      x[:,2] ,
-                                     animated=False , marker='o' , alpha=None , s=150)
+                                     animated=False , marker='o' , alpha=None , s=150,c=my_colors)
         plt.show(block=False)
 
 

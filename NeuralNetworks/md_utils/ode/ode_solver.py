@@ -63,7 +63,7 @@ class OdeSolver(object) :
         self.__force = force
         self.__p_set = p_set
         self.__dt = dt
-        
+        self.types=[]
         self.__sim_time = st.SimTime( self )
         self.__steps_cnt = 0
         self.all_forces=[]
@@ -108,17 +108,33 @@ class OdeSolver(object) :
     def setup_plot(self):
         """Sets up the plots"""
         x=self.__p_set.X[:]
+        # Get coloring for atoms
+        my_colors=[]
+        template="byrcmgkw"
+        for atom_type in self.pset.label:
+            if atom_type not in self.types:
+                self.types.append(atom_type)
+
+        for i,atom_type in enumerate(self.pset.label):
+
+            if atom_type == "Ni":
+                my_colors.append('b')
+            elif atom_type == "Au":
+                my_colors.append('y')
+            else:
+                my_colors.append('k')
+
         self.scat = self.ax1.scatter(x[:, 0],
                                     x[:, 1],
                                     x[:, 2],
-                                    animated=False, marker='o', alpha=1, s=150,c='b')
+                                    animated=False, marker='o', alpha=0.8, s=150,c=my_colors)
         plt_epot = np.asarray(self.all_epot).flatten()
         plt_etot = np.asarray(self.all_etot).flatten()
         plt_temp = np.asarray(self.all_temp).flatten()
-        self.epot_plot,=self.ax2.plot(np.arange(1,len(plt_epot)+1),plt_epot,c='b',label="E_pot")
-        self.etot_plot, = self.ax2.plot(np.arange(1, len(plt_etot) + 1), plt_etot, c='r',label="E_tot")
-        self.temp_plot, = self.ax3.plot(np.arange(1, len(plt_temp) + 1), plt_temp, c='b', label="Temperature /K")
-        plt.legend(handles=[self.epot_plot,self.etot_plot],loc=1)
+        self.epot_plot,=self.ax2.plot(np.arange(1,len(plt_epot)+1),plt_epot,c='b')
+        self.etot_plot, = self.ax2.plot(np.arange(1, len(plt_etot) + 1), plt_etot, c='r')
+        self.temp_plot, = self.ax3.plot(np.arange(1, len(plt_temp) + 1), plt_temp, c='g',label="Temperature /K")
+        self.fig.legend(handles=[self.scat,self.epot_plot,self.etot_plot], labels=["3D-view of system","Potential energy/atom eV", "Total energy/atom /ev"], loc=1)
         plt.legend(handles=[self.temp_plot], loc=1)
         plt.show(block=False)
 
@@ -133,7 +149,7 @@ class OdeSolver(object) :
         plt_temp = np.asarray(self.all_temp).flatten()
         self.epot_plot,=self.ax2.plot(np.arange(1,len(plt_epot)+1),plt_epot,c='b')
         self.etot_plot, = self.ax2.plot(np.arange(1, len(plt_etot) + 1), plt_etot, c='r')
-        self.temp_plot, = self.ax3.plot(np.arange(1, len(plt_temp) + 1), plt_temp, c='b', label="Temperature /K")
+        self.temp_plot, = self.ax3.plot(np.arange(1, len(plt_temp) + 1), plt_temp, c='g', label="Temperature /K")
         self.fig.canvas.draw()
         self.fig.canvas.flush_events()
 
