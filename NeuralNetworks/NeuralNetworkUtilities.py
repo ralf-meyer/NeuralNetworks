@@ -754,9 +754,11 @@ class AtomicNeuralNetInstance(object):
         self.CostFunType = "squared-difference"
         self.SavingDirectory = "save"
         self.CalcDatasetStatistics=False
+        self._IsFromCheck=False
         # Symmetry function set settings
         self.NumberOfRadialFunctions = 20
         self.Rs = []
+        self.R_Etas = []
         self.Etas = []
         self.Zetas = []
         self.Lambs = []
@@ -894,6 +896,15 @@ class AtomicNeuralNetInstance(object):
         self._MeansOfDs = rare_model[1]
         self._VarianceOfDs = rare_model[2]
         self._MinOfOut = rare_model[3]
+        try:
+            self.Rs=rare_model[4]
+            self.R_Etas=rare_model[5]
+            self.Etas=rare_model[6]
+            self.Lambs=rare_model[7]
+            self.Zetas=rare_model[8]
+            self.NumberOfRadialFunctions=rare_model[9]
+        except:
+            print("No parameters saved")
             # except:
             #     return 0
 
@@ -1509,7 +1520,13 @@ class AtomicNeuralNetInstance(object):
                                  [self.TrainedVariables,
                                   self._MeansOfDs,
                                   self._VarianceOfDs,
-                                  self._MinOfOut])
+                                  self._MinOfOut,
+                                  self.Rs,
+                                  self.R_Etas,
+                                  self.Etas,
+                                  self.Lambs,
+                                  self.Zetas,
+                                  self.NumberOfRadialFunctions])
 
                     # Abort criteria
                     if self.TrainingCosts != 0 and self.TrainingCosts <= self.CostCriterion and self.ValidationCosts <= self.CostCriterion or self.DeltaE < self.dE_Criterion:
@@ -1579,12 +1596,16 @@ class AtomicNeuralNetInstance(object):
         self.SizeOfInputsPerType = []
         self._SymmFunSet = _SymmetryFunctionSet.SymmetryFunctionSet(
             self.Atomtypes)
-        self._SymmFunSet.add_radial_functions_evenly(
-            self.NumberOfRadialFunctions)
-        self._SymmFunSet.add_angular_functions(
-                self.Etas, self.Zetas, self.Lambs)
+        if len(self.Rs) == 0:
+            self._SymmFunSet.add_radial_functions_evenly(
+                self.NumberOfRadialFunctions)
+        else:
+            self._SymmFunSet.add_radial_functions(self.Rs,self.R_Etas)
+
+        self._SymmFunSet.add_angular_functions(self.Etas, self.Zetas, self.Lambs)
+
         self.SizeOfInputsPerType = self._SymmFunSet.num_Gs
-        
+
         for i, a_type in enumerate(self.NumberOfAtomsPerType):
             for j in range(0, a_type):
                 self.SizeOfInputsPerAtom.append(self.SizeOfInputsPerType[i])
@@ -1823,10 +1844,10 @@ class AtomicNeuralNetInstance(object):
         self.NumberOfAtomsPerType=[]
         self._DataSet = _DataSet.DataSet()
         self.UseForce=use_force
-        self.NumberOfRadialFunctions=15
-        self.Lambs=[1.0,-1.0]
-        self.Zetas=[0.2,1,10]#[0.025,0.045,0.075,0.1,0.15,0.2,0.3,0.5,0.7,1,1.5,2,3,5,10,18,36,100]
-        self.Etas=[0.01]
+        if not("trained_variables" in model_name):
+            model_name=model_name+"/trained_variables"
+        if not(self._IsFromCheck):
+            self.load_model(model_name)
         self.Atomtypes = atom_types
         self.NumberOfAtomsPerType = nr_atoms_per_type
         self.create_symmetry_functions()
@@ -1842,7 +1863,7 @@ class AtomicNeuralNetInstance(object):
             
         self.ActFun="elu"
         self.MakeLastLayerConstant=False
-        self.expand_existing_net(ModelName=model_name+"/trained_variables",MakeAllVariable=self.MakeAllVariable)
+        self.expand_existing_net(ModelName=model_name,MakeAllVariable=self.MakeAllVariable)
 
     def create_eval_data(self, geometries, NoBatches=True):
         """Converts the geometries in compatible format and prepares the data
