@@ -2,7 +2,7 @@
 Tests the md util for this project.
 
 TODO:
-* use the termperature calculation in thermostads.py
+* 
 * include a unit test for the temeperature calculation in thermostats
 
 """
@@ -103,7 +103,7 @@ class PSetProvider(object):
 
         return pset
 
-
+    @staticmethod
     def provide_Au13_Zero_Kelvin():
         #read dodecaeder gold cluster config from input file
         reader = SimpleInputReader()
@@ -202,8 +202,7 @@ class _BaseTestWarpper(object):
         def _check_conservation_of_energy(self):
             raise NotImplementedError()
 
-        def _check_conservation_of_temperature(self, solver, steps=800):
-            raise NotImplementedError()
+        def _check_conservation_of_temperature(self, solver, steps=800, delta=2):
 
             T = solver.pset.thermostat_temperature
 
@@ -212,7 +211,7 @@ class _BaseTestWarpper(object):
             self.assertAlmostEqual(
                 T,
                 self._temerature_of_system(solver.pset),
-                delta=2
+                delta=delta
             )
 
         def _temerature_of_system(self, pset):
@@ -231,9 +230,12 @@ class TestLangevinVelocityVerlet(_BaseTestWarpper.TestODESolver):
         self._solver_provider = \
             ODESolverProvider.provide_langevin_velocity_verlet
 
-    def test_no_crash_nn_field(self):
+    def test_no_crash(self):
+        """make sure solver does not collapse (raise an exception) during x 
+        steps."""
+
         dt = 2e-15
-        steps = 100
+        steps = 1000
         gamma = 1e-3
         v_max=1e-8
         pset = self._pset_provider()
@@ -257,9 +259,7 @@ class TestLangevinVelocityVerlet(_BaseTestWarpper.TestODESolver):
             )
     
 
-    def test_temperature_conservation_in_gravity_field(self):
-        
-        self.skipTest("Not implemented yet!")
+    def _test_temperature_conservation(self):
 
         dt = 2e-15
         steps = 10000
@@ -277,7 +277,10 @@ class TestLangevinVelocityVerlet(_BaseTestWarpper.TestODESolver):
             gamma=gamma
         )
 
-        self._check_conservation_of_temperature(solver, 1000)
+        self._check_conservation_of_temperature(
+            solver, 
+            pset.thermostat_temperature
+        )
 
 class TestThermostat(unittest.TestCase):
 
@@ -285,6 +288,38 @@ class TestThermostat(unittest.TestCase):
         #test 0 K ensemble
         pset_0K = PSetProvider.provide_Au3_Zero_Kelvin()
         self.assertEqual(0, thermostats.get_temperature(pset_0K))
+
+class TestSampler(unittest.TestCase):
+
+    def setUp(self):
+        self._sampler = thermostats.Sampler()
+
+    def test_sampled_temperature(self):
+        """Sample a bunch of speeds and see if their temperature is correct"""
+
+        nsamples = int(1e6)
+        delta = 1
+
+        # Gold mass in u
+        m = 196
+        T = 1000 # K
+
+        # draw velocities
+        v = self._sampler.draw_boltzman_scalars(nsamples, T, m)
+    
+        T_actual = self._calculate_temperature_from_scalar_velocities(v, m)
+
+        self.assertAlmostEqual(1, T_actual / T, delta)
+
+    def _calculate_temperature_from_scalar_velocities(self, v, m):
+        """calculates the temperature from a bunch of velocities
+        
+        1/2<m v^2> = 3/2 k_B T
+        https://en.wikipedia.org/wiki/Thermal_velocity
+
+        """
+        T = np.mean(v**2 * m  / (3 * k_B))
+        return T    
 
 
 if __name__ == '__main__':
