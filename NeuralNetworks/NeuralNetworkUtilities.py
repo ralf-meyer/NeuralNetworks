@@ -452,6 +452,32 @@ def running_mean(x, N):
     cumsum = _np.cumsum(_np.insert(x, 0, 0))
     return (cumsum[N:] - cumsum[:-N]) / N
 
+def _initialize_delta_e_plot(delta_e):
+    fig = _plt.figure()
+    ax = fig.add_subplot(111)
+    ax.set_autoscaley_on(True)
+    de_plot, = ax.semilogy(
+        _np.arange(0, len(delta_e)), delta_e)
+    ax.relim()
+    ax.autoscale_view()
+    ax.set_xlabel("batches")
+    ax.set_ylabel("\delta E")
+    ax.set_title("Averaged energy difference /eV")
+    fig.legend(handles=[de_plot],labels=["\delta E"], loc=1)
+    # We need to draw *and* flush
+    fig.canvas.draw()
+    fig.canvas.flush_events()
+
+    return fig,ax,de_plot
+
+def _update_delta_e_plot(delta_e,delta_e_plot,figure,ax):
+    delta_e_plot.set_data(_np.arange(0, len(delta_e)), delta_e)
+    # Need both of these in order to rescale
+    ax.relim()
+    ax.autoscale_view()
+    # We need to draw *and* flush
+    figure.canvas.draw()
+    figure.canvas.flush_events()
 
 def _initialize_cost_plot(TrainingData, ValidationData=[]):
     """Initializes the cost plot for the training
@@ -745,7 +771,7 @@ class AtomicNeuralNetInstance(object):
         self.dE_Criterion = 0
         self.OptimizerType = None
         self.OptimizerProp = None
-        self.DeltaE = 0
+        self.DeltaE = []
         self.TrainingCosts = []
         self.ValidationCosts = []
         self.OverallTrainingCosts = []
@@ -893,6 +919,12 @@ class AtomicNeuralNetInstance(object):
 
         rare_model = _np.load(ModelName)
         self.TrainedVariables = rare_model[0]
+        if len(self.Atomtypes)==0:
+            for i,NetForType in enumerate(self.TrainedVariables):
+                if isinstance(NetForType[0][-1], basestring):
+                    self.Atomtypes.append(NetForType[0][-1])
+                    if self.TextOutput:
+                        print("Atomtype "+str(i)+" is "+str(self.Atomtypes[-1]))
         self._MeansOfDs = rare_model[1]
         self._VarianceOfDs = rare_model[2]
         self._MinOfOut = rare_model[3]
@@ -905,6 +937,11 @@ class AtomicNeuralNetInstance(object):
             self.NumberOfRadialFunctions=rare_model[9]
         except:
             print("No parameters saved")
+            self.NumberOfRadialFunctions=15
+            self.Lambs = [1.0, -1.0]
+            self.Zetas = [0.2, 1, 10]
+            self.Etas = [0.01]
+            return 1
             # except:
             #     return 0
 
@@ -1097,6 +1134,7 @@ class AtomicNeuralNetInstance(object):
                             ValPlot,
                             ValidationCost,
                             RunningMeanPlot)
+
                 print(str(100 * i / self.Epochs) + " %")
 
             if TrainCost[-1] < self.CostCriterion:
@@ -1326,7 +1364,7 @@ class AtomicNeuralNetInstance(object):
             The trained network in as a list
             (self._MinOfOut is the offset of the last bias node, necessary
              for tanh or sigmoid activation functions in the last layer)."""
-            
+
         if self._DataSet is None:
             raise Exception(
                     "No dataset initialized please call\
@@ -1427,7 +1465,7 @@ class AtomicNeuralNetInstance(object):
                     # Train one batch
                     TrainingCosts, ValidationCosts = self._train_atomic_network_batch(
                         Layers, TrainingData, ValidationData)
-
+                    #print(self._Net.VariablesDictionary)
                     tempTrainingCost.append(TrainingCosts)
                     tempValidationCost.append(ValidationCosts)
 
@@ -1445,10 +1483,10 @@ class AtomicNeuralNetInstance(object):
                     self.ValidationCosts = 1e10
 
                 if self.ValidationCosts != 0:
-                    self.DeltaE = (self.calc_dE(Layers, TrainingData) +
-                                   self.calc_dE(Layers, TrainingData)) / 2
+                    self.DeltaE.append((self.calc_dE(Layers, TrainingData) +
+                                   self.calc_dE(Layers, TrainingData)) / 2)
                 else:
-                    self.DeltaE = self.calc_dE(Layers, TrainingData)
+                    self.DeltaE.append(self.calc_dE(Layers, TrainingData))
 
                 if not self.Multiple:
                     if i % max(int(self.Epochs / 100),
@@ -1468,6 +1506,7 @@ class AtomicNeuralNetInstance(object):
                                 else:
                                     fig, ax, TrainingCostPlot, ValidationCostPlot, RunningMeanPlot = _initialize_cost_plot(
                                         self.OverallTrainingCosts, self.OverallValidationCosts)
+                                    de_fig, de_ax, de_plot = _initialize_delta_e_plot(self.DeltaE)
                             else:
                                 if find_best_symmfuns:
                                     # only supports force field at the moment
@@ -1488,9 +1527,10 @@ class AtomicNeuralNetInstance(object):
                                         ValidationCostPlot,
                                         self.OverallValidationCosts,
                                         RunningMeanPlot)
+                                    _update_delta_e_plot(self.DeltaE, de_plot, de_fig, de_ax)
                         # Finished percentage output
                         print([str(100 * i / self.Epochs) + " %",
-                               "deltaE = " + str(self.DeltaE) + " ev",
+                               "deltaE = " + str(self.DeltaE[-1]) + " ev",
                                "Cost = " + str(self.TrainingCosts),
                                "t = " + str(_time.time() - start) + " s",
                                "global step: " + str(self._Session.run(self.GlobalStep))])
@@ -1512,7 +1552,7 @@ class AtomicNeuralNetInstance(object):
                                 "F1_x=" + str(Force[0:max(int(len(Prediction) / 20), 1), 0]))
                         # Store variables
                         self.TrainedVariables = self._Net.get_trained_variables(
-                            self._Session)
+                            self._Session,self.Atomtypes)
 
                         if not _os.path.exists(self.SavingDirectory):
                             _os.makedirs(self.SavingDirectory)
@@ -1529,13 +1569,13 @@ class AtomicNeuralNetInstance(object):
                                   self.NumberOfRadialFunctions])
 
                     # Abort criteria
-                    if self.TrainingCosts != 0 and self.TrainingCosts <= self.CostCriterion and self.ValidationCosts <= self.CostCriterion or self.DeltaE < self.dE_Criterion:
+                    if self.TrainingCosts != 0 and self.TrainingCosts <= self.CostCriterion and self.ValidationCosts <= self.CostCriterion or self.DeltaE[-1] < self.dE_Criterion:
 
                         if self.ValidationCosts != 0:
                             print("Reached Criterion!")
                             print(
                                 "Cost= " + str((self.TrainingCosts + self.ValidationCosts) / 2))
-                            print("delta E = " + str(self.DeltaE) + " ev")
+                            print("delta E = " + str(self.DeltaE[-1]) + " ev")
                             print("t = " + str(_time.time() - start) + " s")
                             print("Epoch = " + str(i))
                             print("")
@@ -1543,29 +1583,31 @@ class AtomicNeuralNetInstance(object):
                         else:
                             print("Reached Criterion!")
                             print("Cost= " + str(self.TrainingCosts))
-                            print("delta E = " + str(self.DeltaE) + " ev")
+                            print("delta E = " + str(self.DeltaE[-1]) + " ev")
                             print("t = " + str(_time.time() - start) + " s")
                             print("Epoch = " + str(i))
                             print("")
 
-                        print("Calculation of whole dataset energy difference ...")
-                        train_stat, val_stat = self._dE_stat(EnergyLayers)
-                        print("Training dataset error= " +
-                              str(train_stat[0]) +
-                              "+-" +
-                              str(_np.sqrt(train_stat[1])) +
-                              " ev")
-                        print("Validation dataset error= " +
-                              str(val_stat[0]) +
-                              "+-" +
-                              str(_np.sqrt(val_stat[1])) +
-                              " ev")
-                        print("Training finished")
-                        break
+                        if self.Multiple==False:
+                            print("Calculation of whole dataset energy difference ...")
+                            train_stat, val_stat = self._dE_stat(EnergyLayers)
+                            print("Training dataset error= " +
+                                  str(train_stat[0]) +
+                                  "+-" +
+                                  str(_np.sqrt(train_stat[1])) +
+                                  " ev")
+                            print("Validation dataset error= " +
+                                  str(val_stat[0]) +
+                                  "+-" +
+                                  str(_np.sqrt(val_stat[1])) +
+                                  " ev")
+                            print("Training finished")
+                            break
 
-                    if i == (self.Epochs - 1):
+                    if i == (self.Epochs - 1) and self.Multiple==False:
+
                         print("Training finished")
-                        print("delta E = " + str(self.DeltaE) + " ev")
+                        print("delta E = " + str(self.DeltaE[-1]) + " ev")
                         print("t = " + str(_time.time() - start) + " s")
                         print("")
 
@@ -1582,7 +1624,8 @@ class AtomicNeuralNetInstance(object):
                               " ev")
 
             if self.Multiple:
-
+                self.TrainedVariables = self._Net.get_trained_variables(
+                    self._Session, self.Atomtypes)
                 return [self.TrainedVariables, self._MinOfOut]
 
     def create_symmetry_functions(self):
@@ -1592,8 +1635,9 @@ class AtomicNeuralNetInstance(object):
             
         if self.Etas==[]and self.Lambs==[] and self.Zetas==[]:
             print("No angular symmetry functions specified!")
-        
+
         self.SizeOfInputsPerType = []
+
         self._SymmFunSet = _SymmetryFunctionSet.SymmetryFunctionSet(
             self.Atomtypes)
         if len(self.Rs) == 0:
@@ -1605,7 +1649,6 @@ class AtomicNeuralNetInstance(object):
         self._SymmFunSet.add_angular_functions(self.Etas, self.Zetas, self.Lambs)
 
         self.SizeOfInputsPerType = self._SymmFunSet.num_Gs
-
         for i, a_type in enumerate(self.NumberOfAtomsPerType):
             for j in range(0, a_type):
                 self.SizeOfInputsPerAtom.append(self.SizeOfInputsPerType[i])
@@ -1616,7 +1659,6 @@ class AtomicNeuralNetInstance(object):
         dGs=[]
         if self.UseForce:
             dGs=[_np.asarray(self._SymmFunSet.eval_geometry_derivatives(geometry))]
-        
         GInputs, GDerivativesInput,Normalization=self._sort_and_normalize_data(1,Gs,dGs)
 
         if self.UseForce:
@@ -1636,7 +1678,7 @@ class AtomicNeuralNetInstance(object):
         if self.TextOutput:
             print("Converting data to neural net input format...")
         NrGeom = int(len(self._DataSet.geometries)*DataPointsPercentage/100)
-        AllTemp = list()
+        AllTemp = []
         #Guess size in memory for all geometries
         test_size=_np.asarray(self._SymmFunSet.eval_geometry(
                 self._DataSet.geometries[0])).nbytes
@@ -1650,13 +1692,12 @@ class AtomicNeuralNetInstance(object):
             warnings.warn("Not enough memory for all geometries!")
 
         # Get G vectors
-
         for i in range(0, NrGeom):
             
-            temp = _np.asarray(self._SymmFunSet.eval_geometry(
-                self._DataSet.geometries[i]))
+            temp = self._SymmFunSet.eval_geometry(
+                        self._DataSet.geometries[i])
 
-            self._AllGVectors.append(temp)
+            self._AllGVectors.append(_np.asarray(temp))
             if self.UseForce:
                 self._AllGDerivatives.append(
                     _np.asarray(
@@ -1664,12 +1705,8 @@ class AtomicNeuralNetInstance(object):
                             self._DataSet.geometries[i])))
             if i % max(int(NrGeom / 25), 1) == 0 and self.TextOutput:
                 print(str(100 * i / NrGeom) + " %")
-            for j in range(0, len(temp)):
-                if i == 0:
-                    AllTemp.append(_np.empty((NrGeom, temp[j].shape[0])))
-                    AllTemp[j][i] = temp[j]
-                else:
-                    AllTemp[j][i] = temp[j]
+
+            AllTemp+=[Gs for Gs in temp]
 
         if TakeAsReference:
             self._calculate_statistics_for_dataset(AllTemp)
@@ -1681,29 +1718,18 @@ class AtomicNeuralNetInstance(object):
         # calculate mean and sigmas for all Gs
         print("Calculating mean values and variances...")
         # Input statistics
-        self._MeansOfDs = [0] * len(self.NumberOfAtomsPerType)
-        self._VarianceOfDs = [0] * len(self.NumberOfAtomsPerType)
-        ct = 0
-        InputsForTypeX = []
-        for i, InputsForNetX in enumerate(AllTemp):
-            if len(InputsForTypeX) == 0:
-                InputsForTypeX = list(InputsForNetX)
+        try:
+            if self.CalcDatasetStatistics:
+                self._MeansOfDs = _np.mean(AllTemp, axis=0)
+                self._VarianceOfDs =_np.maximum(1e-2,_np.var(AllTemp, axis=0))
             else:
-                InputsForTypeX += list(InputsForNetX)
-            try:
-                if self.NumberOfAtomsPerType[ct] == i + 1:
-                    if self.CalcDatasetStatistics:
-                        self._MeansOfDs[ct] = _np.mean(InputsForTypeX, axis=0)
-                        self._VarianceOfDs[ct] =_np.maximum(1e-3,_np.var(InputsForTypeX, axis=0))
-                    else:
-                        self._MeansOfDs[ct]=_np.multiply(_np.ones((self.SizeOfInputsPerType[ct])),6)
-                        self._VarianceOfDs[ct]=_np.multiply(_np.ones((self.SizeOfInputsPerType[ct])),25)
-        
-                    InputsForTypeX = []
-                    ct += 1
-            except:
-                raise ValueError(
-                        "Number of atoms per type does not match input!")
+                self._MeansOfDs=_np.multiply(_np.ones((self.SizeOfInputsPerType[0])),6)
+                self._VarianceOfDs=_np.multiply(_np.ones((self.SizeOfInputsPerType[0])),25)
+            self._VarianceOfDs=_np.nan_to_num(self._VarianceOfDs)
+
+        except:
+            raise ValueError(
+                    "Number of atoms per type does not match input!")
         # Output statistics
         if len(self._DataSet.energies) > 0:
             NormalizedEnergy = _np.divide(self._DataSet.energies, NrAtoms)
@@ -1827,7 +1853,8 @@ class AtomicNeuralNetInstance(object):
             if TakeAsReference:
                 self._VarianceOfDs = []
                 self._MeansOfDs = []
-            self.create_symmetry_functions()
+            if self._SymmFunSet==None:
+                self.create_symmetry_functions()
 
             self._convert_dataset(TakeAsReference,DataPointsPercentage)
         else:
@@ -1836,7 +1863,7 @@ class AtomicNeuralNetInstance(object):
                   " does not match number of geometries: " +
                   str(len(geometries)))
             
-    def prepare_evaluation(self,model_name,atom_types,nr_atoms_per_type,structure=[],use_force=True):
+    def prepare_evaluation(self,model_name,nr_atoms_per_type,structure=[],use_force=True,atom_types=[]):
         
         #Default symmetry function set
         self.Structures=[]
@@ -1848,7 +1875,8 @@ class AtomicNeuralNetInstance(object):
             model_name=model_name+"/trained_variables"
         if not(self._IsFromCheck):
             self.load_model(model_name)
-        self.Atomtypes = atom_types
+        if len(atom_types)>0:
+            self.Atomtypes = atom_types
         self.NumberOfAtomsPerType = nr_atoms_per_type
         self.create_symmetry_functions()
 
@@ -1875,13 +1903,8 @@ class AtomicNeuralNetInstance(object):
                 batches or only consits of a single not randomized batch.
         """
         dummy_energies = [0] * len(geometries)
-        if len(self._MeansOfDs) == 0:
-            IsReference = True
-        else:
-            IsReference = False
-            
         self.init_dataset(geometries, dummy_energies,
-                          TakeAsReference=IsReference)
+                          TakeAsReference=self.CalcDatasetStatistics)
 
         self.EvalData = self.get_data(NoBatches=True)
 
@@ -2117,39 +2140,34 @@ class AtomicNeuralNetInstance(object):
         DerInputs = []
         Norm = []
         ct = 0
-        try:
-            for VarianceOfDs, MeanOfDs, NrAtoms in zip(
-                    self._VarianceOfDs, self._MeansOfDs, self.NumberOfAtomsPerType):
-                for i in range(NrAtoms):
-                    Inputs.append(
+        #try:
+        for NrAtoms in self.NumberOfAtomsPerType:
+
+            for i in range(NrAtoms):
+                Inputs.append(
+                    _np.zeros((BatchSize, self.SizeOfInputsPerAtom[ct])))
+                if len(GDerivativesData) > 0:
+                    DerInputs.append(_np.zeros(
+                        (BatchSize, self.SizeOfInputsPerAtom[ct], 3 * sum(self.NumberOfAtomsPerType))))
+                    Norm.append(
                         _np.zeros((BatchSize, self.SizeOfInputsPerAtom[ct])))
+
+                # exclude nan values
+
+                for j in range(0, len(GData)): #j = geometry number, ct = atom number
+                    temp = _np.divide(
+                        _np.subtract(
+                            GData[j][ct], self._MeansOfDs), _np.sqrt(
+                        self._VarianceOfDs))
+                    Inputs[ct][j] = temp
                     if len(GDerivativesData) > 0:
-                        DerInputs.append(_np.zeros(
-                            (BatchSize, self.SizeOfInputsPerAtom[ct], 3 * sum(self.NumberOfAtomsPerType))))
-                        Norm.append(
-                            _np.zeros((BatchSize, self.SizeOfInputsPerAtom[ct])))
+                        DerInputs[ct][j] = GDerivativesData[j][ct]
+                        Norm[ct] = _np.tile(_np.divide(
+                            1, _np.sqrt(self._VarianceOfDs)), (BatchSize, 1))
 
-                    # exclude nan values
-                    L = _np.nonzero(VarianceOfDs)
-
-                    if L[0].size > 0:
-                        for j in range(0, len(GData)):
-                            temp = _np.divide(
-                                _np.subtract(
-                                    GData[j][ct][L], MeanOfDs[L]), _np.sqrt(
-                                    VarianceOfDs[L]))
-                            temp[_np.isinf(temp)] = 0
-                            temp[_np.isneginf(temp)] = 0
-                            temp[_np.isnan(temp)] = 0
-                            Inputs[ct][j][L] = temp
-                            if len(GDerivativesData) > 0:
-                                DerInputs[ct][j] = GDerivativesData[j][ct]
-                                Norm[ct] = _np.tile(_np.divide(
-                                    1, _np.sqrt(VarianceOfDs)), (BatchSize, 1))
-
-                    ct += 1
-        except:
-            raise ValueError("Atomtypes or NumberOfAtomsPerType do not match the loaded model!")
+                ct += 1
+        #except:
+        #    raise ValueError("Atomtypes or NumberOfAtomsPerType do not match the loaded model!")
 
         return Inputs, DerInputs, Norm
 
@@ -2266,21 +2284,21 @@ class _StandardAtomicNetwork(object):
 
         return Prediction, AllEnergies
 
-    def get_trained_variables(self, Session):
+    def get_trained_variables(self, Session,atom_types=[]):
         """Prepares the data for saving.
         It gets the weights and biases from the session.
 
         Returns:
             NetworkData (list): All the network parameters as a list"""
+        NetworkData = []
 
-        NetworkData = list()
         for i,HiddenLayers in enumerate(self.VariablesDictionary):
-            print("Saving species "+str(i)+"...")
+            #print("Saving species "+str(atom_types[i])+"...")
             Layers = list()
-            for i in range(0, len(HiddenLayers)):
-                Weights = Session.run(HiddenLayers[i][0])
-                Biases = Session.run(HiddenLayers[i][1])
-                Layers.append([Weights, Biases])
+            for j in range(0, len(HiddenLayers)):
+                Weights = Session.run(HiddenLayers[j][0])
+                Biases = Session.run(HiddenLayers[j][1])
+                Layers.append([Weights, Biases,atom_types[i]])
             NetworkData.append(Layers)
         return NetworkData
 
@@ -2368,8 +2386,12 @@ class _StandardAtomicNetwork(object):
         Returns:
             Energy(float): Predicted energy as a float."""
         Energy = 0
-        Layers, Data = self.prepare_data_environment(GData, OutputLayer=None, OutData=[
-        ], OutputLayerForce=None, GDerivativesInput=[], ForceOutput=[], AppendForce=False)
+        Layers, Data = self.prepare_data_environment(GData, OutputLayer=None,
+                                                     OutData=[],
+                                                     OutputLayerForce=None,
+                                                     GDerivativesInput=[],
+                                                     ForceOutput=[],
+                                                     AppendForce=False)
         for i in range(0, len(self.AtomicNNs)):
             AtomicNetwork = self.AtomicNNs[i]
             Energy += self.evaluate(AtomicNetwork[1], [Layers[i]], Data[i])
@@ -2383,6 +2405,7 @@ class _StandardAtomicNetwork(object):
         Returns:
             Weights (list):List of numpy arrays
             Biases (list):List of numpy arrays"""
+
         loaded_structure=[]
         Weights = list()
         Biases = list()
@@ -2495,14 +2518,12 @@ class _StandardAtomicNetwork(object):
 
     def make_atomic_networks(self, NetInstance):
         """Creates the specified network."""
-
         AllHiddenLayers = list()
         AtomicNNs = list()
         # Start Session
         if not NetInstance.Multiple:
             NetInstance._Session = _tf.Session(config=_tf.ConfigProto(
                 intra_op_parallelism_threads=_multiprocessing.cpu_count()))
-
         OldBiasNr = 0
         OldShape = None
         if len(NetInstance.Structures) != len(
@@ -2518,9 +2539,8 @@ class _StandardAtomicNetwork(object):
                     Dropout = NetInstance.Dropout[i]
                 else:
                     Dropout = NetInstance.Dropout[-1]
-
                 # Make hidden layers
-                HiddenLayers = list()
+                HiddenLayers = []
                 Structure = NetInstance.Structures[i]
                 if len(NetInstance._WeightData) != 0: #if a net was loaded
                     RawBias = NetInstance._BiasData[i]
@@ -2640,15 +2660,12 @@ class _StandardAtomicNetwork(object):
 
                     for l in range(1, len(HiddenLayers)):
                         # Connect layers
-
+                        Weights = HiddenLayers[l][0]
+                        Biases = HiddenLayers[l][1]
                         if l == len(HiddenLayers) - 1:
-                            Weights = HiddenLayers[l][0]
-                            Biases = HiddenLayers[l][1]
                             Network = _connect_layers(
                                 Network, Weights, Biases, "none", NetInstance.ActFunParam, Dropout)
                         else:
-                            Weights = HiddenLayers[l][0]
-                            Biases = HiddenLayers[l][1]
                             Network = _connect_layers(
                                 Network, Weights, Biases, NetInstance.ActFun, NetInstance.ActFunParam, Dropout)
 
@@ -3322,6 +3339,7 @@ class MultipleInstanceTraining(object):
         self.MakePlots = False
         self.IsPartitioned = False
         self.GlobalSession = _tf.Session()
+        self.SavingDirectory=""
 
     def initialize_multiple_instances(self):
         """Initializes all instances with the same parameters."""
@@ -3338,9 +3356,9 @@ class MultipleInstanceTraining(object):
                 Instance.Epochs = self.EpochsPerCycle
                 Instance.MakeAllVariable = True
                 Instance.Structures = self.GlobalStructures
-                Instance.Session = self.GlobalSession
+                Instance._Session = self.GlobalSession
                 Instance.MakePlots = False
-                Instance.ActFun = "relu"
+                Instance.ActFun = "elu"
                 Instance.CostCriterion = 0
                 Instance.dE_Criterion = 0
                 Instance.IsPartitioned = self.IsPartitioned
@@ -3349,14 +3367,16 @@ class MultipleInstanceTraining(object):
                 Instance.OptimizerType = self.GlobalOptimizer
                 Instance.Regularization = self.GlobalRegularization
                 Instance.RegularizationParam = self.GlobalRegularizationParam
+                Instance.TextOutput=False
                 if Instance._MinOfOut < self.GlobalMinOfOut:
                     self.GlobalMinOfOut = Instance.MinOfOut
 
                 # Clear unnecessary data
-                Instance.Ds.geometries = list()
-                Instance.Ds.Energies = list()
-                Instance.Batches = list()
-                Instance.AllGeometries = list()
+                Instance._DataSet.geometries = []
+                Instance._DataSet.Energies = []
+                Instance._DataSet.Forces = []
+                Instance.Batches = []
+                Instance.AllGeometries = []
             # Write global minimum to all instances
             for Instance in self.TrainingInstances:
                 Instance.MinOfOut = self.GlobalMinOfOut
@@ -3366,7 +3386,7 @@ class MultipleInstanceTraining(object):
         global session"""
 
         for Instance in self.TrainingInstances:
-            Instance.Session = self.GlobalSession
+            Instance._Session = self.GlobalSession
 
     def train_multiple_instances(self, StartModelName=None):
         """Trains each instance for EpochsPerCylce epochs then uses the resulting network
@@ -3413,7 +3433,17 @@ class MultipleInstanceTraining(object):
                     # Finished percentage output
                     print(str(100 * ct / (self.GlobalEpochs *
                                           len(self.TrainingInstances))) + " %")
-                    _np.save("trained_variables", LastStepsModelData)
+                    _np.save(self.SavingDirectory + "/trained_variables",
+                             [LastStepsModelData,
+                              Instance._MeansOfDs,
+                              Instance._VarianceOfDs,
+                              Instance._MinOfOut,
+                              Instance.Rs,
+                              Instance.R_Etas,
+                              Instance.Etas,
+                              Instance.Lambs,
+                              Instance.Zetas,
+                              Instance.NumberOfRadialFunctions])
                 ct = ct + 1
                 # Abort criteria
                 if self.GlobalTrainingCosts <= self.GlobalCostCriterion and \
