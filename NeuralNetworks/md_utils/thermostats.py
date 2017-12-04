@@ -11,15 +11,21 @@ def get_temperature(pset):
 
     return T
 
-def set_temperature(pset):
-    m = pset.masses
+def set_temperature(pset, T):
+    # flatten out list of masses (after conversion to kg)
+    m = list(itertools.chain.from_iterable(pset.M[:] / pset.mass_unit)) 
+    sampler = Sampler()
+
+    pset.thermostat_temperature = T
 
     # calculate for each kind of mass
-    for m_i in list(set(m)):
+    for m_i in set(m):
         # get indices of particles with mass m_i
         indices = [j for j, m_j in enumerate(m) if m_j == m_i ]
-        v = Sampler.draw_boltzman_velocities(T, m_i)
-        pset.V[indices] = v
+        v = sampler.draw_boltzman_velocities(pset.size, T, m_i, 1)
+        
+        # convert from m/s in used length unit/s
+        pset.V[indices] = v * pset.unit
     
     return pset
 
@@ -49,12 +55,9 @@ class BerensdenNVT(object):
 class Sampler(object):
     """will draw samples from given distributions"""
 
-    def __init__(self):
-        #all masses in u!
-        self._mass_conversion = 1
-
     def _maxwell_boltzman(self, v, T, m):
-        a = _np.sqrt(k_B * T / (m * self._mass_conversion))
+        """masse in kg!!!"""
+        a = _np.sqrt(k_B * T / (m))
 
         return _np.sqrt(2 / pi) * (v**2 * _np.exp(-v**2/(2 * a**2))) / a**3
 
@@ -62,9 +65,17 @@ class Sampler(object):
         """normal distribution"""
         return  _np.exp(-(x - mu)**2 / (2 * sigma**2)) / _np.sqrt(2 * pi * sigma**2)
 
-    def draw_boltzman_scalars(self, nsamples, T, m):
+    def draw_boltzman_scalars(self, nsamples, T, m, mass_unit=1):
         """Draw maxwell-boltzman distributed for temperature T (in K) and 
-        with masses m in atomic masses via rejection method."""
+        with masses m in atomic masses via rejection method.
+        
+        Args:
+            mass: default unit is a. u.
+            mass_unit: is mass not in kg specify unit conversion here. 
+            Default is factor for unified atomic mass unit.
+        """
+
+        m = m * mass_unit
 
         result = []
 
@@ -72,7 +83,7 @@ class Sampler(object):
         c = 1
 
         # use expectation and variance of boltzman to make sure normal is always higher
-        a = _np.sqrt(k_B * T / (m * self._mass_conversion))
+        a = _np.sqrt(k_B * T / m)
         mu = 2 * a * _np.sqrt(2 / pi)
         sigma = _np.sqrt(a**2 * (3 * pi - 8) / pi)
 
@@ -95,12 +106,20 @@ class Sampler(object):
 
         return _np.array(result[:nsamples])
         
-    def draw_boltzman_velocities(self, nsamples, T, m):
-        """Draw maxwell-boltzman distributed velocites (3-Vectors) for temperature T (in K) and 
-        with masses m in atomic masses via rejection method."""
+    def draw_boltzman_velocities(self, nsamples, T, m, mass_unit=1):
+        """Draw maxwell-boltzman distributed velocites (3D-Vectors) for 
+        temperature T (in K) and 
+        with masses m in atomic masses via rejection method.
+        
+        Args:
+            nsamples: number of vectors to be drawn (i.e. length of output array)
+            T: temperature.
+            m: mass the particles have.
+            mass_unit: conversion factor to kg if mass is not in kg
+        """
 
         # draw absolute values
-        v = self.draw_boltzman_scalars(nsamples, T, m)
+        v = self.draw_boltzman_scalars(nsamples, T, m, mass_unit).reshape(nsamples, 1)
 
         # draw directions in spherical coordinates (uniform distributed)
         phi = _np.random.rand(nsamples) * 2 * pi

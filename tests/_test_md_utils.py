@@ -136,24 +136,51 @@ class PSetProvider(object):
 
         return pset
 
-class ForceModelProvider(object):
+
+        
 
     @staticmethod
-    def provide_NN_force_Au(pset):
-        # --- get Network and force ---
-        Training = NeuralNetworkUtilities.AtomicNeuralNetInstance()
-        Training.prepare_evaluation(
-            join(PathProvider.MD_Utils_test_files_dir, "NNForce","Au"),
-            atom_types=["Au"],
-            nr_atoms_per_type=[pset.size]
-        )
+    def provide_Au13_1000_Kelvin():
+        
+        T = 1000 #K
 
-        NNForce = nn_force.NNForce(Training, pset.size)
-        NNForce.set_masses(pset.M)
-        NNForce.update_force(pset)
-        # ---
 
-        return NNForce
+        #read dodecaeder gold cluster config from input file
+        # geometries are in angstroem
+        reader = SimpleInputReader()
+        reader.read(join(PathProvider.MD_Utils_test_files_dir, "Au13.in"))
+        start_geom = reader.geometries
+
+        pset = ps.ParticlesSet(len(start_geom), 3, label=True, mass=True)
+
+        geom = []
+        masses = []
+        for i, atom in enumerate(start_geom):
+            pset.label[i] = atom[0]
+            masses.append([196])
+            geom.append(atom[1])
+
+        # Coordinates
+        pset.X[:] = np.array(geom)
+        # Mass
+        pset.M[:] = np.array(masses)
+        # Speed
+        pset.V[:] = np.zeros((len(start_geom), 3))
+
+        pset.unit = 1e10 # m -> angstroem
+        pset.mass_unit = 1.660e+27 
+
+        # set initial velocities
+        thermostats.set_temperature(pset, T)
+
+        bound = None
+        pset.set_boundary(bound)
+        pset.enable_log(True, log_max_size=1000)
+
+        return pset
+
+
+class ForceModelProvider(object):
 
     @staticmethod
     def provide_LenardJones_force(pset):
@@ -209,8 +236,8 @@ class _BaseTestWarpper(object):
             # check after 500 steps
             self._advance_solver(solver, steps)
             self.assertAlmostEqual(
-                T,
-                self._temerature_of_system(solver.pset),
+                1,
+                self._temerature_of_system(solver.pset) / T,
                 delta=delta
             )
 
@@ -259,15 +286,15 @@ class TestLangevinVelocityVerlet(_BaseTestWarpper.TestODESolver):
             )
     
 
-    def _test_temperature_conservation(self):
+    def test_temperature_conservation(self):
 
         dt = 2e-15
-        steps = 10000
+        steps = 1000
         gamma = 1e-3
         v_max=1e-8
 
-        #Au13 staring at 0 K going for 1000 K
-        pset = PSetProvider.provide_Au13_Zero_Kelvin()
+        #Au13 staring at 1000 K
+        pset = PSetProvider.provide_Au13_1000_Kelvin()
 
         solver = self._solver_provider(
             pset,
@@ -279,7 +306,7 @@ class TestLangevinVelocityVerlet(_BaseTestWarpper.TestODESolver):
 
         self._check_conservation_of_temperature(
             solver, 
-            pset.thermostat_temperature
+            steps=steps
         )
 
 class TestThermostat(unittest.TestCase):
@@ -305,20 +332,22 @@ class TestSampler(unittest.TestCase):
         T = 1000 # K
 
         # draw velocities
-        v = self._sampler.draw_boltzman_scalars(nsamples, T, m)
+        v = self._sampler.draw_boltzman_scalars(nsamples, T, m, 1.66e-27)
     
         T_actual = self._calculate_temperature_from_scalar_velocities(v, m)
 
         self.assertAlmostEqual(1, T_actual / T, delta)
 
-    def _calculate_temperature_from_scalar_velocities(self, v, m):
+    def _calculate_temperature_from_scalar_velocities(self, v, m, mass_unit=1.66e-27):
         """calculates the temperature from a bunch of velocities
         
         1/2<m v^2> = 3/2 k_B T
         https://en.wikipedia.org/wiki/Thermal_velocity
 
+        mass_unit: factor to convert given mass into kg.
+
         """
-        T = np.mean(v**2 * m  / (3 * k_B))
+        T = np.mean(v**2 * m * mass_unit  / (3 * k_B))
         return T    
 
 
