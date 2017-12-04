@@ -2,12 +2,13 @@
 Tests the md util for this project.
 
 TODO:
-* use the termperature calculation in thermostads.py
+* 
 * include a unit test for the temeperature calculation in thermostats
 
 """
 
 
+from os.path import join, dirname, normpath
 
 from scipy.constants import gravitational_constant as G
 from scipy.constants import Boltzmann as k_B
@@ -17,9 +18,17 @@ from NeuralNetworks import NeuralNetworkUtilities
 from NeuralNetworks.md_utils import nn_force, thermostats
 from NeuralNetworks.md_utils.ode import leapfrog_solver as svs
 import NeuralNetworks.md_utils.pset.particles_set as ps
+from NeuralNetworks.data_generation.data_readers import SimpleInputReader
 
+from pyparticles.forces.lennard_jones import LenardJones
 
 import unittest
+
+
+class PathProvider(object):
+    """This class is just used to provide hard coded file paths"""
+    _test_files_dir = join(dirname(__file__), normpath("TestData"))
+    MD_Utils_test_files_dir = join(_test_files_dir, "MDUtils")
 
 
 class PSetProvider(object):
@@ -94,6 +103,39 @@ class PSetProvider(object):
 
         return pset
 
+    @staticmethod
+    def provide_Au13_Zero_Kelvin():
+        #read dodecaeder gold cluster config from input file
+        reader = SimpleInputReader()
+        reader.read(join(PathProvider.MD_Utils_test_files_dir, "Au13.in"))
+        start_geom = reader.geometries
+
+        pset = ps.ParticlesSet(len(start_geom), 3, label=True, mass=True)
+        pset.thermostat_temperature = 1000
+
+        geom = []
+        masses = []
+        for i, atom in enumerate(start_geom):
+            pset.label[i] = atom[0]
+            masses.append([196])
+            geom.append(atom[1])
+
+        # Coordinates
+        pset.X[:] = np.array(geom)
+        # Mass
+        pset.M[:] = np.array(masses)
+        # Speed
+        pset.V[:] = np.zeros((len(start_geom), 3))
+
+        pset.unit = 1e10
+        pset.mass_unit = 1.660e+27
+
+        bound = None
+        pset.set_boundary(bound)
+        pset.enable_log(True, log_max_size=1000)
+
+        return pset
+
 class ForceModelProvider(object):
 
     @staticmethod
@@ -101,7 +143,7 @@ class ForceModelProvider(object):
         # --- get Network and force ---
         Training = NeuralNetworkUtilities.AtomicNeuralNetInstance()
         Training.prepare_evaluation(
-            "TestData/NNForce/",
+            join(PathProvider.MD_Utils_test_files_dir, "NNForce","Au"),
             atom_types=["Au"],
             nr_atoms_per_type=[pset.size]
         )
@@ -112,6 +154,14 @@ class ForceModelProvider(object):
         # ---
 
         return NNForce
+
+    @staticmethod
+    def provide_LenardJones_force(pset):
+
+        force = LenardJones(pset.size)
+        force.set_masses(pset.M)
+        force.update_force(pset)
+        return force
 
 class ODESolverProvider(object):
     @staticmethod
@@ -152,8 +202,7 @@ class _BaseTestWarpper(object):
         def _check_conservation_of_energy(self):
             raise NotImplementedError()
 
-        def _check_conservation_of_temperature(self, solver, steps=800):
-            raise NotImplementedError()
+        def _check_conservation_of_temperature(self, solver, steps=800, delta=2):
 
             T = solver.pset.thermostat_temperature
 
@@ -162,7 +211,7 @@ class _BaseTestWarpper(object):
             self.assertAlmostEqual(
                 T,
                 self._temerature_of_system(solver.pset),
-                delta=2
+                delta=delta
             )
 
         def _temerature_of_system(self, pset):
@@ -181,16 +230,19 @@ class TestLangevinVelocityVerlet(_BaseTestWarpper.TestODESolver):
         self._solver_provider = \
             ODESolverProvider.provide_langevin_velocity_verlet
 
-    def test_no_crash_nn_field(self):
+    def test_no_crash(self):
+        """make sure solver does not collapse (raise an exception) during x 
+        steps."""
+
         dt = 2e-15
-        steps = 100
+        steps = 1000
         gamma = 1e-3
         v_max=1e-8
         pset = self._pset_provider()
 
         solver = self._solver_provider(
             pset,
-            ForceModelProvider.provide_NN_force(pset)
+            ForceModelProvider.provide_LenardJones_force,
             dt=dt,
             steps=steps,
             gamma=gamma
@@ -198,30 +250,37 @@ class TestLangevinVelocityVerlet(_BaseTestWarpper.TestODESolver):
 
         try:
             self._advance_solver(solver, steps)
-        else:
-            self.fail("Langevin Velocity-Verlet failed!")
+        except:
+            steps = solver.get_steps()
+            self.fail(
+                "Langevin Velocity-Verlet failed after {0} steps!".format(
+                    solver.get_steps()
+                )
+            )
     
 
-    def test_temperature_conservation_in_gravity_field(self):
-        
-        self.skipTest("Not implemented yet!")
+    def _test_temperature_conservation(self):
 
-        # Todo: provide unit test that checks if mean of temperature is conserved.
         dt = 2e-15
         steps = 10000
         gamma = 1e-3
         v_max=1e-8
-        pset = self._pset_provider()
+
+        #Au13 staring at 0 K going for 1000 K
+        pset = PSetProvider.provide_Au13_Zero_Kelvin()
 
         solver = self._solver_provider(
             pset,
-            ForceModelProvider.provide_NN_force(pset)
+            ForceModelProvider.provide_LenardJones_force,
             dt=dt,
             steps=steps,
             gamma=gamma
         )
 
-        self._check_conservation_of_temperature(solver, 7000)
+        self._check_conservation_of_temperature(
+            solver, 
+            pset.thermostat_temperature
+        )
 
 class TestThermostat(unittest.TestCase):
 
@@ -229,6 +288,38 @@ class TestThermostat(unittest.TestCase):
         #test 0 K ensemble
         pset_0K = PSetProvider.provide_Au3_Zero_Kelvin()
         self.assertEqual(0, thermostats.get_temperature(pset_0K))
+
+class TestSampler(unittest.TestCase):
+
+    def setUp(self):
+        self._sampler = thermostats.Sampler()
+
+    def test_sampled_temperature(self):
+        """Sample a bunch of speeds and see if their temperature is correct"""
+
+        nsamples = int(1e6)
+        delta = 1
+
+        # Gold mass in u
+        m = 196
+        T = 1000 # K
+
+        # draw velocities
+        v = self._sampler.draw_boltzman_scalars(nsamples, T, m)
+    
+        T_actual = self._calculate_temperature_from_scalar_velocities(v, m)
+
+        self.assertAlmostEqual(1, T_actual / T, delta)
+
+    def _calculate_temperature_from_scalar_velocities(self, v, m):
+        """calculates the temperature from a bunch of velocities
+        
+        1/2<m v^2> = 3/2 k_B T
+        https://en.wikipedia.org/wiki/Thermal_velocity
+
+        """
+        T = np.mean(v**2 * m  / (3 * k_B))
+        return T    
 
 
 if __name__ == '__main__':

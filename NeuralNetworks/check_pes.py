@@ -9,14 +9,14 @@ plt.ion()
 
 class PES(object):
 
-    def __init__(self,model_name):
+    def __init__(self,model_name,Instance=None):
         self.geoms=[]
         self.figure=plt.figure()
         self.ax = Axes3D(self.figure)
         self.ax.set_zlim(bottom=0,top=5)
         plt.title(model_name)
         self.theta=np.linspace(90*np.pi/180,270*np.pi/180,50)
-        self.rhs=np.linspace(2,5,50)
+        self.rhs=np.linspace(1,7,50)
         self.meshX,self.meshY=np.meshgrid(self.rhs,self.theta*180/np.pi)
         meshZ=np.zeros((len(self.theta),len(self.rhs)))
         self.surf=self.ax.plot_surface(self.meshX,self.meshY,meshZ,cmap=cm.magma,animated=True)
@@ -24,6 +24,14 @@ class PES(object):
         self.create_geoms()
         self.Evaluation = NN.AtomicNeuralNetInstance()
         self.Evaluation.TextOutput=False
+        if Instance!=None:
+            self.Evaluation._IsFromCheck=True
+            self.Evaluation.Rs=Instance.Rs
+            self.Evaluation.R_Etas=Instance.R_Etas
+            self.Evaluation.NumberOfRadialFunctions=Instance.NumberOfRadialFunctions
+            self.Evaluation.Etas=Instance.Etas
+            self.Evaluation.Lambs=Instance.Lambs
+            self.Evaluation.Zetas=Instance.Zetas
         self.Data=None
         self.ZData=[]
 

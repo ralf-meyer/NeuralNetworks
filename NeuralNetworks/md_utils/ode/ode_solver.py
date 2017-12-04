@@ -214,9 +214,12 @@ class OdeSolver(object) :
         self.__steps_cnt += 1
         self.__step__( dt )
 
-        self.all_epot.append(self.force.Epot)
-        self.all_etot.append(self.force.Etot)
-        self.all_forces.append(self.force.F)
+        if hasattr(self.force, "Epot"):
+            self.all_epot.append(self.force.Epot)
+        if hasattr(self.force, "Etot"):
+            self.all_etot.append(self.force.Etot)
+        if hasattr(self.force, "F"):
+            self.all_forces.append(self.force.F)
         self.all_temp.append(thermo.get_temperature(self.pset))
 
         # will log current positons/forces etc. if for activated logging types
