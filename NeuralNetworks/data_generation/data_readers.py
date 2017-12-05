@@ -1208,8 +1208,9 @@ class SimpleInputReader(object):
 
     def __init__(self):
         self.geometries = []
+        self.energies=[]
 
-    def read(self, fpath):
+    def read(self, fpath,skip=0):
         """Reads the contents of an input file line per line and appends
         the read values to geometry attribute. 
         
@@ -1219,17 +1220,25 @@ class SimpleInputReader(object):
             ValueError: if no file can be found at fpath.
             Any other exception that may occure during parsing of input.
         """
-
+        geometry=[]
         if not (fpath and isfile(fpath)):
             raise ValueError("Input file {0} could not be found!", format(fpath))
         
         try:
             with open(fpath, 'r') as f:
+                counter = 0
                 for line in f:
+                    if counter < skip:
+                        if "eV" in line:
+                            self.energies.append(float(line.split(" ")[0]))
+                        counter += 1
+                        continue
+
                     sections = line.split()
 
                     input_data = (sections[0], _np.array(map(float, sections[1:4])))
-                    self.geometries.append(input_data)
+                    geometry.append(input_data)
+            self.geometries.append(geometry)
         except Exception as ex:
             raise ex
 
