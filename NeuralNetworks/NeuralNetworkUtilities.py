@@ -779,7 +779,7 @@ class AtomicNeuralNetInstance(object):
         self.TrainedVariables = []
         self.CostFunType = "squared-difference"
         self.SavingDirectory = "save"
-        self.CalcDatasetStatistics=False
+        self.CalcDatasetStatistics=True
         self._IsFromCheck=False
         # Symmetry function set settings
         self.NumberOfRadialFunctions = 20
@@ -1465,7 +1465,7 @@ class AtomicNeuralNetInstance(object):
                     # Train one batch
                     TrainingCosts, ValidationCosts = self._train_atomic_network_batch(
                         Layers, TrainingData, ValidationData)
-                    #print(self._Net.VariablesDictionary)
+
                     tempTrainingCost.append(TrainingCosts)
                     tempValidationCost.append(ValidationCosts)
 
@@ -1530,7 +1530,7 @@ class AtomicNeuralNetInstance(object):
                                     _update_delta_e_plot(self.DeltaE, de_plot, de_fig, de_ax)
                         # Finished percentage output
                         print([str(100 * i / self.Epochs) + " %",
-                               "deltaE = " + str(self.DeltaE[-1]) + " ev",
+                               "deltaE = " + str(self.DeltaE[-1]) + " eV",
                                "Cost = " + str(self.TrainingCosts),
                                "t = " + str(_time.time() - start) + " s",
                                "global step: " + str(self._Session.run(self.GlobalStep))])
@@ -1575,7 +1575,7 @@ class AtomicNeuralNetInstance(object):
                             print("Reached Criterion!")
                             print(
                                 "Cost= " + str((self.TrainingCosts + self.ValidationCosts) / 2))
-                            print("delta E = " + str(self.DeltaE[-1]) + " ev")
+                            print("delta E = " + str(self.DeltaE[-1]) + " eV")
                             print("t = " + str(_time.time() - start) + " s")
                             print("Epoch = " + str(i))
                             print("")
@@ -1583,7 +1583,7 @@ class AtomicNeuralNetInstance(object):
                         else:
                             print("Reached Criterion!")
                             print("Cost= " + str(self.TrainingCosts))
-                            print("delta E = " + str(self.DeltaE[-1]) + " ev")
+                            print("delta E = " + str(self.DeltaE[-1]) + " eV")
                             print("t = " + str(_time.time() - start) + " s")
                             print("Epoch = " + str(i))
                             print("")
@@ -1595,19 +1595,19 @@ class AtomicNeuralNetInstance(object):
                                   str(train_stat[0]) +
                                   "+-" +
                                   str(_np.sqrt(train_stat[1])) +
-                                  " ev")
+                                  " eV")
                             print("Validation dataset error= " +
                                   str(val_stat[0]) +
                                   "+-" +
                                   str(_np.sqrt(val_stat[1])) +
-                                  " ev")
+                                  " eV")
                             print("Training finished")
                             break
 
                     if i == (self.Epochs - 1) and self.Multiple==False:
 
                         print("Training finished")
-                        print("delta E = " + str(self.DeltaE[-1]) + " ev")
+                        print("delta E = " + str(self.DeltaE[-1]) + " eV")
                         print("t = " + str(_time.time() - start) + " s")
                         print("")
 
@@ -1616,12 +1616,12 @@ class AtomicNeuralNetInstance(object):
                               str(train_stat[0]) +
                               "+-" +
                               str(_np.sqrt(train_stat[1])) +
-                              " ev")
+                              " eV")
                         print("Validation dataset error= " +
                               str(val_stat[0]) +
                               "+-" +
                               str(_np.sqrt(val_stat[1])) +
-                              " ev")
+                              " eV")
 
             if self.Multiple:
                 self.TrainedVariables = self._Net.get_trained_variables(
@@ -1659,6 +1659,9 @@ class AtomicNeuralNetInstance(object):
         dGs=[]
         if self.UseForce:
             dGs=[_np.asarray(self._SymmFunSet.eval_geometry_derivatives(geometry))]
+        if self.CalcDatasetStatistics:
+            AllTemp=[G for G in Gs[0]]
+            self._calculate_statistics_for_dataset(AllTemp)
         GInputs, GDerivativesInput,Normalization=self._sort_and_normalize_data(1,Gs,dGs)
 
         if self.UseForce:
@@ -1686,8 +1689,8 @@ class AtomicNeuralNetInstance(object):
             test_size+=_np.asarray(
                         self._SymmFunSet.eval_geometry_derivatives(
                             self._DataSet.geometries[0])).nbytes
-
-        print("Needed memory:" + str(2 * NrGeom * test_size / 1e9) + " GB") # Factor of two because of batch generation
+        if self.TextOutput:
+            print("Needed memory:" + str(2 * NrGeom * test_size / 1e9) + " GB") # Factor of two because of batch generation
         if 2*test_size*NrGeom>virtual_memory().total:
             warnings.warn("Not enough memory for all geometries!")
 
@@ -1716,20 +1719,27 @@ class AtomicNeuralNetInstance(object):
 
         NrAtoms = sum(self.NumberOfAtomsPerType)
         # calculate mean and sigmas for all Gs
-        print("Calculating mean values and variances...")
+        if self.TextOutput:
+            print("Calculating mean values and variances...")
         # Input statistics
-        try:
-            if self.CalcDatasetStatistics:
-                self._MeansOfDs = _np.mean(AllTemp, axis=0)
-                self._VarianceOfDs =_np.maximum(1e-2,_np.var(AllTemp, axis=0))
-            else:
-                self._MeansOfDs=_np.multiply(_np.ones((self.SizeOfInputsPerType[0])),6)
-                self._VarianceOfDs=_np.multiply(_np.ones((self.SizeOfInputsPerType[0])),25)
-            self._VarianceOfDs=_np.nan_to_num(self._VarianceOfDs)
+        #try:
+        if self.CalcDatasetStatistics:
+            self._MeansOfDs = _np.mean(AllTemp, axis=0)
+            raw_var =_np.var(AllTemp, axis=0)
+            L_finite =_np.isfinite(raw_var)
+            L_non_zero = raw_var > 0
+            L=_np.logical_and(L_non_zero,L_finite)
+            var=_np.ones_like(raw_var)
+            var[L]=raw_var[L]
+            self._VarianceOfDs =_np.maximum(1e-2,var)
+        else:
+            self._MeansOfDs=_np.multiply(_np.ones((self.SizeOfInputsPerType[0])),6)
+            self._VarianceOfDs=_np.multiply(_np.ones((self.SizeOfInputsPerType[0])),25)
+        self._VarianceOfDs=_np.nan_to_num(self._VarianceOfDs)
 
-        except:
-            raise ValueError(
-                    "Number of atoms per type does not match input!")
+        #except:
+        #    raise ValueError(
+        #            "Number of atoms per type does not match input!")
         # Output statistics
         if len(self._DataSet.energies) > 0:
             NormalizedEnergy = _np.divide(self._DataSet.energies, NrAtoms)
@@ -2159,7 +2169,8 @@ class AtomicNeuralNetInstance(object):
                         _np.subtract(
                             GData[j][ct], self._MeansOfDs), _np.sqrt(
                         self._VarianceOfDs))
-                    Inputs[ct][j] = temp
+
+                    Inputs[ct][j] = _np.nan_to_num(temp)
                     if len(GDerivativesData) > 0:
                         DerInputs[ct][j] = GDerivativesData[j][ct]
                         Norm[ct] = _np.tile(_np.divide(
@@ -3413,7 +3424,7 @@ class MultipleInstanceTraining(object):
                 self.set_session()
                 self.GlobalTrainingCosts += Instance.OverallTrainingCosts
                 self.GlobalValidationCosts += Instance.OverallValidationCosts
-                if ct % max(int((self.GlobalEpochs * len(self.TrainingInstances)) / 50),
+                if ct % max(int((self.GlobalEpochs * len(self.TrainingInstances)) / 100),
                             1) == 0 or i == (self.GlobalEpochs - 1):
                     if self.MakePlots:
 
@@ -3430,11 +3441,12 @@ class MultipleInstanceTraining(object):
                                 self.GlobalValidationCosts,
                                 RunningMeanPlot)
 
+
                     # Finished percentage output
                     print(str(100 * ct / (self.GlobalEpochs *
                                           len(self.TrainingInstances))) + " %")
                     _np.save(self.SavingDirectory + "/trained_variables",
-                             [LastStepsModelData,
+                             [LastStepsModelData[0],
                               Instance._MeansOfDs,
                               Instance._VarianceOfDs,
                               Instance._MinOfOut,
@@ -3455,14 +3467,14 @@ class MultipleInstanceTraining(object):
                         print(
                             "Cost= " + str((self.GlobalTrainingCosts + \
                                             self.GlobalValidationCosts) / 2))
-                        print("delta E = " + str(Instance.DeltaE) + " ev")
+                        print("delta E = " + str(Instance.DeltaE[-1]) + " eV")
                         print("Epoch = " + str(i))
                         print("")
 
                     else:
                         print("Reached Criterion!")
                         print("Cost= " + str(self.GlobalTrainingCosts))
-                        print("delta E = " + str(Instance.DeltaE) + " ev")
+                        print("delta E = " + str(Instance.DeltaE[-1]) + " eV")
                         print("Epoch = " + str(i))
                         print("")
 
@@ -3471,7 +3483,7 @@ class MultipleInstanceTraining(object):
 
                 if i == (self.GlobalEpochs - 1):
                     print("Training finished")
-                    print("delta E = " + str(Instance.DeltaE) + " ev")
+                    print("delta E = " + str(Instance.DeltaE[-1]) + " eV")
                     print("Epoch = " + str(i))
                     print("")
 
