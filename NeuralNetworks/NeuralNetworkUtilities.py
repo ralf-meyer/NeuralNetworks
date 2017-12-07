@@ -1390,6 +1390,7 @@ class AtomicNeuralNetInstance(object):
         self.OverallValidationCosts = []
         NormalizationTraining = []
         NormalizationValidation = []
+        self.DeltaE=[]
 
         start = _time.time()
         Execute = True
@@ -2172,9 +2173,12 @@ class AtomicNeuralNetInstance(object):
 
                     Inputs[ct][j] = _np.nan_to_num(temp)
                     if len(GDerivativesData) > 0:
-                        DerInputs[ct][j] = GDerivativesData[j][ct]
-                        Norm[ct] = _np.tile(_np.divide(
-                            1, _np.sqrt(self._VarianceOfDs)), (BatchSize, 1))
+                        try:
+                            DerInputs[ct][j] = GDerivativesData[j][ct]
+                            Norm[ct] = _np.tile(_np.divide(
+                                1, _np.sqrt(self._VarianceOfDs)), (BatchSize, 1))
+                        except:
+                            raise ValueError("Wrong number of atoms per type")
 
                 ct += 1
         #except:
@@ -3344,13 +3348,15 @@ class MultipleInstanceTraining(object):
         self.GlobalRegularization = "L2"
         self.GlobalRegularizationParam = 0.0001
         self.GlobalOptimizer = "Adam"
-        self.GlobalTrainingCosts = list()
-        self.GlobalValidationCosts = list()
+        self.GlobalTrainingCosts = []
+        self.GlobalValidationCosts = []
+        self.GlobalDE=[]
         self.GlobalMinOfOut = 0
         self.MakePlots = False
         self.IsPartitioned = False
         self.GlobalSession = _tf.Session()
         self.SavingDirectory=""
+        self.PESCheck=None
 
     def initialize_multiple_instances(self):
         """Initializes all instances with the same parameters."""
@@ -3420,10 +3426,12 @@ class MultipleInstanceTraining(object):
 
                 LastStepsModelData = Instance.start_batch_training()
                 _tf.reset_default_graph()
-                self.GlobalSession = _tf.Session()
+                Instance._Session.close()
+                self.GlobalSession = _tf.InteractiveSession()
                 self.set_session()
                 self.GlobalTrainingCosts += Instance.OverallTrainingCosts
                 self.GlobalValidationCosts += Instance.OverallValidationCosts
+                self.GlobalDE += Instance.DeltaE
                 if ct % max(int((self.GlobalEpochs * len(self.TrainingInstances)) / 100),
                             1) == 0 or i == (self.GlobalEpochs - 1):
                     if self.MakePlots:
@@ -3431,7 +3439,10 @@ class MultipleInstanceTraining(object):
                         if ct == 0:
                             fig, ax, TrainingCostPlot, ValidationCostPlot, RunningMeanPlot = _initialize_cost_plot(
                                 self.GlobalTrainingCosts, self.GlobalValidationCosts)
+                            de_fig, de_ax, de_plot = _initialize_delta_e_plot(self.GlobalDE)
                         else:
+                            if self.PESCheck != None:
+                                self.PESCheck.pes_check()
                             _update_cost_plot(
                                 fig,
                                 ax,
@@ -3440,11 +3451,13 @@ class MultipleInstanceTraining(object):
                                 ValidationCostPlot,
                                 self.GlobalValidationCosts,
                                 RunningMeanPlot)
-
+                            _update_delta_e_plot(self.GlobalDE, de_plot, de_fig, de_ax)
 
                     # Finished percentage output
                     print(str(100 * ct / (self.GlobalEpochs *
                                           len(self.TrainingInstances))) + " %")
+                    if not _os.path.exists(self.SavingDirectory):
+                        _os.makedirs(self.SavingDirectory)
                     _np.save(self.SavingDirectory + "/trained_variables",
                              [LastStepsModelData[0],
                               Instance._MeansOfDs,
