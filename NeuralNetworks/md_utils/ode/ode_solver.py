@@ -26,6 +26,7 @@ from matplotlib import animation
 import numpy as _np
 import time as _time
 from os import linesep
+import os as _os
 
 
 class OdeSolver(object) :
@@ -78,6 +79,9 @@ class OdeSolver(object) :
         self.ax3 = None
         self.scat = None
         self.eplot=None
+        self.save_png=False
+        self.png_path=""
+        self.counter=0
 
         # Instatiate a logger (but deactivate logging by default)
         #TODO: log file paths should not be speciefied in ctor of solver
@@ -101,7 +105,12 @@ class OdeSolver(object) :
         self.ax1 = self.fig.add_subplot(311, projection='3d')
         self.ax2 = self.fig.add_subplot(312)
         self.ax3 = self.fig.add_subplot(313)
+        if self.save_png:
+            if not _os.path.exists(self.png_path):
+                _os.makedirs(self.png_path)
 
+            self.fig.savefig(_os.path.join(self.png_path,"pic_"+str(self.counter)))
+        self.counter+=1
         self.setup_plot()
 
 
@@ -150,6 +159,9 @@ class OdeSolver(object) :
         self.epot_plot,=self.ax2.plot(np.arange(1,len(plt_epot)+1),plt_epot,c='b')
         self.etot_plot, = self.ax2.plot(np.arange(1, len(plt_etot) + 1), plt_etot, c='r')
         self.temp_plot, = self.ax3.plot(np.arange(1, len(plt_temp) + 1), plt_temp, c='g', label="Temperature /K")
+        if self.save_png:
+            self.fig.savefig(_os.path.join(self.png_path, "pic_" + str(self.counter)))
+        self.counter+=1
         self.fig.canvas.draw()
         self.fig.canvas.flush_events()
 
