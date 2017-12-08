@@ -1890,7 +1890,7 @@ class AtomicNeuralNetInstance(object):
         if not("trained_variables" in model_name):
             model_name=model_name+"/trained_variables"
         if not(self._IsFromCheck):
-            self.load_model(model_name,load_statistics=load_statistics)
+            self.load_model(model_name,load_statistics=True)
         if len(atom_types)>0:
             self.Atomtypes = atom_types
         self.NumberOfAtomsPerType = nr_atoms_per_type
