@@ -906,7 +906,7 @@ class AtomicNeuralNetInstance(object):
             # Initialize session
         self._Session.run(_tf.global_variables_initializer())
 
-    def load_model(self, ModelName="save/trained_variables"):
+    def load_model(self, ModelName="save/trained_variables",load_statistics=True):
         """Loads the model in the specified folder.
         Args:
             ModelName(str):Path to the model.
@@ -925,8 +925,9 @@ class AtomicNeuralNetInstance(object):
                     self.Atomtypes.append(NetForType[0][-1])
                     if self.TextOutput:
                         print("Atomtype "+str(i)+" is "+str(self.Atomtypes[-1]))
-        self._MeansOfDs = rare_model[1]
-        self._VarianceOfDs = rare_model[2]
+        if load_statistics:
+            self._MeansOfDs = rare_model[1]
+            self._VarianceOfDs = rare_model[2]
         self._MinOfOut = rare_model[3]
         try:
             self.Rs=rare_model[4]
@@ -952,7 +953,8 @@ class AtomicNeuralNetInstance(object):
             ModelName="save/trained_variables",
             MakeAllVariable=True,
             ModelData=None,
-            ConvertToPartitioned=False):
+            ConvertToPartitioned=False,
+            load_statistics=True):
         """Creates a new network out of stored data.
         Args:
             MakeAllVariables(bool): Specifies if all layers can be trained
@@ -961,7 +963,7 @@ class AtomicNeuralNetInstance(object):
             PartitionedAtomicNetwork network with the StandardAtomicNetwork
             beeing the force network part."""
         if ModelData is None:
-            Success = self.load_model(ModelName)
+            Success = self.load_model(ModelName,load_statistics=load_statistics)
         else:
             self.TrainedVariables = ModelData[0]
             self._MinOfOut = ModelData[1]
@@ -1888,7 +1890,7 @@ class AtomicNeuralNetInstance(object):
         if not("trained_variables" in model_name):
             model_name=model_name+"/trained_variables"
         if not(self._IsFromCheck):
-            self.load_model(model_name)
+            self.load_model(model_name,load_statistics=load_statistics)
         if len(atom_types)>0:
             self.Atomtypes = atom_types
         self.NumberOfAtomsPerType = nr_atoms_per_type
@@ -3421,7 +3423,7 @@ class MultipleInstanceTraining(object):
             for Instance in self.TrainingInstances:
                 if ct == 0:
                     if StartModelName is not None:
-                        Instance.expand_existing_net(ModelName=StartModelName)
+                        Instance.expand_existing_net(ModelName=StartModelName,load_statistics=False)
                     else:
                         Instance.make_and_initialize_network()
                 else:

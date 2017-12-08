@@ -68,7 +68,7 @@ Training.UseForce=force
 #Default symmetry function set
 #Training.NumberOfRadialFunctions=25
 Training.Lambs=[1.0,-1.0]
-Training.Zetas=[0.2,1,10]#[0.025,0.045,0.075,0.1,0.15,0.2,0.3,0.5,0.7,1,1.5,2,3,5,10,18,36,100]
+Training.Zetas=[0.2,0.5,1,3,10]#[0.025,0.045,0.075,0.1,0.15,0.2,0.3,0.5,0.7,1,1.5,2,3,5,10,18,36,100]
 Training.Etas=[0.01]
 Training.Rs=[1,1.8,2,2.2,2.4,2.6,2.8,3.0,3.2,3.4,3.6,3.8,4,4.2,4.4,5,7]
 Training.R_Etas=[0.1,0.3,0.8,0.8,0.8,3,3,3,3,3,2,0.8,0.8,0.8,0.8,0.3,0.1]
@@ -82,7 +82,7 @@ Training.make_training_and_validation_data(batch_size,90,10)
 
 #Default trainings settings
 for i in range(nr_species):
-    Training.Structures.append([Training.SizeOfInputsPerType[i],80,60,1])
+    Training.Structures.append([Training.SizeOfInputsPerType[i],100,80,1])
 
 #Dropout and regularization for generalizing the net
 Training.Dropout=[0,0.5,0]

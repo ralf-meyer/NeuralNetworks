@@ -11,7 +11,7 @@ def str2bool(v):
 #Get input
 plots=False
 learning_rate=0.0001
-epochs=200
+epochs=300
 data_file=""
 force=False
 e_unit="Ry"
@@ -70,17 +70,17 @@ if load_model:
     print("Loaded model = "+model)
 print("Save path : "+os.path.join(os.getcwd(),model_dir))
 
-# data_files=["/home/afuchs/Documents/Ni15Au15/",
-#             "/home/afuchs/Documents/Ni5Au5/",
-#             "/home/afuchs/Documents/Ni5Au5_6000/",
-#             "/home/afuchs/Documents/Ni10Au10/",
-#             "/home/afuchs/Documents/Ni1Au2/",
-#             "/home/afuchs/Documents/Ni2Au1",
-#             "/home/afuchs/Documents/Ni2Au2"]
-data_files=["/home/afuchs/Documents/Ni1Au2/",
+data_files=["/home/afuchs/Documents/Ni15Au15/",
+            "/home/afuchs/Documents/Ni5Au5/",
+            "/home/afuchs/Documents/Ni5Au5_6000/",
+            "/home/afuchs/Documents/Ni10Au10/",
+            "/home/afuchs/Documents/Ni1Au2/",
             "/home/afuchs/Documents/Ni2Au1",
-            "/home/afuchs/Documents/Ni2Au2",
-            "/home/afuchs/Documents/Ni5Au5_6000/"]
+            "/home/afuchs/Documents/Ni2Au2"]
+# data_files=["/home/afuchs/Documents/Ni1Au2/",
+#             "/home/afuchs/Documents/Ni2Au1",
+#             "/home/afuchs/Documents/Ni2Au2",
+#             "/home/afuchs/Documents/Ni5Au5_6000/"]
 Multi=_NN.MultipleInstanceTraining()
 
 for i in range(len(data_files)):
@@ -150,7 +150,7 @@ for Training in Multi.TrainingInstances:
 
 
 Multi.MakePlots=True
-Multi.EpochsPerCycle=15
+Multi.EpochsPerCycle=5
 Multi.GlobalEpochs=epochs
 Multi.GlobalLearningRate=learning_rate
 Multi.GlobalRegularization="L2"

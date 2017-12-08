@@ -227,7 +227,7 @@ class Optimizer(object):
             self.update_with_energy=True
         res=minimize(self.fun,self.x0,
                      method='nelder-mead',
-                     tol=1e-3,
+                     tol=1e-2,
                      options={'disp': True})
         return self.to_nn_input(res.x)
 
@@ -238,7 +238,7 @@ class Optimizer(object):
             self.update_with_energy=True
         res=minimize(self.fun,self.x0,
                      method='powell',
-                     tol=1e-3,
+                     tol=1e-2,
                      options={'disp': True})
         return self.to_nn_input(res.x)
 
@@ -250,7 +250,7 @@ class Optimizer(object):
         res=minimize(self.fun,self.x0,
                      method='cg',
                      jac=self.der_fun,
-                     tol=1e-3,
+                     tol=1e-2,
                      options={'disp': True})
         return self.to_nn_input(res.x)
 
@@ -262,7 +262,7 @@ class Optimizer(object):
         res=minimize(self.fun,self.x0,
                      method='Newton-CG',
                      jac=self.der_fun,
-                     tol=1e-3,
+                     tol=1e-2,
                      options={'disp': True})
         return self.to_nn_input(res.x)
 
@@ -274,7 +274,7 @@ class Optimizer(object):
         res=minimize(self.fun,self.x0,
                      method='L-BFGS-B',
                      jac=self.der_fun,
-                     tol=1e-3,
+                     tol=1e-2,
                      options={'disp': True})
         return self.to_nn_input(res.x)
 
@@ -286,7 +286,7 @@ class Optimizer(object):
         res=minimize(self.fun,self.x0,
                      method='TNC',
                      jac=self.der_fun,
-                     tol=1e-3,
+                     tol=1e-2,
                      options={'disp': True})
         return self.to_nn_input(res.x)
 
@@ -297,7 +297,7 @@ class Optimizer(object):
             self.update_with_energy=True
         res=minimize(self.fun,self.x0,
                      method='COBYLA',
-                     tol=1e-3,
+                     tol=1e-2,
                      options={'disp': True})
         return self.to_nn_input(res.x)
 
@@ -309,7 +309,7 @@ class Optimizer(object):
         res=minimize(self.fun,self.x0,
                      method='SLSQP',
                      jac=self.der_fun,
-                     tol=1e-3,
+                     tol=1e-2,
                      options={'disp': True})
         return self.to_nn_input(res.x)
 
@@ -320,7 +320,7 @@ class Optimizer(object):
             self.update_with_energy=True
         res=minimize(self.fun,self.x0,method='dogleg',
                      jac=self.der_fun,
-                     hess=self.hessian_approx,tol=1e-3,
+                     hess=self.hessian_approx,tol=1e-2,
                      options={'disp': True})
         return self.to_nn_input(res.x)
 
@@ -333,7 +333,7 @@ class Optimizer(object):
                      method='trust-ncg',
                      jac=self.der_fun,
                      hess=self.hessian_approx,
-                     tol=1e-3,
+                     tol=1e-2,
                      options={'disp': True})
         return self.to_nn_input(res.x)
 
@@ -346,7 +346,7 @@ class Optimizer(object):
                      method='trust-exact',
                      jac=self.der_fun,
                      hess=self.hessian_approx,
-                     tol=1e-3,
+                     tol=1e-2,
                      options={'disp': True})
         return self.to_nn_input(res.x)
 
@@ -359,6 +359,6 @@ class Optimizer(object):
                      method='trust-krylov',
                      jac=self.der_fun,
                      hess=self.hessian_approx,
-                     tol=1e-3,
+                     tol=1e-2,
                      options={'disp': True})
         return self.to_nn_input(res.x)

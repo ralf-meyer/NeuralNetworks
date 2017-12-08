@@ -10,7 +10,7 @@ def str2bool(v):
   return v.lower() in ("yes", "true", "t", "1")
 #Get input
 plots=False
-learning_rate=0.0001
+learning_rate=0.00001
 epochs=5000
 data_file=""
 force=False
@@ -21,6 +21,7 @@ model=""
 model_dir="save_no_name"
 source=""
 percentage_of_data=100
+cost_fun="Adaptive_2"
 
 for i,arg in enumerate(sys.argv):
     if "-input" in arg:
@@ -47,6 +48,8 @@ for i,arg in enumerate(sys.argv):
         source = sys.argv[i + 1]
     if "-data_percentage" in arg:
         percentage_of_data = float(sys.argv[i + 1])
+    if "-cost_fun" in arg:
+        cost_fun = sys.argv[i + 1]
 
 if data_file=="":
     print("Please specify a MD file")
@@ -77,15 +80,19 @@ Training.UseForce=force
 #Default symmetry function set
 #Training.NumberOfRadialFunctions=15
 Training.Lambs=[1.0,-1.0]
-Training.Zetas=[0.2,1,10]#[0.025,0.045,0.075,0.1,0.15,0.2,0.3,0.5,0.7,1,1.5,2,3,5,10,18,36,100]
+Training.Zetas=[0.2,0.5,1,3,10]#[0.025,0.045,0.075,0.1,0.15,0.2,0.3,0.5,0.7,1,1.5,2,3,5,10,18,36,100]
 Training.Etas=[0.01]
 Training.Rs=[1,1.8,2,2.2,2.4,2.6,2.8,3.0,3.2,3.4,3.6,3.8,4,4.2,4.4,5,7]
 Training.R_Etas=[0.1,0.3,0.8,0.8,0.8,3,3,3,3,3,2,0.8,0.8,0.8,0.8,0.3,0.1]
+if load_model:
+    is_reference=False
+else:
+    is_reference=True
 #Read file
 if source == "QE":
-    Training.read_qe_md_files(data_file,e_unit,dist_unit,DataPointsPercentage=percentage_of_data)
+    Training.read_qe_md_files(data_file,e_unit,dist_unit,DataPointsPercentage=percentage_of_data,TakeAsReference=is_reference)
 else:
-    Training.read_lammps_files(data_file,energy_unit=e_unit,dist_unit=dist_unit,DataPointsPercentage=percentage_of_data)
+    Training.read_lammps_files(data_file,energy_unit=e_unit,dist_unit=dist_unit,DataPointsPercentage=percentage_of_data,TakeAsReference=is_reference)
 
 print("Starting training for:")
 for i in range(0,len(Training.Atomtypes)):
@@ -110,7 +117,7 @@ Training.Epochs=epochs
 Training.ForceCostParam=0.001
 Training.MakePlots=plots
 Training.ActFun="elu"
-Training.CostFunType="Adaptive_1"
+Training.CostFunType=cost_fun
 Training.OptimizerType="Adam"
 Training.SavingDirectory=model_dir
 Training.MakeLastLayerConstant=False
@@ -121,9 +128,13 @@ if load_model:
     #Load pretrained net
     try:
         if model=="":
-            Training.expand_existing_net(ModelName="../data/pretraining_"+str(len(Training.Atomtypes))+"_species",MakeAllVariable=Training.MakeAllVariable)
+            Training.expand_existing_net(ModelName="../data/pretraining_"+str(len(Training.Atomtypes))+"_species",
+                                         MakeAllVariable = Training.MakeAllVariable,
+                                         load_statistics = False)
         else:
-            Training.expand_existing_net(ModelName=model,MakeAllVariable=Training.MakeAllVariable)
+            Training.expand_existing_net(ModelName=model,
+                                         MakeAllVariable=Training.MakeAllVariable,
+                                         load_statistics = False)
     except:
         raise IOError("Model not found, please specify model directory via -model x")
 else:
