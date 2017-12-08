@@ -24,6 +24,7 @@ class PES(object):
         self.model=model_name
         self.create_geoms()
         self.Evaluation = NN.AtomicNeuralNetInstance()
+        self.Evaluation.CalcDatasetStatistics=False
         self.Evaluation.TextOutput=False
         if Instance!=None:
             self.Evaluation._IsFromCheck=True
@@ -80,7 +81,7 @@ class PES(object):
 
 if __name__ == "__main__":
     plt.ioff()
-    file="/home/afuchs/Documents/NiAu_Training/NiAu_Test_without_prex5"
+    file="/home/afuchs/Documents/NiAu_Training/NiAu_Test_without_prex_large"
     #file="/home/afuchs/Git/NeuralNetworks/data/pretraining_2_species"
     MyCheck1=PES(file)
     MyCheck1.pes_check(atom_types=["X","Y"],nr_atoms_per_type=[1,2],show_plot=False)

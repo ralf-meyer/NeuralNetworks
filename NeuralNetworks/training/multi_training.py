@@ -102,20 +102,14 @@ for i in range(len(data_files)):
     else:
         Training.read_lammps_files(data_file,energy_unit=e_unit,dist_unit=dist_unit,DataPointsPercentage=percentage_of_data)
 
-    print("Starting training for:")
-    for i in range(0,len(Training.Atomtypes)):
-        print(Training.Atomtypes[i]+" "+str(Training.NumberOfAtomsPerType[i]))
-
-    #Default trainings settings
+    # Default trainings settings
     for i in range(len(Training.Atomtypes)):
-        Training.Structures.append([Training.SizeOfInputsPerType[i],100,80,60,1])
+        Training.Structures.append([Training.SizeOfInputsPerType[i],256,128,64,1])
     if not("trained_variables" in model):
         model=os.path.join(model,"trained_variables.npy")
-
     Training.Dropout=[0,0,0]
     Training.RegularizationParam=0.01
     Training.InitStddev=0.2
-    #Training.LearningRate=learning_rate
     Training.LearningDecayEpochs=1000
     Training.CostCriterium=0
     Training.dE_Criterium=0.02
@@ -129,28 +123,31 @@ for i in range(len(data_files)):
     Training.OptimizerType="Adam"
     Training.SavingDirectory=model_dir
     Training.MakeLastLayerConstant=False
-    #Training.PESCheck=check_pes.PES(model_dir,Training)
     Training.MakeAllVariable = True
+    Multi.TrainingInstances.append(Training)
 
-    # if load_model:
-    #     #Load pretrained net
-    #     try:
-    #         if model=="":
-    #             Training.expand_existing_net(ModelName="../data/pretraining_"+str(len(Training.Atomtypes))+"_species",MakeAllVariable=Training.MakeAllVariable)
-    #         else:
-    #             Training.expand_existing_net(ModelName=model,MakeAllVariable=Training.MakeAllVariable)
-    #     except:
-    #         raise IOError("Model not found, please specify model directory via -model x")
-    # else:
-    #
-    #     Training.make_and_initialize_network()
+#Create a normalization for the data
+for i,Training in enumerate(Multi.TrainingInstances):
+    vars=[]
+    means=[]
+    vars.append(Training._VarianceOfDs)
+    means.append(Training._MeansOfDs)
+    max_means=means[0]
+    max_vars=vars[0]
+    for j in range(1,len(means)):
+        max_means=_np.maximum(max_means,means[j])
+        max_vars=_np.maximum(max_means,vars[j])
+
+    Multi.TrainingInstances[i]._MeansOfDs=max_means
+    Multi.TrainingInstances[i]._VarianceOfDs = max_vars
+
+for Training in Multi.TrainingInstances:
 
     #Create batches
     batch_size=len(Training._DataSet.energies)*(percentage_of_data/100)/50
-
     Training.make_training_and_validation_data(batch_size,90,10)
 
-    Multi.TrainingInstances.append(Training)
+
 
 Multi.MakePlots=True
 Multi.EpochsPerCycle=15

@@ -24,8 +24,9 @@ input_reader=data_readers.SimpleInputReader()
 input_reader.read("/home/afuchs/Documents/Validation_geometries/ico_NiAu54.xyz",skip=3)
 #start_geom=input_reader.geometries[0]
 Training=NeuralNetworkUtilities.AtomicNeuralNetInstance()
+Training.CalcDatasetStatistics=True
 Training.TextOutput=False
-Training.prepare_evaluation("/home/afuchs/Documents/NiAu_Training/NiAu_Test_without_prex4",nr_atoms_per_type=[1,12],atom_types= ["Ni","Au"])
+Training.prepare_evaluation("/home/afuchs/Documents/NiAu_Training/NiAu_Test_without_prex_large",nr_atoms_per_type=[1,12],atom_types= ["Ni","Au"])
 
 opt=optimizer.Optimizer(Training,start_geom)
 #opt.save_png=True
@@ -33,5 +34,5 @@ opt=optimizer.Optimizer(Training,start_geom)
 opt.plot=True
 #opt.check_gradient()
 res=opt.start_bfgs()
-#opt.start_dogleg()
+#opt.start_conjugate_gradient()
 #print(res)

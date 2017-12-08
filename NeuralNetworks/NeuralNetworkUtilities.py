@@ -1678,7 +1678,7 @@ class AtomicNeuralNetInstance(object):
         vector.
 
         Args:
-            TakeAsReference(bool): Specifies if the MinOfOut Parameter should be
+            TakeAsReference(bool): Specifies if the variance and mean values should be
                                 set according to this dataset.
         """
         if self.TextOutput:
@@ -1735,9 +1735,10 @@ class AtomicNeuralNetInstance(object):
             var=_np.ones_like(raw_var)
             var[L]=raw_var[L]
             self._VarianceOfDs =_np.maximum(1e-2,var)
-        else:
-            self._MeansOfDs=_np.multiply(_np.ones((self.SizeOfInputsPerType[0])),6)
-            self._VarianceOfDs=_np.multiply(_np.ones((self.SizeOfInputsPerType[0])),25)
+        #else:
+        #    self._MeansOfDs=_np.multiply(_np.ones((self.SizeOfInputsPerType[0])),6)
+        #    self._VarianceOfDs=_np.multiply(_np.ones((self.SizeOfInputsPerType[0])),25)
+
         self._VarianceOfDs=_np.nan_to_num(self._VarianceOfDs)
 
         #except:
@@ -1763,7 +1764,7 @@ class AtomicNeuralNetInstance(object):
         basis and converts the cartesian corrdinates to symmetry function vectors.
 
         Args:
-            TakeAsReference(bool): Specifies if the MinOfOut Parameter should be
+            TakeAsReference(bool): Specifies if the variance and mean values should be
                                 set according to this dataset.
             LoadGeometries(bool): Specifies if the conversion of the geometry
                                 coordinates should be performed."""
@@ -1855,8 +1856,8 @@ class AtomicNeuralNetInstance(object):
             geometries (list): List of geomtries
             energies (list) : List of energies
             forces (list): List of G-vector derivatives
-            TakeAsReference (bool): Specifies if the MinOfOut Parameter
-                                    should be set according to this dataset"""
+            TakeAsReference (bool): Specifies if the variance and mean values should be
+                                set according to this dataset."""
 
         if len(geometries) == len(energies):
             self._DataSet = _DataSet.DataSet()
@@ -1925,7 +1926,7 @@ class AtomicNeuralNetInstance(object):
 
     def _get_data_batch(self, BatchSize=100, NoBatches=False):
         """Creates a data batch by drawing a random sample out of the dataset
-        The symmetry function vector is then normlized.
+        The symmetry function vector is then normalized.
 
         Args:
             BatchSize (int):Number of elements per training cycle
@@ -2268,7 +2269,7 @@ class _StandardAtomicNetwork(object):
             if i == 0:
                 F = dim_red
             else:
-                F +=  dim_red
+                F += dim_red
             Fi.append(dim_red)
 
         F=_tf.scalar_mul(-1,F)

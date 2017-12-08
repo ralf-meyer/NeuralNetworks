@@ -14,7 +14,8 @@ energies=np.asarray(input_reader.energies)
 
 Training=NeuralNetworkUtilities.AtomicNeuralNetInstance()
 Training.TextOutput=False
-Training.prepare_evaluation("/home/afuchs/Documents/NiAu_Training/NiAu_Test_without_prex4",nr_atoms_per_type=[1,54],atom_types=["Ni","Au"])
+Training.CalcDatasetStatistics=False
+Training.prepare_evaluation("/home/afuchs/Documents/NiAu_Training/NiAu_Test_without_prex_large",nr_atoms_per_type=[1,54],atom_types=["Ni","Au"])
 #Training.create_eval_data(input_reader.geometries)
 #out=Training.eval_dataset_energy(Training.EvalData)
 out=[]

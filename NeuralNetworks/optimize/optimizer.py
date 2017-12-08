@@ -115,7 +115,7 @@ class Optimizer(object):
         return grad
 
     def der_fun_approx(self,x):
-
+        self.update_plot(x)
         return approx_fprime(x.flatten(),self.fun,epsilon=1e-7)
 
     def isPD(self,B):
