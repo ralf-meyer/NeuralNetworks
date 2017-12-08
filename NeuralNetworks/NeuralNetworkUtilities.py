@@ -981,11 +981,13 @@ class AtomicNeuralNetInstance(object):
                 self._WeightData, self._BiasData = \
                 self._convert_standard_to_partitioned_net()
             else:
-                self._WeightData, self._BiasData,struct = \
+                self._WeightData, self._BiasData,struct= \
                 self._Net.get_weights_biases_from_data(
                     self.TrainedVariables, self.Multiple)
+            if len(self.Structures)==0:
+                self.Structures=struct
             if self.TextOutput:
-                print("Loaded structure: "+str(struct))
+                print("Loaded structure: "+str(self.Structures))
             self.MakeAllVariable = MakeAllVariable
             # try:
             self.make_and_initialize_network()
@@ -1891,14 +1893,14 @@ class AtomicNeuralNetInstance(object):
         self.NumberOfAtomsPerType = nr_atoms_per_type
         self.create_symmetry_functions()
 
-        if len(structure)==0:
-            MyStructure=[80,60,40,1]
-        else:
-            MyStructure=structure
-            
-        for i in range(len(self.Atomtypes)):
-            ThisStruture=[self.SizeOfInputsPerType[i]]+MyStructure
-            self.Structures.append(ThisStruture)
+        # if len(structure)==0:
+        #     MyStructure=[80,60,40,20,1]
+        # else:
+        #     MyStructure=structure
+        #
+        # for i in range(len(self.Atomtypes)):
+        #     ThisStruture=[self.SizeOfInputsPerType[i]]+MyStructure
+        #     self.Structures.append(ThisStruture)
             
         self.ActFun="elu"
         self.MakeLastLayerConstant=False

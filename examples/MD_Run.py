@@ -42,7 +42,7 @@ for i,atom in enumerate(start_geom):
     pset.label[i] = atom[0]
     masses.append([196])
     geom.append(atom[1])
-
+masses[0]=[59]
 # Coordinates
 pset.X[:] = np.array(geom)
 # Mass

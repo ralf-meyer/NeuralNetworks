@@ -142,7 +142,6 @@ def read_ekin_temp_etot_force(my_file,E_conv_factor,Geom_conv_factor):
     print("Reding total energy:")
     bar_etot = ProgressBar()
     for i,idx in bar_etot(enumerate(ex_idx)):
-        
         part=my_file[idx:f1_idx[i]]
         tot_start_idx=part.index('=')
         tot_end_idx=part.index('Ry')
@@ -674,7 +673,7 @@ class QE_MD_Reader(object):
             print("No files loaded!")
 
         for ct, this in enumerate(self.files):
-            print("Reading energies and forces in file "+str(ct)+"...")
+            print("Reading energies and forces in file "+str(ct+1)+"...")
             e_kin,temperature,e_tot,forces=read_ekin_temp_etot_force(
                 this,
                 self.E_conv_factor,
@@ -684,7 +683,7 @@ class QE_MD_Reader(object):
             self.e_kin+=e_kin
             self.temperature+=temperature
             self.e_tot+=e_tot
-            print("Reading geometries in file "+str(ct)+"...")
+            print("Reading geometries in file "+str(ct+1)+"...")
 
             # read starting geometry, and convert it from lattice unit to angstr.
             starting_geometry=read_geometry_scf(this,self.Geom_conv_factor,self.atom_types)

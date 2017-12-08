@@ -10,7 +10,7 @@ def str2bool(v):
   return v.lower() in ("yes", "true", "t", "1")
 #Get input
 plots=False
-learning_rate=0.001
+learning_rate=0.0001
 epochs=5000
 data_file=""
 force=False
@@ -79,8 +79,8 @@ Training.UseForce=force
 Training.Lambs=[1.0,-1.0]
 Training.Zetas=[0.2,1,10]#[0.025,0.045,0.075,0.1,0.15,0.2,0.3,0.5,0.7,1,1.5,2,3,5,10,18,36,100]
 Training.Etas=[0.01]
-Training.Rs=[1.8,2,2.2,2.4,2.6,2.8,3.0,3.2,3.4,3.6,3.8,4,4.2,4.4,5]
-Training.R_Etas=[0.1,0.5,0.5,0.5,2,2,2,2,2,1,0.5,0.5,0.5,0.5,0.1]
+Training.Rs=[1,1.8,2,2.2,2.4,2.6,2.8,3.0,3.2,3.4,3.6,3.8,4,4.2,4.4,5,7]
+Training.R_Etas=[0.1,0.3,0.8,0.8,0.8,3,3,3,3,3,2,0.8,0.8,0.8,0.8,0.3,0.1]
 #Read file
 if source == "QE":
     Training.read_qe_md_files(data_file,e_unit,dist_unit,DataPointsPercentage=percentage_of_data)
@@ -93,13 +93,13 @@ for i in range(0,len(Training.Atomtypes)):
 
 #Default trainings settings
 for i in range(len(Training.Atomtypes)):
-    Training.Structures.append([Training.SizeOfInputsPerType[i],80,60,40,1])
+    Training.Structures.append([Training.SizeOfInputsPerType[i],80,60,40,20,1])
 if not("trained_variables" in model):
     model=os.path.join(model,"trained_variables.npy")
 
 Training.Dropout=[0,0,0]
-Training.RegularizationParam=0.1
-Training.InitStddev=0.2
+Training.RegularizationParam=0.01
+Training.InitStddev=0.1
 Training.LearningRate=learning_rate
 Training.LearningDecayEpochs=1000
 Training.CostCriterium=0
@@ -110,7 +110,7 @@ Training.Epochs=epochs
 Training.ForceCostParam=0.001
 Training.MakePlots=plots
 Training.ActFun="elu"
-Training.CostFunType="Adaptive_2"
+Training.CostFunType="Adaptive_1"
 Training.OptimizerType="Adam"
 Training.SavingDirectory=model_dir
 Training.MakeLastLayerConstant=False
