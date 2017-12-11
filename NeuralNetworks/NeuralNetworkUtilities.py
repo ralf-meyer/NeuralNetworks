@@ -3405,18 +3405,13 @@ class MultipleInstanceTraining(object):
                 self.TrainingInstances[i].Regularization = self.GlobalRegularization
                 self.TrainingInstances[i].RegularizationParam = self.GlobalRegularizationParam
                 self.TrainingInstances[i].TextOutput=False
-                if self.TrainingInstances[i]._MinOfOut < self.GlobalMinOfOut:
-                    self.GlobalMinOfOut = self.TrainingInstances[i].MinOfOut
-
                 # Clear unnecessary data
                 self.TrainingInstances[i]._DataSet.geometries = []
                 self.TrainingInstances[i]._DataSet.Energies = []
                 self.TrainingInstances[i]._DataSet.Forces = []
                 self.TrainingInstances[i].Batches = []
                 self.TrainingInstances[i].AllGeometries = []
-            # Write global minimum to all instances
-            for i in range(len(self.TrainingInstances)):
-                self.TrainingInstances[i].MinOfOut = self.GlobalMinOfOut
+
 
     def set_session(self):
         """Sets the session of the currently trained instance to the

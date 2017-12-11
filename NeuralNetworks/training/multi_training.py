@@ -127,10 +127,12 @@ for i in range(len(data_files)):
 for i,Training in enumerate(Multi.TrainingInstances):
     vars=[]
     means=[]
-    energies=[]
+    min_energy=1e10
     vars.append(Training._VarianceOfDs)
     means.append(Training._MeansOfDs)
-    energies+=Training._DataSet.energies
+    temp=min(Training._DataSet.energies)
+    if temp<min_energy:
+        min_energy=temp
 
 max_means=means[0]
 max_vars=vars[0]
@@ -138,7 +140,7 @@ for j in range(1,len(means)):
     max_means=_np.maximum(max_means,means[j])
     max_vars=_np.maximum(max_means,vars[j])
 
-min_energy=_np.min(energies)
+
 
 for i,Training in enumerate(Multi.TrainingInstances):
     Multi.TrainingInstances[i]._MeansOfDs = max_means
