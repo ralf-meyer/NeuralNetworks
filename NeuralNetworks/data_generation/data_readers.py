@@ -705,7 +705,7 @@ class QE_MD_Reader(object):
         else:
             self.e_pot=e_tot
         self.nr_atoms_per_type=get_nr_atoms_per_type(self.atom_types,self.geometries[0])
-        
+
     def calibrate_energy(self):
         reader=QE_SCF_Reader()
         e_cal=0
