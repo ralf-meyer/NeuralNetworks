@@ -1201,8 +1201,8 @@ class SimpleInputReader(object):
 
     Attributes:
         geometry: just as the other data readers after reading the input
-        the resulting geometry can be accessed through this attirbute. It
-        will be a list of tupels of the following form:
+        the resulting geometry can be accessed through this attribute. It
+        will be a list of lists of tuples of the following form:
         
             ('Species', np.array([]))
     """
