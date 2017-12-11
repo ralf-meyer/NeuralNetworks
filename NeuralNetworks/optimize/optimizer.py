@@ -111,7 +111,6 @@ class Optimizer(object):
             self.update_plot(x)
         force=_np.asarray(self.Net.force_for_geometry(self.to_nn_input(x)))
         grad=-force.flatten()
-
         return grad
 
     def der_fun_approx(self,x):
@@ -205,7 +204,7 @@ class Optimizer(object):
         print([analytic,approx])
         print([_np.abs(analytic-approx)])
 
-    def start_bfgs(self):
+    def start_bfgs(self,norm=10,gtol=1e-03):
         """Starts a geometry optimization using the BFGS method"""
         if self.plot:
             self.init_plot(self.x0)
@@ -213,21 +212,23 @@ class Optimizer(object):
         [res,fopt,gopt,Bopt, func_calls, grad_calls, warnflg]=fmin_bfgs(self.fun,
                                                                         self.x0,
                                                                         self.der_fun,
-                                                                        gtol=1e-09,
+                                                                        gtol=gtol,
+                                                                        norm=norm,
                                                                         full_output=True,
                                                                         disp=True)
         print("E optimal = "+str(fopt))
         print("F optimal = "+str(gopt))
         return self.to_nn_input(res)
 
-    def start_nelder_mead(self):
+    def start_nelder_mead(self,norm=10,tol=1e-2):
         """Starts a geometry optimization using the Nelder-Mead method"""
         if self.plot:
             self.init_plot(self.x0)
             self.update_with_energy=True
         res=minimize(self.fun,self.x0,
                      method='nelder-mead',
-                     tol=1e-2,
+                     tol=tol,
+                     norm=norm,
                      options={'disp': True})
         return self.to_nn_input(res.x)
 

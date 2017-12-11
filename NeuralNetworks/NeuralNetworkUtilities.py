@@ -971,7 +971,7 @@ class AtomicNeuralNetInstance(object):
         if Success == 1:
             if self.TextOutput:
                 print("Model successfully loaded!")
-
+            self._Net=None
             if not self.IsPartitioned:
                 if ConvertToPartitioned:
                     raise(ValueError)
@@ -988,8 +988,14 @@ class AtomicNeuralNetInstance(object):
                     self.TrainedVariables, self.Multiple)
             if len(self.Structures)==0:
                 self.Structures=struct
-            if self.TextOutput:
-                print("Loaded structure: "+str(self.Structures))
+                if self.TextOutput:
+                    print("Loaded structure: " + str(self.Structures))
+            else:
+                if self.Structures[0][0]!=struct[0][0]:
+                    print("Specified: "+str(self.Structures))
+                    print("Loaded: "+str(struct))
+                    raise ValueError("Specified and loaded structure do not match!")
+
             self.MakeAllVariable = MakeAllVariable
             # try:
             self.make_and_initialize_network()
@@ -2538,8 +2544,9 @@ class _StandardAtomicNetwork(object):
 
     def make_atomic_networks(self, NetInstance):
         """Creates the specified network."""
-        AllHiddenLayers = list()
-        AtomicNNs = list()
+        AllHiddenLayers = []
+        AtomicNNs = []
+        self.AtomicNNs=[]
         # Start Session
         if not NetInstance.Multiple:
             NetInstance._Session = _tf.Session(config=_tf.ConfigProto(
@@ -3359,11 +3366,11 @@ class MultipleInstanceTraining(object):
         self.GlobalMinOfOut = 0
         self.MakePlots = False
         self.IsPartitioned = False
-        self.GlobalSession = _tf.Session()
+        self.GlobalSession = _tf.InteractiveSession()
         self.SavingDirectory=""
         self.PESCheck=None
 
-    def initialize_multiple_instances(self):
+    def initialize_multiple_instances(self,MakeAllVariable=True):
         """Initializes all instances with the same parameters."""
 
         Execute = True
@@ -3373,42 +3380,42 @@ class MultipleInstanceTraining(object):
 
         if Execute:
             # Initialize all instances with same settings
-            for Instance in self.TrainingInstances:
-                Instance.Multiple = True
-                Instance.Epochs = self.EpochsPerCycle
-                Instance.MakeAllVariable = True
-                Instance.Structures = self.GlobalStructures
-                Instance._Session = self.GlobalSession
-                Instance.MakePlots = False
-                Instance.ActFun = "elu"
-                Instance.CostCriterion = 0
-                Instance.dE_Criterion = 0
-                Instance.IsPartitioned = self.IsPartitioned
-                Instance.WeightType = "truncated_normal"
-                Instance.LearningRate = self.GlobalLearningRate
-                Instance.OptimizerType = self.GlobalOptimizer
-                Instance.Regularization = self.GlobalRegularization
-                Instance.RegularizationParam = self.GlobalRegularizationParam
-                Instance.TextOutput=False
-                if Instance._MinOfOut < self.GlobalMinOfOut:
-                    self.GlobalMinOfOut = Instance.MinOfOut
+            for i in range(len(self.TrainingInstances)):
+                self.TrainingInstances[i].Multiple = True
+                self.TrainingInstances[i].Epochs = self.EpochsPerCycle
+                self.TrainingInstances[i].MakeAllVariable = MakeAllVariable
+                self.TrainingInstances[i].Structures = self.GlobalStructures
+                self.TrainingInstances[i]._Session = self.GlobalSession
+                self.TrainingInstances[i].MakePlots = False
+                self.TrainingInstances[i].ActFun = "elu"
+                self.TrainingInstances[i].CostCriterion = 0
+                self.TrainingInstances[i].dE_Criterion = 0
+                self.TrainingInstances[i].IsPartitioned = self.IsPartitioned
+                self.TrainingInstances[i].WeightType = "truncated_normal"
+                self.TrainingInstances[i].LearningRate = self.GlobalLearningRate
+                self.TrainingInstances[i].OptimizerType = self.GlobalOptimizer
+                self.TrainingInstances[i].Regularization = self.GlobalRegularization
+                self.TrainingInstances[i].RegularizationParam = self.GlobalRegularizationParam
+                self.TrainingInstances[i].TextOutput=False
+                if self.TrainingInstances[i]._MinOfOut < self.GlobalMinOfOut:
+                    self.GlobalMinOfOut = self.TrainingInstances[i].MinOfOut
 
                 # Clear unnecessary data
-                Instance._DataSet.geometries = []
-                Instance._DataSet.Energies = []
-                Instance._DataSet.Forces = []
-                Instance.Batches = []
-                Instance.AllGeometries = []
+                self.TrainingInstances[i]._DataSet.geometries = []
+                self.TrainingInstances[i]._DataSet.Energies = []
+                self.TrainingInstances[i]._DataSet.Forces = []
+                self.TrainingInstances[i].Batches = []
+                self.TrainingInstances[i].AllGeometries = []
             # Write global minimum to all instances
-            for Instance in self.TrainingInstances:
-                Instance.MinOfOut = self.GlobalMinOfOut
+            for i in range(len(self.TrainingInstances)):
+                self.TrainingInstances[i].MinOfOut = self.GlobalMinOfOut
 
     def set_session(self):
         """Sets the session of the currently trained instance to the
         global session"""
 
-        for Instance in self.TrainingInstances:
-            Instance._Session = self.GlobalSession
+        for i in range(len(self.TrainingInstances)):
+            self.TrainingInstances[i]._Session = self.GlobalSession
 
     def train_multiple_instances(self, StartModelName=None):
         """Trains each instance for EpochsPerCylce epochs then uses the resulting network
@@ -3420,23 +3427,23 @@ class MultipleInstanceTraining(object):
         ct = 0
         LastStepsModelData = list()
         for i in range(0, self.GlobalEpochs):
-            for Instance in self.TrainingInstances:
+            for i in range(len(self.TrainingInstances)):
                 if ct == 0:
                     if StartModelName is not None:
-                        Instance.expand_existing_net(ModelName=StartModelName,load_statistics=False)
+                        self.TrainingInstances[i].expand_existing_net(ModelName=StartModelName,load_statistics=False)
                     else:
-                        Instance.make_and_initialize_network()
+                        self.TrainingInstances[i].make_and_initialize_network()
                 else:
-                    Instance.expand_existing_net(ModelData=LastStepsModelData)
+                    self.TrainingInstances[i].expand_existing_net(ModelData=LastStepsModelData)
 
-                LastStepsModelData = Instance.start_batch_training()
+                LastStepsModelData = self.TrainingInstances[i].start_batch_training()
                 _tf.reset_default_graph()
-                Instance._Session.close()
+                self.TrainingInstances[i]._Session.close()
                 self.GlobalSession = _tf.InteractiveSession()
                 self.set_session()
-                self.GlobalTrainingCosts += Instance.OverallTrainingCosts
-                self.GlobalValidationCosts += Instance.OverallValidationCosts
-                self.GlobalDE += Instance.DeltaE
+                self.GlobalTrainingCosts += self.TrainingInstances[i].OverallTrainingCosts
+                self.GlobalValidationCosts += self.TrainingInstances[i].OverallValidationCosts
+                self.GlobalDE += self.TrainingInstances[i].DeltaE
                 if ct % max(int((self.GlobalEpochs * len(self.TrainingInstances)) / 100),
                             1) == 0 or i == (self.GlobalEpochs - 1):
                     if self.MakePlots:
@@ -3465,34 +3472,34 @@ class MultipleInstanceTraining(object):
                         _os.makedirs(self.SavingDirectory)
                     _np.save(self.SavingDirectory + "/trained_variables",
                              [LastStepsModelData[0],
-                              Instance._MeansOfDs,
-                              Instance._VarianceOfDs,
-                              Instance._MinOfOut,
-                              Instance.Rs,
-                              Instance.R_Etas,
-                              Instance.Etas,
-                              Instance.Lambs,
-                              Instance.Zetas,
-                              Instance.NumberOfRadialFunctions])
+                              self.TrainingInstances[i]._MeansOfDs,
+                              self.TrainingInstances[i]._VarianceOfDs,
+                              self.TrainingInstances[i]._MinOfOut,
+                              self.TrainingInstances[i].Rs,
+                              self.TrainingInstances[i].R_Etas,
+                              self.TrainingInstances[i].Etas,
+                              self.TrainingInstances[i].Lambs,
+                              self.TrainingInstances[i].Zetas,
+                              self.TrainingInstances[i].NumberOfRadialFunctions])
                 ct = ct + 1
                 # Abort criteria
                 if self.GlobalTrainingCosts <= self.GlobalCostCriterion and \
                 self.GlobalValidationCosts <= self.GloablCostCriterion or \
-                Instance.DeltaE < self.Global_dE_Criterion:
+                self.TrainingInstances[i].DeltaE < self.Global_dE_Criterion:
 
                     if self.GlobalValidationCosts != 0:
                         print("Reached Criterion!")
                         print(
                             "Cost= " + str((self.GlobalTrainingCosts + \
                                             self.GlobalValidationCosts) / 2))
-                        print("delta E = " + str(Instance.DeltaE[-1]) + " eV")
+                        print("delta E = " + str(self.TrainingInstances[i].DeltaE[-1]) + " eV")
                         print("Epoch = " + str(i))
                         print("")
 
                     else:
                         print("Reached Criterion!")
                         print("Cost= " + str(self.GlobalTrainingCosts))
-                        print("delta E = " + str(Instance.DeltaE[-1]) + " eV")
+                        print("delta E = " + str(self.TrainingInstances[i].DeltaE[-1]) + " eV")
                         print("Epoch = " + str(i))
                         print("")
 
@@ -3501,7 +3508,7 @@ class MultipleInstanceTraining(object):
 
                 if i == (self.GlobalEpochs - 1):
                     print("Training finished")
-                    print("delta E = " + str(Instance.DeltaE[-1]) + " eV")
+                    print("delta E = " + str(self.TrainingInstances[i].DeltaE[-1]) + " eV")
                     print("Epoch = " + str(i))
                     print("")
 

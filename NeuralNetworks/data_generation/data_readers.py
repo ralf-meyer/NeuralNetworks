@@ -81,7 +81,7 @@ def get_nr_atoms_per_type(types,geometry):
         for i in range(len(types)):
             if types[i]==this_type:
                 nr_atoms[i]+=1#
-    
+
     return list(nr_atoms)
 
 def is_numeric(string):
@@ -230,13 +230,13 @@ def read_ekin_temp_etot_force(my_file,E_conv_factor,Geom_conv_factor):
     
     return e_kin,temperature,e_tot,forces
 
-def read_geometries(my_file,Geom_conv_factor,atom_types):
+def read_geometries(my_file,Geom_conv_factor,atom_types,read_types):
         
     #find scf accuracies in file
     pos_idx=[i.start() for i in  _re.finditer('ATOMIC_POSITIONS', my_file)]
     ket_idx=[i.start() for i in  _re.finditer("\)", my_file)]
     temp_idx=[i.start() for i in  _re.finditer('kinetic energy', my_file)]
-    
+
     start_idx=[]
     end_idx=[]
     #Match start and end indices
@@ -272,7 +272,7 @@ def read_geometries(my_file,Geom_conv_factor,atom_types):
                             geom.append(pos)
                 except:
                     pos3d=[]
-                    if len(atom_types)==0:
+                    if len(atom_types)==0 or read_types:
                         a_type=val
                     else:
                         a_type=atom_types[iterate]
@@ -287,13 +287,14 @@ def read_geometries(my_file,Geom_conv_factor,atom_types):
             
     return all_geometries
 
-def read_geometry_scf(my_file,Geom_conv_factor,atom_types=[]):
+def read_geometry_scf(my_file,Geom_conv_factor,atom_types=[],read_types=True):
     #get lattice constant for scaling
     a_idx=[i.start() for i in  _re.finditer('alat', my_file)]
 
     a_idx_start=my_file.index("=",a_idx[0])+1
     a_idx_end=my_file.index("a",a_idx_start)
-    a=float(my_file[a_idx_start:a_idx_end])
+    a=float(my_file[a_idx_start:a_idx_end])/2
+
     #get postitions
     geom_start_idx=my_file.index("\n",a_idx[-2])
     geom_end_idx=my_file.index("number of k points")
@@ -318,7 +319,7 @@ def read_geometry_scf(my_file,Geom_conv_factor,atom_types=[]):
             if ct2==1 and part!='':
                 sites.append(part)
             elif ct2==2 and part!='':
-                if len(atom_types) == 0:
+                if len(atom_types) == 0 or read_types:
                     types.append(part)
                 else:
                     types.append(atom_types[iterate])
@@ -666,10 +667,12 @@ class QE_MD_Reader(object):
         return 1
     
     def read_all_files(self):
-        
+
+        read_types=True
         if len(self.files)>0 and len(self.atom_types)==0:
             self.atom_types=read_atom_types(self.files[0])
         else:
+            read_types=False
             print("No files loaded!")
 
         for ct, this in enumerate(self.files):
@@ -686,14 +689,13 @@ class QE_MD_Reader(object):
             print("Reading geometries in file "+str(ct+1)+"...")
 
             # read starting geometry, and convert it from lattice unit to angstr.
-            starting_geometry=read_geometry_scf(this,self.Geom_conv_factor,self.atom_types)
+            starting_geometry=read_geometry_scf(this,self.Geom_conv_factor,self.atom_types,read_types)
             self.geometries+=[starting_geometry]
-
             self.geometries+=read_geometries(
                 this, 
                 self.Geom_conv_factor, 
                 self.atom_types
-            )
+            ,read_types)
 
             # remove last geometry because no forces and energies are available
             self.geometries.pop(-1)
