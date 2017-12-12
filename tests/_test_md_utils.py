@@ -2,8 +2,7 @@
 Tests the md util for this project.
 
 TODO:
-* 
-* include a unit test for the temeperature calculation in thermostats
+* Test for get_temperature for higher temperature.
 
 """
 
@@ -112,7 +111,6 @@ class PSetProvider(object):
 
         pset = ps.ParticlesSet(len(start_geom), 3, label=True, mass=True)
         pset.thermostat_temperature = 1000
-
         geom = []
         masses = []
         for i, atom in enumerate(start_geom):
@@ -149,7 +147,7 @@ class PSetProvider(object):
         # geometries are in angstroem
         reader = SimpleInputReader()
         reader.read(join(PathProvider.MD_Utils_test_files_dir, "Au13.in"))
-        start_geom = reader.geometries
+        start_geom = reader.geometries[0]
 
         pset = ps.ParticlesSet(len(start_geom), 3, label=True, mass=True)
 
@@ -171,7 +169,7 @@ class PSetProvider(object):
         pset.mass_unit = 1.660e+27 
 
         # set initial velocities
-        thermostats.set_temperature(pset, T)
+        pset = thermostats.set_temperature(pset, T)
 
         bound = None
         pset.set_boundary(bound)
@@ -179,14 +177,18 @@ class PSetProvider(object):
 
         return pset
 
-
 class ForceModelProvider(object):
 
     @staticmethod
     def provide_LenardJones_force(pset):
 
-        force = LenardJones(pset.size)
-        force.set_masses(pset.M)
+        # depth of the potential (220/Loschmid kJ/per particle in energy units of the system )
+        epsilon = 6e-30 * (pset.unit**2) * (pset.mass_unit)
+        # 4 Angstroem cutoff (in the units of the used pset)
+        sigma = 4e-10 * pset.unit  
+
+        force = LenardJones(pset.size, Consts=( epsilon , sigma ))
+        force.set_masses(pset.M) 
         force.update_force(pset)
         return force
 
@@ -202,7 +204,6 @@ class ODESolverProvider(object):
 
         return solver
 
-    #@staticmethod
     def provide_velocity_verlet_w_berendsen_thermostat(pset, force_provider, dt=2e-15, steps=1000):
         force = force_provider(pset)
         force.update_force(pset)
@@ -229,19 +230,18 @@ class _BaseTestWarpper(object):
         def _check_conservation_of_energy(self):
             raise NotImplementedError()
 
-        def _check_conservation_of_temperature(self, solver, steps=800, delta=2):
+        def _check_conservation_of_temperature(self, solver, steps=800, delta=50):
 
             T = solver.pset.thermostat_temperature
 
-            # check after 500 steps
+            # check after some steps
             self._advance_solver(solver, steps)
-            self.assertAlmostEqual(
-                1,
-                self._temerature_of_system(solver.pset) / T,
-                delta=delta
-            )
+            
+            T_actual = self._temperature_of_system(solver.pset)
+            
+            self.assertAlmostEqual(T, T_actual, delta=delta)
 
-        def _temerature_of_system(self, pset):
+        def _temperature_of_system(self, pset):
             """Based on: E_kin = mv^2/2; <E> = 3 N k_B T / 2 in Md System
             """
             return  thermostats.get_temperature(pset)
@@ -249,11 +249,7 @@ class _BaseTestWarpper(object):
 class TestLangevinVelocityVerlet(_BaseTestWarpper.TestODESolver):
     def setUp(self):
 
-        def pset_callback():
-            v_max = 0#1.5e-20
-            return PSetProvider.provide_Au3_fast_start(v_max)
-
-        self._pset_provider = pset_callback
+       
         self._solver_provider = \
             ODESolverProvider.provide_langevin_velocity_verlet
 
@@ -264,8 +260,7 @@ class TestLangevinVelocityVerlet(_BaseTestWarpper.TestODESolver):
         dt = 2e-15
         steps = 1000
         gamma = 1e-3
-        v_max=1e-8
-        pset = self._pset_provider()
+        pset = PSetProvider.provide_Au13_1000_Kelvin()
 
         solver = self._solver_provider(
             pset,
@@ -286,12 +281,11 @@ class TestLangevinVelocityVerlet(_BaseTestWarpper.TestODESolver):
             )
     
 
-    def test_temperature_conservation(self):
+    def _test_temperature_conservation(self):
 
         dt = 2e-15
-        steps = 1000
-        gamma = 1e-3
-        v_max=1e-8
+        steps = 100000
+        gamma = 1e6 #TODO vernuenfitger wert!!!
 
         #Au13 staring at 1000 K
         pset = PSetProvider.provide_Au13_1000_Kelvin()
@@ -303,6 +297,8 @@ class TestLangevinVelocityVerlet(_BaseTestWarpper.TestODESolver):
             steps=steps,
             gamma=gamma
         )
+
+        solver.plot = True
 
         self._check_conservation_of_temperature(
             solver, 
@@ -325,7 +321,7 @@ class TestSampler(unittest.TestCase):
         """Sample a bunch of speeds and see if their temperature is correct"""
 
         nsamples = int(1e6)
-        delta = 1
+        delta = 10 # must be within 1000 +-10 K
 
         # Gold mass in u
         m = 196
@@ -336,7 +332,7 @@ class TestSampler(unittest.TestCase):
     
         T_actual = self._calculate_temperature_from_scalar_velocities(v, m)
 
-        self.assertAlmostEqual(1, T_actual / T, delta)
+        self.assertAlmostEqual(T, T_actual, delta=delta)
 
     def _calculate_temperature_from_scalar_velocities(self, v, m, mass_unit=1.66e-27):
         """calculates the temperature from a bunch of velocities

@@ -42,21 +42,33 @@ class LeapfrogSolverBerendsen( os.OdeSolver ) :
 
 
 class LeapfrogSolverLangevin(os.OdeSolver):
-    """A Velocity-Verlet ode Solver with Langevin 'thermostat'."""
+    """A Velocity-Verlet ode Solver with Langevin 'thermostat'.
+    """
     def __init__(self, force, p_set, dt, gamma):
+        """
+        Ctor
 
+        Args:\n
+            force: the force model the integrator works on \n
+            p_set: the particle set the integrator works on \n
+            dt: the time step (in seconds) \n
+            gamma: the damping constant (in mass units of the p_set)
+        """
 
-        self._gamma = gamma
+        self._gamma = gamma #/ p_set.mass_unit
         self._temperature = p_set.thermostat_temperature
 
         super(LeapfrogSolverLangevin, self).__init__(force, p_set, dt)
 
         # used as buffer for old acceleration (Langevin modified)
-        self.__Ai = _np.zeros(self.force.A.shape)
+        self._save_force = _np.zeros(self.force.A.shape)
 
+        # boltzman constant in units of the the pset
+        # J=kg*m**2/s**2 -> u*Angstroem/s**2
+        self.k = k_B * (p_set.mass_unit * p_set.unit**2)
 
     def langevin_force(self, force, p_set):
-        """The Lagevin version of the force model: keeps the sysem at
+        """The Lagevin version of the force model: keeps the system at
         Temperature T.
 
         m D[r,{t,2}] = - gamma D[r,{t,1}] + Sqrt[2*gamma*k_B*T]*R(t) + force,
@@ -70,18 +82,14 @@ class LeapfrogSolverLangevin(os.OdeSolver):
         See also: https://en.wikipedia.org/wiki/Langevin_dynamics
         """
 
-        # conversion from J to system mass and length (time should still be seconds!!!)
-        unit_conversion = p_set.mass_unit * p_set.unit ** 2
-
         # apply random force normally distributed around 0, var= 2gammak_BT
         F_random = _np.random.normal(
             0,
-            _np.sqrt(2 * self._gamma * unit_conversion * k_B * self._temperature),
+            _np.sqrt(2 * self._gamma * p_set.M * self.k * self._temperature),
             force.shape
         )
 
-
-        F_friction = - self._gamma * p_set.V
+        F_friction = - self._gamma * p_set.V * p_set.M 
 
         return force + F_random + F_friction
 
@@ -100,22 +108,27 @@ class LeapfrogSolverLangevin(os.OdeSolver):
         """
 
         # store current foce (Langevin manipulated)
-        self.__Ai[:] = self.langevin_force(self.force.A, self.pset)
+        old_acceleration = self._save_force / self.pset.M[:]
 
         # calculate r(t + dt)
         self.pset.X[:] = \
-            self.pset.X + self.pset.V * dt + 0.5 * self.force.A * dt ** 2.0
+            self.pset.X + self.pset.V * dt + 0.5 * old_acceleration * dt ** 2.0
 
 
 
-        # calculate f(t + dt)
+        # calculate f(r(t+dt), t + dt)
         self.force.update_force(self.pset)
+
+        # calculate langevin force F(r(r+dt), t+dt), save for next step and
+        # calc new accellarations
+        self._save_force  = self.langevin_force(self.force.A * self.pset.M, self.pset) 
+        new_acceleration = self._save_force / self.pset.M[:]
 
         # calculate v(t + dt)
         self.pset.V[:] = \
             self.pset.V + 0.5 * (
-                self.__Ai +
-                self.langevin_force(self.force.A, self.pset)
+                old_acceleration +
+                new_acceleration
             ) * dt
 
         #print(self.pset.V[:])
