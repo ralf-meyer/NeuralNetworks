@@ -463,7 +463,7 @@ def _initialize_delta_e_plot(delta_e):
     ax.set_xlabel("batches")
     ax.set_ylabel("\delta E")
     ax.set_title("Averaged energy difference /eV")
-    fig.legend(handles=[de_plot],labels=["\delta E"], loc=1)
+    fig.legend(handles=[de_plot],labels=["$\Delta$ E"], loc=1)
     # We need to draw *and* flush
     fig.canvas.draw()
     fig.canvas.flush_events()
@@ -500,7 +500,7 @@ def _initialize_cost_plot(TrainingData, ValidationData=[]):
     # Need both of these in order to rescale
     ax.relim()
     ax.autoscale_view()
-    ax.set_xlabel("batches")
+    ax.set_xlabel("datset")
     ax.set_ylabel("log(cost)")
     ax.set_title("Normalized cost per batch")
     if len(ValidationData) != 0:
@@ -1766,8 +1766,8 @@ class AtomicNeuralNetInstance(object):
             dist_unit="A",
             TakeAsReference=True,
             LoadGeometries=True,
-            DataPointsPercentage=100
-            ):
+            DataPointsPercentage=100,
+            calibrate=True):
         """Reads lammps files,adds symmetry functions to the symmetry function
         basis and converts the cartesian corrdinates to symmetry function vectors.
 
@@ -1801,7 +1801,10 @@ class AtomicNeuralNetInstance(object):
 
         self._Reader.get_files(path)
         self._Reader.read_all_files()
-        self._Reader.calibrate_energy()
+        if calibrate:
+            self._Reader.calibrate_energy()
+        else:
+            self._Reader.energies=self._Reader.e_pot
 
         self.Atomtypes = self._Reader.atom_types
         self.NumberOfAtomsPerType = self._Reader.nr_atoms_per_type
@@ -1818,7 +1821,8 @@ class AtomicNeuralNetInstance(object):
             dist_unit="A",
             TakeAsReference=True,
             LoadGeometries=True,
-            DataPointsPercentage=100):
+            DataPointsPercentage=100,
+            calibrate=True):
         """Reads lammps files,adds symmetry functions to the symmetry function
         basis and converts the cartesian corrdinates to symmetry function vectors.
 
@@ -1848,7 +1852,11 @@ class AtomicNeuralNetInstance(object):
             self._Reader.Geom_conv_factor = 1
 
         self._Reader.read_folder(path)
-        self._Reader.calibrate_energy()
+        if calibrate:
+            self._Reader.calibrate_energy()
+        else:
+            self._Reader.energies=self._Reader.e_pot
+
         self.Atomtypes = self._Reader.atom_types
         self.NumberOfAtomsPerType = self._Reader.nr_atoms_per_type
         self.init_dataset(self._Reader.geometries,self._Reader.energies,
@@ -3397,18 +3405,13 @@ class MultipleInstanceTraining(object):
                 self.TrainingInstances[i].Regularization = self.GlobalRegularization
                 self.TrainingInstances[i].RegularizationParam = self.GlobalRegularizationParam
                 self.TrainingInstances[i].TextOutput=False
-                if self.TrainingInstances[i]._MinOfOut < self.GlobalMinOfOut:
-                    self.GlobalMinOfOut = self.TrainingInstances[i].MinOfOut
-
                 # Clear unnecessary data
                 self.TrainingInstances[i]._DataSet.geometries = []
                 self.TrainingInstances[i]._DataSet.Energies = []
                 self.TrainingInstances[i]._DataSet.Forces = []
                 self.TrainingInstances[i].Batches = []
                 self.TrainingInstances[i].AllGeometries = []
-            # Write global minimum to all instances
-            for i in range(len(self.TrainingInstances)):
-                self.TrainingInstances[i].MinOfOut = self.GlobalMinOfOut
+
 
     def set_session(self):
         """Sets the session of the currently trained instance to the

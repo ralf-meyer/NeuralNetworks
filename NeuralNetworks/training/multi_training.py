@@ -11,7 +11,7 @@ def str2bool(v):
 #Get input
 plots=False
 learning_rate=0.0001
-epochs=300
+epochs=100
 data_file=""
 force=False
 e_unit="Ry"
@@ -71,12 +71,10 @@ if load_model:
 print("Save path : "+os.path.join(os.getcwd(),model_dir))
 
 data_files=["/home/afuchs/Documents/Ni15Au15/",
-            "/home/afuchs/Documents/Ni5Au5/",
-            "/home/afuchs/Documents/Ni5Au5_6000/",
-            "/home/afuchs/Documents/Ni10Au10/",
             "/home/afuchs/Documents/Ni1Au2/",
             "/home/afuchs/Documents/Ni2Au1",
-            "/home/afuchs/Documents/Ni2Au2"]
+            "/home/afuchs/Documents/Ni2Au2",
+            "/home/afuchs/Documents/NiAu20"]
 # data_files=["/home/afuchs/Documents/Ni1Au2/",
 #             "/home/afuchs/Documents/Ni2Au1",
 #             "/home/afuchs/Documents/Ni2Au2",
@@ -95,16 +93,16 @@ for i in range(len(data_files)):
     Training.Zetas=[0.2,0.5,1,3,10]#[0.025,0.045,0.075,0.1,0.15,0.2,0.3,0.5,0.7,1,1.5,2,3,5,10,18,36,100]
     Training.Etas=[0.01]
     Training.Rs = [1, 1.8, 2, 2.2, 2.4, 2.6, 2.8, 3.0, 3.2, 3.4, 3.6, 3.8, 4, 4.2, 4.4, 5, 7]
-    Training.R_Etas = [0.1, 0.3, 0.8, 0.8, 0.8, 3, 3, 3, 3, 3, 2, 0.8, 0.8, 0.8, 0.8, 0.3, 0.1]
+    Training.R_Etas =[0.1,0.3,0.8,0.8,0.8,1,1,1,1,1,1,0.8,0.3,0.3,0.3,0.3,0.1]
     #Read file
     if source == "QE":
-        Training.read_qe_md_files(data_file,e_unit,dist_unit,DataPointsPercentage=percentage_of_data)
+        Training.read_qe_md_files(data_file,e_unit,dist_unit,DataPointsPercentage=percentage_of_data,calibrate=False)
     else:
-        Training.read_lammps_files(data_file,energy_unit=e_unit,dist_unit=dist_unit,DataPointsPercentage=percentage_of_data)
+        Training.read_lammps_files(data_file,energy_unit=e_unit,dist_unit=dist_unit,DataPointsPercentage=percentage_of_data,calibrate=False)
 
     # Default trainings settings
     for i in range(len(Training.Atomtypes)):
-        Training.Structures.append([Training.SizeOfInputsPerType[i],256,128,64,1])
+        Training.Structures.append([Training.SizeOfInputsPerType[i],100,80,60,40,1])
     if not("trained_variables" in model):
         model=os.path.join(model,"trained_variables.npy")
     Training.Dropout=[0,0,0]
@@ -123,34 +121,39 @@ for i in range(len(data_files)):
     Training.OptimizerType="Adam"
     Training.SavingDirectory=model_dir
     Training.MakeLastLayerConstant=False
-    Training.MakeAllVariable = True
     Multi.TrainingInstances.append(Training)
 
 #Create a normalization for the data
 for i,Training in enumerate(Multi.TrainingInstances):
     vars=[]
     means=[]
+    min_energy=1e10
     vars.append(Training._VarianceOfDs)
     means.append(Training._MeansOfDs)
-    max_means=means[0]
-    max_vars=vars[0]
-    for j in range(1,len(means)):
-        max_means=_np.maximum(max_means,means[j])
-        max_vars=_np.maximum(max_means,vars[j])
+    temp=min(Training._DataSet.energies)
+    if temp<min_energy:
+        min_energy=temp
 
-    Multi.TrainingInstances[i]._MeansOfDs=max_means
+max_means=means[0]
+max_vars=vars[0]
+for j in range(1,len(means)):
+    max_means=_np.maximum(max_means,means[j])
+    max_vars=_np.maximum(max_means,vars[j])
+
+
+
+for i,Training in enumerate(Multi.TrainingInstances):
+    Multi.TrainingInstances[i]._MeansOfDs = max_means
     Multi.TrainingInstances[i]._VarianceOfDs = max_vars
-
-for Training in Multi.TrainingInstances:
-
+    Multi.TrainingInstances[i]._DataSet.energies-=min_energy
     #Create batches
     batch_size=len(Training._DataSet.energies)*(percentage_of_data/100)/50
-    Training.make_training_and_validation_data(batch_size,90,10)
+    Multi.TrainingInstances[i].make_training_and_validation_data(batch_size,90,10)
 
 
 
 Multi.MakePlots=True
-Multi.EpochsPerCycle=5
+Multi.EpochsPerCycle=10
 Multi.GlobalEpochs=epochs
 Multi.GlobalLearningRate=learning_rate
 Multi.GlobalRegularization="L2"
@@ -159,7 +162,7 @@ Multi.GlobalStructures=Training.Structures
 Multi.MakePlots=True
 Multi.SavingDirectory=model_dir
 #Multi.PESCheck=check_pes.PES(model_dir,Training)
-Multi.initialize_multiple_instances()
+Multi.initialize_multiple_instances(MakeAllVariable=True)
 if load_model:
     Multi.train_multiple_instances(StartModelName=model)
 else:

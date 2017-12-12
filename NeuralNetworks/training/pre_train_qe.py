@@ -56,7 +56,7 @@ if data_file=="":
 
 if nr_species==0:
     print("Please specify for how many species you pre-train the network!")
-    print("Option: -nr_atoms x")
+    print("Option: -nr_species x")
     quit()
 else:
     print("Pre-training for "+str(nr_species)+" atom species...")
@@ -71,7 +71,7 @@ Training.Lambs=[1.0,-1.0]
 Training.Zetas=[0.2,0.5,1,3,10]#[0.025,0.045,0.075,0.1,0.15,0.2,0.3,0.5,0.7,1,1.5,2,3,5,10,18,36,100]
 Training.Etas=[0.01]
 Training.Rs=[1,1.8,2,2.2,2.4,2.6,2.8,3.0,3.2,3.4,3.6,3.8,4,4.2,4.4,5,7]
-Training.R_Etas=[0.1,0.3,0.8,0.8,0.8,3,3,3,3,3,2,0.8,0.8,0.8,0.8,0.3,0.1]
+Training.R_Etas=[0.1,0.3,0.8,0.8,0.8,1,1,1,1,1,1,0.8,0.3,0.3,0.3,0.3,0.1]
 #Read files
 for i in range(nr_species):
     Training.Atomtypes.append("X"+str(i+1))
@@ -91,27 +91,27 @@ Training.InitStddev=0.1
 Training.HiddenType="truncated_normal"
 Training.ActFun="elu"
 Training.LearningRate=learning_rate
-Training.LearningDecayEpochs=10000
+Training.LearningDecayEpochs=1000
 Training.Epochs=epochs
-Training.ForceCostParam=0.0001
+Training.ForceCostParam=0.001
 Training.MakePlots=plots
 Training.OptimizerType="Adam"
 Training.Regularization="L2"
 Training.CostFunType="Adaptive_2"
 Training.LearningRateType="exponential_decay"
-Training.SavingDirectory="../data/pretraining_"+str(nr_species)+"_species"
+Training.SavingDirectory="../../data/pretraining_"+str(nr_species)+"_species"
 Training.LearningDecayEpochs=100
 Training.MakeLastLayerConstant=True
 #Training.PESCheck=check_pes.PES(Training.SavingDirectory)
 if load_model:
     #Load pretrained net
-    try:
-        if model=="":
-            Training.expand_existing_net(ModelName="../data/pretraining_"+str(nr_species)+"_species/trained_variables")
-        else:
-            Training.expand_existing_net(ModelName=model+"/trained_variables")
-    except:
-        raise IOError("Model not found, please specify model directory via -model x")
+    #try:
+    if model=="":
+        Training.expand_existing_net(ModelName="../data/pretraining_"+str(nr_species)+"_species/trained_variables")
+    else:
+        Training.expand_existing_net(ModelName=model+"/trained_variables")
+    #except:
+    #    raise IOError("Model not found, please specify model directory via -model x")
 else:
     Training.make_and_initialize_network()
 
