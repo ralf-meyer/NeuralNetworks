@@ -137,12 +137,21 @@ class OdeSolver(object) :
                                     x[:, 1],
                                     x[:, 2],
                                     animated=False, marker='o', alpha=0.8, s=150,c=my_colors)
+        t=np.arange(0,len(self.all_epot))*self.__dt
         plt_epot = np.asarray(self.all_epot).flatten()
         plt_etot = np.asarray(self.all_etot).flatten()
         plt_temp = np.asarray(self.all_temp).flatten()
-        self.epot_plot,=self.ax2.plot(np.arange(1,len(plt_epot)+1),plt_epot,c='b')
-        self.etot_plot, = self.ax2.plot(np.arange(1, len(plt_etot) + 1), plt_etot, c='r')
-        self.temp_plot, = self.ax3.plot(np.arange(1, len(plt_temp) + 1), plt_temp, c='g',label="Temperature /K")
+
+        self.epot_plot,=self.ax2.plot(t,plt_epot,c='b')
+        self.ax1.set_xlabel("x")
+        self.ax1.set_ylabel("y")
+        self.ax1.set_zlabel("z")
+        self.etot_plot, = self.ax2.plot(t, plt_etot, c='r')
+        self.ax2.set_xlabel("t / s")
+        self.ax2.set_ylabel("E / eV")
+        self.temp_plot, = self.ax3.plot(t, plt_temp, c='g',label="Temperature /K")
+        self.ax3.set_xlabel("t / s")
+        self.ax3.set_ylabel("T / K")
         self.fig.legend(handles=[self.scat,self.epot_plot,self.etot_plot], labels=["3D-view of system","Potential energy/atom eV", "Total energy/atom /ev"], loc=1)
         plt.legend(handles=[self.temp_plot], loc=1)
         plt.show(block=False)
@@ -153,12 +162,13 @@ class OdeSolver(object) :
                                 _np.ma.ravel(self.pset.X[:, 1]),
                                 _np.ma.ravel(self.pset.X[:, 2])
                                 )
+        t = np.arange(0, len(self.all_epot)) * self.__dt
         plt_epot = np.asarray(self.all_epot).flatten()
         plt_etot = np.asarray(self.all_etot).flatten()
         plt_temp = np.asarray(self.all_temp).flatten()
-        self.epot_plot,=self.ax2.plot(np.arange(1,len(plt_epot)+1),plt_epot,c='b')
-        self.etot_plot, = self.ax2.plot(np.arange(1, len(plt_etot) + 1), plt_etot, c='r')
-        self.temp_plot, = self.ax3.plot(np.arange(1, len(plt_temp) + 1), plt_temp, c='g', label="Temperature /K")
+        self.epot_plot,=self.ax2.plot(t,plt_epot,c='b')
+        self.etot_plot, = self.ax2.plot(t, plt_etot, c='r')
+        self.temp_plot, = self.ax3.plot(t, plt_temp, c='g', label="Temperature /K")
         if self.save_png:
             self.fig.savefig(_os.path.join(self.png_path, "pic_" + str(self.counter)))
         self.counter+=1

@@ -35,6 +35,7 @@ class LeapfrogSolverBerendsen( os.OdeSolver ) :
         self.__Ai[:] = self.force.A
         self.force.update_force( self.pset )
         lamb = self.__thermo.get_lambda()
+
         self.pset.V[:] = self.pset.V* lamb + 0.5 * ( self.__Ai + self.force.A ) * dt
         self.pset.update_boundary() 
 

@@ -13,14 +13,14 @@ class PES(object):
         self.geoms=[]
         self.figure=plt.figure()
         self.ax = Axes3D(self.figure)
-        self.ax.set_zlim(bottom=-5,top=15)
+        self.ax.set_zlim(bottom=-1,top=5)
         plt.title(model_name)
         self.resolution=resolution
         self.theta=np.linspace(0.1*np.pi/180,360*np.pi/180,self.resolution)
         self.rhs=np.linspace(1,7,self.resolution)
         self.meshX,self.meshY=np.meshgrid(self.rhs,self.theta*180/np.pi)
         meshZ=np.zeros((len(self.theta),len(self.rhs)))
-        self.surf=self.ax.plot_surface(self.meshX,self.meshY,meshZ,cmap=cm.magma,vmin=-5,vmax=15,animated=True)
+        self.surf=self.ax.plot_surface(self.meshX,self.meshY,meshZ,cmap=cm.magma,vmin=-1,vmax=5,animated=True)
         self.model=model_name
         self.create_geoms()
         self.Evaluation = NN.AtomicNeuralNetInstance()
@@ -71,18 +71,19 @@ class PES(object):
         if self.Data ==None:
             self.Data = self.Evaluation.create_eval_data(self.geoms)
         out=self.Evaluation.eval_dataset_energy(self.Data,0)
+        out=out-np.min(out)
         meshZ=out.reshape(len(self.theta),len(self.rhs))
         self.ZData.append(meshZ)
         self.surf.remove()
-        self.surf=self.ax.plot_surface(self.meshX,self.meshY,meshZ,cmap=cm.magma,vmin=-5,vmax=15)
+        self.surf=self.ax.plot_surface(self.meshX,self.meshY,meshZ,cmap=cm.magma,vmin=-1,vmax=5)
         if show_plot:
             plt.show()
 
 
 if __name__ == "__main__":
     plt.ioff()
-    file="/home/afuchs/Documents/NiAu_Training/NiAu_Test_without_prex_large"
-    #file="/home/afuchs/Git/NeuralNetworks/data/pretraining_2_species"
+    file="/home/afuchs/Documents/NiAu_Training_smaller_cutoff"
+    #file="/home/afuchs/Documents/NiAu_Training/NiAu_Comp/without_4"
     MyCheck1=PES(file)
     MyCheck1.pes_check(atom_types=["X","Y"],nr_atoms_per_type=[1,2],show_plot=False)
     MyCheck2 = PES(file)

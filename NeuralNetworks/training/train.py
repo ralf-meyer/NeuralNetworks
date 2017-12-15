@@ -82,8 +82,9 @@ Training.UseForce=force
 Training.Lambs=[1.0,-1.0]
 Training.Zetas=[0.2,0.5,1,3,10]#[0.025,0.045,0.075,0.1,0.15,0.2,0.3,0.5,0.7,1,1.5,2,3,5,10,18,36,100]
 Training.Etas=[0.01]
-Training.Rs=[1,1.8,2,2.2,2.4,2.6,2.8,3.0,3.2,3.4,3.6,3.8,4,4.2,4.4,5,7]
-Training.R_Etas=[0.1,0.3,0.8,0.8,0.8,1,1,1,1,1,1,0.8,0.3,0.3,0.3,0.3,0.1]
+Training.Rs=[1,1.8,2,2.2,2.4,2.6,2.8,3.0,3.2,3.4,3.6,3.8,4,4.2,4.4]
+Training.R_Etas=[0.1,0.3,0.8,0.8,0.8,1,1,1,1,1,1,0.8,0.3,0.3,0.1]
+Training.Cutoff=5
 #Training.R_Etas=[0.1,0.3,0.8,0.8,0.8,3,3,3,3,3,2,0.8,0.8,0.8,0.8,0.3,0.1]
 # if load_model:
 #     is_reference=False
@@ -95,6 +96,7 @@ if source == "QE":
     Training.read_qe_md_files(data_file,e_unit,dist_unit,DataPointsPercentage=percentage_of_data,TakeAsReference=is_reference)
 else:
     Training.read_lammps_files(data_file,energy_unit=e_unit,dist_unit=dist_unit,DataPointsPercentage=percentage_of_data,TakeAsReference=is_reference)
+
 
 print("Starting training for:")
 for i in range(0,len(Training.Atomtypes)):
@@ -123,11 +125,13 @@ Training.CostFunType=cost_fun
 Training.OptimizerType="Adam"
 Training.SavingDirectory=model_dir
 Training.MakeLastLayerConstant=False
-Training.PESCheck=check_pes.PES(model_dir,Training)
+#Training.PESCheck=check_pes.PES(model_dir,Training)
 Training.MakeAllVariable = True
-if "pretraining" in model or model == "":
-    Training.MakeAllVariable = False
+
 if load_model:
+    if "pretraining" in model or model == "":
+        Training.MakeAllVariable = False
+        print("Loading pretraining...")
     #Load pretrained net
     try:
         if model=="":

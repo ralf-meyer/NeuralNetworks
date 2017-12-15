@@ -152,10 +152,10 @@ def _construct_hidden_layer(
     # Construct the bias for this layer
     if len(BiasData) != 0:
 
-        if not MakeAllVariable:
-            Biases = _tf.constant(BiasData, dtype=_tf.float64, name="bias")
-        else:
-            Biases = _tf.Variable(BiasData, dtype=_tf.float64, name="bias")
+        # if not MakeAllVariable:
+        #     Biases = _tf.constant(BiasData, dtype=_tf.float64, name="bias")
+        # else:
+        Biases = _tf.Variable(BiasData, dtype=_tf.float64, name="bias")
 
     else:
         if BiasType == "zeros":
@@ -500,7 +500,7 @@ def _initialize_cost_plot(TrainingData, ValidationData=[]):
     # Need both of these in order to rescale
     ax.relim()
     ax.autoscale_view()
-    ax.set_xlabel("datset")
+    ax.set_xlabel("dataset")
     ax.set_ylabel("log(cost)")
     ax.set_title("Normalized cost per batch")
     if len(ValidationData) != 0:
@@ -788,7 +788,7 @@ class AtomicNeuralNetInstance(object):
         self.Etas = []
         self.Zetas = []
         self.Lambs = []
-
+        self.Cutoff=7
         # Private variables
 
         # Class instances
@@ -936,6 +936,7 @@ class AtomicNeuralNetInstance(object):
             self.Lambs=rare_model[7]
             self.Zetas=rare_model[8]
             self.NumberOfRadialFunctions=rare_model[9]
+            self.Cutoff=rare_model[10]
         except:
             print("No parameters saved")
             self.NumberOfRadialFunctions=15
@@ -1577,7 +1578,8 @@ class AtomicNeuralNetInstance(object):
                                   self.Etas,
                                   self.Lambs,
                                   self.Zetas,
-                                  self.NumberOfRadialFunctions])
+                                  self.NumberOfRadialFunctions,
+                                  self.Cutoff])
 
                     # Abort criteria
                     if self.TrainingCosts != 0 and self.TrainingCosts <= self.CostCriterion and self.ValidationCosts <= self.CostCriterion or self.DeltaE[-1] < self.dE_Criterion:
@@ -1650,7 +1652,7 @@ class AtomicNeuralNetInstance(object):
         self.SizeOfInputsPerType = []
 
         self._SymmFunSet = _SymmetryFunctionSet.SymmetryFunctionSet(
-            self.Atomtypes)
+            self.Atomtypes,self.Cutoff)
         if len(self.Rs) == 0:
             self._SymmFunSet.add_radial_functions_evenly(
                 self.NumberOfRadialFunctions)
@@ -1767,7 +1769,8 @@ class AtomicNeuralNetInstance(object):
             TakeAsReference=True,
             LoadGeometries=True,
             DataPointsPercentage=100,
-            calibrate=True):
+            calibrate=True,
+            Calibration=[]):
         """Reads lammps files,adds symmetry functions to the symmetry function
         basis and converts the cartesian corrdinates to symmetry function vectors.
 
@@ -1777,7 +1780,7 @@ class AtomicNeuralNetInstance(object):
             LoadGeometries(bool): Specifies if the conversion of the geometry
                                 coordinates should be performed."""
 
-
+        my_calibration = []
         self._DataSet = _DataSet.DataSet()
         self._Reader = _readers.QE_MD_Reader()
         if energy_unit == "Ry":
@@ -1802,6 +1805,11 @@ class AtomicNeuralNetInstance(object):
         self._Reader.get_files(path)
         self._Reader.read_all_files()
         if calibrate:
+            if len(Calibration) > 0:
+                my_calibration=[]
+                for i in range(len(Calibration)):
+                    my_calibration.append((Calibration[i],self._Reader.nr_atoms_per_type[i]))
+            self._Reader.Calibration=my_calibration
             self._Reader.calibrate_energy()
         else:
             self._Reader.energies=self._Reader.e_pot
@@ -3483,7 +3491,8 @@ class MultipleInstanceTraining(object):
                               self.TrainingInstances[i].Etas,
                               self.TrainingInstances[i].Lambs,
                               self.TrainingInstances[i].Zetas,
-                              self.TrainingInstances[i].NumberOfRadialFunctions])
+                              self.TrainingInstances[i].NumberOfRadialFunctions,
+                              self.TrainingInstances[i].Cutoff])
                 ct = ct + 1
                 # Abort criteria
                 if self.GlobalTrainingCosts <= self.GlobalCostCriterion and \

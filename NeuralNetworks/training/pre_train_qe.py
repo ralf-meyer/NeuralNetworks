@@ -73,8 +73,8 @@ Training.Etas=[0.01]
 Training.Rs=[1,1.8,2,2.2,2.4,2.6,2.8,3.0,3.2,3.4,3.6,3.8,4,4.2,4.4,5,7]
 Training.R_Etas=[0.1,0.3,0.8,0.8,0.8,1,1,1,1,1,1,0.8,0.3,0.3,0.3,0.3,0.1]
 #Read files
-for i in range(nr_species):
-    Training.Atomtypes.append("X"+str(i+1))
+# for i in range(nr_species):
+#     Training.Atomtypes.append("X"+str(i+1))
 Training.read_qe_md_files(data_file,e_unit,dist_unit)
 #Create batches
 batch_size=len(Training._DataSet.energies)/50 
@@ -85,7 +85,7 @@ for i in range(nr_species):
     Training.Structures.append([Training.SizeOfInputsPerType[i],100,80,1])
 
 #Dropout and regularization for generalizing the net
-Training.Dropout=[0,0.5,0]
+Training.Dropout=[0,0.4,0]
 Training.RegularizationParam=0.1
 Training.InitStddev=0.1
 Training.HiddenType="truncated_normal"

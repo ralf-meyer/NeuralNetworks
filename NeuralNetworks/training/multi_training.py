@@ -10,7 +10,7 @@ def str2bool(v):
   return v.lower() in ("yes", "true", "t", "1")
 #Get input
 plots=False
-learning_rate=0.0001
+learning_rate=0.001
 epochs=100
 data_file=""
 force=False
@@ -74,6 +74,8 @@ data_files=["/home/afuchs/Documents/Ni15Au15/",
             "/home/afuchs/Documents/Ni1Au2/",
             "/home/afuchs/Documents/Ni2Au1",
             "/home/afuchs/Documents/Ni2Au2",
+            "/home/afuchs/Documents/Ni5Au5_6000/",
+            "/home/afuchs/Documents/Ni5Au5/",
             "/home/afuchs/Documents/NiAu20"]
 # data_files=["/home/afuchs/Documents/Ni1Au2/",
 #             "/home/afuchs/Documents/Ni2Au1",
@@ -96,7 +98,7 @@ for i in range(len(data_files)):
     Training.R_Etas =[0.1,0.3,0.8,0.8,0.8,1,1,1,1,1,1,0.8,0.3,0.3,0.3,0.3,0.1]
     #Read file
     if source == "QE":
-        Training.read_qe_md_files(data_file,e_unit,dist_unit,DataPointsPercentage=percentage_of_data,calibrate=False)
+        Training.read_qe_md_files(data_file,e_unit,dist_unit,DataPointsPercentage=percentage_of_data,Calibration=["/home/afuchs/Documents/Calibration/Ni","/home/afuchs/Documents/Calibration/Au"])
     else:
         Training.read_lammps_files(data_file,energy_unit=e_unit,dist_unit=dist_unit,DataPointsPercentage=percentage_of_data,calibrate=False)
 
@@ -145,7 +147,6 @@ for j in range(1,len(means)):
 for i,Training in enumerate(Multi.TrainingInstances):
     Multi.TrainingInstances[i]._MeansOfDs = max_means
     Multi.TrainingInstances[i]._VarianceOfDs = max_vars
-    Multi.TrainingInstances[i]._DataSet.energies-=min_energy
     #Create batches
     batch_size=len(Training._DataSet.energies)*(percentage_of_data/100)/50
     Multi.TrainingInstances[i].make_training_and_validation_data(batch_size,90,10)
@@ -153,7 +154,7 @@ for i,Training in enumerate(Multi.TrainingInstances):
 
 
 Multi.MakePlots=True
-Multi.EpochsPerCycle=10
+Multi.EpochsPerCycle=2
 Multi.GlobalEpochs=epochs
 Multi.GlobalLearningRate=learning_rate
 Multi.GlobalRegularization="L2"

@@ -355,260 +355,260 @@ def search_idx(idx,idx_dataset,last_idx):
 
 
 
-class Deprecated(object):
-    def get_ecut(my_file,E_conv_factor):
-        
-        try:
-            start=my_file.index("ecut=")
-            end=my_file.index("Ry",start)
-            temp=my_file[start+5:end]
-            return float(temp)*E_conv_factor
-        except:
-            temp=None
-            
-        return temp
+#class Deprecated(object):
+def get_ecut(my_file,E_conv_factor):
 
-    def read_cpu_time(my_file):
-        
-        #find cpu time in file
-        start_idx=[i.start() for i in _re.finditer('total cpu time spent up to now is', my_file)]
+    try:
+        start=my_file.index("ecut=")
+        end=my_file.index("Ry",start)
+        temp=my_file[start+5:end]
+        return float(temp)*E_conv_factor
+    except:
+        temp=None
 
-        temp_idx=[j.start() for j in _re.finditer('secs', my_file)]
-        
-        end_idx=[]
-        #Match start and end indices
-        for idx in start_idx:
+    return temp
+
+def read_cpu_time(my_file):
+
+    #find cpu time in file
+    start_idx=[i.start() for i in _re.finditer('total cpu time spent up to now is', my_file)]
+
+    temp_idx=[j.start() for j in _re.finditer('secs', my_file)]
+
+    end_idx=[]
+    #Match start and end indices
+    for idx in start_idx:
+        end_idx.append(temp_idx[next(x[0] for x in enumerate(temp_idx) if x[1] > idx)])
+
+    #get values
+    values=[]
+    if len(start_idx)==len(end_idx):
+        for i in range(0,len(start_idx)):
+            values.append(float(my_file[start_idx[i]+len('total cpu time spent up to now is'):end_idx[i]]))
+
+    return values
+
+def calc_avg_cpu_time(times):
+
+    avg=times[0]
+    for i in range(1,len(times)):
+        avg=(avg+(times[i]-times[i-1]))/2
+
+    return avg
+
+def read_total_energy(my_file,eq_idx,temp_idx,E_conv_factor):
+
+    #find total energies in file
+    tot_idx=[i.start() for i in  _re.finditer('total energy', my_file)]
+    not_idx=[i.start() for i in  _re.finditer('total energy is the sum of the following terms', my_file)]
+    eq_idx=[i.start() for i in  _re.finditer('=', my_file)]
+    temp_idx=[j.start() for j in  _re.finditer('Ry', my_file)]
+
+    start_idx=[]
+    end_idx=[]
+    #Match start and end indices
+    for idx in tot_idx:
+        if idx not in not_idx:
+            start_idx.append(eq_idx[next(x[0] for x in enumerate(eq_idx) if x[1] > idx)])
             end_idx.append(temp_idx[next(x[0] for x in enumerate(temp_idx) if x[1] > idx)])
-            
-        #get values
-        values=[]
-        if len(start_idx)==len(end_idx):
-            for i in range(0,len(start_idx)):
-                values.append(float(my_file[start_idx[i]+len('total cpu time spent up to now is'):end_idx[i]]))
 
+    #get values
+    values=[]
+    if len(start_idx)==len(end_idx):
+        for i in range(0,len(start_idx)):
+            values.append(float(my_file[start_idx[i]+1:end_idx[i]])*E_conv_factor)
+
+    return values
+
+def read_harris_foulkes_estimate(my_file,eq_idx,temp_idx,E_conv_factor):
+
+    #find harris foulkes estimates in file
+    tot_idx=[i.start() for i in  _re.finditer('Harris-Foulkes estimate', my_file)]
+    eq_idx=[i.start() for i in  _re.finditer('=', my_file)]
+    temp_idx=[j.start() for j in  _re.finditer('Ry', my_file)]
+
+    start_idx=[]
+    end_idx=[]
+    #Match start and end indices
+    for idx in tot_idx:
+        start_idx.append(eq_idx[next(x[0] for x in enumerate(eq_idx) if x[1] > idx)])
+        end_idx.append(temp_idx[next(x[0] for x in enumerate(temp_idx) if x[1] > idx)])
+
+    #get values
+    values=[]
+    if len(start_idx)==len(end_idx):
+        for i in range(0,len(start_idx)):
+            values.append(float(my_file[start_idx[i]+1:end_idx[i]])*E_conv_factor)
+
+    return values
+
+def read_one_electron_contrib(my_file,eq_idx,temp_idx,E_conv_factor):
+
+    #find harris foulkes estimates in file
+    tot_idx=[i.start() for i in  _re.finditer('one-electron contribution', my_file)]
+
+    start_idx=[]
+    end_idx=[]
+    #Match start and end indices
+    for idx in tot_idx:
+        start_idx.append(eq_idx[next(x[0] for x in enumerate(eq_idx) if x[1] > idx)])
+        end_idx.append(temp_idx[next(x[0] for x in enumerate(temp_idx) if x[1] > idx)])
+
+    #get values
+    values=[]
+    if len(start_idx)==len(end_idx):
+        for i in range(0,len(start_idx)):
+            values.append(float(my_file[start_idx[i]+1:end_idx[i]])*E_conv_factor)
+
+    if len(values)>1 or len(values)==0:
         return values
+    else:
+        return values[0]
 
-    def calc_avg_cpu_time(times):
-        
-        avg=times[0]
-        for i in range(1,len(times)):
-            avg=(avg+(times[i]-times[i-1]))/2
-            
-        return avg
+def read_hartree_contribution(my_file,eq_idx,temp_idx,E_conv_factor):
 
-    def read_total_energy(my_file,eq_idx,temp_idx,E_conv_factor):
-        
-        #find total energies in file
-        tot_idx=[i.start() for i in  _re.finditer('total energy', my_file)]
-        not_idx=[i.start() for i in  _re.finditer('total energy is the sum of the following terms', my_file)]
-        eq_idx=[i.start() for i in  _re.finditer('=', my_file)]
-        temp_idx=[j.start() for j in  _re.finditer('Ry', my_file)]
-        
-        start_idx=[]
-        end_idx=[]
-        #Match start and end indices
-        for idx in tot_idx:
-            if idx not in not_idx:
-                start_idx.append(eq_idx[next(x[0] for x in enumerate(eq_idx) if x[1] > idx)])
-                end_idx.append(temp_idx[next(x[0] for x in enumerate(temp_idx) if x[1] > idx)])
-            
-        #get values
-        values=[]
-        if len(start_idx)==len(end_idx):
-            for i in range(0,len(start_idx)):
-                values.append(float(my_file[start_idx[i]+1:end_idx[i]])*E_conv_factor)
-                
+    #find harris foulkes estimates in file
+    tot_idx=[i.start() for i in  _re.finditer('hartree contribution', my_file)]
+    eq_idx=[i.start() for i in  _re.finditer('=', my_file)]
+    temp_idx=[j.start() for j in  _re.finditer('Ry', my_file)]
+
+    start_idx=[]
+    end_idx=[]
+    #Match start and end indices
+    for idx in tot_idx:
+        start_idx.append(eq_idx[next(x[0] for x in enumerate(eq_idx) if x[1] > idx)])
+        end_idx.append(temp_idx[next(x[0] for x in enumerate(temp_idx) if x[1] > idx)])
+
+    #get values
+    values=[]
+    if len(start_idx)==len(end_idx):
+        for i in range(0,len(start_idx)):
+            values.append(float(my_file[start_idx[i]+1:end_idx[i]])*E_conv_factor)
+
+    if len(values)>1 or len(values)==0:
         return values
+    else:
+        return values[0]
 
-    def read_harris_foulkes_estimate(my_file,eq_idx,temp_idx,E_conv_factor):
-        
-        #find harris foulkes estimates in file
-        tot_idx=[i.start() for i in  _re.finditer('Harris-Foulkes estimate', my_file)]
-        eq_idx=[i.start() for i in  _re.finditer('=', my_file)]
-        temp_idx=[j.start() for j in  _re.finditer('Ry', my_file)]
-        
-        start_idx=[]
-        end_idx=[]
-        #Match start and end indices
-        for idx in tot_idx:
-            start_idx.append(eq_idx[next(x[0] for x in enumerate(eq_idx) if x[1] > idx)])
-            end_idx.append(temp_idx[next(x[0] for x in enumerate(temp_idx) if x[1] > idx)])
-            
-        #get values
-        values=[]
-        if len(start_idx)==len(end_idx):
-            for i in range(0,len(start_idx)):
-                values.append(float(my_file[start_idx[i]+1:end_idx[i]])*E_conv_factor)
-                
+def read_xc_contribution(my_file,eq_idx,temp_idx,E_conv_factor):
+
+    #find harris foulkes estimates in file
+    tot_idx=[i.start() for i in  _re.finditer('xc contribution', my_file)]
+    eq_idx=[i.start() for i in  _re.finditer('=', my_file)]
+    temp_idx=[j.start() for j in  _re.finditer('Ry', my_file)]
+
+    start_idx=[]
+    end_idx=[]
+    #Match start and end indices
+    for idx in tot_idx:
+        start_idx.append(eq_idx[next(x[0] for x in enumerate(eq_idx) if x[1] > idx)])
+        end_idx.append(temp_idx[next(x[0] for x in enumerate(temp_idx) if x[1] > idx)])
+
+    #get values
+    values=[]
+    if len(start_idx)==len(end_idx):
+        for i in range(0,len(start_idx)):
+            values.append(float(my_file[start_idx[i]+1:end_idx[i]])*E_conv_factor)
+
+    if len(values)>1 or len(values)==0:
         return values
-        
-    def read_one_electron_contrib(my_file,eq_idx,temp_idx,E_conv_factor):
-        
-        #find harris foulkes estimates in file
-        tot_idx=[i.start() for i in  _re.finditer('one-electron contribution', my_file)]
-        
-        start_idx=[]
-        end_idx=[]
-        #Match start and end indices
-        for idx in tot_idx:
-            start_idx.append(eq_idx[next(x[0] for x in enumerate(eq_idx) if x[1] > idx)])
-            end_idx.append(temp_idx[next(x[0] for x in enumerate(temp_idx) if x[1] > idx)])
-            
-        #get values
-        values=[]
-        if len(start_idx)==len(end_idx):
-            for i in range(0,len(start_idx)):
-                values.append(float(my_file[start_idx[i]+1:end_idx[i]])*E_conv_factor)
-        
-        if len(values)>1 or len(values)==0:
-            return values
-        else:
-            return values[0]
+    else:
+        return values[0]
 
-    def read_hartree_contribution(my_file,eq_idx,temp_idx,E_conv_factor):
-        
-        #find harris foulkes estimates in file
-        tot_idx=[i.start() for i in  _re.finditer('hartree contribution', my_file)]
-        eq_idx=[i.start() for i in  _re.finditer('=', my_file)]
-        temp_idx=[j.start() for j in  _re.finditer('Ry', my_file)]
-        
-        start_idx=[]
-        end_idx=[]
-        #Match start and end indices
-        for idx in tot_idx:
-            start_idx.append(eq_idx[next(x[0] for x in enumerate(eq_idx) if x[1] > idx)])
-            end_idx.append(temp_idx[next(x[0] for x in enumerate(temp_idx) if x[1] > idx)])
-            
-        #get values
-        values=[]
-        if len(start_idx)==len(end_idx):
-            for i in range(0,len(start_idx)):
-                values.append(float(my_file[start_idx[i]+1:end_idx[i]])*E_conv_factor)
-                
-        if len(values)>1 or len(values)==0:
-            return values
-        else:
-            return values[0]
+def read_ewald_contribution(my_file,eq_idx,temp_idx,E_conv_factor):
 
-    def read_xc_contribution(my_file,eq_idx,temp_idx,E_conv_factor):
-        
-        #find harris foulkes estimates in file
-        tot_idx=[i.start() for i in  _re.finditer('xc contribution', my_file)]
-        eq_idx=[i.start() for i in  _re.finditer('=', my_file)]
-        temp_idx=[j.start() for j in  _re.finditer('Ry', my_file)]
-        
-        start_idx=[]
-        end_idx=[]
-        #Match start and end indices
-        for idx in tot_idx:
-            start_idx.append(eq_idx[next(x[0] for x in enumerate(eq_idx) if x[1] > idx)])
-            end_idx.append(temp_idx[next(x[0] for x in enumerate(temp_idx) if x[1] > idx)])
-            
-        #get values
-        values=[]
-        if len(start_idx)==len(end_idx):
-            for i in range(0,len(start_idx)):
-                values.append(float(my_file[start_idx[i]+1:end_idx[i]])*E_conv_factor)
-                
-        if len(values)>1 or len(values)==0:
-            return values
-        else:
-            return values[0]
+    #find harris foulkes estimates in file
+    tot_idx=[i.start() for i in  _re.finditer('ewald contribution', my_file)]
+    eq_idx=[i.start() for i in  _re.finditer('=', my_file)]
+    temp_idx=[j.start() for j in  _re.finditer('Ry', my_file)]
 
-    def read_ewald_contribution(my_file,eq_idx,temp_idx,E_conv_factor):
-        
-        #find harris foulkes estimates in file
-        tot_idx=[i.start() for i in  _re.finditer('ewald contribution', my_file)]
-        eq_idx=[i.start() for i in  _re.finditer('=', my_file)]
-        temp_idx=[j.start() for j in  _re.finditer('Ry', my_file)]
-        
-        start_idx=[]
-        end_idx=[]
-        #Match start and end indices
-        for idx in tot_idx:
-            start_idx.append(eq_idx[next(x[0] for x in enumerate(eq_idx) if x[1] > idx)])
-            end_idx.append(temp_idx[next(x[0] for x in enumerate(temp_idx) if x[1] > idx)])
-            
-        #get values
-        values=[]
-        if len(start_idx)==len(end_idx):
-            for i in range(0,len(start_idx)):
-                values.append(float(my_file[start_idx[i]+1:end_idx[i]])*E_conv_factor)
-                
-        if len(values)>1 or len(values)==0:
-            return values
-        else:
-            return values[0]
-    
-    def read_one_center_paw_contrib(my_file,eq_idx,temp_idx,E_conv_factor):
-        
-        #find harris foulkes estimates in file
-        tot_idx=[i.start() for i in  _re.finditer('one-center paw contrib', my_file)]
-        eq_idx=[i.start() for i in  _re.finditer('=', my_file)]
-        temp_idx=[j.start() for j in  _re.finditer('Ry', my_file)]
-        
-        start_idx=[]
-        end_idx=[]
-        #Match start and end indices
-        for idx in tot_idx:
-            start_idx.append(eq_idx[next(x[0] for x in enumerate(eq_idx) if x[1] > idx)])
-            end_idx.append(temp_idx[next(x[0] for x in enumerate(temp_idx) if x[1] > idx)])
-            
-        #get values
-        values=[]
-        if len(start_idx)==len(end_idx):
-            for i in range(0,len(start_idx)):
-                values.append(float(my_file[start_idx[i]+1:end_idx[i]])*E_conv_factor)
-                
-        if len(values)>1 or len(values)==0:
-            return values
-        else:
-            return values[0]
+    start_idx=[]
+    end_idx=[]
+    #Match start and end indices
+    for idx in tot_idx:
+        start_idx.append(eq_idx[next(x[0] for x in enumerate(eq_idx) if x[1] > idx)])
+        end_idx.append(temp_idx[next(x[0] for x in enumerate(temp_idx) if x[1] > idx)])
 
-    def read_smearing_contrib(my_file,eq_idx,temp_idx,E_conv_factor):
-        
-        #find harris foulkes estimates in file
-        tot_idx=[i.start() for i in  _re.finditer('smearing contrib', my_file)]
-        
-        start_idx=[]
-        end_idx=[]
-        #Match start and end indices
-        for idx in tot_idx:
-            start_idx.append(eq_idx[next(x[0] for x in enumerate(eq_idx) if x[1] > idx)])
-            end_idx.append(temp_idx[next(x[0] for x in enumerate(temp_idx) if x[1] > idx)])
-            
-        #get values
-        values=[]
-        if len(start_idx)==len(end_idx):
-            for i in range(0,len(start_idx)):
-                values.append(float(my_file[start_idx[i]+1:end_idx[i]])*E_conv_factor)
-                
-        if len(values)>1 or len(values)==0:
-            return values
-        else:
-            return values[0]
+    #get values
+    values=[]
+    if len(start_idx)==len(end_idx):
+        for i in range(0,len(start_idx)):
+            values.append(float(my_file[start_idx[i]+1:end_idx[i]])*E_conv_factor)
 
-    def read_scf_accuracy(my_file,E_conv_factor):
-        
-        #find scf accuracies in file
-        tot_idx=[i.start() for i in  _re.finditer('estimated scf accuracy', my_file)]
-        eq_idx=[i.start() for i in  _re.finditer('<', my_file)]
-        temp_idx=[j.start() for j in  _re.finditer('Ry', my_file)]
-        
-        start_idx=[]
-        end_idx=[]
-        #Match start and end indices
-        for idx in tot_idx:
-            start_idx.append(eq_idx[next(x[0] for x in enumerate(eq_idx) if x[1] > idx)])
-            end_idx.append(temp_idx[next(x[0] for x in enumerate(temp_idx) if x[1] > idx)])
-            
-        #get values
-        values=[]
-        if len(start_idx)==len(end_idx):
-            for i in range(0,len(start_idx)):
-                values.append(float(my_file[start_idx[i]+1:end_idx[i]])*E_conv_factor)
-                
+    if len(values)>1 or len(values)==0:
         return values
+    else:
+        return values[0]
+
+def read_one_center_paw_contrib(my_file,eq_idx,temp_idx,E_conv_factor):
+
+    #find harris foulkes estimates in file
+    tot_idx=[i.start() for i in  _re.finditer('one-center paw contrib', my_file)]
+    eq_idx=[i.start() for i in  _re.finditer('=', my_file)]
+    temp_idx=[j.start() for j in  _re.finditer('Ry', my_file)]
+
+    start_idx=[]
+    end_idx=[]
+    #Match start and end indices
+    for idx in tot_idx:
+        start_idx.append(eq_idx[next(x[0] for x in enumerate(eq_idx) if x[1] > idx)])
+        end_idx.append(temp_idx[next(x[0] for x in enumerate(temp_idx) if x[1] > idx)])
+
+    #get values
+    values=[]
+    if len(start_idx)==len(end_idx):
+        for i in range(0,len(start_idx)):
+            values.append(float(my_file[start_idx[i]+1:end_idx[i]])*E_conv_factor)
+
+    if len(values)>1 or len(values)==0:
+        return values
+    else:
+        return values[0]
+
+def read_smearing_contrib(my_file,eq_idx,temp_idx,E_conv_factor):
+
+    #find harris foulkes estimates in file
+    tot_idx=[i.start() for i in  _re.finditer('smearing contrib', my_file)]
+
+    start_idx=[]
+    end_idx=[]
+    #Match start and end indices
+    for idx in tot_idx:
+        start_idx.append(eq_idx[next(x[0] for x in enumerate(eq_idx) if x[1] > idx)])
+        end_idx.append(temp_idx[next(x[0] for x in enumerate(temp_idx) if x[1] > idx)])
+
+    #get values
+    values=[]
+    if len(start_idx)==len(end_idx):
+        for i in range(0,len(start_idx)):
+            values.append(float(my_file[start_idx[i]+1:end_idx[i]])*E_conv_factor)
+
+    if len(values)>1 or len(values)==0:
+        return values
+    else:
+        return values[0]
+
+def read_scf_accuracy(my_file,E_conv_factor):
+
+    #find scf accuracies in file
+    tot_idx=[i.start() for i in  _re.finditer('estimated scf accuracy', my_file)]
+    eq_idx=[i.start() for i in  _re.finditer('<', my_file)]
+    temp_idx=[j.start() for j in  _re.finditer('Ry', my_file)]
+
+    start_idx=[]
+    end_idx=[]
+    #Match start and end indices
+    for idx in tot_idx:
+        start_idx.append(eq_idx[next(x[0] for x in enumerate(eq_idx) if x[1] > idx)])
+        end_idx.append(temp_idx[next(x[0] for x in enumerate(temp_idx) if x[1] > idx)])
+
+    #get values
+    values=[]
+    if len(start_idx)==len(end_idx):
+        for i in range(0,len(start_idx)):
+            values.append(float(my_file[start_idx[i]+1:end_idx[i]])*E_conv_factor)
+
+    return values
 
 
 class QE_MD_Reader(object):
@@ -710,6 +710,7 @@ class QE_MD_Reader(object):
         reader=QE_SCF_Reader()
         e_cal=0
         if len(self.Calibration)>0: #With calibration files it gives the total energy minus the single atom energies
+            print("Performing calibration!")
             for cal in self.Calibration:
                 reader.files=[]
                 folder=cal[0]
@@ -719,7 +720,7 @@ class QE_MD_Reader(object):
                         temp=open(os.path.join(dirpath, filename),"r").read()
                         reader.files=[temp]
                         reader.read_all_files()
-                        e_cal+=reader.total_energies[0][-1]*NrAtoms*self.E_conv_factor
+                        e_cal+=reader.e_tot[-1]*NrAtoms*self.E_conv_factor
         else: #Sets minimum as zero point 
             e_cal=min(self.e_pot)
                         

@@ -5,7 +5,7 @@ from scipy.constants import pi
 
 
 def get_temperature(pset):
-
+    #print(pset.V)
     abs_v = _np.linalg.norm(pset.V,axis=1) / pset.unit
     T = _np.mean(abs_v**2 * pset.M[:] / pset.mass_unit) / (3 * k_B)
 
@@ -13,17 +13,17 @@ def get_temperature(pset):
 
 def set_temperature(pset, T):
     # flatten out list of masses (after conversion to kg)
-    m = list(itertools.chain.from_iterable(pset.M[:] / pset.mass_unit)) 
+    m = list(itertools.chain.from_iterable(pset.M[:] / pset.mass_unit))
+
     sampler = Sampler()
 
-    pset.thermostat_temperature = T
+    #pset.thermostat_temperature = T
 
     # calculate for each kind of mass
     for m_i in set(m):
         # get indices of particles with mass m_i
         indices = [j for j, m_j in enumerate(m) if m_j == m_i ]
-        v = sampler.draw_boltzman_velocities(pset.size, T, m_i, 1)
-        
+        v = sampler.draw_boltzman_velocities(len(indices), T, m_i, 1)
         # convert from m/s in used length unit/s
         pset.V[indices] = v * pset.unit
     
