@@ -100,26 +100,28 @@ class SymmetryFunctionSet(object):
             funid, len(prms), ptr, cutid, cutoff)
         self.num_Gs[self.type_dict[type1]] += 1
 
-    def add_radial_functions(self, rss, etas):
+    def add_radial_functions(self, rss, etas, cuttype = "cos", cutoff = None):
         for rs, eta in zip(rss, etas):
             for (ti, tj) in product(self.atomtypes, repeat = 2):
-                self.add_TwoBodySymmetryFunction(
-                    ti, tj, "BehlerG2", [eta, rs])
+                self.add_TwoBodySymmetryFunction(ti, tj, "BehlerG2", [eta, rs],
+                    cuttype = cuttype, cutoff = cutoff)
 
     def add_radial_functions_evenly(self, N):
         rss = _np.linspace(0.,self.cutoff,N)
         etas = [2./(self.cutoff/(N-1))**2]*N
         self.add_radial_functions(rss, etas)
 
-    def add_angular_functions(self, etas, zetas, lambs):
+    def add_angular_functions(self, etas, zetas, lambs, cuttype = "cos",
+            cutoff = None):
         for eta in etas:
             for zeta in zetas:
                 for lamb in lambs:
                     for ti in self.atomtypes:
                         for (tj, tk) in combinations_with_replacement(
                                 self.atomtypes, 2):
-                            self.add_ThreeBodySymmetryFunction(
-                                ti, tj, tk, "BehlerG4", [lamb, zeta, eta])
+                            self.add_ThreeBodySymmetryFunction(ti, tj, tk,
+                                "BehlerG4", [lamb, zeta, eta],
+                                cuttype = cuttype, cutoff = cutoff)
 
     def print_symFuns(self):
         lib.SymmetryFunctionSet_print_symFuns(self.obj)
