@@ -49,50 +49,53 @@ void BehlerG2::eval_with_derivatives(double rij, double &G, double &dGdrij)
 
 double OneOverR6::eval(double rij)
 {
-  return pow(rij, -6);
+  return cutfun->eval(rij)/pow(rij, 6);
 };
 
 double OneOverR6::drij(double rij)
 {
-  return -6/pow(rij, 7);
+  return (rij*cutfun->derivative(rij) - 6*cutfun->eval(rij))/pow(rij, 7);
 };
 
 void OneOverR6::eval_with_derivatives(double rij, double &G, double &dGdrij)
 {
-  G = pow(rij, -6);
-  dGdrij = -6/pow(rij, 7);
+  auto x0 = cutfun->eval(rij);
+  G = x0/pow(rij, 6);
+  dGdrij = (rij*cutfun->derivative(rij) - 6*x0)/pow(rij, 7);
 };
 
 double OneOverR8::eval(double rij)
 {
-  return pow(rij, -8);
+  return cutfun->eval(rij)/pow(rij, 8);
 };
 
 double OneOverR8::drij(double rij)
 {
-  return -8/pow(rij, 9);
+  return (rij*cutfun->derivative(rij) - 8*cutfun->eval(rij))/pow(rij, 9);
 };
 
 void OneOverR8::eval_with_derivatives(double rij, double &G, double &dGdrij)
 {
-  G = pow(rij, -8);
-  dGdrij = -8/pow(rij, 9);
+  auto x0 = cutfun->eval(rij);
+  G = x0/pow(rij, 8);
+  dGdrij = (rij*cutfun->derivative(rij) - 8*x0)/pow(rij, 9);
 };
 
 double OneOverR10::eval(double rij)
 {
-  return pow(rij, -10);
+  return cutfun->eval(rij)/pow(rij, 10);
 };
 
 double OneOverR10::drij(double rij)
 {
-  return -10/pow(rij, 11);
+  return (rij*cutfun->derivative(rij) - 10*cutfun->eval(rij))/pow(rij, 11);
 };
 
 void OneOverR10::eval_with_derivatives(double rij, double &G, double &dGdrij)
 {
-  G = pow(rij, -10);
-  dGdrij = -10/pow(rij, 11);
+  auto x0 = cutfun->eval(rij);
+  G = x0/pow(rij, 10);
+  dGdrij = (rij*cutfun->derivative(rij) - 10*x0)/pow(rij, 11);
 };
 // AUTOMATIC End of custom TwoBodySymFuns
 

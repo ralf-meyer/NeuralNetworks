@@ -92,9 +92,13 @@ void SymmetryFunctionSet::print_symFuns()
   //printf("TwoBodySymmetryFunctions:\n");
   for (int ti = 0; ti < num_atomtypes; ti++)
   {
-    printf("ti = %d\n", ti);
+    printf("--- Atom type %d: ----\n", ti);
     printf("Number of TwoBodySymmetryFunction for atom type %d is %d\n",
       ti, num_symFuns[2*ti]);
+    /*for (int bi = 0; bi < num_symFuns[2*ti]; bi++)
+    {
+      printf("   #%d function with #%d cutoff\n", TwoBodySymFuns)
+    }*/
     printf("Number of ThreeBodySymmetryFunction for atom type %d is %d\n",
       ti, num_symFuns[2*ti+1]);
   }
