@@ -28,8 +28,24 @@ class CosCutoffFunction: public CutoffFunction
 
 class TanhCutoffFunction: public CutoffFunction
 {
-    public:
-        TanhCutoffFunction(double cutoff_i):CutoffFunction(cutoff_i){};
-        double eval(double r);
-        double derivative(double r);
+public:
+  TanhCutoffFunction(double cutoff_i):CutoffFunction(cutoff_i){};
+  double eval(double r);
+  double derivative(double r);
+};
+
+class ShortRangeCutoffFunction: public CutoffFunction
+{
+public:
+  ShortRangeCutoffFunction(double cutoff_i):CutoffFunction(cutoff_i){};
+  double eval(double r);
+  double derivative(double r);
+};
+
+class LongRangeCutoffFunction: public CutoffFunction
+{
+public:
+  LongRangeCutoffFunction(double cutoff_i):CutoffFunction(cutoff_i){};
+  double eval(double r);
+  double derivative(double r);
 };

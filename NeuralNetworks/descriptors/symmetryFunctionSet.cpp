@@ -92,9 +92,13 @@ void SymmetryFunctionSet::print_symFuns()
   //printf("TwoBodySymmetryFunctions:\n");
   for (int ti = 0; ti < num_atomtypes; ti++)
   {
-    printf("ti = %d\n", ti);
+    printf("--- Atom type %d: ----\n", ti);
     printf("Number of TwoBodySymmetryFunction for atom type %d is %d\n",
       ti, num_symFuns[2*ti]);
+    /*for (int bi = 0; bi < num_symFuns[2*ti]; bi++)
+    {
+      printf("   #%d function with #%d cutoff\n", TwoBodySymFuns)
+    }*/
     printf("Number of ThreeBodySymmetryFunction for atom type %d is %d\n",
       ti, num_symFuns[2*ti+1]);
   }
@@ -633,7 +637,8 @@ void SymmetryFunctionSet::eval_derivatives(
 }
 
 void SymmetryFunctionSet::eval_with_derivatives(
-  int num_atoms, int* types, double* xyzs, double* G_vector, double* dG_tensor){
+  int num_atoms, int* types, double* xyzs, double* G_vector, double* dG_tensor)
+{
   double rij, rij2, rik, rik2, rjk, rjk2, costheta_i, costheta_j, costheta_k,
     G, dGdr, dGdrij, dGdrik, dGdcostheta, dot_i, dot_j, dot_k;
   int i, j, k, two_Body_i, three_Body_i, coord, index_base, type_ij, type_ji,
@@ -670,7 +675,7 @@ void SymmetryFunctionSet::eval_with_derivatives(
         twoBodySymFuns[type_ij][two_Body_i]->eval_with_derivatives(
           rij, G, dGdr);
         G_vector[pos_atoms[i] + pos_twoBody[type_ij] + two_Body_i] += G;
-          
+
         // Loop over the three cartesian coordinates
         for (coord = 0; coord < 3; coord++){
           dG_tensor[3*num_atoms*(pos_atoms[i] + pos_twoBody[type_ij] +

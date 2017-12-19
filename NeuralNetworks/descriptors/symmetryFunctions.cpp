@@ -46,6 +46,57 @@ void BehlerG2::eval_with_derivatives(double rij, double &G, double &dGdrij)
   G = x0*x2;
   dGdrij = x2*(2*prms[0]*x0*x1 + cutfun->derivative(rij));
 };
+
+double OneOverR6::eval(double rij)
+{
+  return cutfun->eval(rij)/pow(rij, 6);
+};
+
+double OneOverR6::drij(double rij)
+{
+  return (rij*cutfun->derivative(rij) - 6*cutfun->eval(rij))/pow(rij, 7);
+};
+
+void OneOverR6::eval_with_derivatives(double rij, double &G, double &dGdrij)
+{
+  auto x0 = cutfun->eval(rij);
+  G = x0/pow(rij, 6);
+  dGdrij = (rij*cutfun->derivative(rij) - 6*x0)/pow(rij, 7);
+};
+
+double OneOverR8::eval(double rij)
+{
+  return cutfun->eval(rij)/pow(rij, 8);
+};
+
+double OneOverR8::drij(double rij)
+{
+  return (rij*cutfun->derivative(rij) - 8*cutfun->eval(rij))/pow(rij, 9);
+};
+
+void OneOverR8::eval_with_derivatives(double rij, double &G, double &dGdrij)
+{
+  auto x0 = cutfun->eval(rij);
+  G = x0/pow(rij, 8);
+  dGdrij = (rij*cutfun->derivative(rij) - 8*x0)/pow(rij, 9);
+};
+
+double OneOverR10::eval(double rij)
+{
+  return cutfun->eval(rij)/pow(rij, 10);
+};
+
+double OneOverR10::drij(double rij)
+{
+  return (rij*cutfun->derivative(rij) - 10*cutfun->eval(rij))/pow(rij, 11);
+};
+
+void OneOverR10::eval_with_derivatives(double rij, double &G, double &dGdrij)
+{
+  auto x0 = cutfun->eval(rij);
+  G = x0/pow(rij, 10);
+  dGdrij = (rij*cutfun->derivative(rij) - 10*x0)/pow(rij, 11);
+};
 // AUTOMATIC End of custom TwoBodySymFuns
 
 // AUTOMATIC Start of custom ThreeBodySymFuns
@@ -119,6 +170,12 @@ std::shared_ptr<CutoffFunction> switch_CutFun(
     case 2:
       cutfun = std::make_shared<TanhCutoffFunction>(cutoff);
       break;
+    case 3:
+      cutfun = std::make_shared<ShortRangeCutoffFunction>(cutoff);
+      break;
+    case 4:
+      cutfun = std::make_shared<LongRangeCutoffFunction>(cutoff);
+      break;
   }
   return cutfun;
 }
@@ -131,6 +188,15 @@ std::shared_ptr<TwoBodySymmetryFunction> switch_TwoBodySymFun(int funtype,
 // AUTOMATIC TwoBodySymmetryFunction switch start
     case 0:
       symFun = std::make_shared<BehlerG2>(num_prms, prms, cutfun);
+      break;
+    case 1:
+      symFun = std::make_shared<OneOverR6>(num_prms, prms, cutfun);
+      break;
+    case 2:
+      symFun = std::make_shared<OneOverR8>(num_prms, prms, cutfun);
+      break;
+    case 3:
+      symFun = std::make_shared<OneOverR10>(num_prms, prms, cutfun);
       break;
 // AUTOMATIC TwoBodySymmetryFunction switch end
     default:
@@ -167,6 +233,12 @@ int get_CutFun_by_name(const char* name)
   } else if (strcmp(name, "tanh") == 0)
   {
     id = 2;
+  } else if (strcmp(name, "shortRange") == 0)
+  {
+    id = 3;
+  } else if (strcmp(name, "longRange") == 0)
+  {
+    id = 4;
   }
   return id;
 }
@@ -178,6 +250,18 @@ int get_TwoBodySymFun_by_name(const char* name)
   if (strcmp(name, "BehlerG2") == 0)
   {
     id = 0;
+  }
+  if (strcmp(name, "OneOverR6") == 0)
+  {
+    id = 1;
+  }
+  if (strcmp(name, "OneOverR8") == 0)
+  {
+    id = 2;
+  }
+  if (strcmp(name, "OneOverR10") == 0)
+  {
+    id = 3;
   }
 // AUTOMATIC get_TwoBodySymFuns end
   return id;
@@ -200,6 +284,9 @@ void available_symFuns()
 // AUTOMATIC available_symFuns start
   printf("TwoBodySymmetryFunctions: (key: name, # of parameters)\n");
   printf("0: BehlerG2, 2\n");
+  printf("1: OneOverR6, 0\n");
+  printf("2: OneOverR8, 0\n");
+  printf("3: OneOverR10, 0\n");
   printf("ThreeBodySymmetryFunctions: (key: name, # of parameters)\n");
   printf("0: BehlerG4, 3\n");
 // AUTOMATIC available_symFuns end

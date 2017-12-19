@@ -43,6 +43,39 @@ class BehlerG2: public TwoBodySymmetryFunction
         double drij(double rij);
         void eval_with_derivatives(double rij, double &G, double &dGdrij);
 };
+
+class OneOverR6: public TwoBodySymmetryFunction
+{
+    public:
+        OneOverR6(int num_prms, double* prms_i,
+          std::shared_ptr<CutoffFunction> cutfun_i):
+          TwoBodySymmetryFunction(num_prms, prms_i, cutfun_i){};
+        double eval(double rij);
+        double drij(double rij);
+        void eval_with_derivatives(double rij, double &G, double &dGdrij);
+};
+
+class OneOverR8: public TwoBodySymmetryFunction
+{
+    public:
+        OneOverR8(int num_prms, double* prms_i,
+          std::shared_ptr<CutoffFunction> cutfun_i):
+          TwoBodySymmetryFunction(num_prms, prms_i, cutfun_i){};
+        double eval(double rij);
+        double drij(double rij);
+        void eval_with_derivatives(double rij, double &G, double &dGdrij);
+};
+
+class OneOverR10: public TwoBodySymmetryFunction
+{
+    public:
+        OneOverR10(int num_prms, double* prms_i,
+          std::shared_ptr<CutoffFunction> cutfun_i):
+          TwoBodySymmetryFunction(num_prms, prms_i, cutfun_i){};
+        double eval(double rij);
+        double drij(double rij);
+        void eval_with_derivatives(double rij, double &G, double &dGdrij);
+};
 // AUTOMATIC End of custom TwoBodySymFuns
 
 class ThreeBodySymmetryFunction: public SymmetryFunction

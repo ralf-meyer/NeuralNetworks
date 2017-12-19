@@ -23,7 +23,8 @@ def set_temperature(pset, T):
     for m_i in set(m):
         # get indices of particles with mass m_i
         indices = [j for j, m_j in enumerate(m) if m_j == m_i ]
-        v = sampler.draw_boltzman_velocities(len(indices), T, m_i, 1)
+        v = sampler.draw_boltzman_velocities(pset.size, T, m_i, 1)
+        
         # convert from m/s in used length unit/s
         pset.V[indices] = v * pset.unit
     
@@ -70,7 +71,7 @@ class Sampler(object):
         with masses m in atomic masses via rejection method.
         
         Args:
-            mass: default unit is a. u.
+            mass: default unit is kg
             mass_unit: is mass not in kg specify unit conversion here. 
             Default is factor for unified atomic mass unit.
         """

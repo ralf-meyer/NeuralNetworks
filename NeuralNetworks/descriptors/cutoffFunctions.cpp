@@ -50,3 +50,23 @@ double TanhCutoffFunction::derivative(double r)
         (cutoff*pow(cosh(1.0-r/cutoff),4));
     else return 0.0;
 };
+
+double ShortRangeCutoffFunction::eval(double r)
+{
+    return 1.0 / (1.0 + exp(10.0*(r-cutoff)));
+};
+
+double ShortRangeCutoffFunction::derivative(double r)
+{
+    return -10.0*exp(10.0*(r-cutoff))/pow(exp(10.0*(r-cutoff)) + 1.0, 2);
+};
+
+double LongRangeCutoffFunction::eval(double r)
+{
+    return 1.0 / (1.0 + exp(-10.0*(r-cutoff)));
+};
+
+double LongRangeCutoffFunction::derivative(double r)
+{
+    return 10.0*exp(-10.0*(r-cutoff))/pow(exp(-10.0*(r-cutoff)) + 1.0, 2);
+};
