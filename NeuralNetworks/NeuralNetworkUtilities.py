@@ -5,438 +5,26 @@ Created on Thu Apr  6 11:30:10 2017
 
 @author: Fuchs Alexander
 """
-import numpy as _np
-import tensorflow as _tf
-from NeuralNetworks import DataSet as _DataSet
-import NeuralNetworks.descriptors.SymmetryFunctionSet as _SymmetryFunctionSet
-from NeuralNetworks.StandardAtomicNetwork import _StandardAtomicNetwork
-from NeuralNetworks.PartitionedAtomicNetwork import _PartitionedAtomicNetwork
-import random as _rand
-import matplotlib.pyplot as _plt
-import time as _time
 import os as _os
-from data_generation import data_readers as _readers
-from psutil import virtual_memory
+import random as _rand
+import time as _time
 import warnings
 
+import matplotlib.pyplot as _plt
+import numpy as _np
+import tensorflow as _tf
+from psutil import virtual_memory
+
+import NeuralNetworks.descriptors.SymmetryFunctionSet as _SymmetryFunctionSet
+from NeuralNetworks import DataSet as _DataSet
+from NeuralNetworks.types.PartitionedAtomicNetwork import _PartitionedAtomicNetwork
+from NeuralNetworks.types.StandardAtomicNetwork import _StandardAtomicNetwork
+from data_generation import data_readers as _readers
 
 _plt.ion()
 _tf.reset_default_graph()
 
 
-def _construct_input_layer(InputUnits):
-    """Construct input for the NN.
-
-    Args:
-        InputUnits (int):Number of input units
-
-    Returns:
-        Inputs (tensor):The input placeholder
-    """
-
-    Inputs = _tf.cast(_tf.placeholder(_tf.float64, shape=[None, InputUnits]),dtype=_tf.float64)
-
-    return Inputs
-
-
-def _construct_hidden_layer(
-        PreviousLayerUnits,
-        ThisHiddenUnits,
-        WeightType=None,
-        WeightData=[],
-        BiasType=None,
-        BiasData=[],
-        MakeAllVariable=False,
-        Mean=0.0,
-        Stddev=1.0):
-    """Constructs the weights and biases for this layer with the specified
-    initialization.
-
-    Args:
-        PreviousLayerUnits (int): Number of units of the previous layer
-        ThisHiddenUnits (int): Number of units in this layer
-        WeightType (str): Initialization of the weights
-            Possible values are:
-                zeros,ones,fill,random_normal,truncated_normal,
-                random_uniform,random_shuffle,random_crop,
-                random_gamma
-        WeightData (numpy array): Values for the weight initialization
-        BiasType (str): Initialization of the biases
-            Possible values are:
-                zeros,ones,fill,random_normal,truncated_normal,
-                random_uniform,random_shuffle,random_crop,
-                random_gamma
-        MakeAllVariable (bool): Flag indicating whether the weights and biases
-        should be trainable or not.
-        Mean (float): Mean value for the normal distribution of the
-        initialization.
-        Stddev (float):Standard deviation for the normal distribution of the
-        initialization.
-
-    Returns:
-        Weights (tensor): Weights tensor
-        Biases (tensor):Biases tensor
-    """
-    if len(WeightData) == 0:
-        if WeightType is not None:
-            if WeightType == "zeros":
-                Weights = _tf.Variable(_tf.zeros(
-                    [PreviousLayerUnits, ThisHiddenUnits],
-                        dtype=_tf.float64), dtype=_tf.float64,
-                    name="variable")
-            elif WeightType == "ones":
-                Weights = _tf.Variable(_tf.ones(
-                    [PreviousLayerUnits, ThisHiddenUnits],
-                        dtype=_tf.float64), dtype=_tf.float64,
-                    name="variable")
-            elif WeightType == "fill":
-                Weights = _tf.Variable(_tf.fill(
-                        [PreviousLayerUnits, ThisHiddenUnits],
-                        dtype=_tf.float64),
-                    dtype=_tf.float64,
-                    name="variable")
-            elif WeightType == "random_normal":
-                Weights = _tf.Variable(
-                    _tf.random_normal(
-                        [
-                            PreviousLayerUnits,
-                            ThisHiddenUnits],
-                        mean=Mean,
-                        stddev=Stddev,
-                        dtype=_tf.float64),
-                    dtype=_tf.float64,
-                    name="variable")
-            elif WeightType == "truncated_normal":
-                Weights = _tf.Variable(
-                    _tf.truncated_normal(
-                        [
-                            PreviousLayerUnits,
-                            ThisHiddenUnits],
-                        mean=Mean,
-                        stddev=Stddev,
-                        dtype=_tf.float64),
-                    dtype=_tf.float64,
-                    name="variable")
-            elif WeightType == "random_uniform":
-                Weights = _tf.Variable(_tf.random_uniform(
-                    [PreviousLayerUnits, ThisHiddenUnits]), dtype=_tf.float64,
-                        name="variable")
-            elif WeightType == "random_shuffle":
-                Weights = _tf.Variable(_tf.random_shuffle(
-                    [PreviousLayerUnits, ThisHiddenUnits],dtype=_tf.float64), dtype=_tf.float64,
-                        name="variable")
-            elif WeightType == "random_crop":
-                Weights = _tf.Variable(_tf.random_crop(
-                    [PreviousLayerUnits, ThisHiddenUnits],dtype=_tf.float64), dtype=_tf.float64,
-                        name="variable")
-            elif WeightType == "random_gamma":
-                Weights = _tf.Variable(_tf.random_gamma(
-                    [PreviousLayerUnits, ThisHiddenUnits],dtype=_tf.float64), dtype=_tf.float64,
-                        name="variable")
-            else:
-                # Assume random weights if no WeightType is given
-                Weights = _tf.Variable(_tf.random_uniform(
-                    [PreviousLayerUnits, ThisHiddenUnits],dtype=_tf.float64), dtype=_tf.float64,
-                        name="variable")
-        else:
-            # Assume random weights if no WeightType is given
-            Weights = _tf.Variable(_tf.random_uniform(
-                [PreviousLayerUnits, ThisHiddenUnits],dtype=_tf.float64), dtype=_tf.float64,
-                name="variable")
-    else:
-        if not MakeAllVariable:
-            Weights = _tf.constant(
-                WeightData, dtype=_tf.float64, name="constant")
-        else:
-            Weights = _tf.Variable(
-                WeightData, dtype=_tf.float64, name="variable")
-    # Construct the bias for this layer
-    if len(BiasData) != 0:
-
-        # if not MakeAllVariable:
-        #     Biases = _tf.constant(BiasData, dtype=_tf.float64, name="bias")
-        # else:
-        Biases = _tf.Variable(BiasData, dtype=_tf.float64, name="bias")
-
-    else:
-        if BiasType == "zeros":
-            Biases = _tf.Variable(
-                _tf.zeros([ThisHiddenUnits],dtype=_tf.float64), dtype=_tf.float64, name="bias")
-        elif BiasType == "ones":
-            Biases = _tf.Variable(
-                _tf.ones([ThisHiddenUnits],dtype=_tf.float64), dtype=_tf.float64, name="bias")
-        elif BiasType == "fill":
-            Biases = _tf.Variable(
-                _tf.fill(
-                    [ThisHiddenUnits],
-                    BiasData,
-                    dtype=_tf.float64),
-                dtype=_tf.float64,
-                name="bias")
-        elif BiasType == "random_normal":
-            Biases = _tf.Variable(
-                _tf.random_normal(
-                    [ThisHiddenUnits],
-                    mean=Mean,
-                    stddev=Stddev,
-                    dtype=_tf.float64),
-                dtype=_tf.float64,
-                name="bias")
-        elif BiasType == "truncated_normal":
-            Biases = _tf.Variable(
-                _tf.truncated_normal(
-                    [ThisHiddenUnits],
-                    mean=Mean,
-                    stddev=Stddev,
-                    dtype=_tf.float64),
-                dtype=_tf.float64,
-                name="bias")
-        elif BiasType == "random_uniform":
-            Biases = _tf.Variable(_tf.random_uniform(
-                [ThisHiddenUnits],dtype=_tf.float64), dtype=_tf.float64, name="bias")
-        elif BiasType == "random_shuffle":
-            Biases = _tf.Variable(_tf.random_shuffle(
-                [ThisHiddenUnits],dtype=_tf.float64), dtype=_tf.float64, name="bias")
-        elif BiasType == "random_crop":
-            Biases = _tf.Variable(_tf.random_crop(
-                [ThisHiddenUnits], BiasData,dtype=_tf.float64), dtype=_tf.float64, name="bias")
-        elif BiasType == "random_gamma":
-            Biases = _tf.Variable(_tf.random_gamma(
-                [ThisHiddenUnits], BiasData,dtype=_tf.float64), dtype=_tf.float64, name="bias")
-        else:
-            Biases = _tf.Variable(_tf.random_uniform(
-                [ThisHiddenUnits],dtype=_tf.float64), dtype=_tf.float64, name="bias")
-
-    return Weights, Biases
-
-
-def _construct_output_layer(OutputUnits):
-    """#Constructs the output layer for the NN.
-
-    Args:
-        OutputUnits(int): Number of output units
-
-    Returns:
-        Outputs (tensor): Output placeholder
-    """
-    Outputs = _tf.placeholder(_tf.float64, shape=[None, OutputUnits])
-
-    return Outputs
-
-
-def _construct_not_trainable_layer(NrInputs, NrOutputs, Min):
-    """Make a not trainable layer with all weights being 1.
-
-    Args:
-        NrInputs (int): Number of units in the previous layer
-        NrOutputs (int): Number of units in this layer
-        Min (float): Minimum of output shifts network output by
-        a constant value
-
-    Returns:
-        Weights (tensor): Weights tensor
-        Biases (tensor): Biases tensor"""
-
-    # , trainable=False)
-    Weights = _tf.constant(_np.ones([NrInputs, NrOutputs]), dtype=_tf.float64)
-    # ,trainable=False)
-    Biases = _tf.constant(_np.zeros([NrOutputs]), dtype=_tf.float64)
-    if Min != 0:
-        Biases = _tf.add(Biases, Min / NrOutputs)
-
-    return Weights, Biases
-
-
-def _construct_pass_through_weights(weights,size):
-    """Constructs weights being all 1 in the main diagonal
-    Args:
-        weights(tensor):Weight tensor which is modified
-        size(int): Size of weights as (size,size)
-    Returns:
-        weights(tensor):Modified weights"""
-    indices = []
-    values = []
-    thisShape = weights.get_shape().as_list()
-    if thisShape[0] == thisShape[1]:
-        for q in range(0,size):
-            indices.append([q, q])
-            values += [1.0]
-
-        delta = _tf.SparseTensor(
-            indices, values, thisShape)
-        weights = weights + \
-                      _tf.sparse_tensor_to_dense(delta)
-
-    return weights
-
-def _connect_layers(InputsForLayer, ThisLayerWeights,
-                    ThisLayerBias, ActFun=None, FunParam=None, Dropout=0):
-    """Connect the outputs of the layer before with the current layer using an
-    activation function and matrix multiplication.
-
-    Args:
-        InputsForLayer (tensor): Tensor of the previous layer
-        ThisLayerWeights (tensor): Weight tensor for this layer
-        ThisLayerBias (tensor): Bias tensor for this layer
-        ActFun (str): A value specifying the activation function for the layer
-            Possible values are:
-                sigmoid,tanh,relu,relu6,crelu,elu,softplus,dropout,bias_add,
-                none
-        FunParam(parameter): Parameter for the specified activation function
-        Dropout (float):Dropout (0-1 =>0%-100%) applied after this layer.
-
-    Returns:
-        Out (tensor): The connected tensor."""
-    if ActFun is not None:
-        if ActFun == "sigmoid":
-            Out = _tf.nn.sigmoid(_tf.matmul(
-                InputsForLayer, ThisLayerWeights) + ThisLayerBias)
-        elif ActFun == "tanh":
-            Out = _tf.nn.tanh(_tf.matmul(
-                InputsForLayer, ThisLayerWeights) + ThisLayerBias)
-        elif ActFun == "relu":
-            Out = _tf.nn.relu(_tf.matmul(
-                InputsForLayer, ThisLayerWeights) + ThisLayerBias)
-        elif ActFun == "relu6":
-            Out = _tf.nn.relu6(_tf.matmul(
-                InputsForLayer, ThisLayerWeights) + ThisLayerBias)
-        elif ActFun == "crelu":
-            Out = _tf.nn.crelu(_tf.matmul(
-                InputsForLayer, ThisLayerWeights) + ThisLayerBias)
-        elif ActFun == "elu":
-            Out = _tf.nn.elu(_tf.matmul(
-                InputsForLayer, ThisLayerWeights) + ThisLayerBias)
-        elif ActFun == "softplus":
-            Out = _tf.nn.softplus(_tf.matmul(
-                InputsForLayer, ThisLayerWeights) + ThisLayerBias)
-        elif ActFun == "dropout":
-            Out = _tf.nn.dropout(_tf.matmul(
-                InputsForLayer, ThisLayerWeights) + ThisLayerBias, FunParam)
-        elif ActFun == "bias_add":
-            Out = _tf.nn.bias_add(_tf.matmul(
-                InputsForLayer, ThisLayerWeights) + ThisLayerBias, FunParam)
-        elif ActFun == "none":
-            Out = _tf.matmul(InputsForLayer, ThisLayerWeights) + ThisLayerBias
-    else:
-        Out = _tf.matmul(InputsForLayer, ThisLayerWeights) + ThisLayerBias
-
-    if Dropout != 0:
-        # Apply dropout between layers
-        Out = _tf.nn.dropout(Out, Dropout)
-
-    return Out
-
-
-def make_feed_forward_neuralnetwork(
-        Structure,
-        WeightType=None,
-        WeightData=None,
-        BiasType=None,
-        BiasData=None,
-        ActFun=None,
-        ActFunParam=None,
-        Dropout=0):
-    """Creates a standard NN with the specified structure
-
-    Args:
-        Structure (list): List of number of units per layer
-        WeightType (str):Specifies the type of weight initialization.
-            Possible values are:
-                zeros,ones,fill,random_normal,truncated_normal,
-                random_uniform,random_shuffle,random_crop,
-                random_gamma
-        WeightData (numpy array):Values for the weight initialization
-        BiasType (str):Specifies the type of bias initilization.
-            Possible values are:
-                zeros,ones,fill,random_normal,truncated_normal,
-                random_uniform,random_shuffle,random_crop,
-                random_gamma
-        BiasData (numpy array):Values for the bias initialization
-        ActFun (str):Specifies the activation function.
-            Possible values are:
-                sigmoid,tanh,relu,relu6,crelu,elu,softplus,dropout,bias_add,
-                none
-        ActFunParam(parameter): Parameter for the specified activation function
-        Dropout (float):Dropout (0-1 =>0%-100%) applied after this layer.
-
-    Returns:
-        Network(tensor):Output of the NN
-        InputLayer(tensor):Input placeholders
-        OutputLayer (tensor): Output placeholders
-    """
-    # Make inputs
-    NrInputs = Structure[0]
-    InputLayer = _construct_input_layer(NrInputs)
-    # Make hidden layers
-    HiddenLayers = list()
-    for i in range(1, len(Structure)):
-        NrIn = Structure[i - 1]
-        NrHidden = Structure[i]
-        HiddenLayers.append(_construct_hidden_layer(
-            NrIn, NrHidden, WeightType, WeightData[i - 1], BiasType,
-            BiasData[i - 1]))
-
-    # Make output layer
-    OutputLayer = _construct_output_layer(Structure[-1])
-
-   # Connect input to first hidden layer
-    FirstWeights = HiddenLayers[0][0]
-    FirstBiases = HiddenLayers[0][1]
-    InConnection = _connect_layers(
-        InputLayer, FirstWeights, FirstBiases, ActFun, ActFunParam, Dropout)
-    Network = InConnection
-
-    for j in range(1, len(HiddenLayers)):
-       # Connect ouput of in layer to second hidden layer
-        if j == 1:
-            SecondWeights = HiddenLayers[j][0]
-            SecondBiases = HiddenLayers[j][1]
-            Network = _connect_layers(
-                Network,
-                SecondWeights,
-                SecondBiases,
-                ActFun,
-                ActFunParam,
-                Dropout)
-        else:
-            Weights = HiddenLayers[j][0]
-            Biases = HiddenLayers[j][1]
-            Network = _connect_layers(
-                Network, Weights, Biases, ActFun, ActFunParam, Dropout)
-
-    return Network, InputLayer, OutputLayer
-
-
-def cost_for_network(Prediction, ReferenceValue, Type):
-    """
-    Creates the specified cost function.
-
-    Args:
-        Prediction (tensor):Prediction tensor of the network
-        ReferenceValue (tensor):Placeholder for the reference values
-        Type (str): Type of cost function
-            Possible values:
-                squared-difference,Adaptive_1,Adaptive_2
-
-    Returns:
-        Cost(tensor): The cost function as a tensor."""
-
-    if Type == "squared-difference":
-        Cost = _tf.losses.mean_squared_error(ReferenceValue,Prediction)#0.5 * _tf.reduce_sum((Prediction - ReferenceValue)**2)
-    elif Type == "Adaptive_1":
-        epsilon = 10e-9
-        Cost = 0.5 * _tf.reduce_sum((Prediction - ReferenceValue)**2
-                                    * (_tf.sigmoid(_tf.abs(Prediction - ReferenceValue + epsilon)) - 0.5)
-                                    + (0.5 + _tf.sigmoid(_tf.abs(Prediction - ReferenceValue + epsilon)))
-                                    * _tf.pow(_tf.abs(Prediction - ReferenceValue + epsilon), 1.25))
-    elif Type == "Adaptive_2":
-        epsilon = 10e-9
-        Cost = 0.5 * _tf.reduce_sum((Prediction - ReferenceValue)**2
-                                    * (_tf.sigmoid(_tf.abs(Prediction - ReferenceValue + epsilon)) - 0.5)
-                                    + (0.5 + _tf.sigmoid(_tf.abs(Prediction - ReferenceValue + epsilon)))
-                                    * _tf.abs(Prediction - ReferenceValue + epsilon))
-
-    return Cost
 
 
 def running_mean(x, N):
@@ -807,9 +395,10 @@ class AtomicNeuralNetInstance(object):
         self._ForceValidationInput = []
         self._ForceTrainingOutput = []
         self._ForceValidationOutput = []
-        self._ForceFieldTrainingInputs=[]
+        self._ForceFieldTrainingInputs = []
         self._ForceFieldValidationInputs = []
-
+        self._ForceFieldTrainingDerivatives = []
+        self._ForceFieldValidationDerivatives = []
         # Net parameters
         self._MeansOfDs = []
         self._MinOfOut = None
@@ -891,10 +480,10 @@ class AtomicNeuralNetInstance(object):
         try:
             # Make virtual output layer for feeding the data to the cost
             # function
-            self._OutputLayer = _construct_output_layer(1)
+            self._OutputLayer = _tf.placeholder(_tf.float64, shape=[None, 1])
             if self.UseForce:
-                self._OutputLayerForce = _construct_output_layer(
-                    sum(self.NumberOfAtomsPerType) * 3)
+                self._OutputLayerForce = _tf.placeholder(_tf.float64, shape=[None,sum(self.NumberOfAtomsPerType) * 3])
+
             # Cost function for whole net
             self.CostFun = self._atomic_cost_function()
             # if self.IsPartitioned==True:
@@ -907,9 +496,9 @@ class AtomicNeuralNetInstance(object):
             # Set optimizer
             self._Optimizer = self.get_optimizer(self.CostFun)
         except BaseException:
-            if self.TextOutput:
-                print("Evaluation only no training\
-                  supported if all networks are constant!")
+           if self.TextOutput:
+               print("Evaluation only no training\
+                 supported if all networks are constant!")
             # Initialize session
         self._Session.run(_tf.global_variables_initializer())
 
@@ -1236,9 +825,13 @@ class AtomicNeuralNetInstance(object):
         for i in range(0, len(self.TrainingBatches)):
             TrainingInputs = self.TrainingBatches[i][0]
             TrainingOutputs = self.TrainingBatches[i][1]
+            if self.IsPartitioned:
+                FFTrainingInputs=self.TrainingBatches[i][5]
+            else:
+                FFTrainingInputs = []
 
             TrainingData = self._Net.make_data_for_atomicNNs(
-                TrainingInputs, TrainingOutputs, AppendForce=False)
+                TrainingInputs, TrainingOutputs, AppendForce = False, FFData = FFTrainingInputs)
 
             if i == 0:
                 train_dE = self.evaluate(self._dE_Fun, Layers, TrainingData)
@@ -1250,8 +843,13 @@ class AtomicNeuralNetInstance(object):
             ValidationInputs = self.ValidationBatches[i][0]
             ValidationOutputs = self.ValidationBatches[i][1]
 
+            if self.IsPartitioned:
+                FFValidationInputs=self.TrainingBatches[i][5]
+            else:
+                FFValidationInputs=[]
+
             ValidationData = self._Net.make_data_for_atomicNNs(
-                ValidationInputs, ValidationOutputs, AppendForce=False)
+                ValidationInputs, ValidationOutputs, AppendForce=False,FFData = FFValidationInputs)
 
             if i == 0:
                 val_dE = self.evaluate(self._dE_Fun, Layers, ValidationData)
@@ -1292,7 +890,7 @@ class AtomicNeuralNetInstance(object):
 
         return energy,force
 
-    def eval_dataset_energy(self, Batches, BatchNr=0,FFData=[]):
+    def eval_dataset_energy(self, Batches, BatchNr=0,FFInputs=[]):
         """Prepares and evaluates the dataset for the loaded network.
 
         Args:
@@ -1304,13 +902,22 @@ class AtomicNeuralNetInstance(object):
         """
         AllData = Batches[BatchNr]
         GData = AllData[0]
-        if self.IsPartitioned and len(FFData)==0:
+        if self.IsPartitioned and len(FFInputs)==0:
             if self.UseForce:
-                FFData=AllData[5]
+                FFInputs=AllData[5]
             else:
-                FFData=AllData[2]
+                FFInputs=AllData[2]
         Layers, Data = self._Net.prepare_data_environment(
-            GData, AppendForce=False,FFData=FFData)
+                                                    GData,
+                                                    None,
+                                                    [],
+                                                    None,
+                                                    [],
+                                                    [],
+                                                    [],
+                                                    False,
+                                                    FFInputs,
+                                                    [])
 
         return self.evaluate(self._TotalEnergy, Layers, Data)
 
@@ -1328,12 +935,26 @@ class AtomicNeuralNetInstance(object):
         GData = AllData[0]
         DerGData = AllData[2]
         norm = AllData[3]
-        if not self.IsPartitioned:
-            Layers, Data = self._Net.prepare_data_environment(
-                GData, None, [], None, DerGData, Normalization=norm,
-                AppendForce=True)
+        if self.IsPartitioned:
+            FFInputs = AllData[5]
+            FFDerivatives = AllData[6]
         else:
-            raise(NotImplementedError)
+            FFInputs = []
+            FFDerivatives = []
+
+
+        Layers, Data = self._Net.prepare_data_environment(
+                                                        GData,
+                                                        None,
+                                                        [],
+                                                        None,
+                                                        DerGData,
+                                                        [],
+                                                        norm,
+                                                        True,
+                                                        FFInputs,
+                                                        FFDerivatives)
+
 
         return self.evaluate(self._OutputForce, Layers, Data)
 
@@ -1429,12 +1050,14 @@ class AtomicNeuralNetInstance(object):
                         self._ForceTrainingOutput = self.TrainingBatches[rnd][4]
                         if self.IsPartitioned:
                             self._ForceFieldTrainingInputs = self.TrainingBatches[rnd][5]
+                            self._ForceFieldTrainingDerivatives= self.TrainingBatches[rnd][6]
                         if self.ValidationBatches:
                             self._ForceValidationInput = self.ValidationBatches[rnd][2]
                             NormalizationValidation = self.ValidationBatches[rnd][3]
                             self._ForceValidationOutput = self.ValidationBatches[rnd][4]
                             if self.IsPartitioned:
                                 self._ForceFieldValidationInputs = self.ValidationBatches[rnd][5]
+                                self._ForceFieldValidationDerivatives=self.ValidationBatches[rnd][6]
                     else:
                         if self.IsPartitioned:
                             self._ForceFieldTrainingInputs = self.TrainingBatches[rnd][2]
@@ -1453,7 +1076,8 @@ class AtomicNeuralNetInstance(object):
                             self._ForceTrainingOutput,
                             NormalizationTraining,
                             self.UseForce,
-                            self._ForceFieldTrainingInputs)
+                            self._ForceFieldTrainingInputs,
+                            self._ForceFieldTrainingDerivatives)
                     else:
                         TrainingData = self._Net.make_data_for_atomicNNs(
                             self._TrainingInputs,
@@ -1462,7 +1086,8 @@ class AtomicNeuralNetInstance(object):
                             self._ForceTrainingOutput,
                             NormalizationTraining,
                             self.UseForce,
-                            self._ForceFieldTrainingInputs)
+                            self._ForceFieldTrainingInputs,
+                            self._ForceFieldTrainingDerivatives)
                     # Make validation input vector
                     if len(self._ValidationInputs) > 0:
                         ValidationData = self._Net.make_data_for_atomicNNs(
@@ -1472,7 +1097,8 @@ class AtomicNeuralNetInstance(object):
                             self._ForceValidationOutput,
                             NormalizationValidation,
                             self.UseForce,
-                            self._ForceFieldValidationInputs)
+                            self._ForceFieldValidationInputs,
+                            self._ForceFieldValidationDerivatives)
                     else:
                         ValidationData = None
 
@@ -1549,7 +1175,7 @@ class AtomicNeuralNetInstance(object):
                                "t = " + str(_time.time() - start) + " s",
                                "global step: " + str(self._Session.run(self.GlobalStep))])
                         Prediction = self.eval_dataset_energy(
-                            [[self._TrainingInputs]],FFData=self._ForceFieldTrainingInputs)
+                            [[self._TrainingInputs]],FFInputs=self._ForceFieldTrainingInputs)
                         print("Data:")
                         print(
                             "Ei=" + str(self._TrainingOutputs[0:max(int(len(self._TrainingOutputs) / 20), 1)]))
@@ -1699,20 +1325,33 @@ class AtomicNeuralNetInstance(object):
                 self.SizeOfInputsPerAtom.append(self.SizeOfInputsPerType[i])
 
     def _convert_single_geometry(self,geometry):
-
-        Gs=[_np.asarray(self._SymmFunSet.eval_geometry(geometry))]
+        """Converts a single geometry to symmetry functions"""
         dGs=[]
+        FFIn=[]
+        dFFIn=[]
+        Gs=[_np.asarray(self._SymmFunSet.eval_geometry(geometry))]
+        if self.IsPartitioned:
+            FFIn=[_np.asarray(self._RadialFunSet.eval_geometry(geometry))]
+
         if self.UseForce:
             dGs=[_np.asarray(self._SymmFunSet.eval_geometry_derivatives(geometry))]
+            if self.IsPartitioned:
+                dFFIn=[_np.asarray(self._RadialFunSet.eval_geometry_derivatives(geometry))]
         if self.CalcDatasetStatistics:
             AllTemp=[G for G in Gs[0]]
             self._calculate_statistics_for_dataset(AllTemp)
-        GInputs, GDerivativesInput,Normalization,FFInputs=self._sort_and_normalize_data(1,Gs,dGs)
+        GInputs, GDerivativesInput,Normalization,FFInputs,FFDerivatives=self._sort_and_normalize_data(1,Gs,dGs,FFIn,dFFIn)
 
         if self.UseForce:
-            return [[GInputs,[], GDerivativesInput,Normalization,[]]]
+            if self.IsPartitioned:
+                return [[GInputs,[], GDerivativesInput,Normalization,[],FFInputs,FFDerivatives]]
+            else:
+                return [[GInputs, [], GDerivativesInput, Normalization, []]]
         else:
-            return [[GInputs, []]]
+            if self.IsPartitioned:
+                return [[GInputs, [],[],[],FFInputs]]
+            else:
+                return [[GInputs, []]]
 
     def _convert_dataset(self, TakeAsReference,DataPointsPercentage):
         """Converts the cartesian coordinates to a symmetry function vector and
@@ -2059,6 +1698,7 @@ class AtomicNeuralNetInstance(object):
                     ForceFieldInput.append(self._AllForceFieldInputs[MyNr])
                     if self.UseForce:
                         ForceFieldDerivatives.append(self._AllForceFieldDerivatives[MyNr])
+
             #Sort data into batches
             Inputs, GDerivativesInput, Normalization,FFInputs,FFDerivatives = self._sort_and_normalize_data(
                 BatchSize, GeomData, GDerivativesInput,ForceFieldInput,ForceFieldDerivatives)
@@ -2167,6 +1807,38 @@ class AtomicNeuralNetInstance(object):
             self._ValidationInputs = temp[0][0]
             self._ValidationOutputs = temp[0][0]
 
+    def cost_for_network(self,Prediction, ReferenceValue, Type):
+        """
+        Creates the specified cost function.
+
+        Args:
+            Prediction (tensor):Prediction tensor of the network
+            ReferenceValue (tensor):Placeholder for the reference values
+            Type (str): Type of cost function
+                Possible values:
+                    squared-difference,Adaptive_1,Adaptive_2
+
+        Returns:
+            Cost(tensor): The cost function as a tensor."""
+
+        if Type == "squared-difference":
+            Cost = _tf.losses.mean_squared_error(ReferenceValue,
+                                                 Prediction)  # 0.5 * _tf.reduce_sum((Prediction - ReferenceValue)**2)
+        elif Type == "Adaptive_1":
+            epsilon = 10e-9
+            Cost = 0.5 * _tf.reduce_sum((Prediction - ReferenceValue) ** 2
+                                        * (_tf.sigmoid(_tf.abs(Prediction - ReferenceValue + epsilon)) - 0.5)
+                                        + (0.5 + _tf.sigmoid(_tf.abs(Prediction - ReferenceValue + epsilon)))
+                                        * _tf.pow(_tf.abs(Prediction - ReferenceValue + epsilon), 1.25))
+        elif Type == "Adaptive_2":
+            epsilon = 10e-9
+            Cost = 0.5 * _tf.reduce_sum((Prediction - ReferenceValue) ** 2
+                                        * (_tf.sigmoid(_tf.abs(Prediction - ReferenceValue + epsilon)) - 0.5)
+                                        + (0.5 + _tf.sigmoid(_tf.abs(Prediction - ReferenceValue + epsilon)))
+                                        * _tf.abs(Prediction - ReferenceValue + epsilon))
+
+        return Cost
+
     def _atomic_cost_function(self):
         """The atomic cost function consists of multiple parts which are each
         represented by a tensor.
@@ -2178,21 +1850,18 @@ class AtomicNeuralNetInstance(object):
 
         self._TotalEnergy, AllEnergies = self._Net.energy_of_all_atomic_networks()
 
-        self._EnergyCost = cost_for_network(
+        self._EnergyCost = self.cost_for_network(
             self._TotalEnergy, self._OutputLayer, self.CostFunType)
         Cost = self._EnergyCost
 
         # add force cost
         if self.UseForce:
-            if self.IsPartitioned:
-                raise(NotImplementedError)
-            else:
-                self._OutputForce, AllForces = self._Net.force_of_all_atomic_networks(
-                    self)
-                self._ForceCost = self.ForceCostParam*self._EnergyCost* _tf.divide(
-                    cost_for_network(
-                        self._OutputForce, self._OutputLayerForce, self.CostFunType), sum(
-                        self.NumberOfAtomsPerType))
+            self._OutputForce, AllForces = self._Net.force_of_all_atomic_networks(
+                self)
+            self._ForceCost = self.ForceCostParam*self._EnergyCost* _tf.divide(
+                self.cost_for_network(
+                    self._OutputForce, self._OutputLayerForce, self.CostFunType), sum(
+                    self.NumberOfAtomsPerType))
             Cost += self._ForceCost
 
         if self.Regularization == "L1":
@@ -2234,6 +1903,7 @@ class AtomicNeuralNetInstance(object):
         FFInputs = []
         FFDerivatives = []
         ct = 0
+        TotalNrAtoms=sum(self.NumberOfAtomsPerType)
         #try:
         for NrAtoms in self.NumberOfAtomsPerType:
 
@@ -2243,13 +1913,16 @@ class AtomicNeuralNetInstance(object):
                 #If force data is available
                 if len(GDerivativesData) > 0:
                     DerInputs.append(_np.zeros(
-                        (BatchSize, self.SizeOfInputsPerAtom[ct], 3 * sum(self.NumberOfAtomsPerType))))
+                        (BatchSize, self.SizeOfInputsPerAtom[ct], 3 * TotalNrAtoms)))
                     Norm.append(
                         _np.zeros((BatchSize, self.SizeOfInputsPerAtom[ct])))
                 #If is partitioned network
                 if len(FFData)>0:
                     FFInputs.append(
                         _np.zeros((BatchSize, 3*len(self.Atomtypes))))
+                if len(FFDerivativesData)>0:
+                    FFDerivatives.append(
+                            _np.zeros((BatchSize, 3*len(self.Atomtypes),3*TotalNrAtoms)))
                 # exclude nan values
                 for j in range(0, len(GData)): #j = geometry number, ct = atom number
                     temp = _np.divide(

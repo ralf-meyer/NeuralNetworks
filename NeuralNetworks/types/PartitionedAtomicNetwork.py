@@ -1,12 +1,9 @@
 import tensorflow as _tf
-from NeuralNetworks.NeuralNetworkUtilities import _connect_layers,\
-    _construct_hidden_layer,\
-    _construct_input_layer
-import numpy as _np
-from StandardAtomicNetwork import _StandardAtomicNetwork
+from NeuralNetworks.types.StandardAtomicNetwork import _StandardAtomicNetwork
+from NeuralNetworks.types.GeneralAtomicNetwork import _AtomicNetwork
 
 
-class _PartitionedAtomicNetwork(object):
+class _PartitionedAtomicNetwork(_AtomicNetwork):
 
     def __init__(self):
         self.AtomicNNs = _PartitionedNetwork()
@@ -34,6 +31,7 @@ class _PartitionedAtomicNetwork(object):
 
         F = None
         Fi = []
+        TotalNrOfAtoms = sum(NetInstance.NumberOfAtomsPerType)
         #Force of ANNs
         for i in range(0, len(self.AtomicNNs.ANNets)):
             AtomicNet = self.AtomicNNs.ANNets[i]
@@ -48,7 +46,7 @@ class _PartitionedAtomicNetwork(object):
                 dEi_dGij_n, [-1, NetInstance.SizeOfInputsPerType[Type], 1])
             mul = _tf.matmul(dGij_dxk_t, dEi_dGij)
             dim_red = _tf.reshape(mul,
-                                  [-1,sum(NetInstance.NumberOfAtomsPerType) * 3])
+                                  [-1,TotalNrOfAtoms * 3])
 
             if i == 0:
                 F = dim_red
@@ -59,17 +57,15 @@ class _PartitionedAtomicNetwork(object):
         for j in range(0, len(self.AtomicNNs.ForceFieldNets)):
             FFNet = self.AtomicNNs.ForceFieldNets[j]
             Type = FFNet[0]
-            G_Input = FFNet[2]
-            dGij_dxk = FFNet[3]
-            #norm = FFNet[4]
-            dGij_dxk_t = _tf.transpose(dGij_dxk, perm=[0, 2, 1])
-            Gradient = _tf.gradients(NetInstance._TotalEnergy, G_Input)
-            #dEi_dGij_n = _tf.multiply(Gradient, norm)
-            dEi_dGij = _tf.reshape(
-                dEi_dGij_n, [-1, NetInstance.SizeOfInputsPerType[Type], 1])
+            FF_Input = FFNet[2]
+            d_FF = FFNet[3]
+            d_FF_t = _tf.transpose(d_FF, perm=[0, 2, 1])
+            Gradient = _tf.gradients(NetInstance._TotalEnergy,FF_Input)
+            dEi_dFF = _tf.reshape(
+                d_FF_t, [-1, 3*len(NetInstance.Atomtypes), 1])
             mul = _tf.matmul(dGij_dxk_t, dEi_dGij)
             dim_red = _tf.reshape(mul,
-                                  [-1,sum(NetInstance.NumberOfAtomsPerType) * 3])
+                                  [-1,TotalNrOfAtoms * 3])
 
             F += dim_red
             Fi.append(dim_red)
@@ -170,10 +166,9 @@ class _PartitionedAtomicNetwork(object):
         for j in range(len(self.AtomicNNs.ForceFieldNets)):
             #Layers for force field
             FFNetwork=self.AtomicNNs.ForceFieldNets[j]
-            Layers.append(FFNetwork[2])
+            Layers.append(FFNetwork[2]) #FF data
             if len(FFNetwork) > 3 and AppendForce:
-                Layers.append(FFNetwork[3])
-                Layers.append(FFNetwork[4])
+                Layers.append(FFNetwork[3]) #FF derivatives
                 ForceLayer = True
 
 
@@ -185,7 +180,7 @@ class _PartitionedAtomicNetwork(object):
         return Layers
 
     def make_data_for_atomicNNs(self, GData, OutData=[], GDerivatives=[
-    ], ForceOutput=[], Normalization=[], AppendForce=True,FFData=[],FFDerivatives=[],FFNormalization=[]):
+    ], ForceOutput=[], Normalization=[], AppendForce=True,FFData=[],FFDerivatives=[]):
         """Sorts the symmetry function data for feeding.
             For training the output data also has to be added.
         Returns:
@@ -202,10 +197,9 @@ class _PartitionedAtomicNetwork(object):
                 CombinedData.append(Data)
         #force field data
         if AppendForce:
-            for e,f,g in zip(FFData,FFDerivatives, Normalization):
-                CombinedData.append(e)
-                CombinedData.append(f)
-                CombinedData.append(g)
+            for h,i in zip(FFData,FFDerivatives):
+                CombinedData.append(h)
+                CombinedData.append(i)
         else:
             for Data in FFData:
                 CombinedData.append(Data)
@@ -227,7 +221,8 @@ class _PartitionedAtomicNetwork(object):
             ForceOutput=[],
             Normalization=[],
             AppendForce=True,
-            FFData=[]):
+            FFData=[],
+            FFDerivatives=[]):
         """Prepares the data and the input placeholders for the training in a
         partitioned NN.
         Returns:
@@ -244,7 +239,8 @@ class _PartitionedAtomicNetwork(object):
                                                     ForceOutput,
                                                     Normalization,
                                                     AppendForce,
-                                                    FFData)
+                                                    FFData,
+                                                    FFDerivatives)
 
         return Layers, CombinedData
 
@@ -256,12 +252,12 @@ class _PartitionedAtomicNetwork(object):
             Energy (float):The predicted energy as a float."""
         Energy = 0
         Layers, Data = self.prepare_data_environment(GData,
-                                                                         OutputLayer=None,
-                                                                         OutData=[],
-                                                                         OutputLayerForce=None,
-                                                                         GDerivativesInput=[],
-                                                                         ForceOutput=[],
-                                                                         AppendForce=False)
+                                                     OutputLayer=None,
+                                                     OutData=[],
+                                                     OutputLayerForce=None,
+                                                     GDerivativesInput=[],
+                                                     ForceOutput=[],
+                                                     AppendForce=False,)
         for i in range(0, len(self.AtomicNNs.ANNets)):
             AtomicNetwork = self.AtomicNNs.ANNets[i]
             Energy += self.evaluate(AtomicNetwork[1], [Layers[i]], Data[i])
@@ -335,7 +331,7 @@ class _PartitionedAtomicNetwork(object):
             BiasesForType=FFBiases[i]
             for j in range(NetInstance.NumberOfAtomsPerType[i]):
 
-                Weights, Biases = _construct_hidden_layer(NInputs,
+                Weights, Biases = self._construct_hidden_layer(NInputs,
                                                           1,
                                                           WeightType="truncated_normal",
                                                           WeightData=WeightsForType[0],
@@ -344,8 +340,8 @@ class _PartitionedAtomicNetwork(object):
                                                           MakeAllVariable=True)
                 VariablesFF.append([Weights,Biases])
                 self.VariablesDictionary.ForceFieldData.append(VariablesFF)
-                Input=_construct_input_layer(NInputs)
-                Network=_connect_layers(Input,Weights,Biases,ActFun="none")
+                Input=self._construct_input_layer(NInputs)
+                Network=self._connect_layers(Input,Weights,Biases,ActFun="none")
 
                 if NetInstance.UseForce:
                     InputForce = _tf.placeholder(
@@ -383,7 +379,7 @@ class _PartitionedAtomicNetwork(object):
             if len(FFWeights)>0:
                 WeightsForType=FFWeights[i]
                 BiasesForType=FFBiases[i]
-                Weights,Biases = _construct_hidden_layer(NInputs,
+                Weights,Biases = self._construct_hidden_layer(NInputs,
                                                         1,
                                                         WeightType="truncated_normal",
                                                         WeightData=WeightsForType[0],
@@ -393,7 +389,7 @@ class _PartitionedAtomicNetwork(object):
 
                 VariablesFF.append([Weights,Biases])
             else:
-                Weights, Biases = _construct_hidden_layer(NInputs,
+                Weights, Biases = self._construct_hidden_layer(NInputs,
                                                         1,
                                                         WeightType="truncated_normal",
                                                         WeightData=[],
@@ -407,8 +403,8 @@ class _PartitionedAtomicNetwork(object):
 
             for j in range(NetInstance.NumberOfAtomsPerType[i]):
 
-                Input=_construct_input_layer(NInputs)
-                Network=_connect_layers(Input,Weights,Biases,ActFun=None)
+                Input=self._construct_input_layer(NInputs)
+                Network=self._connect_layers(Input,Weights,Biases,ActFun=None)
 
                 if NetInstance.UseForce:
                     InputForce = _tf.placeholder(

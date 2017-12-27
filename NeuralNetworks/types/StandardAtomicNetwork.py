@@ -1,13 +1,9 @@
 import tensorflow as _tf
-from NeuralNetworkUtilities import _connect_layers,\
-    _construct_hidden_layer,\
-    _construct_input_layer,\
-    _construct_not_trainable_layer,\
-    _construct_pass_through_weights
+from NeuralNetworks.types.GeneralAtomicNetwork import _AtomicNetwork
 import numpy as _np
 import multiprocessing as _multiprocessing
 
-class _StandardAtomicNetwork(object):
+class _StandardAtomicNetwork(_AtomicNetwork):
 
     def __init__(self):
         self.AtomicNNs = []
@@ -137,7 +133,7 @@ class _StandardAtomicNetwork(object):
         return Layers
 
     def make_data_for_atomicNNs(self, GData, OutData=[], GDerivatives=[
-    ], ForceOutput=[], Normalization=[], AppendForce=True):
+    ], ForceOutput=[], Normalization=[], AppendForce=True,Placeholder1=[],Placeholder2=[]):
         """Sorts the symmetry function data for feeding.
             For training the output data also has to be added.
         Returns:
@@ -168,7 +164,10 @@ class _StandardAtomicNetwork(object):
             GDerivatives=[],
             ForceOutput=[],
             Normalization=[],
-            AppendForce=True):
+            AppendForce=True,
+            Placeholder1=[],
+            Placeholder2=[]
+            ):
         """Prepares the data and the input placeholders for the training in a NN.
         Returns:
             Layers (list):List of sorted placeholders
@@ -269,7 +268,7 @@ class _StandardAtomicNetwork(object):
                         ThisBiasData = RawBias[j - 1]
 
                         HiddenLayers.append(
-                            _construct_hidden_layer(
+                            self._construct_hidden_layer(
                                 NrIn,
                                 NrHidden,
                                 NetInstance.WeightType,
@@ -284,11 +283,11 @@ class _StandardAtomicNetwork(object):
                     else:
                         NrInputs = Structure[0]
 
-                    InputLayer = _construct_input_layer(NrInputs)
+                    InputLayer = self._construct_input_layer(NrInputs)
                     # Connect input to first hidden layer
                     FirstWeights = HiddenLayers[0][0]
                     FirstBiases = HiddenLayers[0][1]
-                    Network = _connect_layers(
+                    Network = self._connect_layers(
                         InputLayer,
                         FirstWeights,
                         FirstBiases,
@@ -302,12 +301,12 @@ class _StandardAtomicNetwork(object):
                         if l == len(HiddenLayers) - 1:
                             Weights = HiddenLayers[l][0]
                             Biases = HiddenLayers[l][1]
-                            Network = _connect_layers(
+                            Network = self._connect_layers(
                                 Network, Weights, Biases, "none", NetInstance.ActFunParam, Dropout)
                         else:
                             Weights = HiddenLayers[l][0]
                             Biases = HiddenLayers[l][1]
-                            Network = _connect_layers(
+                            Network = self._connect_layers(
                                 Network, Weights, Biases, NetInstance.ActFun, NetInstance.ActFunParam, Dropout)
 
                     if NetInstance.UseForce:
@@ -359,18 +358,18 @@ class _StandardAtomicNetwork(object):
                     if j == len(Structure) - \
                             1 and NetInstance.MakeLastLayerConstant: #if last layer has to be set constant
                                                                      #(pretraining)
-                        HiddenLayers.append(_construct_not_trainable_layer(
+                        HiddenLayers.append(self._construct_not_trainable_layer(
                             NrIn, NrHidden, NetInstance._MinOfOut))
                     else:
                         if j >= len(NetInstance._WeightData[i])\
                                 and NetInstance.MakeLastLayerConstant:#if new layers which are not part of the
                                                                       # loaded model, pass through values
-                            tempWeights, tempBias = _construct_hidden_layer(NrIn, NrHidden, NetInstance.WeightType,
+                            tempWeights, tempBias = self._construct_hidden_layer(NrIn, NrHidden, NetInstance.WeightType,
                                                                             [], NetInstance.BiasType, [],
                                                                             True, Mean=NetInstance.InitMean,
                                                                             Stddev=NetInstance.InitStddev)
 
-                            tempWeights=_construct_pass_through_weights(tempWeights,OldBiasNr)
+                            tempWeights=self._construct_pass_through_weights(tempWeights,OldBiasNr)
 
                             HiddenLayers.append([tempWeights, tempBias])
                         else:
@@ -401,7 +400,7 @@ class _StandardAtomicNetwork(object):
 
 
                                 HiddenLayers.append(
-                                    _construct_hidden_layer(
+                                    self._construct_hidden_layer(
                                         NrIn,
                                         NrHidden,
                                         NetInstance.WeightType,
@@ -413,7 +412,7 @@ class _StandardAtomicNetwork(object):
                                         Mean=NetInstance.InitMean))
                             else:#if the new net is deeper then the loaded one add a trainable layer
                                 HiddenLayers.append(
-                                    _construct_hidden_layer(
+                                    self._construct_hidden_layer(
                                         NrIn,
                                         NrHidden,
                                         NetInstance.WeightType,
@@ -429,11 +428,11 @@ class _StandardAtomicNetwork(object):
                     NrHidden = Structure[j]
                     if j == len(Structure) - \
                             1 and NetInstance.MakeLastLayerConstant:
-                        HiddenLayers.append(_construct_not_trainable_layer(
+                        HiddenLayers.append(self._construct_not_trainable_layer(
                             NrIn, NrHidden, NetInstance._MinOfOut))
                     else:
                         HiddenLayers.append(
-                            _construct_hidden_layer(
+                            self._construct_hidden_layer(
                                 NrIn,
                                 NrHidden,
                                 NetInstance.WeightType,
@@ -453,12 +452,12 @@ class _StandardAtomicNetwork(object):
                 else:
                     NrInputs = Structure[0]
 
-                InputLayer = _construct_input_layer(NrInputs)
+                InputLayer = self._construct_input_layer(NrInputs)
                 # Connect input to first hidden layer
                 FirstWeights = HiddenLayers[0][0]
                 NetInstance._FirstWeights.append(FirstWeights)
                 FirstBiases = HiddenLayers[0][1]
-                Network = _connect_layers(
+                Network = self._connect_layers(
                     InputLayer,
                     FirstWeights,
                     FirstBiases,
@@ -471,10 +470,10 @@ class _StandardAtomicNetwork(object):
                     Weights = HiddenLayers[l][0]
                     Biases = HiddenLayers[l][1]
                     if l == len(HiddenLayers) - 1:
-                        Network = _connect_layers(
+                        Network = self._connect_layers(
                             Network, Weights, Biases, "none", NetInstance.ActFunParam, Dropout)
                     else:
-                        Network = _connect_layers(
+                        Network = self._connect_layers(
                             Network, Weights, Biases, NetInstance.ActFun, NetInstance.ActFunParam, Dropout)
 
                 if NetInstance.UseForce:
