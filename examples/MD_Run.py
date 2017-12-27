@@ -24,20 +24,17 @@ start_geom=[('Ni', np.array([-0.03069231,  0.077     , -0.00761538])),
             ('Au', np.array([-2.6155158 , -0.00973963, -1.55559049])),
             ('Au', np.array([ 0.02202719, -1.52082656, -2.56285199]))]
 
-# input_reader=data_readers.SimpleInputReader()
-# input_reader.read("/home/afuchs/Documents/Validation_geometries/ico_NiAu54.xyz",skip=3)
-# #start_geom=input_reader.geometries[0]
-# Training=NeuralNetworkUtilities.AtomicNeuralNetInstance()
-# Training.CalcDatasetStatistics=False
-# Training.TextOutput=False
-# Training.prepare_evaluation("/home/afuchs/Documents/NiAu_Training/NiAu_final_hot",nr_atoms_per_type=[1,12])
-#
-# opt=optimizer.Optimizer(Training,start_geom)
-# opt.save_png=True
-# opt.png_path="/home/afuchs/Documents/NiAu_Opt/Ni1Au54_final/"
-# opt.plot=True
-# #opt.check_gradient()
-# start_geom=opt.start_bfgs(norm=10,gtol=1-03)
+#input_reader=data_readers.SimpleInputReader()
+#input_reader.read("/home/afuchs/Documents/Validation_geometries/ico_NiAu54.xyz",skip=3)
+#start_geom=input_reader.geometries[0]
+Training=NeuralNetworkUtilities.AtomicNeuralNetInstance()
+Training.CalcDatasetStatistics=False
+Training.TextOutput=False
+Training.prepare_evaluation("/home/afuchs/Documents/NiAu_Training_smaller_cutoff",nr_atoms_per_type=[1,12])
+
+opt=optimizer.Optimizer(Training,start_geom)
+#opt.check_gradient()
+start_geom=opt.start_bfgs(norm=10,gtol=1-03)
 # print(start_geom)
 #print(len(start_geom))
 input_reader=data_readers.SimpleInputReader()
@@ -48,13 +45,13 @@ Training.TextOutput=False
 Training.CalcDatasetStatistics=False
 Training.prepare_evaluation("/home/afuchs/Documents/NiAu_Training_smaller_cutoff",nr_atoms_per_type=[1,12])
 
-dt = 5e-15
-steps = 10000
+dt = 1e-14
+steps = 50000
 
 
 pset = ps.ParticlesSet( len(start_geom) , 3 , label=True,mass=True)
-pset.thermostat_coupling_time=dt*100
-pset.thermostat_temperature=0.1
+pset.thermostat_coupling_time=dt*25000
+pset.thermostat_temperature=1000
 pset.unit = 1e10
 pset.mass_unit =1.660e+27
 geom=[]
@@ -63,13 +60,15 @@ for i,atom in enumerate(start_geom):
     pset.label[i] = atom[0]
     masses.append([196])
     geom.append(atom[1])
+
+
 masses[0]=[59]
 # Coordinates
 pset.X[:] = np.array(geom)
 # Mass
 pset.M[:] = np.array(masses)
 # Speed
-pset=thermostats.set_temperature(pset,0.1)
+pset=thermostats.set_temperature(pset,10)
 
 
 
@@ -81,11 +80,13 @@ pset.enable_log( True , log_max_size=1000 )
 NNForce=nn_force.NNForce(Training,pset.size)
 NNForce.set_masses(pset.M)
 NNForce.update_force(pset)
-
 solver = svs.LeapfrogSolverBerendsen( NNForce , pset , dt )
+solver.plot=True
+solver.plot_steps=5000
 solver.steps=steps
 solver.save_png=True
 solver.png_path="/home/afuchs/Documents/NiAu_Md/Ni1Au12_hot/"
 start=time.time()
 solver.start()
-
+solver.plot_results()
+solver.animate_run()

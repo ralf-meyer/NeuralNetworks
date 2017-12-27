@@ -38,6 +38,7 @@ class Optimizer(object):
         self.save_png=False
         self.png_path=""
         self.counter=0
+        self.epsilon=1e-20
 
     def init_plot(self,x):
         """Initialize the scatter plot"""
@@ -101,16 +102,18 @@ class Optimizer(object):
 
     def fun(self,x):
         """Wrapper for energy evaluation"""
-        if self.update_with_energy:
+        if self.update_with_energy and self.plot:
             self.update_plot(x)
         return self.Net.energy_for_geometry(self.to_nn_input(x))
 
     def der_fun(self,x):
         """TODO: Fix force calculation"""
-        if not(self.update_with_energy):
+        if not(self.update_with_energy) and self.plot:
             self.update_plot(x)
         force=_np.asarray(self.Net.force_for_geometry(self.to_nn_input(x)))
         grad=-force.flatten()
+        L = _np.abs(grad) < self.epsilon #prevents zero gradient which causes atoms to get stuck during the optimization
+        grad[L]=self.epsilon*_np.random.rand(len(grad))[L]
         return grad
 
     def der_fun_approx(self,x):

@@ -59,7 +59,7 @@ class NNForce(object):
         #grad=approx_fprime(x,self.fun,1e-7)
         #forces=-_np.asarray(grad)
         forces=forces.reshape((len(pset.label),3))
-        self.__A=(forces[:]/pset.M[:])*1e28/1.66
+        self.__A=(forces[:]/(pset.M[:]/pset.mass_unit))*1.6021766208-19
 
         return self.__A
 

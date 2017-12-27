@@ -17,7 +17,7 @@
 
 import numpy as np
 import sys
-
+from copy import deepcopy
 from NeuralNetworks.md_utils.ode import sim_time as st
 from mpl_toolkits.mplot3d import Axes3D
 import NeuralNetworks.md_utils.thermostats as thermo
@@ -29,33 +29,35 @@ from os import linesep
 import os as _os
 
 
+
+
 class OdeSolver(object) :
     """
     ToDO: this should be replaced by a propper doc string with the new funcitonalities!!
     Base abstract class for defining the integration method of the ordinary differential equation like Runge Kutta or Euler method,
     the user must overide the method **__step__**
-    
+
     Example (Euler method):
     ::
-    
+
         import numpy as np
         import pyparticles.ode.ode_solver as os
-       
+
         class EulerSolver( os.OdeSolver ) :
            def __init__( self , force , p_set , dt ):
                super(EulerSolver,self).__init__( force , p_set , dt )
-           
+
         def __step__( self , dt ):
-   
+
            self.force.update_force( self.pset )
-           
+
            self.pset.V[:] = self.pset.V + self.force.A * dt
            self.pset.X[:] = self.pset.X + self.pset.V * dt
-           
-           self.pset.update_boundary() 
-    
+
+           self.pset.update_boundary()
+
     Constructor:
-    
+
     :param force:      the force model
     :param p_set:      the particle set
     :param dt:         delta time
@@ -67,6 +69,7 @@ class OdeSolver(object) :
         self.types=[]
         self.__sim_time = st.SimTime( self )
         self.__steps_cnt = 0
+        self.all_geometries=[]
         self.all_forces=[]
         self.all_epot=[]
         self.all_etot=[]
@@ -82,20 +85,21 @@ class OdeSolver(object) :
         self.save_png=False
         self.png_path=""
         self.counter=0
+        self.plot_steps=100
 
         # Instatiate a logger (but deactivate logging by default)
         #TODO: log file paths should not be speciefied in ctor of solver
         self._logger=Logger("", "")
         self._enable_full_log = ""
         self._enable_xyz_log = ""
- 
+
     def enable_full_log(self, path="./mdrun.log"):
         """Activates logging of positions, forces, etc. log file in path
         To deactivate set path to empty string."""
         self._logger.full_log_file = path
 
     def enable_xyz_log(self, path="./mdrun.xyz"):
-        """Activates logging to xyz file in path. To deactivate set path to 
+        """Activates logging to xyz file in path. To deactivate set path to
         empty string."""
         self._logger.xyz_log_file = path
 
@@ -164,6 +168,7 @@ class OdeSolver(object) :
                                 )
         t = np.arange(0, len(self.all_epot)) * self.__dt
         plt_epot = np.asarray(self.all_epot).flatten()
+
         plt_etot = np.asarray(self.all_etot).flatten()
         plt_temp = np.asarray(self.all_temp).flatten()
         self.epot_plot,=self.ax2.plot(t,plt_epot,c='b')
@@ -177,15 +182,16 @@ class OdeSolver(object) :
 
 
     def start(self):
-        if self.fig == None:
+        if self.fig == None and self.plot:
             self.init_plot(self.pset.X[:])
 
         for i in range(self.steps):
-            if self.plot:
+            if self.plot and i%self.plot_steps==0:
                 self.update_plot(i)
             self.step(self.dt)
+            print("Step "+str(i+1))
 
-    
+
     def get_dt( self ):
         return self.__dt
 
@@ -193,53 +199,53 @@ class OdeSolver(object) :
         self.__dt = dt
 
     dt = property( get_dt , set_dt , doc="get and set the delta time of the step")
-    
-    
+
+
     def get_steps(self):
         return self.__steps_cnt
-    
+
     def del_steps(self):
         self.__steps_cnt = 0
-    
+
     steps_cnt = property( get_steps , fdel=del_steps , doc="return the count of the performed steps")
-    
-    
+
+
     def get_time(self):
         return self.__sim_time.time
-    
+
     def set_time( self , t0 ):
         self.__sim_time.time = t0
-        
+
     time = property( get_time , set_time , doc="get and set the current simulation time" )
-    
-    
+
+
     def get_sim_time( self ):
         return self.__sim_time
-    
+
     sim_time = property( get_sim_time , doc="get the reference to the SimTime object, used for storing and sharing the current simulation time" )
-    
-    
+
+
     def get_force( self ):
         return self.__force
-    
+
     def set_force( self , force ):
         self.__force = force
-        
+
     force = property( get_force , set_force , doc="get and set the used force model")
-    
-    
+
+
     def update_force( self ):
         self.__force.update_force( self.pset )
-    
+
     def get_pset( self ):
         return self.__p_set
-    
+
     def set_pset( self , p_set ):
         self.__p_set = p_set
-        
+
     pset = property( get_pset , set_pset , "get and set the used particles set")
-    
-    
+
+
     def step( self , dt=None ):
         """
         Perform an integration step. If the dt is not given (reccomended) it uses the stored *dt*.
@@ -251,24 +257,89 @@ class OdeSolver(object) :
         self.__sim_time.time += dt
         self.__steps_cnt += 1
         self.__step__( dt )
-
+        self.all_geometries.append(deepcopy(self.pset.X))
         if hasattr(self.force, "Epot"):
-            self.all_epot.append(self.force.Epot)
+            self.all_epot.append(deepcopy(self.force.Epot))
         if hasattr(self.force, "Etot"):
-            self.all_etot.append(self.force.Etot)
+            self.all_etot.append(deepcopy(self.force.Etot))
         if hasattr(self.force, "F"):
-            self.all_forces.append(self.force.F)
-        self.all_temp.append(thermo.get_temperature(self.pset))
+            self.all_forces.append(deepcopy(self.force.F))
+        self.all_temp.append(deepcopy(thermo.get_temperature(self.pset)))
 
         # will log current positons/forces etc. if for activated logging types
         self._logger.log(self)
 
-        
+
     def __step__( self , dt ):
         """
         Abstract methos that contain the code for computing the new status of the particles system. This methos must be overidden by the user.
         """
         NotImplementedError(" %s : is virtual and must be overridden." % sys._getframe().f_code.co_name )
+
+    def update_animation(self, num):
+        self.ax1.relim()
+        self.ax1.autoscale_view()
+        geometry = self.all_geometries[num]
+        self.scat._offsets3d = (_np.ma.ravel(geometry[:, 0]),
+                         _np.ma.ravel(geometry[:, 1]),
+                         _np.ma.ravel(geometry[:, 2])
+                         )
+        return self.scat,
+
+    def animate_run(self):
+
+        plt.ioff()
+        # Get coloring for atoms
+        my_colors=[]
+        template="byrcmgkw"
+        for atom_type in self.pset.label:
+            if atom_type not in self.types:
+                self.types.append(atom_type)
+
+        for i,atom_type in enumerate(self.pset.label):
+
+            if atom_type == "Ni":
+                my_colors.append('b')
+            elif atom_type == "Au":
+                my_colors.append('y')
+            else:
+                my_colors.append('k')
+
+        fig = plt.figure()
+        self.ax1 = fig.add_subplot(111, projection='3d')
+
+        initial_geometry = self.all_geometries[0]
+
+        self.scat = self.ax1.scatter(initial_geometry[:,0], initial_geometry[:,1], initial_geometry[:,2],                                     marker='o',
+                                      alpha=0.8,
+                                      s=150,
+                                      c=my_colors)
+        ani = animation.FuncAnimation(fig,self.update_animation,
+                                      frames=_np.arange(0,len(self.all_geometries)),
+                                      interval=5,blit=False)
+        plt.show()
+
+    def plot_results(self):
+        plt.ioff()
+        self.fig = plt.figure(figsize=plt.figaspect(2))
+        self.ax2 = self.fig.add_subplot(211)
+        self.ax3 = self.fig.add_subplot(212)
+
+        t = np.arange(0, len(self.all_epot)) * self.__dt
+        plt_epot = np.asarray(self.all_epot).flatten()
+
+        plt_etot = np.asarray(self.all_etot).flatten()
+        plt_temp = np.asarray(self.all_temp).flatten()
+        self.epot_plot,=self.ax2.plot(t,plt_epot,c='b')
+        self.etot_plot, = self.ax2.plot(t, plt_etot, c='r')
+        self.ax2.set_xlabel("t / s")
+        self.ax2.set_ylabel("E / eV")
+        self.temp_plot, = self.ax3.plot(t, plt_temp, c='g',label="Temperature /K")
+        self.ax3.set_xlabel("t / s")
+        self.ax3.set_ylabel("T / K")
+        self.fig.legend(handles=[self.epot_plot,self.etot_plot], labels=["Potential energy/atom eV", "Total energy/atom /ev"], loc=1)
+        plt.legend(handles=[self.temp_plot], loc=1)
+        plt.show()
 
 class Logger(object):
 

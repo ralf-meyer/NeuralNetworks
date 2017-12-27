@@ -30,12 +30,10 @@ class LeapfrogSolverBerendsen( os.OdeSolver ) :
 
 
     def __step__( self , dt ):
-            
         self.pset.X[:] = self.pset.X + self.pset.V * dt + 0.5*self.force.A * dt**2.0
         self.__Ai[:] = self.force.A
         self.force.update_force( self.pset )
         lamb = self.__thermo.get_lambda()
-
         self.pset.V[:] = self.pset.V* lamb + 0.5 * ( self.__Ai + self.force.A ) * dt
         self.pset.update_boundary() 
 

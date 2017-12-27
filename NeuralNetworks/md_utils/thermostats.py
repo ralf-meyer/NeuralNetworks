@@ -23,7 +23,7 @@ def set_temperature(pset, T):
     for m_i in set(m):
         # get indices of particles with mass m_i
         indices = [j for j, m_j in enumerate(m) if m_j == m_i ]
-        v = sampler.draw_boltzman_velocities(pset.size, T, m_i, 1)
+        v = sampler.draw_boltzman_velocities(len(indices), T, m_i, 1)
         
         # convert from m/s in used length unit/s
         pset.V[indices] = v * pset.unit
