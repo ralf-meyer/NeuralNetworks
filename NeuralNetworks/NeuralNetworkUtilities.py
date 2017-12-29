@@ -404,7 +404,7 @@ class AtomicNeuralNetInstance(object):
         self._MinOfOut = None
         self._VarianceOfDs = []
         self._BiasData = []
-        self._WeightData = []
+        self._WeightData = None
         self._FirstWeights = []
         self._dE_Fun = None
         self._CurrentEpochNr = 0
@@ -525,26 +525,21 @@ class AtomicNeuralNetInstance(object):
             self._MeansOfDs = rare_model[1]
             self._VarianceOfDs = rare_model[2]
         self._MinOfOut = rare_model[3]
+        self.Rs=rare_model[4]
+        self.R_Etas=rare_model[5]
+        self.Etas=rare_model[6]
+        self.Lambs=rare_model[7]
+        self.Zetas=rare_model[8]
+        self.NumberOfRadialFunctions=rare_model[9]
         try:
-            self.Rs=rare_model[4]
-            self.R_Etas=rare_model[5]
-            self.Etas=rare_model[6]
-            self.Lambs=rare_model[7]
-            self.Zetas=rare_model[8]
-            self.NumberOfRadialFunctions=rare_model[9]
-            try:
-                self.Cutoff=rare_model[10]
-            except:
-                self.Cutoff=7
+            self.Cutoff=rare_model[10]
         except:
-            print("No parameters saved")
-            self.NumberOfRadialFunctions=15
-            self.Lambs = [1.0, -1.0]
-            self.Zetas = [0.2, 1, 10]
-            self.Etas = [0.01]
-            return 1
-            # except:
-            #     return 0
+            self.Cutoff=7
+        try:
+            self.IsPartitioned=rare_model[11]
+        except:
+            self.IsPartitioned=False
+
 
         return 1
 
@@ -1060,8 +1055,8 @@ class AtomicNeuralNetInstance(object):
                                 self._ForceFieldValidationDerivatives=self.ValidationBatches[rnd][6]
                     else:
                         if self.IsPartitioned:
-                            self._ForceFieldTrainingInputs = self.TrainingBatches[rnd][2]
-                            self._ForceFieldValidationInputs = self.ValidationBatches[rnd][2]
+                            self._ForceFieldTrainingInputs = self.TrainingBatches[rnd][5]
+                            self._ForceFieldValidationInputs = self.ValidationBatches[rnd][5]
 
                     # Prepare data and layers for feeding
                     if i == 0:
@@ -1207,7 +1202,8 @@ class AtomicNeuralNetInstance(object):
                                   self.Lambs,
                                   self.Zetas,
                                   self.NumberOfRadialFunctions,
-                                  self.Cutoff])
+                                  self.Cutoff,
+                                  self.IsPartitioned])
 
                     # Abort criteria
                     if self.TrainingCosts != 0 and self.TrainingCosts <= self.CostCriterion and self.ValidationCosts <= self.CostCriterion or self.DeltaE[-1] < self.dE_Criterion:
@@ -1710,7 +1706,7 @@ class AtomicNeuralNetInstance(object):
                     return Inputs, EnergyData, GDerivativesInput, Normalization, ForceData
             else:
                 if self.IsPartitioned:
-                    return Inputs,EnergyData,FFInputs
+                    return Inputs,EnergyData,[],[],[],FFInputs
                 else:
                     return Inputs, EnergyData
 

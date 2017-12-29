@@ -117,7 +117,6 @@ class _PartitionedAtomicNetwork(_AtomicNetwork):
         NetworkData = []
         #get ANN
         ThisNet=[]
-
         for i,HiddenLayers in enumerate(self.VariablesDictionary.ANNDict):
             #print("Saving species "+str(atom_types[i])+"...")
             Layers = []
@@ -127,10 +126,11 @@ class _PartitionedAtomicNetwork(_AtomicNetwork):
                 Layers.append([Weights, Biases,atom_types[i]])
             ThisNet.append(Layers)
 
+        NetworkData.append(ThisNet)
         #get FF
         ThisNet=[]
 
-        for i,HiddenLayers in enumerate(self.VariablesDictionary.ANNDict):
+        for i,HiddenLayers in enumerate(self.VariablesDictionary.ForceFieldDict):
             #print("Saving species "+str(atom_types[i])+"...")
             Layers = []
             for j in range(0, len(HiddenLayers)):
@@ -277,10 +277,10 @@ class _PartitionedAtomicNetwork(_AtomicNetwork):
         Returns:
             Weights (list):List of numpy arrays
             Biases (list):List of numpy arrays"""
-
         loaded_structure=[]
         Weights =_PartitionedWeights()
         Biases = _PartitionedBiases()
+
         #Get ANN data
         for ANN in TrainedVariables[0]:
             ThisWeights = []
@@ -301,8 +301,8 @@ class _PartitionedAtomicNetwork(_AtomicNetwork):
             for j in range(0, len(FF)):
                 ThisWeights.append(FF[j][0])
                 ThisBiases.append(FF[j][1])
-            Weights.ANNWeights.append(ThisWeights)
-            Biases.ANNBiases.append(ThisBiases)
+            Weights.ForceFieldWeights.append(ThisWeights)
+            Biases.ForceFieldBiases.append(ThisBiases)
 
 
         return Weights, Biases,loaded_structure
@@ -362,7 +362,8 @@ class _PartitionedAtomicNetwork(_AtomicNetwork):
         #copy data for force field
         FFWeights = []
         FFBiases=[]
-        if len(NetInstance._WeightData)>0:
+
+        if NetInstance._WeightData!=None:
             FFWeights=NetInstance._WeightData.ForceFieldWeights
             FFBiases=NetInstance._BiasData.ForceFieldBiases
             #Set atomic neural network weights and biases for creation
@@ -371,7 +372,7 @@ class _PartitionedAtomicNetwork(_AtomicNetwork):
         #Create atomic neural network
         ANN.make_atomic_networks(NetInstance)
         self.AtomicNNs.ANNets=ANN.AtomicNNs
-        self.VariablesDictionary.ANNData=ANN.VariablesDictionary
+        self.VariablesDictionary.ANNDict=ANN.VariablesDictionary
         #Create the force field nets
         FFNets=[]
         VariablesFF=[]

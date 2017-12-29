@@ -349,7 +349,7 @@ class _StandardAtomicNetwork(_AtomicNetwork):
             # Make hidden layers
             HiddenLayers = []
             Structure = NetInstance.Structures[i]
-            if len(NetInstance._WeightData) != 0: #if a net was loaded
+            if NetInstance._WeightData != None: #if a net was loaded
                 RawBias = NetInstance._BiasData[i]
                 for j in range(1, len(Structure)):
                     NrIn = Structure[j - 1]
@@ -447,7 +447,7 @@ class _StandardAtomicNetwork(_AtomicNetwork):
             # create network for each atom
             for k in range(0, NetInstance.NumberOfAtomsPerType[i]):
                 # Make input layer
-                if len(NetInstance._WeightData) != 0:
+                if NetInstance._WeightData != None:
                     NrInputs = NetInstance._WeightData[i][0].shape[0]
                 else:
                     NrInputs = Structure[0]

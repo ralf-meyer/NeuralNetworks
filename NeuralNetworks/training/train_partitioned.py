@@ -135,17 +135,17 @@ if load_model:
         Training.MakeAllVariable = False
         print("Loading pretraining...")
     #Load pretrained net
-    try:
-        if model=="":
-            Training.expand_existing_net(ModelName="../data/pretraining_"+str(len(Training.Atomtypes))+"_species",
-                                         MakeAllVariable = Training.MakeAllVariable,
-                                         load_statistics = False)
-        else:
-            Training.expand_existing_net(ModelName=model,
-                                         MakeAllVariable=Training.MakeAllVariable,
-                                         load_statistics = False)
-    except:
-        raise IOError("Model not found, please specify model directory via -model x")
+    #try:
+    if model=="":
+        Training.expand_existing_net(ModelName="../data/pretraining_"+str(len(Training.Atomtypes))+"_species",
+                                     MakeAllVariable = Training.MakeAllVariable,
+                                     load_statistics = False)
+    else:
+        Training.expand_existing_net(ModelName=model,
+                                     MakeAllVariable=Training.MakeAllVariable,
+                                     load_statistics = False)
+    #except:
+    #    raise IOError("Model not found, please specify model directory via -model x")
 else:
 
     Training.make_and_initialize_network()
