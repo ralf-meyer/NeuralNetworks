@@ -515,12 +515,7 @@ class AtomicNeuralNetInstance(object):
 
         rare_model = _np.load(ModelName)
         self.TrainedVariables = rare_model[0]
-        if len(self.Atomtypes)==0:
-            for i,NetForType in enumerate(self.TrainedVariables):
-                if isinstance(NetForType[0][-1], basestring):
-                    self.Atomtypes.append(NetForType[0][-1])
-                    if self.TextOutput:
-                        print("Atomtype "+str(i)+" is "+str(self.Atomtypes[-1]))
+
         if load_statistics:
             self._MeansOfDs = rare_model[1]
             self._VarianceOfDs = rare_model[2]
@@ -539,6 +534,22 @@ class AtomicNeuralNetInstance(object):
             self.IsPartitioned=rare_model[11]
         except:
             self.IsPartitioned=False
+
+        if self.IsPartitioned:
+            if len(self.Atomtypes) == 0:
+                ANN = self.TrainedVariables[0]
+                for i, NetForType in enumerate(ANN):
+                    if isinstance(NetForType[0][-1], basestring):
+                        self.Atomtypes.append(NetForType[0][-1])
+                        if self.TextOutput:
+                            print("Atomtype " + str(i) + " is " + str(self.Atomtypes[-1]))
+        else:
+            if len(self.Atomtypes) == 0:
+                for i, NetForType in enumerate(self.TrainedVariables):
+                    if isinstance(NetForType[0][-1], basestring):
+                        self.Atomtypes.append(NetForType[0][-1])
+                        if self.TextOutput:
+                            print("Atomtype " + str(i) + " is " + str(self.Atomtypes[-1]))
 
 
         return 1

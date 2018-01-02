@@ -30,7 +30,7 @@ start_geom=[('Ni', np.array([-0.03069231,  0.077     , -0.00761538])),
 Training=NeuralNetworkUtilities.AtomicNeuralNetInstance()
 Training.CalcDatasetStatistics=False
 Training.TextOutput=False
-Training.prepare_evaluation("/home/afuchs/Documents/NiAu_Training_smaller_cutoff",nr_atoms_per_type=[1,12])
+Training.prepare_evaluation("/home/afuchs/Documents/NiAu_Training_part/1/",nr_atoms_per_type=[1,12])
 
 opt=optimizer.Optimizer(Training,start_geom)
 #opt.check_gradient()
@@ -43,9 +43,9 @@ input_reader.read("/home/afuchs/Documents/Validation_geometries/ico_NiAu54.xyz",
 Training=NeuralNetworkUtilities.AtomicNeuralNetInstance()
 Training.TextOutput=False
 Training.CalcDatasetStatistics=False
-Training.prepare_evaluation("/home/afuchs/Documents/NiAu_Training_smaller_cutoff",nr_atoms_per_type=[1,12])
+Training.prepare_evaluation("/home/afuchs/Documents/NiAu_Training_part/1/",nr_atoms_per_type=[1,12])
 
-dt = 1e-14
+dt = 5e-15
 steps = 50000
 
 
@@ -82,7 +82,7 @@ NNForce.set_masses(pset.M)
 NNForce.update_force(pset)
 solver = svs.LeapfrogSolverBerendsen( NNForce , pset , dt )
 solver.plot=True
-solver.plot_steps=5000
+solver.plot_steps=500
 solver.steps=steps
 solver.save_png=True
 solver.png_path="/home/afuchs/Documents/NiAu_Md/Ni1Au12_hot/"

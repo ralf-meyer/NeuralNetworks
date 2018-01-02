@@ -13,10 +13,10 @@ class PES(object):
         self.geoms=[]
         self.figure=plt.figure()
         self.ax = Axes3D(self.figure)
-        self.ax.set_zlim(bottom=-1,top=5)
+        #self.ax.set_zlim(bottom=-1,top=5)
         plt.title(model_name)
         self.resolution=resolution
-        self.theta=np.linspace(0.1*np.pi/180,360*np.pi/180,self.resolution)
+        self.theta=np.linspace(1*np.pi/180,359*np.pi/180,self.resolution)
         self.rhs=np.linspace(1,7,self.resolution)
         self.meshX,self.meshY=np.meshgrid(self.rhs,self.theta*180/np.pi)
         meshZ=np.zeros((len(self.theta),len(self.rhs)))
@@ -82,7 +82,7 @@ class PES(object):
 
 if __name__ == "__main__":
     plt.ioff()
-    file="/home/afuchs/Documents/NiAu_Training_smaller_cutoff"
+    file="/home/afuchs/Documents/NiAu_Training_part/1/"
     #file="/home/afuchs/Documents/NiAu_Training/NiAu_Comp/without_4"
     MyCheck1=PES(file)
     MyCheck1.pes_check(atom_types=["X","Y"],nr_atoms_per_type=[1,2],show_plot=False)

@@ -58,12 +58,12 @@ class _PartitionedAtomicNetwork(_AtomicNetwork):
             FFNet = self.AtomicNNs.ForceFieldNets[j]
             Type = FFNet[0]
             FF_Input = FFNet[2]
-            d_FF = FFNet[3]
-            d_FF_t = _tf.transpose(d_FF, perm=[0, 2, 1])
-            Gradient = _tf.gradients(NetInstance._TotalEnergy,FF_Input)
-            dEi_dFF = _tf.reshape(
-                d_FF_t, [-1, 3*len(NetInstance.Atomtypes), 1])
-            mul = _tf.matmul(dGij_dxk_t, dEi_dGij)
+            dFF_dxk = FFNet[3]
+            dFF_dxk_t = _tf.transpose(dFF_dxk, perm=[0, 2, 1])
+            Gradient_FF = _tf.gradients(NetInstance._TotalEnergy,FF_Input)
+            dFF_dGij = _tf.reshape(
+                Gradient_FF, [-1, 3*len(NetInstance.Atomtypes), 1])
+            mul = _tf.matmul(dFF_dxk_t, dFF_dGij)
             dim_red = _tf.reshape(mul,
                                   [-1,TotalNrOfAtoms * 3])
 
