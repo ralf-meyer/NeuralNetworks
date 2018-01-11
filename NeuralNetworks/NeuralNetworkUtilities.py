@@ -534,11 +534,6 @@ class AtomicNeuralNetInstance(object):
             self.IsPartitioned=rare_model[11]
         except:
             self.IsPartitioned=False
-        try:
-            self.Dropout=rare_model[12]
-        except:
-            self.Dropout=[0]
-
 
         if self.IsPartitioned:
             if len(self.Atomtypes) == 0:
