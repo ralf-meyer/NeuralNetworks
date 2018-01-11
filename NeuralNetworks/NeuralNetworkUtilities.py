@@ -837,7 +837,14 @@ class AtomicNeuralNetInstance(object):
                 FFTrainingInputs = []
 
             TrainingData = self._Net.make_data_for_atomicNNs(
-                TrainingInputs, TrainingOutputs, AppendForce = False, FFData = FFTrainingInputs)
+                TrainingInputs,
+                TrainingOutputs,
+                [],
+                [],
+                [],
+                False,
+                FFTrainingInputs,
+                [])
 
             if i == 0:
                 train_dE = self.evaluate(self._dE_Fun, Layers, TrainingData)
@@ -855,7 +862,14 @@ class AtomicNeuralNetInstance(object):
                 FFValidationInputs=[]
 
             ValidationData = self._Net.make_data_for_atomicNNs(
-                ValidationInputs, ValidationOutputs, AppendForce=False,FFData = FFValidationInputs)
+                ValidationInputs,
+                ValidationOutputs,
+                [],
+                [],
+                [],
+                False,
+                FFValidationInputs,
+                [])
 
             if i == 0:
                 val_dE = self.evaluate(self._dE_Fun, Layers, ValidationData)
@@ -1865,25 +1879,30 @@ class AtomicNeuralNetInstance(object):
         if self.UseForce:
             self._OutputForce, AllForces = self._Net.force_of_all_atomic_networks(
                 self)
-            self._ForceCost = self.ForceCostParam*self._EnergyCost* _tf.divide(
+            self._ForceCost = self.ForceCostParam* _tf.divide(
                 self.cost_for_network(
                     self._OutputForce, self._OutputLayerForce, self.CostFunType), sum(
                     self.NumberOfAtomsPerType))
             Cost += self._ForceCost
 
+        trainableVars = _tf.trainable_variables()
+        regVars=[]
+        for var in trainableVars:
+            shape=var.get_shape()
+            if shape[-1]!=1:
+                regVars.append(var)
         if self.Regularization == "L1":
-            trainableVars = _tf.trainable_variables()
+
             l1_regularizer = _tf.contrib.layers.l1_regularizer(
                 scale=self.RegularizationParam, scope=None)
             self._RegLoss = _tf.contrib.layers.apply_regularization(
-                l1_regularizer, trainableVars)
+                l1_regularizer, regVars)
             Cost += self._RegLoss
         elif self.Regularization == "L2":
-            trainableVars = _tf.trainable_variables()
             l2_regularizer=_tf.contrib.layers.l2_regularizer(
                     scale=self.RegularizationParam, scope=None)
             self._RegLoss = _tf.contrib.layers.apply_regularization(
-                l2_regularizer, trainableVars)
+                l2_regularizer, regVars)
             Cost += self._RegLoss
 
         # Create tensor for energy difference calculation
