@@ -342,10 +342,7 @@ class _StandardAtomicNetwork(_AtomicNetwork):
 
         # create layers for the different atom types
         for i in range(0, len(NetInstance.Structures)):
-            if len(NetInstance.Dropout) > i:
-                Dropout = NetInstance.Dropout[i]
-            else:
-                Dropout = NetInstance.Dropout[-1]
+
             # Make hidden layers
             HiddenLayers = []
             Structure = NetInstance.Structures[i]
@@ -451,7 +448,7 @@ class _StandardAtomicNetwork(_AtomicNetwork):
                     NrInputs = NetInstance._WeightData[i][0].shape[0]
                 else:
                     NrInputs = Structure[0]
-
+                Dropout=NetInstance.Dropout[0]
                 InputLayer = self._construct_input_layer(NrInputs)
                 # Connect input to first hidden layer
                 FirstWeights = HiddenLayers[0][0]
@@ -469,6 +466,11 @@ class _StandardAtomicNetwork(_AtomicNetwork):
                     # Connect layers
                     Weights = HiddenLayers[l][0]
                     Biases = HiddenLayers[l][1]
+                    if len(NetInstance.Dropout) > l:
+                        Dropout = NetInstance.Dropout[l]
+                    else:
+                        Dropout = NetInstance.Dropout[-1]
+
                     if l == len(HiddenLayers) - 1:
                         Network = self._connect_layers(
                             Network, Weights, Biases, "none", NetInstance.ActFunParam, Dropout)

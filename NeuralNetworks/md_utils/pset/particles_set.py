@@ -83,7 +83,7 @@ class ParticlesSet(object):
 
         self.thermostat_temperature=0
         self.thermostat_coupling_time=1
-
+        self.dT=0
         self.__unit = 1.0
         self.__mass_unit = 1.0
 
@@ -220,6 +220,9 @@ class ParticlesSet(object):
         elif model == "list" :
             self.__property_dict[property_name] = list( None for i in range(self.size) )
 
+    def adjust_temperature(self):
+        self.thermostat_temperature+=self.dT
+        return self.thermostat_temperature
 
     def get_properties_names(self):
         """

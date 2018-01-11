@@ -107,6 +107,9 @@ class OdeSolver(object) :
         """Initialize the animation"""
         self.fig = plt.figure(figsize=plt.figaspect(3))
         self.ax1 = self.fig.add_subplot(311, projection='3d')
+        self.ax1.set_xlim(-10,10)
+        self.ax1.set_ylim(-10,10)
+        self.ax1.set_zlim(-10,10)
         self.ax2 = self.fig.add_subplot(312)
         self.ax3 = self.fig.add_subplot(313)
         if self.save_png:
@@ -257,6 +260,7 @@ class OdeSolver(object) :
         self.__sim_time.time += dt
         self.__steps_cnt += 1
         self.__step__( dt )
+
         self.all_geometries.append(deepcopy(self.pset.X))
         if hasattr(self.force, "Epot"):
             self.all_epot.append(deepcopy(self.force.Epot))
@@ -316,7 +320,7 @@ class OdeSolver(object) :
                                       c=my_colors)
         ani = animation.FuncAnimation(fig,self.update_animation,
                                       frames=_np.arange(0,len(self.all_geometries)),
-                                      interval=5,blit=False)
+                                      interval=1,blit=False)
         plt.show()
 
     def plot_results(self):

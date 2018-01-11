@@ -55,7 +55,7 @@ class LeapfrogSolverLangevin(os.OdeSolver):
         """
 
         self._gamma = gamma #/ p_set.mass_unit
-        self._temperature = p_set.thermostat_temperature
+        self._temperature = p_set.adjust_temperature()
 
         super(LeapfrogSolverLangevin, self).__init__(force, p_set, dt)
 

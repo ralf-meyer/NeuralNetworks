@@ -42,6 +42,8 @@ class BerensdenNVT(object):
     def get_lambda(self):
 
         self.temperature = get_temperature(self.pset)
+        self.hb_temp= self.pset.adjust_temperature()
+
         lamb = _np.sqrt(1 + self.deltat / self.t_thermo * (self.hb_temp /self.temperature  - 1))
 
         #hard borders
