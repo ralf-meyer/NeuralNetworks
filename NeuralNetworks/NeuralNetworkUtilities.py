@@ -534,6 +534,11 @@ class AtomicNeuralNetInstance(object):
             self.IsPartitioned=rare_model[11]
         except:
             self.IsPartitioned=False
+        try:
+            self.Dropout=rare_model[12]
+        except:
+            self.Dropout=[0]
+
 
         if self.IsPartitioned:
             if len(self.Atomtypes) == 0:
@@ -765,40 +770,6 @@ class AtomicNeuralNetInstance(object):
         self.make_network()
         self.initialize_network()
 
-    def start_training(self):
-        """Start the training without the use of batch training.
-        Returns:
-            self.TrainingCost(list):The costs for the training data.
-            self.ValidationCost(list):The costs for the validation data."""
-        Execute = True
-        if len(self._Net.AtomicNNs) == 0:
-            print("No atomic neural nets available!")
-            Execute = False
-        if len(self._TrainingInputs) == 0:
-            print("No training inputs specified!")
-            Execute = False
-        if len(self._TrainingOutputs) == 0:
-            print("No training outputs specified!")
-            Execute = False
-
-        if Execute:
-            TrainingCosts, ValidationCosts = self._train_atomic_networks(
-                self._TrainingInputs, self._TrainingOutputs,
-                self._ValidationInputs, self._ValidationOutputs)
-            self.TrainedVariables = self._Net.get_trained_variables(
-                self._Session)
-            # Store variables
-
-            if not _os.path.exists(self.SavingDirectory):
-                _os.makedirs(self.SavingDirectory)
-            _np.save(self.SavingDirectory +
-                     "/trained_variables", self.TrainedVariables)
-
-            self.TrainingCosts = TrainingCosts
-            self.ValidationCosts = ValidationCosts
-            print("Training finished")
-
-        return self.TrainingCosts, self.ValidationCosts
 
     def expand_trained_net(self, nAtoms, ModelName=None):
         """Expands a stored net for the specified atoms.
@@ -1228,7 +1199,8 @@ class AtomicNeuralNetInstance(object):
                                   self.Zetas,
                                   self.NumberOfRadialFunctions,
                                   self.Cutoff,
-                                  self.IsPartitioned])
+                                  self.IsPartitioned,
+                                  self.Dropout])
 
                     # Abort criteria
                     if self.TrainingCosts != 0 and self.TrainingCosts <= self.CostCriterion and self.ValidationCosts <= self.CostCriterion or self.DeltaE[-1] < self.dE_Criterion:
@@ -2170,6 +2142,42 @@ class MultipleInstanceTraining(object):
 
 
 class Deprecated(object):
+
+    def start_training(self):
+        """Start the training without the use of batch training.
+        Returns:
+            self.TrainingCost(list):The costs for the training data.
+            self.ValidationCost(list):The costs for the validation data."""
+        Execute = True
+        if len(self._Net.AtomicNNs) == 0:
+            print("No atomic neural nets available!")
+            Execute = False
+        if len(self._TrainingInputs) == 0:
+            print("No training inputs specified!")
+            Execute = False
+        if len(self._TrainingOutputs) == 0:
+            print("No training outputs specified!")
+            Execute = False
+
+        if Execute:
+            TrainingCosts, ValidationCosts = self._train_atomic_networks(
+                self._TrainingInputs, self._TrainingOutputs,
+                self._ValidationInputs, self._ValidationOutputs)
+            self.TrainedVariables = self._Net.get_trained_variables(
+                self._Session)
+            # Store variables
+
+            if not _os.path.exists(self.SavingDirectory):
+                _os.makedirs(self.SavingDirectory)
+            _np.save(self.SavingDirectory +
+                     "/trained_variables", self.TrainedVariables)
+
+            self.TrainingCosts = TrainingCosts
+            self.ValidationCosts = ValidationCosts
+            print("Training finished")
+
+        return self.TrainingCosts, self.ValidationCosts
+
 
     def _convert_standard_to_partitioned_net(self):
         """Converts a standard (Behler) network to the force-field part of  a
