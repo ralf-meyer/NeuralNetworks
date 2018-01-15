@@ -535,6 +535,8 @@ class AtomicNeuralNetInstance(object):
         except:
             self.IsPartitioned=False
 
+        #self.Dropout=rare_model[12]
+
         if self.IsPartitioned:
             if len(self.Atomtypes) == 0:
                 ANN = self.TrainedVariables[0]

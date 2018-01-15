@@ -687,7 +687,6 @@ class QE_MD_Reader(object):
             self.temperature+=temperature
             self.e_tot+=e_tot
             print("Reading geometries in file "+str(ct+1)+"...")
-
             # read starting geometry, and convert it from lattice unit to angstr.
             starting_geometry=read_geometry_scf(this,self.Geom_conv_factor,self.atom_types,read_types)
             self.geometries+=[starting_geometry]
@@ -700,10 +699,11 @@ class QE_MD_Reader(object):
             # remove last geometry because no forces and energies are available
             self.geometries.pop(-1)
 
-        if(len(self.e_kin)==len(self.e_tot)):
-            self.e_pot=_np.subtract(self.e_tot,self.e_kin)
-        else:
-            self.e_pot=e_tot
+        #if(len(self.e_kin)==len(self.e_tot)):
+        self.e_pot = self.e_tot
+        self.e_tot=_np.add(self.e_tot,self.e_kin)
+        #else:
+
         self.nr_atoms_per_type=get_nr_atoms_per_type(self.atom_types,self.geometries[0])
 
     def calibrate_energy(self):
@@ -723,7 +723,7 @@ class QE_MD_Reader(object):
                         e_cal+=reader.e_tot[-1]*NrAtoms*self.E_conv_factor
         else: #Sets minimum as zero point 
             e_cal=min(self.e_pot)
-                        
+
         self.energies=_np.subtract(self.e_pot,e_cal)
         
 class QE_SCF_Reader(object):
@@ -848,8 +848,9 @@ class LammpsReader(object):
 
         self.geometries = []
         self.energies = []
+        self.tot_energies=[]
         self.forces = []
-    
+        self.temperatures = []
         #internal cnoversion factors
         self.E_conv_factor = 1
         self.Geom_conv_factor = 1 
@@ -932,6 +933,7 @@ class LammpsReader(object):
         # read energies and potentials
         if isfile(thermofile):
             self._read_energies_from_thermofile(thermofile)
+            self._read_temperature_from_thermofile(thermofile)
         else:
             warn("Invalid file path: {0} is not a file!".format(thermofile), RuntimeWarning)                 
 
@@ -983,7 +985,9 @@ class LammpsReader(object):
                     len(thermo_files), ".log/.out", thermo_files[0]),
                     RuntimeWarning
                 )
+            self._read_temperature_from_thermofile(thermo_files[0])
             self._read_energies_from_thermofile(thermo_files[0])
+
             
             # drop first energy if xyz was used as xyz does not log 0th step.
             if len(dump_files) == 0:
@@ -1172,6 +1176,71 @@ class LammpsReader(object):
                             )
         except Exception as e:
             print("Error reading thermodynamics file at {0}".format(thermofile))
+
+        try:
+            with open(thermofile, "r") as f_thermo:
+                switch = False
+
+                print("Reading thermo file ...")
+
+                # this flag will store if the iterator is already
+                # past the line containing "Setting up xxx run"
+                reached_run_results = False
+                pattern_run_start = \
+                    "Setting up (Verlet|verlet/split|respa|respa/omp) run ..."
+
+                for line in f_thermo:
+                    # only search after start of run was reached
+                    if not reached_run_results:
+                        if not _re.match(pattern_run_start, line) is None:
+                            reached_run_results = True
+                    else:
+                        if line.startswith("Step"):
+                            ind = line.split().index("TotEng")
+                            switch = True
+                        elif switch and line.startswith("Loop time"):
+                            switch = False
+                        elif switch:
+                            self.tot_energies.append(
+                                float(line.split()[ind]) \
+                                * self.E_conv_factor
+                            )
+        except Exception as e:
+            print("Error reading thermodynamics file at {0}".format(thermofile))
+
+        return 1
+
+    def _read_temperature_from_thermofile(self, thermofile):
+        try:
+            with open(thermofile, "r") as f_thermo:
+                switch = False
+
+                print("Reading thermo file ...")
+
+                # this flag will store if the iterator is already
+                # past the line containing "Setting up xxx run"
+                reached_run_results = False
+                pattern_run_start = \
+                    "Setting up (Verlet|verlet/split|respa|respa/omp) run ..."
+
+                for line in f_thermo:
+                    # only search after start of run was reached
+                    if not reached_run_results:
+                        if not _re.match(pattern_run_start, line) is None:
+                            reached_run_results = True
+                    else:
+                        if line.startswith("Step"):
+                            ind = line.split().index("Temp")
+                            switch = True
+                        elif switch and line.startswith("Loop time"):
+                            switch = False
+                        elif switch:
+                            self.temperatures.append(
+                                float(line.split()[ind]))
+        except Exception as e:
+            print("Error reading thermodynamics file at {0}".format(thermofile))
+
+        return 1
 
     def calibrate_energy(self):
         """Will shift the zero point of the energy so the difference in energies
