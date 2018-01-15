@@ -1,4 +1,5 @@
 import tensorflow as _tf
+import numpy as _np
 from NeuralNetworks.types.StandardAtomicNetwork import _StandardAtomicNetwork
 from NeuralNetworks.types.GeneralAtomicNetwork import _AtomicNetwork
 
@@ -295,15 +296,10 @@ class _PartitionedAtomicNetwork(_AtomicNetwork):
             Biases.ANNBiases.append(ThisBiases)
             loaded_structure.append(sub_struct)
         #Get FF data
-        for FF in TrainedVariables[1]:
-            ThisWeights = []
-            ThisBiases = []
-            for j in range(0, len(FF)):
-                ThisWeights.append(FF[j][0])
-                ThisBiases.append(FF[j][1])
-            Weights.ForceFieldWeights.append(ThisWeights)
-            Biases.ForceFieldBiases.append(ThisBiases)
 
+        for FF in TrainedVariables[1][0]:
+            Weights.ForceFieldWeights.append(FF[0])
+            Biases.ForceFieldBiases.append(FF[1])
 
         return Weights, Biases,loaded_structure
 
@@ -376,6 +372,7 @@ class _PartitionedAtomicNetwork(_AtomicNetwork):
         #Create the force field nets
         FFNets=[]
         VariablesFF=[]
+
         for i,Type in enumerate(NetInstance.Atomtypes):
             if len(FFWeights)>0:
                 WeightsForType=FFWeights[i]
@@ -383,11 +380,10 @@ class _PartitionedAtomicNetwork(_AtomicNetwork):
                 Weights,Biases = self._construct_hidden_layer(NInputs,
                                                         1,
                                                         WeightType="truncated_normal",
-                                                        WeightData=WeightsForType[0],
+                                                        WeightData=WeightsForType,
                                                         BiasType="truncated_normal",
-                                                        BiasData=BiasesForType[0],
+                                                        BiasData=BiasesForType,
                                                         MakeAllVariable=True)
-
                 VariablesFF.append([Weights,Biases])
             else:
                 Weights, Biases = self._construct_hidden_layer(NInputs,
@@ -397,10 +393,8 @@ class _PartitionedAtomicNetwork(_AtomicNetwork):
                                                         BiasType="truncated_normal",
                                                         BiasData=[],
                                                         MakeAllVariable=True)
-
                 VariablesFF.append([Weights, Biases])
 
-            self.VariablesDictionary.ForceFieldDict.append(VariablesFF)
 
             for j in range(NetInstance.NumberOfAtomsPerType[i]):
 
@@ -410,13 +404,12 @@ class _PartitionedAtomicNetwork(_AtomicNetwork):
                 if NetInstance.UseForce:
                     InputForce = _tf.placeholder(
                         _tf.float64, shape=[None, NInputs, 3* sum(NetInstance.NumberOfAtomsPerType)])
-                    Normalization = _tf.placeholder(
-                        _tf.float64, shape=[None, NInputs])
                     FFNets.append(
                         [i, Network, Input, InputForce])
                 else:
                     FFNets.append([i, Network, Input])
 
+        self.VariablesDictionary.ForceFieldDict.append(VariablesFF)
         self.AtomicNNs.ForceFieldNets=FFNets
 
 class _PartitionedNetwork(object):

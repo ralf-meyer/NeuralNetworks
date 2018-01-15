@@ -24,17 +24,17 @@ start_geom=[('Ni', np.array([-0.03069231,  0.077     , -0.00761538])),
             ('Au', np.array([-2.6155158 , -0.00973963, -1.55559049])),
             ('Au', np.array([ 0.02202719, -1.52082656, -2.56285199]))]
 
-#input_reader=data_readers.SimpleInputReader()
-#input_reader.read("/home/afuchs/Documents/Validation_geometries/ico_NiAu54.xyz",skip=3)
+input_reader=data_readers.SimpleInputReader()
+input_reader.read("/home/afuchs/Documents/Validation_geometries/ico_NiAu54.xyz",skip=3)
 #start_geom=input_reader.geometries[0]
 Training=NeuralNetworkUtilities.AtomicNeuralNetInstance()
 Training.CalcDatasetStatistics=False
 Training.TextOutput=False
-Training.prepare_evaluation("/home/afuchs/Documents/NiAu_Training_part/1/",nr_atoms_per_type=[1,12])
+Training.prepare_evaluation("/home/afuchs/Documents/NiAu_Training_part/Test4_force/",nr_atoms_per_type=[1,12])
 
 opt=optimizer.Optimizer(Training,start_geom)
 #opt.check_gradient()
-start_geom=opt.start_bfgs(norm=10,gtol=1-03)
+start_geom=opt.start_bfgs(norm=10,gtol=1-04)
 # print(start_geom)
 #print(len(start_geom))
 input_reader=data_readers.SimpleInputReader()
@@ -43,15 +43,16 @@ input_reader.read("/home/afuchs/Documents/Validation_geometries/ico_NiAu54.xyz",
 Training=NeuralNetworkUtilities.AtomicNeuralNetInstance()
 Training.TextOutput=False
 Training.CalcDatasetStatistics=False
-Training.prepare_evaluation("/home/afuchs/Documents/NiAu_Training_part/1/",nr_atoms_per_type=[1,12])
+Training.prepare_evaluation("/home/afuchs/Documents/NiAu_Training_part/Test4_force/",nr_atoms_per_type=[1,12])
 
-dt = 5e-15
-steps = 50000
+dt = 1e-15
+steps = 10000
 
 
 pset = ps.ParticlesSet( len(start_geom) , 3 , label=True,mass=True)
-pset.thermostat_coupling_time=dt*25000
-pset.thermostat_temperature=1000
+pset.thermostat_coupling_time=dt*5
+pset.thermostat_temperature=100
+pset.dT=float(500)/steps
 pset.unit = 1e10
 pset.mass_unit =1.660e+27
 geom=[]
@@ -68,7 +69,7 @@ pset.X[:] = np.array(geom)
 # Mass
 pset.M[:] = np.array(masses)
 # Speed
-pset=thermostats.set_temperature(pset,10)
+pset=thermostats.set_temperature(pset,100)
 
 
 
@@ -81,8 +82,9 @@ NNForce=nn_force.NNForce(Training,pset.size)
 NNForce.set_masses(pset.M)
 NNForce.update_force(pset)
 solver = svs.LeapfrogSolverBerendsen( NNForce , pset , dt )
+#solver =svs.LeapfrogSolverLangevin(NNForce,pset,dt,1e10)
 solver.plot=True
-solver.plot_steps=500
+solver.plot_steps=1000
 solver.steps=steps
 solver.save_png=True
 solver.png_path="/home/afuchs/Documents/NiAu_Md/Ni1Au12_hot/"
