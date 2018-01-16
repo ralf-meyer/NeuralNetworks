@@ -11,14 +11,14 @@ def str2bool(v):
 #Get input
 plots=False
 learning_rate=0.001
-epochs=100
+epochs=200
 data_file=""
-force=False
+force=True
 e_unit="Ry"
 dist_unit="A"
-load_model=True
-model=""
-model_dir="save_no_name"
+load_model=False
+model="/home/afuchs/Git/NeuralNetworks/NeuralNetworks/training/save_no_name/trained_variables.npy"
+model_dir="multi"
 source="QE"
 percentage_of_data=100
 
@@ -70,12 +70,10 @@ if load_model:
     print("Loaded model = "+model)
 print("Save path : "+os.path.join(os.getcwd(),model_dir))
 
-data_files=["/home/afuchs/Documents/Ni15Au15/",
-            "/home/afuchs/Documents/Ni1Au2/",
+#"/home/afuchs/Documents/Ni15Au15/",
+data_files=["/home/afuchs/Documents/Ni1Au2/",
             "/home/afuchs/Documents/Ni2Au1",
             "/home/afuchs/Documents/Ni2Au2",
-            "/home/afuchs/Documents/Ni5Au5_6000/",
-            "/home/afuchs/Documents/Ni5Au5/",
             "/home/afuchs/Documents/NiAu20"]
 # data_files=["/home/afuchs/Documents/Ni1Au2/",
 #             "/home/afuchs/Documents/Ni2Au1",
@@ -87,6 +85,7 @@ for i in range(len(data_files)):
     data_file=data_files[i]
     #Load trainings instance
     Training=_NN.AtomicNeuralNetInstance()
+    Training.IsPartitioned=False
     Training.CalcDatasetStatistics=True
     Training.UseForce=force
     #Default symmetry function set
@@ -94,8 +93,8 @@ for i in range(len(data_files)):
     Training.Lambs=[1.0,-1.0]
     Training.Zetas=[0.2,0.5,1,3,10]#[0.025,0.045,0.075,0.1,0.15,0.2,0.3,0.5,0.7,1,1.5,2,3,5,10,18,36,100]
     Training.Etas=[0.01]
-    Training.Rs = [1, 1.8, 2, 2.2, 2.4, 2.6, 2.8, 3.0, 3.2, 3.4, 3.6, 3.8, 4, 4.2, 4.4, 5, 7]
-    Training.R_Etas =[0.1,0.3,0.8,0.8,0.8,1,1,1,1,1,1,0.8,0.3,0.3,0.3,0.3,0.1]
+    Training.Rs = [1, 1.8, 2, 2.2, 2.4, 2.6, 2.8, 3.0, 3.2, 3.4, 3.6, 3.8, 4, 4.2, 4.4]
+    Training.R_Etas =[0.2,0.3,0.8,0.8,0.8,1,1,1,1,1,1,0.8,0.3,0.3,0.2]
     #Read file
     if source == "QE":
         Training.read_qe_md_files(data_file,e_unit,dist_unit,DataPointsPercentage=percentage_of_data,Calibration=["/home/afuchs/Documents/Calibration/Ni","/home/afuchs/Documents/Calibration/Au"])
@@ -109,14 +108,14 @@ for i in range(len(data_files)):
         model=os.path.join(model,"trained_variables.npy")
     Training.Dropout=[0,0,0]
     Training.RegularizationParam=0.01
-    Training.InitStddev=0.2
+    Training.InitStddev=0.1
     Training.LearningDecayEpochs=1000
     Training.CostCriterium=0
     Training.dE_Criterium=0.02
     Training.WeightType="truncated_normal"
     Training.BiasType="truncated_normal"
     Training.Epochs=epochs
-    Training.ForceCostParam=0.01
+    Training.ForceCostParam=0.001
     Training.MakePlots=plots
     Training.ActFun="elu"
     Training.CostFunType="Adaptive_2"
