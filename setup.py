@@ -44,7 +44,8 @@ setup(
         "NeuralNetworks.md_utils",
         "NeuralNetworks.md_utils.ode",
         "NeuralNetworks.md_utils.pset",
-        "NeuralNetworks.descriptors"
+        "NeuralNetworks.descriptors",
+        "NeuralNetworks.types"
     ],
     package_dir={
         "NeuralNetworks": "NeuralNetworks", 
@@ -53,7 +54,8 @@ setup(
         "NeuralNetworks.md_utils": "NeuralNetworks/md_utils",
         "NeuralNetworks.md_utils.ode": "NeuralNetworks/md_utils/ode",
         "NeuralNetworks.md_utils.pset": "NeuralNetworks/md_utils/pset",
-        "NeuralNetworks.descriptors": "NeuralNetworks/descriptors"
+        "NeuralNetworks.descriptors": "NeuralNetworks/descriptors",
+        "NeuralNetworks.types": "NeuralNetworks/types"
     },
     package_data={"NeuralNetworks.descriptors": ["libSymFunSet.so"]},
     include_package_data=True,
