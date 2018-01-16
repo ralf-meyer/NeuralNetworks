@@ -1,12 +1,17 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
-"""RadaReaders module
+"""DadaReaders module
 
 This module harbours classes used to parse the results of e.g. MD runs
 with quantum espresso, LAMMPS, etc. used to generate training data for
 the neural networks.
 
-Todo:
+Contains the following classes:
+    * QE_MD_Reader
+    * QE_SCF_Reader
+    * LammpsReader
+
+*Todo:
     * throw out unessessary functions or group them in super class for all
 
 Authors:
@@ -14,7 +19,7 @@ Authors:
     * Johannes Cartus, IEP/TU Graz, https://github.com/jcartus
 """
 import re as _re
-import os 
+import os
 from os import listdir
 from os.path import isfile, isdir, dirname, join
 from abc import ABCMeta, abstractmethod
@@ -22,27 +27,27 @@ import numpy as _np
 import matplotlib.pyplot as plt
 from progressbar import ProgressBar
 
-from warnings import warn 
+from warnings import warn
 
-class _AbstractReader(object): 
-    """This class is used to define a common interface for all 
-    "readers" to implement. 
- 
-    Attributes: 
-        E_conv_factor = conversion factor from unit energies should be 
-            interpreted in to eV. 
-        Geom_conv_factor = conversion factor from the unit the geometries 
-            should be read in and Angstrom. 
+class _AbstractReader(object):
+    """This class is used to define a common interface for all
+    "readers" to implement.
 
-        atom_types: the atomic species appearing in the measurement whose results 
-            are parsed. 
-        nr_atoms_per_type: the number of atoms occuring in the experiment listed 
-            for each type. 
- 
-        geometries: list of list of tuples, (atom species, atomic positions: xyz). 
-        forces: list of list of np array containing the forces fx,fy,fz. 
-        energies: list of lists of the energies (double). 
-    """ 
+    Attributes:
+        E_conv_factor = conversion factor from unit energies should be
+            interpreted in to eV.
+        Geom_conv_factor = conversion factor from the unit the geometries
+            should be read in and Angstrom.
+
+        atom_types: the atomic species appearing in the measurement whose results
+            are parsed.
+        nr_atoms_per_type: the number of atoms occuring in the experiment listed
+            for each type.
+
+        geometries: list of list of tuples, (atom species, atomic positions: xyz).
+        forces: list of list of np array containing the forces fx,fy,fz.
+        energies: list of lists of the energies (double).
+    """
 
     def __init__(self):
         self.E_conv_factor = None
@@ -60,19 +65,19 @@ class _AbstractReader(object):
     def read(self, *args, **kwargs):
         """Read data from files specified in args/kwargs"""
         raise NotImplementedError("Abstract method must be overridden!")
-    
+
     def read_folder(self, *args, **kwargs):
         """Read all data from result files in folder specified by args/kwargs"""
         raise NotImplementedError("Abstract method must be overridden!")
 
     def calibrate_energy():
-        """Shift zero point for energy, so differences in erengy come 
+        """Shift zero point for energy, so differences in erengy come
         closer to the absolute values of the energies.
-        This can e.g. mean that the zero point is set to the lowest energy, 
+        This can e.g. mean that the zero point is set to the lowest energy,
         which is what happens if energy_calibration attribute is not set...
         """
         raise NotImplementedError("Abstract method must be overridden!")
-    
+
 
 def get_nr_atoms_per_type(types,geometry):
     nr_atoms=_np.zeros((len(types))).astype(_np.int32)
@@ -93,7 +98,7 @@ def is_numeric(string):
     return out
 
 def read_atom_types(my_file):
-        
+
     types=[]
     searchstr='atomic species   valence    mass     pseudopotential'
     start_idx=my_file.index('\n',my_file.index(searchstr))+1
@@ -129,7 +134,7 @@ def read_ekin_temp_etot_force(my_file,E_conv_factor,Geom_conv_factor):
     e_kin=[]
     temperature=[]
 
-    # as qe plots forces Ry/au, to create the standard case (i.e. having 
+    # as qe plots forces Ry/au, to create the standard case (i.e. having
     # eV/angstrom) as force unit include this factor
     au=0.529177249 #Angstroem
     force_factor=E_conv_factor/au
@@ -138,7 +143,7 @@ def read_ekin_temp_etot_force(my_file,E_conv_factor,Geom_conv_factor):
     #Match start and end indices
     #Read total energy
     error_ct=0
-    
+
     print("Reding total energy:")
     bar_etot = ProgressBar()
     for i,idx in bar_etot(enumerate(ex_idx)):
@@ -152,16 +157,16 @@ def read_ekin_temp_etot_force(my_file,E_conv_factor,Geom_conv_factor):
                 print("Detected wrong value in file: total energy = "+str(part[tot_start_idx+1:tot_end_idx]))
             error_ct+=1
 
-    #Read forces 
+    #Read forces
     forces=[]
     f_i_clean=[]
     f_clean=[]
     error_ct=0
-    
 
-    
+
+
     print("Reading forces:")
-    bar_forces = ProgressBar()  
+    bar_forces = ProgressBar()
     for j,idx in bar_forces(enumerate(f1_idx)):
         #if j %int(len(f1_idx)/3)==0:
         #    print("..."+str(34+float(j)*100*0.33/len(f1_idx))+"%")
@@ -171,7 +176,7 @@ def read_ekin_temp_etot_force(my_file,E_conv_factor,Geom_conv_factor):
         part_f_idx=[j.start() for j in _re.finditer('force',part)]
         last_eq=0
         last_bs=0
-        
+
         for part_idx in part_f_idx:
             f_i_start,last_eq= search_idx(part_idx,part_eq_idx,last_eq)
             f_i_start+=1
@@ -182,7 +187,7 @@ def read_ekin_temp_etot_force(my_file,E_conv_factor,Geom_conv_factor):
                     f_i=part[f_i_start:f_i_end].split(' ')
                 else:
                     f_i=[""]
-                    
+
                 if 'Total' in f_i or f_i_end==None:
                     if len(f_i_clean)>0:
                         forces.append(f_clean)
@@ -195,19 +200,19 @@ def read_ekin_temp_etot_force(my_file,E_conv_factor,Geom_conv_factor):
                         if fi_temp!='':
                             f_i_clean.append(float(fi_temp)*force_factor)
                     f_clean.append(f_i_clean)
-                    
+
             except:
                 if error_ct==0:
                     print("Detected wrong value in file: forces = "+str(my_file[f_i_start:f_i_end]))
                 error_ct+=1
                 break
-                
+
     #Read kinetic energy and temperature
     error_ct=0
     print("Reading kinetic energy:")
     bar_kin_energy = ProgressBar()
     for i,idx in bar_kin_energy(enumerate(kin_idx)):
-        
+
 
         part=my_file[idx:const_idx[i]]
         part_eq_idx=[i.start() for i in _re.finditer('=', part)]
@@ -227,11 +232,11 @@ def read_ekin_temp_etot_force(my_file,E_conv_factor,Geom_conv_factor):
             if error_ct==0:
                 print("Detected wrong value in file: temperature = "+str(part[part_eq_idx[1]+1:part_k_idx]))
             error_ct+=1
-    
+
     return e_kin,temperature,e_tot,forces
 
 def read_geometries(my_file,Geom_conv_factor,atom_types,read_types):
-        
+
     #find scf accuracies in file
     pos_idx=[i.start() for i in  _re.finditer('ATOMIC_POSITIONS', my_file)]
     ket_idx=[i.start() for i in  _re.finditer("\)", my_file)]
@@ -247,7 +252,7 @@ def read_geometries(my_file,Geom_conv_factor,atom_types,read_types):
         start_idx.append(temp)
         temp,last_ket=search_idx(idx,temp_idx,last_temp)
         end_idx.append(temp)
-    
+
     all_geometries=[]
     pos=None
     pos3d=[]
@@ -280,11 +285,11 @@ def read_geometries(my_file,Geom_conv_factor,atom_types,read_types):
                             iterate+=1
                         else:
                             iterate=0
-                        
+
                     pos=(a_type,)
-                    
+
             all_geometries.append(geom)
-            
+
     return all_geometries
 
 def read_geometry_scf(my_file,Geom_conv_factor,atom_types=[],read_types=True):
@@ -299,7 +304,7 @@ def read_geometry_scf(my_file,Geom_conv_factor,atom_types=[],read_types=True):
     geom_start_idx=my_file.index("\n",a_idx[-2])
     geom_end_idx=my_file.index("number of k points")
     geom=my_file[geom_start_idx:geom_end_idx]
-    
+
     lines=geom.split('\n')
     sites=[]
     types=[]
@@ -315,7 +320,7 @@ def read_geometry_scf(my_file,Geom_conv_factor,atom_types=[],read_types=True):
         for i,part in enumerate(parts):
             if len(part)>0:
                 ct2+=1
-                
+
             if ct2==1 and part!='':
                 sites.append(part)
             elif ct2==2 and part!='':
@@ -327,7 +332,7 @@ def read_geometry_scf(my_file,Geom_conv_factor,atom_types=[],read_types=True):
                         iterate += 1
                     else:
                         iterate = 0
-                
+
             if "=" in part:
                 eq_i=i
             elif is_numeric(part) and i>eq_i:
@@ -350,8 +355,8 @@ def search_idx(idx,idx_dataset,last_idx):
     for i,x in enumerate(idx_dataset[last_idx:]):
         if x>idx:
             return x,i
-    
-    return None,None          
+
+    return None,None
 
 
 
@@ -612,9 +617,22 @@ def read_scf_accuracy(my_file,E_conv_factor):
 
 
 class QE_MD_Reader(object):
+    """This class fetches results from the output file from a
+    Quantum-Espresso molecular dynamic calculation.
+
+    Attributes:
+        geometries: list of list of tuples, (atom species, atomic positions: xyz)
+        forces: list of list of np array containig the forces fx,fy,fz
+        energies: list of the energies (double)
+
+        E_conv_factor = conversion factor from unit energies should be
+            interpreted in to eV.
+        Geom_conv_factor = conversion factor from the unit the goemetries
+            should be read in and Angstroem.
+    """
 
     def __init__(self):
-        
+
         self.atom_types=[]
         self.files=[]
         self.e_tot=[]
@@ -665,7 +683,7 @@ class QE_MD_Reader(object):
                     temp=open(os.path.join(dirpath, filename),"r").read()
                     self.files.append(temp)
         return 1
-    
+
     def read_all_files(self):
 
         read_types=True
@@ -691,8 +709,8 @@ class QE_MD_Reader(object):
             starting_geometry=read_geometry_scf(this,self.Geom_conv_factor,self.atom_types,read_types)
             self.geometries+=[starting_geometry]
             self.geometries+=read_geometries(
-                this, 
-                self.Geom_conv_factor, 
+                this,
+                self.Geom_conv_factor,
                 self.atom_types
             ,read_types)
 
@@ -721,15 +739,15 @@ class QE_MD_Reader(object):
                         reader.files=[temp]
                         reader.read_all_files()
                         e_cal+=reader.e_tot[-1]*NrAtoms*self.E_conv_factor
-        else: #Sets minimum as zero point 
+        else: #Sets minimum as zero point
             e_cal=min(self.e_pot)
 
         self.energies=_np.subtract(self.e_pot,e_cal)
-        
+
 class QE_SCF_Reader(object):
 
     def __init__(self):
-        
+
         self.files=[]
         self.total_energies=[]
         self.e_tot=[]
@@ -750,7 +768,7 @@ class QE_SCF_Reader(object):
         self.geometries=[]
         self.E_conv_factor=1
         self.Geom_conv_factor=1
-        
+
     def calibrate_energy(self):
         reader=QE_SCF_Reader()
         e_cal=0
@@ -765,14 +783,14 @@ class QE_SCF_Reader(object):
                         reader.files=[temp]
                         reader.read_all_files()
                         e_cal+=reader.total_energies[0][-1]*NrAtoms
-                        
+
         self.e_tot_rel=_np.subtract(self.e_tot,e_cal)
-        
+
     def get_converged_energies(self):
         for es in self.total_energies:
             self.e_tot.append(es[-1])
 
-        
+
     def get_files(self,folder):
         for dirpath, dirnames, filenames in os.walk(folder):
             for filename in [f for f in filenames if f.endswith(".out")]:
@@ -780,9 +798,9 @@ class QE_SCF_Reader(object):
                 if 'JOB DONE' in temp:
                     self.files.append(temp)
         return 1
-    
+
     def read_all_files(self):
-        
+
         temp_tot=[]
         temp_harris=[]
         temp_scf_a=[]
@@ -816,7 +834,7 @@ class QE_SCF_Reader(object):
             temp_one_center.append(read_one_center_paw_contrib(this,eq_idx,temp_idx,self.E_conv_factor))
             temp_smearing.append(read_smearing_contrib(this,eq_idx,temp_idx,self.E_conv_factor))
             temp_geoms.append(read_geometry_scf(this,self.Geom_conv_factor))
-            
+
         all_data=zip(temp_ecut,temp_tot,temp_harris,temp_scf_a,temp_cpu_t,\
                      temp_avg_t,temp_one_e,temp_hartree,temp_xc,temp_ewald,\
                      temp_one_center,temp_smearing,temp_geoms)
@@ -826,12 +844,12 @@ class QE_SCF_Reader(object):
         self.one_e_contrib,self.hartree_contrib,self.xc_contrib,\
         self.ewald_contrib,self.one_center_paw_contrib,\
         self.smearing_contrib,self.geometries= map(list,zip(*all_data))
-        self.nr_atoms_per_type=get_nr_atoms_per_type(self.atom_types,self.geometries[0])    
+        self.nr_atoms_per_type=get_nr_atoms_per_type(self.atom_types,self.geometries[0])
         QE_SCF_Reader.get_converged_energies(self)
-           
+
 class LammpsReader(object):
-    """This class fetches results from the dump/thermo/xyzfile from a 
-    LAMMPS calculation.  
+    """This class fetches results from the dump/thermo/xyzfile from a
+    LAMMPS calculation.
 
     Attributes:
         geometries: list of list of tuples, (atom species, atomic positions: xyz)
@@ -853,14 +871,14 @@ class LammpsReader(object):
         self.temperatures = []
         #internal cnoversion factors
         self.E_conv_factor = 1
-        self.Geom_conv_factor = 1 
+        self.Geom_conv_factor = 1
 
         # for internal handling of atom_types
-        self._species = [] 
+        self._species = []
 
         # to preset the detail for energy calibration
         self.energy_calibration = []
-        
+
     #--- getter/setter for atomic species ---
     @property
     def atom_types(self):
@@ -893,18 +911,18 @@ class LammpsReader(object):
         self._species = \
             [species for count_and_species in self._species for species in count_and_species ]
     #---
-    
+
     def read(self, dumpfile, thermofile, xyzfile=""):
         """Extracts data like atom types. geometries and forces from LAMPS
         result files (thermo file, custom dum and xyz-files).
         It will try to use the dump file first to find geometries and forces.
         If the dump if not found the geometries will be read from xyz-file.
-        The energy is currently read from xyz file. 
-        
+        The energy is currently read from xyz file.
+
         If unit conversion factors are set they will be applied automatically.
         Further on, atoms will be labeled automatically if atom types were set.
 
-        Args: 
+        Args:
             dumpfile: path to a custom dump file in the following format:
                 TODO: specify format of dump file here.
             thermofile: path to the .log file output by LAMPS.
@@ -926,7 +944,7 @@ class LammpsReader(object):
                     self._read_geometries_from_xyz(xyzfile)
                 else:
                     warn(
-                        "XYZ file not found at {0}.\n".format(xyzfile), 
+                        "XYZ file not found at {0}.\n".format(xyzfile),
                         RuntimeWarning
                     )
 
@@ -935,7 +953,7 @@ class LammpsReader(object):
             self._read_energies_from_thermofile(thermofile)
             self._read_temperature_from_thermofile(thermofile)
         else:
-            warn("Invalid file path: {0} is not a file!".format(thermofile), RuntimeWarning)                 
+            warn("Invalid file path: {0} is not a file!".format(thermofile), RuntimeWarning)
 
     def read_folder(self, folder):
         """Find all LAMMPS results files in a folder and read from them."""
@@ -966,7 +984,7 @@ class LammpsReader(object):
                 warn(
                     msg.format(
                         len(dump_files), ".dump", dump_files[0]
-                    ), 
+                    ),
                     RuntimeWarning
                 )
             self._read_from_dump(dump_files[0])
@@ -988,7 +1006,7 @@ class LammpsReader(object):
             self._read_temperature_from_thermofile(thermo_files[0])
             self._read_energies_from_thermofile(thermo_files[0])
 
-            
+
             # drop first energy if xyz was used as xyz does not log 0th step.
             if len(dump_files) == 0:
                 if len(self.energies) > 0:
@@ -1000,7 +1018,7 @@ class LammpsReader(object):
         """reads species, geometries and forces from dump file.
         If species are not set yet (i.e. if self.species is empty) the atom names
         are recovered from the file too.
-        
+
         Args:
             dumpfile: path to file
         """
@@ -1010,18 +1028,18 @@ class LammpsReader(object):
 
         try:
             with open(dumpfile) as f_dump:
-                
+
                 file_contents = f_dump.read()
 
                 #--- find start and end positions of lines of interest ---
                 searchstring_start = "ITEM: ATOMS element x y z fx fy fz"
                 searchstring_end = "ITEM: TIMESTEP"
-            
+
                 start_index = [i.start() for i in _re.finditer(
-                    searchstring_start, 
+                    searchstring_start,
                     file_contents)]
                 end_index = [i.start() - 1 for i in _re.finditer(
-                    searchstring_end, 
+                    searchstring_end,
                     file_contents)]
                 end_index.pop(0)
 
@@ -1040,7 +1058,7 @@ class LammpsReader(object):
 
                 # loop over time steps
                 for i in bar(range(min([len(start_index), len(end_index)]))):
-        
+
                    # remove trailing EOL marker to avoid empty line at the end
                     section = \
                         file_contents[start_index[i]:end_index[i]].rstrip("\n")
@@ -1061,10 +1079,10 @@ class LammpsReader(object):
                         # log species if not known yet
                         if species_unknown:
                             self._species.append(line_splits[0])
-                        
+
                         #--- parse + log positions/forces, do unit conversion---
                         geometries_current_step.append(
-                            (self._species[line_index], 
+                            (self._species[line_index],
                             _np.array(map(float, line_splits[1:4])) \
                             * self.Geom_conv_factor
                             )
@@ -1083,7 +1101,7 @@ class LammpsReader(object):
                     # toggle flag is information on species was acquired
                     if species_unknown:
                         species_unknown = False
-                        
+
         except IOError as e:
             print("File could not be read! {0}".format(e.errno))
         except Exception as e:
@@ -1092,7 +1110,7 @@ class LammpsReader(object):
             print(msg)
 
     def _read_geometries_from_xyz(self, xyzfile):
-        
+
         # check if species already set
         species_unknown = len(self._species) == 0
         number_of_atoms_total = None if species_unknown else len(self._species)
@@ -1108,22 +1126,22 @@ class LammpsReader(object):
                     if number_of_atoms_total is None:
                         number_of_atoms_total = int(line)
 
-                    if counter == -1: 
+                    if counter == -1:
                         # New geometry, read number of atoms and skip the comment
-                    
+
                         geo = []
                         counter = 0
 
                         next(f_xyz)
                         continue
 
-                    else: 
+                    else:
                         # read geometries
                         sp = line.split()
 
                         if species_unknown:
                             self._species.append(sp[0])
-                        
+
                         geo.append(
                             (self._species[counter],
                             _np.array(map(float, sp[1:4])) \
@@ -1140,19 +1158,19 @@ class LammpsReader(object):
                             # toggle flag to look for species
                             if species_unknown:
                                 species_unknown = False
-    
+
         except Exception as e:
             print("Error reading xyz file: {0}".format(e.message))
-        
+
     def _read_energies_from_thermofile(self, thermofile):
         try:
             with open(thermofile, "r") as f_thermo:
                 switch = False
 
-                
+
                 print("Reading thermo file ...")
 
-                # this flag will store if the iterator is already 
+                # this flag will store if the iterator is already
                 # past the line containing "Setting up xxx run"
                 reached_run_results = False
                 pattern_run_start = \
@@ -1265,7 +1283,7 @@ class SimpleInputReader(object):
 
     'Species    X    Y   Z EOL',
 
-    with species the Chemical symbol for the type of the atom and X,Y and Z 
+    with species the Chemical symbol for the type of the atom and X,Y and Z
     being cartesian coordinates. EOL is the end of line marker.
     It will be mainly used to import starting conditions for MD runs.
 
@@ -1273,7 +1291,7 @@ class SimpleInputReader(object):
         geometry: just as the other data readers after reading the input
         the resulting geometry can be accessed through this attribute. It
         will be a list of lists of tuples of the following form:
-        
+
             ('Species', np.array([]))
     """
 
@@ -1283,8 +1301,8 @@ class SimpleInputReader(object):
 
     def read(self, fpath,skip=0):
         """Reads the contents of an input file line per line and appends
-        the read values to geometry attribute. 
-        
+        the read values to geometry attribute.
+
         Args:
             fpath: the path to the finput file.
         Raises:
@@ -1294,7 +1312,7 @@ class SimpleInputReader(object):
         geometry=[]
         if not (fpath and isfile(fpath)):
             raise ValueError("Input file {0} could not be found!", format(fpath))
-        
+
         try:
             with open(fpath, 'r') as f:
                 counter = 0
@@ -1316,4 +1334,3 @@ class SimpleInputReader(object):
 
     def clear(self):
         self.geometries = []
-
