@@ -1,6 +1,6 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
-"""DadaReaders module
+"""DataReaders module
 
 This module harbours classes used to parse the results of e.g. MD runs
 with quantum espresso, LAMMPS, etc. used to generate training data for

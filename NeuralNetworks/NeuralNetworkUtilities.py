@@ -95,7 +95,7 @@ def _initialize_cost_plot(TrainingData, ValidationData=[]):
         fig.legend(handles=[TrainingCostPlot,ValidationCostPlot,RunningMeanPlot],labels=["Training cost","Validation cost","Running avg"],loc=1)
     else:
         fig.legend(handles=[TrainingCostPlot,RunningMeanPlot],labels=["Training cost","Running avg"],loc=1)
-        
+
     # We need to draw *and* flush
     fig.canvas.draw()
     fig.canvas.flush_events()
@@ -152,7 +152,7 @@ def _initialize_weights_plot(sparse_weights, n_gs):
 
 
 def _update_weights_plot(fig, weights_plot, sparse_weights):
-    """Updates the plot of the absolute value of the weights
+    """Updates the plot of the absolute value of the weights.
     Can be used to identify redundant symmetry functions
     Returns the figure and the plot"""
 
@@ -165,7 +165,7 @@ def _update_weights_plot(fig, weights_plot, sparse_weights):
 
 
 def cartesian_to_spherical(xyz):
-    """Converts cartesion to spherical coordinates
+    """Converts cartesian to spherical coordinates
     Returns the spherical coordinates"""
 
     spherical = _np.zeros_like(xyz)
@@ -193,7 +193,7 @@ def _get_learning_rate(StartLearningRate, LearningRateType,
     elif LearningRateType == "inverse_time_decay":
         global_step = _tf.Variable(0, trainable=False)
         return global_step, _tf.train.inverse_time_decay(
-            StartLearningRate, global_step, decay_steps, decay_rate=0.96, 
+            StartLearningRate, global_step, decay_steps, decay_rate=0.96,
             staircase=False)
     elif LearningRateType == "piecewise_constant":
         global_step = _tf.Variable(0, trainable=False)
@@ -202,12 +202,12 @@ def _get_learning_rate(StartLearningRate, LearningRateType,
     elif LearningRateType == "polynomial_decay_p1":
         global_step = _tf.Variable(0, trainable=False)
         return global_step, _tf.train.polynomial_decay(
-            StartLearningRate, global_step, decay_steps, 
+            StartLearningRate, global_step, decay_steps,
             end_learning_rate=0.00001, power=1.0, cycle=False)
     elif LearningRateType == "polynomial_decay_p2":
         global_step = _tf.Variable(0, trainable=False)
         return global_step, _tf.train.polynomial_decay(
-            StartLearningRate, global_step, decay_steps, 
+            StartLearningRate, global_step, decay_steps,
             end_learning_rate=0.00001, power=2.0, cycle=False)
 
 
