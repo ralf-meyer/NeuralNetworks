@@ -51,6 +51,26 @@ double TanhCutoffFunction::derivative(double r)
     else return 0.0;
 };
 
+double PolynomialCutoffFunction::eval(double r)
+{
+    if (r <= cutoff)
+    {
+      return 1 - 5.5 * pow(r/cutoff, 3) + 6.0 * pow(r/cutoff, 4) -
+        1.5 * pow(r/cutoff, 5);
+    }
+    else return 0.0;
+};
+
+double PolynomialCutoffFunction::derivative(double r)
+{
+  if (r <= cutoff)
+  {
+    return - 16.5 * pow(r/cutoff, 2) + 24.0 * pow(r/cutoff, 3) -
+      7.5 * pow(r/cutoff, 5);
+  }
+  else return 0.0;
+};
+
 double ShortRangeCutoffFunction::eval(double r)
 {
     return 1.0 / (1.0 + exp(10.0*(r-cutoff)));

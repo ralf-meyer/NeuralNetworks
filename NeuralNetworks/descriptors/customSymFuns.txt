@@ -2,6 +2,7 @@
 ! TwoBodySymmetryFunctions
 !
 
+TwoBodySymFun BehlerG1 1 exp(-prm0*(rij)**2)*fcut(rij)
 TwoBodySymFun BehlerG2 2 exp(-prm0*(rij-prm1)**2)*fcut(rij)
 TwoBodySymFun OneOverR6 0 1/rij**6*fcut(rij)
 TwoBodySymFun OneOverR8 0 1/rij**8*fcut(rij)

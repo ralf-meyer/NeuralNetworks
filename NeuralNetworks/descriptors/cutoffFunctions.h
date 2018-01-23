@@ -34,6 +34,14 @@ public:
   double derivative(double r);
 };
 
+class PolynomialCutoffFunction: public CutoffFunction
+{
+public:
+  PolynomialCutoffFunction(double cutoff_i):CutoffFunction(cutoff_i){};
+  double eval(double r);
+  double derivative(double r);
+};
+
 class ShortRangeCutoffFunction: public CutoffFunction
 {
 public:

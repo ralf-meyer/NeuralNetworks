@@ -33,6 +33,17 @@ class TwoBodySymmetryFunction: public SymmetryFunction
 
 // AUTOMATIC Start of custom TwoBodySymFuns
 
+class BehlerG1: public TwoBodySymmetryFunction
+{
+    public:
+        BehlerG1(int num_prms, double* prms_i,
+          std::shared_ptr<CutoffFunction> cutfun_i):
+          TwoBodySymmetryFunction(num_prms, prms_i, cutfun_i){};
+        double eval(double rij);
+        double drij(double rij);
+        void eval_with_derivatives(double rij, double &G, double &dGdrij);
+};
+
 class BehlerG2: public TwoBodySymmetryFunction
 {
     public:
