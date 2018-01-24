@@ -55,8 +55,8 @@ double PolynomialCutoffFunction::eval(double r)
 {
     if (r <= cutoff)
     {
-      return 1 - 5.5 * pow(r/cutoff, 3) + 6.0 * pow(r/cutoff, 4) -
-        1.5 * pow(r/cutoff, 5);
+      return 1 - 10.0 * pow(r/cutoff, 3) + 15.0 * pow(r/cutoff, 4) -
+        6.0 * pow(r/cutoff, 5);
     }
     else return 0.0;
 };
@@ -65,8 +65,8 @@ double PolynomialCutoffFunction::derivative(double r)
 {
   if (r <= cutoff)
   {
-    return -16.5 * pow(r/cutoff, 2) + 24.0 * pow(r/cutoff, 3) -
-      7.5 * pow(r/cutoff, 4);
+    return -30.0 * pow(r/cutoff, 2) + 60.0 * pow(r/cutoff, 3) -
+      30.0 * pow(r/cutoff, 4);
   }
   else return 0.0;
 };
