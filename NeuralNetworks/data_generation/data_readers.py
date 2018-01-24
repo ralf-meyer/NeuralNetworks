@@ -144,7 +144,7 @@ def read_ekin_temp_etot_force(my_file,E_conv_factor,Geom_conv_factor):
     #Read total energy
     error_ct=0
 
-    print("Reding total energy:")
+    print("Reading total energy:")
     bar_etot = ProgressBar()
     for i,idx in bar_etot(enumerate(ex_idx)):
         part=my_file[idx:f1_idx[i]]
