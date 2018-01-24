@@ -298,7 +298,7 @@ def read_geometry_scf(my_file,Geom_conv_factor,atom_types=[],read_types=True):
 
     a_idx_start=my_file.index("=",a_idx[0])+1
     a_idx_end=my_file.index("a",a_idx_start)
-    a=float(my_file[a_idx_start:a_idx_end])/2
+    a=float(my_file[a_idx_start:a_idx_end])*0.529177249
 
     #get postitions
     geom_start_idx=my_file.index("\n",a_idx[-2])
