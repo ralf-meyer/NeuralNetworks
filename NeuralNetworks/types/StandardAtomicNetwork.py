@@ -324,7 +324,7 @@ class _StandardAtomicNetwork(_AtomicNetwork):
 
         self.AtomicNNs = AtomicNNs
 
-    def make_atomic_networks(self, NetInstance):
+    def make_atomic_networks(self, NetInstance,VariablesData=None):
         """Creates the specified network."""
         AllHiddenLayers = []
         AtomicNNs = []
@@ -342,105 +342,109 @@ class _StandardAtomicNetwork(_AtomicNetwork):
 
         # create layers for the different atom types
         for i in range(0, len(NetInstance.Structures)):
-
-            # Make hidden layers
-            HiddenLayers = []
             Structure = NetInstance.Structures[i]
-            if NetInstance._WeightData != None: #if a net was loaded
-                RawBias = NetInstance._BiasData[i]
-                for j in range(1, len(Structure)):
-                    NrIn = Structure[j - 1]
-                    NrHidden = Structure[j]
+            if VariablesData == None:
+                # Make hidden layers
+                HiddenLayers = []
 
-                    if j == len(Structure) - \
-                            1 and NetInstance.MakeLastLayerConstant: #if last layer has to be set constant
-                                                                     #(pretraining)
-                        HiddenLayers.append(self._construct_not_trainable_layer(
-                            NrIn, NrHidden, NetInstance._MinOfOut))
-                    else:
-                        if j >= len(NetInstance._WeightData[i])\
-                                and NetInstance.MakeLastLayerConstant:#if new layers which are not part of the
-                                                                      # loaded model, pass through values
-                            tempWeights, tempBias = self._construct_hidden_layer(NrIn, NrHidden, NetInstance.WeightType,
-                                                                            [], NetInstance.BiasType, [],
-                                                                            True, Mean=NetInstance.InitMean,
-                                                                            Stddev=NetInstance.InitStddev)
+                if NetInstance._WeightData != None: #if a net was loaded
+                    RawBias = NetInstance._BiasData[i]
+                    for j in range(1, len(Structure)):
+                        NrIn = Structure[j - 1]
+                        NrHidden = Structure[j]
 
-                            tempWeights=self._construct_pass_through_weights(tempWeights,OldBiasNr)
-
-                            HiddenLayers.append([tempWeights, tempBias])
+                        if j == len(Structure) - \
+                                1 and NetInstance.MakeLastLayerConstant: #if last layer has to be set constant
+                                                                         #(pretraining)
+                            HiddenLayers.append(self._construct_not_trainable_layer(
+                                NrIn, NrHidden, NetInstance._MinOfOut))
                         else:
-                            if j <= len(RawBias): #if there is old net data available fill in the weight data
-                                OldBiasNr = len(
-                                    NetInstance._BiasData[i][j - 1])
-                                OldShape = NetInstance._WeightData[i][j - 1].shape
-                                # fill old weights in new structure
-                                if OldBiasNr < NrHidden:
-                                    ThisWeightData = _np.random.normal(
-                                        loc=0.0, scale=0.01, size=(NrIn, NrHidden))
-                                    ThisWeightData[0:OldShape[0], 0:OldShape[1]
-                                                   ] = NetInstance._WeightData[i][j - 1]
-                                    ThisBiasData = _np.zeros([NrHidden])
-                                    ThisBiasData[0:OldBiasNr] = NetInstance._BiasData[i][j - 1]
-                                elif OldBiasNr > NrHidden:
-                                    ThisWeightData = _np.zeros(
-                                        (NrIn, NrHidden))
-                                    ThisWeightData[0:,
-                                                   0:] = NetInstance._WeightData[i][j - 1][0:NrIn,
-                                                                                           0:NrHidden]
-                                    ThisBiasData = _np.zeros([NrHidden])
-                                    ThisBiasData[0:OldBiasNr] = NetInstance._BiasData[i][j -
-                                                                                         1][0:NrIn, 0:NrHidden]
-                                else:
-                                    ThisWeightData = NetInstance._WeightData[i][j - 1]
-                                    ThisBiasData = NetInstance._BiasData[i][j - 1]
+                            if j >= len(NetInstance._WeightData[i])\
+                                    and NetInstance.MakeLastLayerConstant:#if new layers which are not part of the
+                                                                          # loaded model, pass through values
+                                tempWeights, tempBias = self._construct_hidden_layer(NrIn, NrHidden, NetInstance.WeightType,
+                                                                                [], NetInstance.BiasType, [],
+                                                                                True, Mean=NetInstance.InitMean,
+                                                                                Stddev=NetInstance.InitStddev)
+
+                                tempWeights=self._construct_pass_through_weights(tempWeights,OldBiasNr)
+
+                                HiddenLayers.append([tempWeights, tempBias])
+                            else:
+                                if j <= len(RawBias): #if there is old net data available fill in the weight data
+                                    OldBiasNr = len(
+                                        NetInstance._BiasData[i][j - 1])
+                                    OldShape = NetInstance._WeightData[i][j - 1].shape
+                                    # fill old weights in new structure
+                                    if OldBiasNr < NrHidden:
+                                        ThisWeightData = _np.random.normal(
+                                            loc=0.0, scale=0.01, size=(NrIn, NrHidden))
+                                        ThisWeightData[0:OldShape[0], 0:OldShape[1]
+                                                       ] = NetInstance._WeightData[i][j - 1]
+                                        ThisBiasData = _np.zeros([NrHidden])
+                                        ThisBiasData[0:OldBiasNr] = NetInstance._BiasData[i][j - 1]
+                                    elif OldBiasNr > NrHidden:
+                                        ThisWeightData = _np.zeros(
+                                            (NrIn, NrHidden))
+                                        ThisWeightData[0:,
+                                                       0:] = NetInstance._WeightData[i][j - 1][0:NrIn,
+                                                                                               0:NrHidden]
+                                        ThisBiasData = _np.zeros([NrHidden])
+                                        ThisBiasData[0:OldBiasNr] = NetInstance._BiasData[i][j -
+                                                                                             1][0:NrIn, 0:NrHidden]
+                                    else:
+                                        ThisWeightData = NetInstance._WeightData[i][j - 1]
+                                        ThisBiasData = NetInstance._BiasData[i][j - 1]
 
 
-                                HiddenLayers.append(
-                                    self._construct_hidden_layer(
-                                        NrIn,
-                                        NrHidden,
-                                        NetInstance.WeightType,
-                                        ThisWeightData,
-                                        NetInstance.BiasType,
-                                        ThisBiasData,
-                                        NetInstance.MakeAllVariable,
-                                        Stddev=NetInstance.InitStddev,
-                                        Mean=NetInstance.InitMean))
-                            else:#if the new net is deeper then the loaded one add a trainable layer
-                                HiddenLayers.append(
-                                    self._construct_hidden_layer(
-                                        NrIn,
-                                        NrHidden,
-                                        NetInstance.WeightType,
-                                        [],
-                                        NetInstance.BiasType,
-                                        MakeAllVariable=True,
-                                        Stddev=NetInstance.InitStddev,
-                                        Mean=NetInstance.InitMean))
+                                    HiddenLayers.append(
+                                        self._construct_hidden_layer(
+                                            NrIn,
+                                            NrHidden,
+                                            NetInstance.WeightType,
+                                            ThisWeightData,
+                                            NetInstance.BiasType,
+                                            ThisBiasData,
+                                            NetInstance.MakeAllVariable,
+                                            Stddev=NetInstance.InitStddev,
+                                            Mean=NetInstance.InitMean))
+                                else:#if the new net is deeper then the loaded one add a trainable layer
+                                    HiddenLayers.append(
+                                        self._construct_hidden_layer(
+                                            NrIn,
+                                            NrHidden,
+                                            NetInstance.WeightType,
+                                            [],
+                                            NetInstance.BiasType,
+                                            MakeAllVariable=True,
+                                            Stddev=NetInstance.InitStddev,
+                                            Mean=NetInstance.InitMean))
 
-            else:#if no net was loaded
-                for j in range(1, len(Structure)):
-                    NrIn = Structure[j - 1]
-                    NrHidden = Structure[j]
-                    if j == len(Structure) - \
-                            1 and NetInstance.MakeLastLayerConstant:
-                        HiddenLayers.append(self._construct_not_trainable_layer(
-                            NrIn, NrHidden, NetInstance._MinOfOut))
-                    else:
-                        HiddenLayers.append(
-                            self._construct_hidden_layer(
-                                NrIn,
-                                NrHidden,
-                                NetInstance.WeightType,
-                                [],
-                                NetInstance.BiasType,
-                                MakeAllVariable=NetInstance.MakeAllVariable,
-                                Stddev=NetInstance.InitStddev,
-                                Mean=NetInstance.InitMean
-                            ))
+                else:#if no net was loaded
+                    for j in range(1, len(Structure)):
+                        NrIn = Structure[j - 1]
+                        NrHidden = Structure[j]
+                        if j == len(Structure) - \
+                                1 and NetInstance.MakeLastLayerConstant:
+                            HiddenLayers.append(self._construct_not_trainable_layer(
+                                NrIn, NrHidden, NetInstance._MinOfOut))
+                        else:
+                            HiddenLayers.append(
+                                self._construct_hidden_layer(
+                                    NrIn,
+                                    NrHidden,
+                                    NetInstance.WeightType,
+                                    [],
+                                    NetInstance.BiasType,
+                                    MakeAllVariable=NetInstance.MakeAllVariable,
+                                    Stddev=NetInstance.InitStddev,
+                                    Mean=NetInstance.InitMean
+                                ))
 
-            AllHiddenLayers.append(HiddenLayers)
+                AllHiddenLayers.append(HiddenLayers)
+            else:
+                HiddenLayers=VariablesData[i]
+                AllHiddenLayers.append(HiddenLayers)
             # create network for each atom
             for k in range(0, NetInstance.NumberOfAtomsPerType[i]):
                 # Make input layer

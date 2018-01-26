@@ -307,6 +307,39 @@ def parse_qchem_geometries(in_geoms):
 
     return out_geoms
 
+def _train_step(Session,Optimizer,CostFun, Layers, Data):
+    """Does ones training step(one batch).
+    Returns:
+        Cost(float):The training cost for the step."""
+    # Train the network for one step
+    _, Cost = Session.run([Optimizer, CostFun],
+            feed_dict={i: d for i, d in zip(Layers, Data)})
+
+    return Cost
+
+def _validate_step(Session,CostFun, Layers, Data):
+    """Calculates the validation cost for this training step,
+    without optimizing the net.
+
+    Returns:
+        Cost (float): The cost for the data"""
+    # Evaluate cost function without changing the network
+    Cost = Session.run(
+        CostFun, feed_dict={
+            i: d for i, d in zip(
+                Layers, Data)})
+
+    return Cost
+
+def eval_tensor(Session,Tensor,Layers,Data):
+    if len(Layers) == 1:
+        return Session.run(Tensor, feed_dict={Layers[0]: Data})
+    else:
+        return Session.run(
+            Tensor, feed_dict={
+                i: d for i, d in zip(
+                Layers, Data)})
+
 
 class AtomicNeuralNetInstance(object):
     """This class implements all the properties and methods for training and
@@ -427,47 +460,48 @@ class AtomicNeuralNetInstance(object):
         self.PESCheck=None
         self.TextOutput=True
 
-    def get_optimizer(self, CostFun):
+    def get_optimizer(self, CostFun,LearningRateFun):
 
         # Set optimizer
-        Optimizer = _tf.train.GradientDescentOptimizer(self.LearningRateFun)
+        Optimizer = _tf.train.GradientDescentOptimizer(LearningRateFun)
         if self.OptimizerType == "GradientDescent":
             Optimizer = _tf.train.GradientDescentOptimizer(
-                self.LearningRateFun)
+                LearningRateFun)
         elif self.OptimizerType == "Adagrad":
-            self._Optimizer = _tf.train.AdagradOptimizer(self.LearningRateFun)
+            self._Optimizer = _tf.train.AdagradOptimizer(LearningRateFun)
         elif self.OptimizerType == "Adadelta":
-            Optimizer = _tf.train.AdadeltaOptimizer(self.LearningRateFun)
+            Optimizer = _tf.train.AdadeltaOptimizer(LearningRateFun)
         elif self.OptimizerType == "AdagradDA":
             Optimizer = _tf.train.AdagradDAOptimizer(
-                self.LearningRateFun, self.OptimizerProp)
+                LearningRateFun, self.OptimizerProp)
         elif self.OptimizerType == "Momentum":
             Optimizer = _tf.train.MomentumOptimizer(
-                self.LearningRateFun, self.OptimizerProp)
+                LearningRateFun, self.OptimizerProp)
         elif self.OptimizerType == "Adam":
             Optimizer = _tf.train.AdamOptimizer(
-                self.LearningRateFun, beta1=0.9, beta2=0.999, epsilon=1e-08)
+                LearningRateFun, beta1=0.9, beta2=0.999, epsilon=1e-08,use_locking=False)
         elif self.OptimizerType == "Ftrl":
-            Optimizer = _tf.train.FtrlOptimizer(self.LearningRateFun)
+            Optimizer = _tf.train.FtrlOptimizer(LearningRateFun)
         elif self.OptimizerType == "ProximalGradientDescent":
             Optimizer = _tf.train.ProximalGradientDescentOptimizer(
-                self.LearningRateFun)
+                LearningRateFun)
         elif self.OptimizerType == "ProximalAdagrad":
             Optimizer = _tf.train.ProximalAdagradOptimizer(
-                self.LearningRateFun)
+                LearningRateFun)
         elif self.OptimizerType == "RMSProp":
-            Optimizer = _tf.train.RMSPropOptimizer(self.LearningRateFun)
+            Optimizer = _tf.train.RMSPropOptimizer(LearningRateFun)
         else:
             Optimizer = _tf.train.GradientDescentOptimizer(
-                self.LearningRateFun)
+                LearningRateFun)
 
         # clipped minimization
-        gvs = Optimizer.compute_gradients(self.CostFun)
+        gvs = Optimizer.compute_gradients(CostFun)
+
         capped_gvs = [(_tf.clip_by_value(_tf.where(_tf.is_finite(grad), grad,
                                                    _tf.zeros_like(grad)),
                         -self.ClippingValue, self.ClippingValue), var)
                         for grad, var in gvs]
-        Optimizer = Optimizer.apply_gradients(
+        Optimizer =  Optimizer.apply_gradients(
             capped_gvs, global_step=self.GlobalStep)
 
         return Optimizer
@@ -487,20 +521,21 @@ class AtomicNeuralNetInstance(object):
             # Cost function for whole net
             self.CostFun = self._atomic_cost_function()
             # if self.IsPartitioned==True:
+            if self.Multiple == False:
+                decay_steps = len(self.TrainingBatches) * self.LearningDecayEpochs
+                self.GlobalStep, self.LearningRateFun = _get_learning_rate(
+                    self.LearningRate, self.LearningRateType, decay_steps,
+                    self.LearningRateBounds, self.LearningRateValues)
 
-            decay_steps = len(self.TrainingBatches) * self.LearningDecayEpochs
-            self.GlobalStep, self.LearningRateFun = _get_learning_rate(
-                self.LearningRate, self.LearningRateType, decay_steps,
-                self.LearningRateBounds, self.LearningRateValues)
-
-            # Set optimizer
-            self._Optimizer = self.get_optimizer(self.CostFun)
+                # Set optimizer
+                self._Optimizer = self.get_optimizer(self.CostFun,self.LearningRateFun)
         except BaseException:
            if self.TextOutput:
                print("Evaluation only no training\
                  supported if all networks are constant!")
             # Initialize session
-        self._Session.run(_tf.global_variables_initializer())
+        if self.Multiple==False:
+            self._Session.run(_tf.global_variables_initializer())
 
     def load_model(self, ModelName="save/trained_variables",load_statistics=True):
         """Loads the model in the specified folder.
@@ -616,13 +651,8 @@ class AtomicNeuralNetInstance(object):
         """Evaluate model for given input data
         Returns:
             The output of the given tensor"""
-        if len(Layers) == 1:
-            return self._Session.run(Tensor, feed_dict={Layers[0]: Data})
-        else:
-            return self._Session.run(
-                Tensor, feed_dict={
-                    i: d for i, d in zip(
-                        Layers, Data)})
+        return eval_tensor(self._Session,Tensor,Layers,Data)
+
 
     def calc_dE(self, Layers, Data):
         """Returns:
@@ -630,29 +660,6 @@ class AtomicNeuralNetInstance(object):
         return _np.nan_to_num(
             _np.mean(self.evaluate(self._dE_Fun, Layers, Data)))
 
-    def _train_step(self, Layers, Data):
-        """Does ones training step(one batch).
-        Returns:
-            Cost(float):The training cost for the step."""
-        # Train the network for one step
-        _, Cost = self._Session.run([self._Optimizer, self.CostFun],
-                feed_dict={i: d for i, d in zip(Layers, Data)})
-
-        return Cost
-
-    def _validate_step(self, Layers, Data):
-        """Calculates the validation cost for this training step,
-        without optimizing the net.
-
-        Returns:
-            Cost (float): The cost for the data"""
-        # Evaluate cost function without changing the network
-        Cost = self._Session.run(
-            self.CostFun, feed_dict={
-                i: d for i, d in zip(
-                    Layers, Data)})
-
-        return Cost
 
     def _train_atomic_network_batch(
             self, Layers, TrainingData, ValidationData):
@@ -665,11 +672,11 @@ class AtomicNeuralNetInstance(object):
         TrainingCost = 0
         ValidationCost = 0
         # train batch
-        TrainingCost = self._train_step(Layers, TrainingData)
+        TrainingCost = self._train_step(self.Session,self._Optimizer,self.CostFun,Layers, TrainingData)
 
         # check validation dataset error
         if ValidationData is not None:
-            ValidationCost = self._validate_step(Layers, ValidationData)
+            ValidationCost = self._validate_step(self.Session,self.CostFun,Layers, ValidationData)
 
         return TrainingCost, ValidationCost
 
@@ -734,7 +741,7 @@ class AtomicNeuralNetInstance(object):
 
         return TrainCost, ValidationCost
 
-    def make_network(self):
+    def make_network(self,VariablesData=None):
         """Creates the specified network"""
 
         Execute = True
@@ -759,12 +766,12 @@ class AtomicNeuralNetInstance(object):
                 else:
                     self._Net = _PartitionedAtomicNetwork()
 
-        self._Net.make_atomic_networks(self)
+        self._Net.make_atomic_networks(self,VariablesData=VariablesData)
 
-    def make_and_initialize_network(self):
+    def make_and_initialize_network(self,VariablesData=None):
         """Creates and initializes the specified network"""
 
-        self.make_network()
+        self.make_network(VariablesData=VariablesData)
         self.initialize_network()
 
 
@@ -1012,15 +1019,19 @@ class AtomicNeuralNetInstance(object):
             Execute = False
 
         if Execute:
-            if not self.Multiple:
-                print("Started batch training...")
             NrOfTrainingBatches = len(self.TrainingBatches)
             if self.ValidationBatches:
                 NrOfValidationBatches = len(self.ValidationBatches)
 
+            if not self.Multiple:
+                print("Started batch training...")
+                NrOfBatches=NrOfTrainingBatches
+            else:
+                NrOfBatches=1
+
             for i in range(0, self.Epochs):
                 self._CurrentEpochNr = i
-                for j in range(0, NrOfTrainingBatches):
+                for j in range(0, NrOfBatches):
 
                     tempTrainingCost = []
                     tempValidationCost = []
@@ -1089,6 +1100,9 @@ class AtomicNeuralNetInstance(object):
                             self._ForceFieldValidationDerivatives)
                     else:
                         ValidationData = None
+                    # for multi training just return prepared data without performing the training step
+                    if self.Multiple:
+                        return Layers,TrainingData,ValidationData
 
                     # Train one batch
                     TrainingCosts, ValidationCosts = self._train_atomic_network_batch(
@@ -1840,8 +1854,8 @@ class AtomicNeuralNetInstance(object):
 
         self._TotalEnergy, AllEnergies = self._Net.energy_of_all_atomic_networks()
 
-        self._EnergyCost = self.cost_for_network(
-            self._TotalEnergy, self._OutputLayer, self.CostFunType)
+        self._EnergyCost = _tf.divide(self.cost_for_network(
+            self._TotalEnergy, self._OutputLayer, self.CostFunType),sum(self.NumberOfAtomsPerType))
         Cost = self._EnergyCost
 
         # add force cost
@@ -1850,8 +1864,8 @@ class AtomicNeuralNetInstance(object):
                 self)
             self._ForceCost = self.ForceCostParam* _tf.divide(
                 self.cost_for_network(
-                    self._OutputForce, self._OutputLayerForce, self.CostFunType), sum(
-                    self.NumberOfAtomsPerType))
+                    self._OutputForce, self._OutputLayerForce, self.CostFunType),
+                sum(self.NumberOfAtomsPerType))
             Cost += self._ForceCost
 
         trainableVars = _tf.trainable_variables()
@@ -1979,11 +1993,14 @@ class MultipleInstanceTraining(object):
 
     def __init__(self):
         # Training variables
-        self.TrainingInstances = list()
+        self.TrainingInstances = []
+        self.GlobalStructures = []
         self.EpochsPerCycle = 1
         self.GlobalEpochs = 100
-        self.GlobalStructures = list()
         self.GlobalLearningRate = 0.001
+        self.GlobalLearningRateType="exponential_decay"
+        self.GlobalLearningRateBounds=[]
+        self.GlobalLearningRateValues = []
         self.GlobalCostCriterion = 0
         self.Global_dE_Criterion = 0
         self.GlobalRegularization = "L2"
@@ -1995,9 +2012,15 @@ class MultipleInstanceTraining(object):
         self.GlobalMinOfOut = 0
         self.MakePlots = False
         self.IsPartitioned = False
-        self.GlobalSession = _tf.InteractiveSession()
         self.SavingDirectory=""
+        self.ModelDirectory=""
         self.PESCheck=None
+        self.GlobalStep=None
+        self.GlobalLearningRateFun=None
+        self.GlobalCostFun=None
+        self.Global_dE_Fun=None
+        self._Optimizer=None
+        self.TrainedVariables=[]
 
     def initialize_multiple_instances(self,MakeAllVariable=True):
         """Initializes all instances with the same parameters."""
@@ -2014,7 +2037,7 @@ class MultipleInstanceTraining(object):
                 self.TrainingInstances[i].Epochs = self.EpochsPerCycle
                 self.TrainingInstances[i].MakeAllVariable = MakeAllVariable
                 self.TrainingInstances[i].Structures = self.GlobalStructures
-                self.TrainingInstances[i]._Session = self.GlobalSession
+                #self.TrainingInstances[i]._Session = self.GlobalSession
                 self.TrainingInstances[i].MakePlots = False
                 self.TrainingInstances[i].ActFun = "elu"
                 self.TrainingInstances[i].CostCriterion = 0
@@ -2034,14 +2057,7 @@ class MultipleInstanceTraining(object):
                 self.TrainingInstances[i].AllGeometries = []
 
 
-    def set_session(self):
-        """Sets the session of the currently trained instance to the
-        global session"""
-
-        for i in range(len(self.TrainingInstances)):
-            self.TrainingInstances[i]._Session = self.GlobalSession
-
-    def train_multiple_instances(self, StartModelName=None):
+    def train_multiple_instances(self,ModelDirectory=None):
         """Trains each instance for EpochsPerCylce epochs then uses the resulting network
         as a basis for the next training instance.
         Args:
@@ -2049,93 +2065,106 @@ class MultipleInstanceTraining(object):
 
         print("Startet multiple instance training!")
         ct = 0
-        LastStepsModelData = list()
-        for i in range(0, self.GlobalEpochs):
-            for i in range(len(self.TrainingInstances)):
-                if ct == 0:
-                    if StartModelName is not None:
-                        self.TrainingInstances[i].expand_existing_net(ModelName=StartModelName,load_statistics=False)
-                    else:
-                        self.TrainingInstances[i].make_and_initialize_network()
-                else:
-                    self.TrainingInstances[i].expand_existing_net(ModelData=LastStepsModelData)
-
-                LastStepsModelData = self.TrainingInstances[i].start_batch_training()
-                _tf.reset_default_graph()
-                self.TrainingInstances[i]._Session.close()
-                self.GlobalSession = _tf.InteractiveSession()
-                self.set_session()
-                self.GlobalTrainingCosts += self.TrainingInstances[i].OverallTrainingCosts
-                self.GlobalValidationCosts += self.TrainingInstances[i].OverallValidationCosts
-                self.GlobalDE += self.TrainingInstances[i].DeltaE
-                if ct % max(int((self.GlobalEpochs * len(self.TrainingInstances)) / 100),
-                            1) == 0 or i == (self.GlobalEpochs - 1):
-                    if self.MakePlots:
-
-                        if ct == 0:
-                            fig, ax, TrainingCostPlot, ValidationCostPlot, RunningMeanPlot = _initialize_cost_plot(
-                                self.GlobalTrainingCosts, self.GlobalValidationCosts)
-                            de_fig, de_ax, de_plot = _initialize_delta_e_plot(self.GlobalDE)
+        self.GlobalCostFun = 0
+        self.ModelDirectory=ModelDirectory
+        SampleInstance = self.TrainingInstances[0]
+        with _tf.Graph().as_default():
+            with _tf.Session() as sess:
+                # Build nets
+                dE=[]
+                for i, Instance in enumerate(self.TrainingInstances):
+                    Instance._Session = sess
+                    if i == 0:
+                        if self.ModelDirectory is not None:
+                            Instance.expand_existing_net(ModelName=self.ModelDirectory, load_statistics=False)
                         else:
-                            if self.PESCheck != None:
-                                self.PESCheck.pes_check()
-                            _update_cost_plot(
-                                fig,
-                                ax,
-                                TrainingCostPlot,
-                                self.GlobalTrainingCosts,
-                                ValidationCostPlot,
-                                self.GlobalValidationCosts,
-                                RunningMeanPlot)
-                            _update_delta_e_plot(self.GlobalDE, de_plot, de_fig, de_ax)
-
-                    # Finished percentage output
-                    print(str(100 * ct / (self.GlobalEpochs *
-                                          len(self.TrainingInstances))) + " %")
-                    if not _os.path.exists(self.SavingDirectory):
-                        _os.makedirs(self.SavingDirectory)
-                    _np.save(self.SavingDirectory + "/trained_variables",
-                             [LastStepsModelData[0],
-                              self.TrainingInstances[i]._MeansOfDs,
-                              self.TrainingInstances[i]._VarianceOfDs,
-                              self.TrainingInstances[i]._MinOfOut,
-                              self.TrainingInstances[i].Rs,
-                              self.TrainingInstances[i].R_Etas,
-                              self.TrainingInstances[i].Etas,
-                              self.TrainingInstances[i].Lambs,
-                              self.TrainingInstances[i].Zetas,
-                              self.TrainingInstances[i].NumberOfRadialFunctions,
-                              self.TrainingInstances[i].Cutoff])
-                ct = ct + 1
-                # Abort criteria
-                if self.GlobalTrainingCosts <= self.GlobalCostCriterion and \
-                self.GlobalValidationCosts <= self.GloablCostCriterion or \
-                self.TrainingInstances[i].DeltaE < self.Global_dE_Criterion:
-
-                    if self.GlobalValidationCosts != 0:
-                        print("Reached Criterion!")
-                        print(
-                            "Cost= " + str((self.GlobalTrainingCosts + \
-                                            self.GlobalValidationCosts) / 2))
-                        print("delta E = " + str(self.TrainingInstances[i].DeltaE[-1]) + " eV")
-                        print("Epoch = " + str(i))
-                        print("")
-
+                            Instance.make_and_initialize_network()
+                        VariablesData = Instance._Net.VariablesDictionary
                     else:
-                        print("Reached Criterion!")
-                        print("Cost= " + str(self.GlobalTrainingCosts))
-                        print("delta E = " + str(self.TrainingInstances[i].DeltaE[-1]) + " eV")
-                        print("Epoch = " + str(i))
-                        print("")
+                        Instance.make_and_initialize_network(VariablesData=VariablesData)
 
-                    print("Training finished")
-                    break
+                    self.GlobalCostFun += Instance.CostFun
+                    dE.append(Instance._dE_Fun)
 
-                if i == (self.GlobalEpochs - 1):
-                    print("Training finished")
-                    print("delta E = " + str(self.TrainingInstances[i].DeltaE[-1]) + " eV")
-                    print("Epoch = " + str(i))
-                    print("")
+                self.Global_dE_Fun=_tf.reduce_mean(dE)
+
+                decay_steps = self.TrainingInstances[0].LearningDecayEpochs
+                self.GlobalStep, self.GlobalLearningRateFun = _get_learning_rate(
+                    self.GlobalLearningRate, self.GlobalLearningRateType, decay_steps,
+                    self.GlobalLearningRateBounds, self.GlobalLearningRateValues)
+
+                # Set optimizer
+                self._Optimizer = SampleInstance.get_optimizer(self.GlobalCostFun, self.GlobalLearningRateFun)
+
+                sess.run(_tf.global_variables_initializer())
+
+
+
+                for i in range(0, self.GlobalEpochs):
+                    GlobalLayers=[]
+                    GlobalTrainingData=[]
+                    GlobalValidationData=[]
+                    for Instance in self.TrainingInstances:
+                        Layers,TrainingData,ValidationData = Instance.start_batch_training()
+                        GlobalLayers+=Layers
+                        GlobalTrainingData+=TrainingData
+                        GlobalValidationData+=ValidationData
+
+                    #print(GlobalTrainingData)
+                    TrainingCost=_train_step(sess,self._Optimizer,self.GlobalCostFun,GlobalLayers,GlobalTrainingData)
+                    ValidationCost=_validate_step(sess,self.GlobalCostFun,GlobalLayers,GlobalValidationData)
+                    DeltaE=eval_tensor(sess,self.Global_dE_Fun,GlobalLayers,GlobalTrainingData)
+                    self.GlobalTrainingCosts += [TrainingCost]
+                    self.GlobalValidationCosts += [ValidationCost]
+                    self.GlobalDE += [DeltaE]
+                    self.TrainedVariables=SampleInstance._Net.get_trained_variables(
+                        sess, SampleInstance.Atomtypes)
+
+                    if ct % max(int(self.GlobalEpochs  / 100),1) == 0 \
+                            or i == (self.GlobalEpochs - 1):
+                        if self.MakePlots:
+
+                            if ct == 0:
+                                fig, ax, TrainingCostPlot, ValidationCostPlot, RunningMeanPlot = _initialize_cost_plot(
+                                    self.GlobalTrainingCosts, self.GlobalValidationCosts)
+                                de_fig, de_ax, de_plot = _initialize_delta_e_plot(self.GlobalDE)
+                            else:
+                                if self.PESCheck != None:
+                                    self.PESCheck.pes_check()
+                                _update_cost_plot(
+                                    fig,
+                                    ax,
+                                    TrainingCostPlot,
+                                    self.GlobalTrainingCosts,
+                                    ValidationCostPlot,
+                                    self.GlobalValidationCosts,
+                                    RunningMeanPlot)
+                                _update_delta_e_plot(self.GlobalDE, de_plot, de_fig, de_ax)
+
+                        # Finished percentage output
+                        print(str(100 * ct / self.GlobalEpochs) + " %")
+                        if not _os.path.exists(self.SavingDirectory):
+                            _os.makedirs(self.SavingDirectory)
+                        _np.save(self.SavingDirectory + "/trained_variables",
+                                 [self.TrainedVariables,
+                                  SampleInstance._MeansOfDs,
+                                  SampleInstance._VarianceOfDs,
+                                  SampleInstance._MinOfOut,
+                                  SampleInstance.Rs,
+                                  SampleInstance.R_Etas,
+                                  SampleInstance.Etas,
+                                  SampleInstance.Lambs,
+                                  SampleInstance.Zetas,
+                                  SampleInstance.NumberOfRadialFunctions,
+                                  SampleInstance.Cutoff])
+                    ct = ct + 1
+                    # Abort criteria
+                    if TrainingCost <= self.GlobalCostCriterion and \
+                    ValidationCost <= self.GlobalCostCriterion or \
+                    DeltaE < self.Global_dE_Criterion or \
+                                    i==self.GlobalEpochs-1:
+                        print("Training finished!")
+
 
 
 class Deprecated(object):
