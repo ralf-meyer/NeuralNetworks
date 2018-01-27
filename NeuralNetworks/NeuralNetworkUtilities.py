@@ -536,6 +536,7 @@ class AtomicNeuralNetInstance(object):
             # Initialize session
         if self.Multiple==False:
             self._Session.run(_tf.global_variables_initializer())
+            writer = _tf.summary.FileWriter(_os.path.join(self.SavingDirectory, "tf_summary"), self._Session.graph)
 
     def load_model(self, ModelName="save/trained_variables",load_statistics=True):
         """Loads the model in the specified folder.
@@ -672,11 +673,11 @@ class AtomicNeuralNetInstance(object):
         TrainingCost = 0
         ValidationCost = 0
         # train batch
-        TrainingCost = self._train_step(self.Session,self._Optimizer,self.CostFun,Layers, TrainingData)
+        TrainingCost = _train_step(self._Session,self._Optimizer,self.CostFun,Layers, TrainingData)
 
         # check validation dataset error
         if ValidationData is not None:
-            ValidationCost = self._validate_step(self.Session,self.CostFun,Layers, ValidationData)
+            ValidationCost = _validate_step(self._Session,self.CostFun,Layers, ValidationData)
 
         return TrainingCost, ValidationCost
 
@@ -710,7 +711,7 @@ class AtomicNeuralNetInstance(object):
         print("Started training...")
         # Start training of the atomic network
         for i in range(self.Epochs):
-            Cost = self._train_step(Layers, TrainingData)
+            Cost = _train_step(self._Session,self._Optimizer,self.CostFun,Layers, TrainingData)
             TrainCost.append(sum(Cost) / len(Cost))
             # check validation dataset error
             if ValidationData is not None:
@@ -2070,6 +2071,7 @@ class MultipleInstanceTraining(object):
         SampleInstance = self.TrainingInstances[0]
         with _tf.Graph().as_default():
             with _tf.Session() as sess:
+                writer = _tf.summary.FileWriter(_os.path.join(self.SavingDirectory,"tf_summary"), sess.graph)
                 # Build nets
                 dE=[]
                 for i, Instance in enumerate(self.TrainingInstances):

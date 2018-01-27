@@ -11,14 +11,14 @@ def str2bool(v):
 #Get input
 plots=False
 learning_rate=0.001
-epochs=10000
+epochs=50000
 data_file=""
 force=False
 e_unit="Ry"
 dist_unit="A"
-load_model=True
-model="/home/afuchs/Documents/Pretraining/multi_4/trained_variables.npy"
-model_dir="multi_4"
+load_model=False
+model="/home/afuchs/Documents/Pretraining/multi_Behler/trained_variables.npy"
+model_dir="multi_Behler"
 source="QE"
 percentage_of_data=100
 
@@ -71,9 +71,19 @@ if load_model:
 print("Save path : "+os.path.join(os.getcwd(),model_dir))
 
 #"/home/afuchs/Documents/Ni15Au15/",
-data_files=["/home/afuchs/Documents/home/Ni1Au54",
+data_files=["/home/afuchs/Documents/Ni1Au2/",
+            "/home/afuchs/Documents/Ni2Au1",
+            "/home/afuchs/Documents/Ni2Au2",
+            "/home/afuchs/Documents/Ni5Au5",
+            "/home/afuchs/Documents/Ni5Au5_6000/",
+            "/home/afuchs/Documents/Ni15Au15/",
+            "/home/afuchs/Documents/home/Ni1Au54",
             "/home/afuchs/Documents/home/Ni2Au53",
-            "/home/afuchs/Documents/home/Ni3Au52"
+            "/home/afuchs/Documents/home/Ni3Au52",
+            "/home/afuchs/Documents/home/Ni6Au49",
+            "/home/afuchs/Documents/home/Ni8Au47",
+            "/home/afuchs/Documents/home/Ni10Au45",
+            "/home/afuchs/Documents/home/Ni11Au44"
             ]
 # data_files=["/home/afuchs/Documents/Ni1Au2/",
 #             "/home/afuchs/Documents/Ni2Au1",
@@ -91,12 +101,14 @@ for i in range(len(data_files)):
     Training.UseForce=force
     #Default symmetry function set
     #Training.NumberOfRadialFunctions=15
+    bohr2ang = 0.529177249
     Training.Lambs=[1.0,-1.0]
-    Training.Zetas=[0.2,0.5,1,3,10]#[0.025,0.045,0.075,0.1,0.15,0.2,0.3,0.5,0.7,1,1.5,2,3,5,10,18,36,100]
-    Training.Etas=[0.01]
-    Training.Rs = [1, 1.2, 1.4, 1.6, 1.8, 2, 2.2, 2.4, 2.6, 2.8, 3.0, 3.2, 3.4, 3.6, 3.8, 4, 4.2, 4.4, 4.6, 4.8, 5, 6,7]
-    Training.R_Etas = [0.2, 0.5, 0.5, 0.5, 0.5, 0.8, 0.8, 0.8, 1, 1, 1, 1, 1, 1, 0.8, 0.8, 0.5, 0.5, 0.5, 0.5, 0.2]
-    Training.Cutoff=7
+    Training.Zetas=[1,2,4,16]#[0.025,0.045,0.075,0.1,0.15,0.2,0.3,0.5,0.7,1,1.5,2,3,5,10,18,36,100]
+    Training.Etas=[0.0001/ bohr2ang ** 2,0.003/ bohr2ang ** 2,0.008/ bohr2ang ** 2,0.0150/ bohr2ang ** 2,0.0250/ bohr2ang ** 2,0.0450/ bohr2ang ** 2]
+
+    Training.R_Etas = list(_np.array([0.4, 0.2, 0.1, 0.06, 0.035, 0.02, 0.01, 0.0009]) / bohr2ang ** 2)#[ 2.13448882, 1.97223806, 0.81916839, 0.47314626, 0.95010978, 7.37062645]
+    Training.Rs = [0]*len(Training.R_Etas)#[1.16674542, 1.81456625, 2.89256287, 4.53134823, 6.56226301, 6.92845869]
+    Training.Cutoff=6.4
     #Read file
     if source == "QE":
         Training.read_qe_md_files(data_file,e_unit,dist_unit,DataPointsPercentage=percentage_of_data,Calibration=["/home/afuchs/Documents/Calibration/Ni","/home/afuchs/Documents/Calibration/Au"])
@@ -146,7 +158,7 @@ for i,Training in enumerate(Multi.TrainingInstances):
     Multi.TrainingInstances[i]._MeansOfDs = max_means
     Multi.TrainingInstances[i]._VarianceOfDs = max_vars
     #Create batches
-    batch_size=1#len(Training._DataSet.energies)*(percentage_of_data/100)/50
+    batch_size=20#len(Training._DataSet.energies)*(percentage_of_data/100)/50
     Multi.TrainingInstances[i].make_training_and_validation_data(batch_size,90,10)
 
 

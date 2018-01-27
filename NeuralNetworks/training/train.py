@@ -1,5 +1,5 @@
 #model training script
-import sys 
+import sys
 from NeuralNetworks import NeuralNetworkUtilities as _NN
 import os
 from NeuralNetworks import check_pes
@@ -16,7 +16,7 @@ data_file=""
 force=False
 e_unit="Ry"
 dist_unit="A"
-load_model=True
+load_model=False
 model=""
 model_dir="save_no_name"
 source="QE"
@@ -92,9 +92,9 @@ Training.UseForce=force
 Training.Lambs=[1.0,-1.0]
 Training.Zetas=[0.2,0.5,1,3,10]#[0.025,0.045,0.075,0.1,0.15,0.2,0.3,0.5,0.7,1,1.5,2,3,5,10,18,36,100]
 Training.Etas=[0.01]
-Training.Rs = [1,1.2,1.4,1.6,1.8, 2, 2.2, 2.4, 2.6, 2.8, 3.0, 3.2, 3.4, 3.6, 3.8, 4, 4.2, 4.4,4.6,4.8,5]
+Training.Rs = [1,1.2,1.4,1.6,1.8, 2, 2.2, 2.4, 2.6, 2.8, 3.0, 3.2, 3.4, 3.6, 3.8, 4, 4.2, 4.4,4.6,4.8,5,6,7]
 Training.R_Etas = [0.2,0.5,0.5,0.5,0.5,0.8,0.8,0.8, 1, 1, 1, 1, 1, 1, 0.8, 0.8, 0.5, 0.5,0.5,0.5,0.2]
-Training.Cutoff=5
+Training.Cutoff=7
 #Training.R_Etas=[0.1,0.3,0.8,0.8,0.8,3,3,3,3,3,2,0.8,0.8,0.8,0.8,0.3,0.1]
 # if load_model:
 #     is_reference=False
@@ -125,7 +125,7 @@ if pretraining:
     Training.MakeLastLayerConstant = True
 else:
     for i in range(len(Training.Atomtypes)):
-        Training.Structures.append([Training.SizeOfInputsPerType[i],800,600,40,1])
+        Training.Structures.append([Training.SizeOfInputsPerType[i],80,60,40,20,1])
     Training.RegularizationParam = 0.01
     Training.MakeLastLayerConstant = False
 
