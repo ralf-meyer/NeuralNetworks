@@ -2044,10 +2044,10 @@ class MultipleInstanceTraining(object):
 
                 with _tf.name_scope("global_cost_fun"):
                     self.GlobalCostFun = TempCost
-                    Scalars.append(_tf.summary.scalar("global_cost", self.GlobalCostFun))
+                    _tf.summary.scalar("global_cost", self.GlobalCostFun)
                 with _tf.name_scope("global_delta_e"):
                     self.Global_dE_Fun=_tf.reduce_mean(dE)
-                    Scalars.append(_tf.summary.scalar("global_delta_e", self.Global_dE_Fun))
+                    _tf.summary.scalar("global_delta_e", self.Global_dE_Fun)
 
 
                 decay_steps = self.TrainingInstances[0].LearningDecayEpochs
