@@ -13,3 +13,4 @@ TwoBodySymFun OneOverR10 0 1/rij**10*fcut(rij)
 !
 
 ThreeBodySymFun BehlerG4 3 exp2(1-prm1)*(1+prm0*costheta)**prm1*exp(-prm2*(rij**2+rik**2))*fcut(rij)*fcut(rik)
+ThreeBodySymFun MeyerG1 4 exp2(1-prm1)*(1+prm0*costheta)**prm1*exp(-prm2*(rij**2+rik**2))*exp(-prm2*((rij-prm3)**2+(rik-prm3)**2))*fcut(rij)*fcut(rik)

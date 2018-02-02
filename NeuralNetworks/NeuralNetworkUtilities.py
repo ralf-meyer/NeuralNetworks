@@ -453,6 +453,7 @@ class AtomicNeuralNetInstance(object):
         self._RegLoss = None
         self.TFWriter = None
         self.TFSummary = None
+        self._ScalarSummaries=[]
         # Dataset
         self._Reader = None
         self._AllGVectors = []
@@ -524,7 +525,7 @@ class AtomicNeuralNetInstance(object):
 
             # Cost function for whole net
             self.CostFun = self._atomic_cost_function()
-            _tf.summary.scalar("cost_function",self.CostFun)
+            self._ScalarSummaries.append(_tf.summary.scalar("cost_function",self.CostFun))
             # if self.IsPartitioned==True:
             if self.Multiple == False:
                 decay_steps = len(self.TrainingBatches) * self.LearningDecayEpochs
@@ -1839,7 +1840,7 @@ class AtomicNeuralNetInstance(object):
 
         # Create tensor for energy difference calculation
         self._dE_Fun = _tf.abs(self._TotalEnergy - self._OutputLayer)
-        _tf.summary.scalar("delta_e",_tf.reduce_mean(self._dE_Fun))
+        self._ScalarSummaries.append(_tf.summary.scalar("delta_e",_tf.reduce_mean(self._dE_Fun)))
 
         return Cost
 
@@ -2018,6 +2019,8 @@ class MultipleInstanceTraining(object):
         print("Startet multiple instance training!")
         ct = 0
         self.GlobalCostFun = 0
+        TempCost= 0
+        Scalars=[]
         self.ModelDirectory=ModelDirectory
         SampleInstance = self.TrainingInstances[0]
         with _tf.Graph().as_default():
@@ -2036,12 +2039,18 @@ class MultipleInstanceTraining(object):
                             VariablesData = Instance._Net.VariablesDictionary
                         else:
                             Instance.make_and_initialize_network(VariablesData=VariablesData)
-                        with _tf.name_scope("global_cost_fun"):
-                            self.GlobalCostFun += Instance.CostFun
-                        dE.append(Instance._dE_Fun)
 
+                        TempCost += Instance.CostFun
+                        dE.append(Instance._dE_Fun)
+                        Scalars+=Instance._ScalarSummaries
+
+                with _tf.name_scope("global_cost_fun"):
+                    self.GlobalCostFun = TempCost
+                    Scalars.append(_tf.summary.scalar("global_cost", self.GlobalCostFun))
                 with _tf.name_scope("global_delta_e"):
                     self.Global_dE_Fun=_tf.reduce_mean(dE)
+                    Scalars.append(_tf.summary.scalar("global_delta_e", self.Global_dE_Fun))
+
 
                 decay_steps = self.TrainingInstances[0].LearningDecayEpochs
                 self.GlobalStep, self.GlobalLearningRateFun = _get_learning_rate(
@@ -2050,10 +2059,11 @@ class MultipleInstanceTraining(object):
 
                 # Set optimizer
                 with _tf.name_scope("optimizer"):
+                    SampleInstance.GlobalStep=self.GlobalStep
                     self._Optimizer = SampleInstance.get_optimizer(self.GlobalCostFun, self.GlobalLearningRateFun)
 
                 self.TFWriter = _tf.summary.FileWriter(_os.path.join(self.SavingDirectory,"tf_summary"), sess.graph)
-                self.TFSummary = _tf.summary.merge_all()
+                self.TFSummary = _tf.summary.merge(Scalars)
 
                 sess.run(_tf.global_variables_initializer())
 

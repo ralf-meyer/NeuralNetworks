@@ -26,7 +26,7 @@ input_reader.read("/home/afuchs/Documents/Validation_geometries/ico_NiAu54.xyz",
 Training=NeuralNetworkUtilities.AtomicNeuralNetInstance()
 Training.CalcDatasetStatistics=False
 Training.TextOutput=True
-Training.prepare_evaluation("/home/afuchs/Documents/NiAu_Training_part/Test2_force/",nr_atoms_per_type=[1,12])
+Training.prepare_evaluation("/home/afuchs/Documents/NiAu_Training/multi_more_radial",nr_atoms_per_type=[1,12])
 
 opt=optimizer.Optimizer(Training,start_geom)
 opt.save_png=True

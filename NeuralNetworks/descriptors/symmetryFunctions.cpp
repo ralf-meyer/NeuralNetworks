@@ -172,6 +172,66 @@ void BehlerG4::derivatives(double rij, double rik, double costheta,
   dGdrik = x1*x3*x5*x6*(-rik*x2*x4 + cutfun->derivative(rik));
   dGdcostheta = prms[0]*prms[1]*pow(x0, prms[1] - 1)*x3*x7;
 };
+
+double MeyerG1::eval(double rij, double rik, double costheta)
+{
+  return pow(costheta*prms[0] + 1, prms[1])*exp2(-prms[1] + 1)*cutfun->eval(rij)*cutfun->eval(rik)*exp(-prms[2]*(pow(rij, 2) + pow(rik, 2)))*exp(-prms[2]*(pow(-prms[3] + rij, 2) + pow(-prms[3] + rik, 2)));
+};
+
+double MeyerG1::drij(double rij, double rik, double costheta)
+{
+  return pow(costheta*prms[0] + 1, prms[1])*(-2*prms[2]*rij*cutfun->eval(rij) + 2*prms[2]*(prms[3] - rij)*cutfun->eval(rij) + cutfun->derivative(rij))*exp2(-prms[1] + 1)*cutfun->eval(rik)*exp(-prms[2]*(pow(rij, 2) + pow(rik, 2) + pow(prms[3] - rij, 2) + pow(prms[3] - rik, 2)));
+};
+
+double MeyerG1::drik(double rij, double rik, double costheta)
+{
+  return pow(costheta*prms[0] + 1, prms[1])*(-2*prms[2]*rik*cutfun->eval(rik) + 2*prms[2]*(prms[3] - rik)*cutfun->eval(rik) + cutfun->derivative(rik))*exp2(-prms[1] + 1)*cutfun->eval(rij)*exp(-prms[2]*(pow(rij, 2) + pow(rik, 2) + pow(prms[3] - rij, 2) + pow(prms[3] - rik, 2)));
+};
+
+double MeyerG1::dcostheta(double rij, double rik, double costheta)
+{
+  return prms[0]*prms[1]*pow(costheta*prms[0] + 1, prms[1] - 1)*exp2(-prms[1] + 1)*cutfun->eval(rij)*cutfun->eval(rik)*exp(-prms[2]*(pow(rij, 2) + pow(rik, 2) + pow(prms[3] - rij, 2) + pow(prms[3] - rik, 2)));
+};
+
+void MeyerG1::eval_with_derivatives(double rij, double rik, double costheta,
+  double &G, double &dGdrij, double &dGdrik, double &dGdcostheta)
+{
+  auto x0 = costheta*prms[0] + 1;
+  auto x1 = pow(x0, prms[1]);
+  auto x2 = cutfun->eval(rij);
+  auto x3 = cutfun->eval(rik);
+  auto x4 = exp2(-prms[1] + 1);
+  auto x5 = prms[3] - rij;
+  auto x6 = prms[3] - rik;
+  auto x7 = exp(-prms[2]*(pow(rij, 2) + pow(rik, 2) + pow(x5, 2) + pow(x6, 2)));
+  auto x8 = x2*x3*x4*x7;
+  auto x9 = 2*prms[2]*x2;
+  auto x10 = x1*x4*x7;
+  auto x11 = 2*prms[2]*x3;
+  G = x1*x8;
+  dGdrij = x10*x3*(-rij*x9 + x5*x9 + cutfun->derivative(rij));
+  dGdrik = x10*x2*(-rik*x11 + x11*x6 + cutfun->derivative(rik));
+  dGdcostheta = prms[0]*prms[1]*pow(x0, prms[1] - 1)*x8;
+};
+
+void MeyerG1::derivatives(double rij, double rik, double costheta,
+  double &dGdrij, double &dGdrik, double &dGdcostheta)
+{
+  auto x0 = costheta*prms[0] + 1;
+  auto x1 = pow(x0, prms[1]);
+  auto x2 = cutfun->eval(rij);
+  auto x3 = 2*prms[2]*x2;
+  auto x4 = prms[3] - rij;
+  auto x5 = cutfun->eval(rik);
+  auto x6 = exp2(-prms[1] + 1);
+  auto x7 = prms[3] - rik;
+  auto x8 = exp(-prms[2]*(pow(rij, 2) + pow(rik, 2) + pow(x4, 2) + pow(x7, 2)));
+  auto x9 = x5*x6*x8;
+  auto x10 = 2*prms[2]*x5;
+  dGdrij = x1*x9*(-rij*x3 + x3*x4 + cutfun->derivative(rij));
+  dGdrik = x1*x2*x6*x8*(-rik*x10 + x10*x7 + cutfun->derivative(rik));
+  dGdcostheta = prms[0]*prms[1]*pow(x0, prms[1] - 1)*x2*x9;
+};
 // AUTOMATIC End of custom ThreeBodySymFuns
 
 std::shared_ptr<CutoffFunction> switch_CutFun(
@@ -237,6 +297,9 @@ std::shared_ptr<ThreeBodySymmetryFunction> switch_ThreeBodySymFun(int funtype,
 // AUTOMATIC ThreeBodySymmetryFunction switch start
     case 0:
       symFun = std::make_shared<BehlerG4>(num_prms, prms, cutfun);
+      break;
+    case 1:
+      symFun = std::make_shared<MeyerG1>(num_prms, prms, cutfun);
       break;
 // AUTOMATIC ThreeBodySymmetryFunction switch end
     default:
@@ -306,6 +369,10 @@ int get_ThreeBodySymFun_by_name(const char* name)
   {
     id = 0;
   }
+  if (strcmp(name, "MeyerG1") == 0)
+  {
+    id = 1;
+  }
 // AUTOMATIC get_ThreeBodySymFuns end
   return id;
 }
@@ -321,5 +388,6 @@ void available_symFuns()
   printf("4: OneOverR10, 0\n");
   printf("ThreeBodySymmetryFunctions: (key: name, # of parameters)\n");
   printf("0: BehlerG4, 3\n");
+  printf("1: MeyerG1, 4\n");
 // AUTOMATIC available_symFuns end
 }

@@ -28,7 +28,8 @@ class _AtomicNetwork(object):
             Mean=0.0,
             Stddev=1.0,
             i=0,
-            j=0):
+            j=0,
+            include_histograms=False):
         """Constructs the weights and biases for this layer with the specified
         initialization.
 
@@ -54,6 +55,8 @@ class _AtomicNetwork(object):
             initialization.
             i (int): Network number
             j (int): layer number
+            include_histograms(bool):Flag signaling whether histograms
+             should be included in the event file
 
         Returns:
             Weights (tensor): Weights tensor
@@ -190,8 +193,9 @@ class _AtomicNetwork(object):
                     Biases = _tf.Variable(_tf.random_uniform(
                         [ThisHiddenUnits], dtype=_tf.float64), dtype=_tf.float64, name="bias")
 
-            _tf.summary.histogram("t_"+str(i+1)+"_layer_"+str(j)+"_weights",Weights)
-            _tf.summary.histogram("t_" + str(i + 1) + "_layer_" + str(j) + "_biases", Biases)
+            if include_histograms:
+                _tf.summary.histogram("t_"+str(i+1)+"_layer_"+str(j)+"_weights",Weights)
+                _tf.summary.histogram("t_" + str(i + 1) + "_layer_" + str(j) + "_biases", Biases)
             return Weights, Biases
 
     def _construct_output_layer(self,OutputUnits):
@@ -252,7 +256,8 @@ class _AtomicNetwork(object):
         return weights
 
     def _connect_layers(self,InputsForLayer, ThisLayerWeights,
-                        ThisLayerBias, ActFun=None, FunParam=None, Dropout=0,i=0,j=0):
+                        ThisLayerBias, ActFun=None, FunParam=None,
+                        Dropout=0,i=0,j=0,include_histograms=False):
         """Connect the outputs of the layer before with the current layer using an
         activation function and matrix multiplication.
 
@@ -268,6 +273,8 @@ class _AtomicNetwork(object):
             Dropout (float):Dropout (0-1 =>0%-100%) applied after this layer.
             i (int): Network number
             j (int): layer number
+            include_histograms (bool):Flag signaling whether histograms
+             should be included in the event file
 
         Returns:
             Out (tensor): The connected tensor."""
@@ -318,7 +325,8 @@ class _AtomicNetwork(object):
             # Apply dropout between layers
             with _tf.name_scope("net_" + str(i + 1) + "_act_fun_" + str(j+1)):
                 Out = _tf.nn.dropout(Out, Dropout)
-        _tf.summary.histogram("net_" + str(i + 1) + "_act_fun_" + str(j+1),Out)
+        if include_histograms:
+            _tf.summary.histogram("net_" + str(i + 1) + "_act_fun_" + str(j+1),Out)
         return Out
 
     def make_feed_forward_neuralnetwork(self,

@@ -30,11 +30,11 @@ input_reader.read("/home/afuchs/Documents/Validation_geometries/ico_NiAu54.xyz",
 Training=NeuralNetworkUtilities.AtomicNeuralNetInstance()
 Training.CalcDatasetStatistics=False
 Training.TextOutput=False
-Training.prepare_evaluation("/home/afuchs/Documents/NiAu_Training_part/Test4_force/",nr_atoms_per_type=[1,12])
+Training.prepare_evaluation("/home/afuchs/Documents/NiAu_Training/multi_more_radial_force2",nr_atoms_per_type=[1,12])
 
 opt=optimizer.Optimizer(Training,start_geom)
 #opt.check_gradient()
-start_geom=opt.start_bfgs(norm=10,gtol=1-04)
+start_geom=opt.start_conjugate_gradient()#opt.start_bfgs(norm=10,gtol=1-05)
 # print(start_geom)
 #print(len(start_geom))
 input_reader=data_readers.SimpleInputReader()
@@ -43,16 +43,16 @@ input_reader.read("/home/afuchs/Documents/Validation_geometries/ico_NiAu54.xyz",
 Training=NeuralNetworkUtilities.AtomicNeuralNetInstance()
 Training.TextOutput=False
 Training.CalcDatasetStatistics=False
-Training.prepare_evaluation("/home/afuchs/Documents/NiAu_Training_part/Test4_force/",nr_atoms_per_type=[1,12])
+Training.prepare_evaluation("/home/afuchs/Documents/NiAu_Training/multi_more_radial_force2",nr_atoms_per_type=[1,12])
 
-dt = 1e-15
-steps = 10000
+dt = 5e-15
+steps = 300000
 
 
 pset = ps.ParticlesSet( len(start_geom) , 3 , label=True,mass=True)
-pset.thermostat_coupling_time=dt*5
+pset.thermostat_coupling_time=dt*200
 pset.thermostat_temperature=100
-pset.dT=float(500)/steps
+pset.dT=float(400)/steps
 pset.unit = 1e10
 pset.mass_unit =1.660e+27
 geom=[]
@@ -84,11 +84,12 @@ NNForce.update_force(pset)
 solver = svs.LeapfrogSolverBerendsen( NNForce , pset , dt )
 #solver =svs.LeapfrogSolverLangevin(NNForce,pset,dt,1e10)
 solver.plot=True
-solver.plot_steps=1000
+solver.plot_steps=10000
 solver.steps=steps
 solver.save_png=True
-solver.png_path="/home/afuchs/Documents/NiAu_Md/Ni1Au12_hot/"
+solver.png_path="/home/afuchs/Documents/NiAu_Md/Ni1Au12/"
 start=time.time()
 solver.start()
+np.save("/home/afuchs/Documents/MD_Runs/Ni1Au12.npy",np.asarray([solver.all_epot,solver.all_etot,solver.all_temp]))
 solver.plot_results()
 solver.animate_run()

@@ -16,11 +16,11 @@ class PES(object):
         #self.ax.set_zlim(bottom=-1,top=5)
         plt.title(model_name)
         self.resolution=resolution
-        self.theta=np.linspace(1*np.pi/180,359*np.pi/180,self.resolution)
-        self.rhs=np.linspace(1,7,self.resolution)
+        self.theta=np.linspace(10*np.pi/180,350*np.pi/180,self.resolution)
+        self.rhs=np.linspace(1,8,self.resolution)
         self.meshX,self.meshY=np.meshgrid(self.rhs,self.theta*180/np.pi)
         meshZ=np.zeros((len(self.theta),len(self.rhs)))
-        self.surf=self.ax.plot_surface(self.meshX,self.meshY,meshZ,cmap=cm.magma,vmin=-1,vmax=5,animated=True)
+        self.surf=self.ax.plot_surface(self.meshX,self.meshY,meshZ,cmap=cm.magma,animated=True)
         self.model=model_name
         self.create_geoms()
         self.Evaluation = NN.AtomicNeuralNetInstance()
@@ -75,15 +75,15 @@ class PES(object):
         meshZ=out.reshape(len(self.theta),len(self.rhs))
         self.ZData.append(meshZ)
         self.surf.remove()
-        self.surf=self.ax.plot_surface(self.meshX,self.meshY,meshZ,cmap=cm.magma,vmin=-1,vmax=5)
+        self.surf=self.ax.plot_surface(self.meshX,self.meshY,meshZ,cmap=cm.magma)
         if show_plot:
             plt.show()
 
 
 if __name__ == "__main__":
     plt.ioff()
-    file="/home/afuchs/Documents/NiAu_Training_part/1/"
-    #file="/home/afuchs/Documents/NiAu_Training/NiAu_Comp/without_4"
+    #file="/home/afuchs/Git/NeuralNetworks/NeuralNetworks/training/save_no_name"
+    file="/home/afuchs/Documents/NiAu_Training/multi_more_radial"
     MyCheck1=PES(file)
     MyCheck1.pes_check(atom_types=["X","Y"],nr_atoms_per_type=[1,2],show_plot=False)
     MyCheck2 = PES(file)
