@@ -453,7 +453,6 @@ class AtomicNeuralNetInstance(object):
         self._RegLoss = None
         self.TFWriter = None
         self.TFSummary = None
-        self._ScalarSummaries=[]
         # Dataset
         self._Reader = None
         self._AllGVectors = []
@@ -525,7 +524,7 @@ class AtomicNeuralNetInstance(object):
 
             # Cost function for whole net
             self.CostFun = self._atomic_cost_function()
-            self._ScalarSummaries.append(_tf.summary.scalar("cost_function",self.CostFun))
+            _tf.summary.scalar("cost_function",self.CostFun)
             # if self.IsPartitioned==True:
             if self.Multiple == False:
                 decay_steps = len(self.TrainingBatches) * self.LearningDecayEpochs
@@ -1840,7 +1839,7 @@ class AtomicNeuralNetInstance(object):
 
         # Create tensor for energy difference calculation
         self._dE_Fun = _tf.abs(self._TotalEnergy - self._OutputLayer)
-        self._ScalarSummaries.append(_tf.summary.scalar("delta_e",_tf.reduce_mean(self._dE_Fun)))
+        _tf.summary.scalar("delta_e",_tf.reduce_mean(self._dE_Fun))
 
         return Cost
 
@@ -2020,7 +2019,7 @@ class MultipleInstanceTraining(object):
         ct = 0
         self.GlobalCostFun = 0
         TempCost= 0
-        Scalars=[]
+
         self.ModelDirectory=ModelDirectory
         SampleInstance = self.TrainingInstances[0]
         with _tf.Graph().as_default():
@@ -2042,7 +2041,6 @@ class MultipleInstanceTraining(object):
 
                         TempCost += Instance.CostFun
                         dE.append(Instance._dE_Fun)
-                        Scalars+=Instance._ScalarSummaries
 
                 with _tf.name_scope("global_cost_fun"):
                     self.GlobalCostFun = TempCost
@@ -2063,7 +2061,7 @@ class MultipleInstanceTraining(object):
                     self._Optimizer = SampleInstance.get_optimizer(self.GlobalCostFun, self.GlobalLearningRateFun)
 
                 self.TFWriter = _tf.summary.FileWriter(_os.path.join(self.SavingDirectory,"tf_summary"), sess.graph)
-                self.TFSummary = _tf.summary.merge(Scalars)
+                self.TFSummary = _tf.summary.merge_all()
 
                 sess.run(_tf.global_variables_initializer())
 
