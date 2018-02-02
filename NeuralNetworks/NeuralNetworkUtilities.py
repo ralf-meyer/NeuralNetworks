@@ -1821,7 +1821,7 @@ class AtomicNeuralNetInstance(object):
             regVars=[]
             for var in trainableVars:
                 shape=var.get_shape()
-                if shape[-1]!=1:
+                if shape[-1]!=1 and not("bias" in var.name):
                     regVars.append(var)
             if self.Regularization == "L1":
 
