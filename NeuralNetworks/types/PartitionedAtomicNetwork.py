@@ -61,7 +61,7 @@ class _PartitionedAtomicNetwork(_AtomicNetwork):
             FF_Input = FFNet[2]
             dFF_dxk = FFNet[3]
             dFF_dxk_t = _tf.transpose(dFF_dxk, perm=[0, 2, 1])
-            Gradient_FF = _tf.gradients(NetInstance._TotalEnergy,FF_Input)
+            Gradient_FF = _tf.gradients(NetInstance._TotalEnergy,FF_Input)[0]
             dFF_dGij = _tf.reshape(
                 Gradient_FF, [-1, 3*len(NetInstance.Atomtypes), 1])
             mul = _tf.matmul(dFF_dxk_t, dFF_dGij)
@@ -374,40 +374,41 @@ class _PartitionedAtomicNetwork(_AtomicNetwork):
         VariablesFF=[]
 
         for i,Type in enumerate(NetInstance.Atomtypes):
-            if len(FFWeights)>0:
-                WeightsForType=FFWeights[i]
-                BiasesForType=FFBiases[i]
-                Weights,Biases = self._construct_hidden_layer(NInputs,
-                                                        1,
-                                                        WeightType="truncated_normal",
-                                                        WeightData=WeightsForType,
-                                                        BiasType="truncated_normal",
-                                                        BiasData=BiasesForType,
-                                                        MakeAllVariable=True)
-                VariablesFF.append([Weights,Biases])
-            else:
-                Weights, Biases = self._construct_hidden_layer(NInputs,
-                                                        1,
-                                                        WeightType="truncated_normal",
-                                                        WeightData=[],
-                                                        BiasType="truncated_normal",
-                                                        BiasData=[],
-                                                        MakeAllVariable=True)
-                VariablesFF.append([Weights, Biases])
+            with _tf.name_scope("ff_weights_type_" + str(i + 1)):
+                if len(FFWeights)>0:
+                    WeightsForType=FFWeights[i]
+                    BiasesForType=FFBiases[i]
+                    Weights,Biases = self._construct_hidden_layer(NInputs,
+                                                            1,
+                                                            WeightType="truncated_normal",
+                                                            WeightData=WeightsForType,
+                                                            BiasType="truncated_normal",
+                                                            BiasData=BiasesForType,
+                                                            MakeAllVariable=True)
+                    VariablesFF.append([Weights,Biases])
+                else:
+                    Weights, Biases = self._construct_hidden_layer(NInputs,
+                                                            1,
+                                                            WeightType="truncated_normal",
+                                                            WeightData=[],
+                                                            BiasType="truncated_normal",
+                                                            BiasData=[],
+                                                            MakeAllVariable=True)
+                    VariablesFF.append([Weights, Biases])
 
 
             for j in range(NetInstance.NumberOfAtomsPerType[i]):
+                with _tf.name_scope("ff_type_" + str(i + 1) + "_atom_" + str(j + 1)):
+                    Input=self._construct_input_layer(NInputs)
+                    Network=self._connect_layers(Input,Weights,Biases,ActFun=None)
 
-                Input=self._construct_input_layer(NInputs)
-                Network=self._connect_layers(Input,Weights,Biases,ActFun=None)
-
-                if NetInstance.UseForce:
-                    InputForce = _tf.placeholder(
-                        _tf.float64, shape=[None, NInputs, 3* sum(NetInstance.NumberOfAtomsPerType)])
-                    FFNets.append(
-                        [i, Network, Input, InputForce])
-                else:
-                    FFNets.append([i, Network, Input])
+                    if NetInstance.UseForce:
+                        InputForce = _tf.placeholder(
+                            _tf.float64, shape=[None, NInputs, 3* sum(NetInstance.NumberOfAtomsPerType)])
+                        FFNets.append(
+                            [i, Network, Input, InputForce])
+                    else:
+                        FFNets.append([i, Network, Input])
 
         self.VariablesDictionary.ForceFieldDict.append(VariablesFF)
         self.AtomicNNs.ForceFieldNets=FFNets

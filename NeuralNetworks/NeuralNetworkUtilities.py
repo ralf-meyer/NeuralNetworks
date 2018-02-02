@@ -307,15 +307,15 @@ def parse_qchem_geometries(in_geoms):
 
     return out_geoms
 
-def _train_step(Session,Optimizer,CostFun, Layers, Data):
+def _train_step(Session,Optimizer,CostFun, Layers, Data,Summary):
     """Does ones training step(one batch).
     Returns:
         Cost(float):The training cost for the step."""
     # Train the network for one step
-    _, Cost = Session.run([Optimizer, CostFun],
+    _, Cost,Summary = Session.run([Optimizer, CostFun,Summary],
             feed_dict={i: d for i, d in zip(Layers, Data)})
 
-    return Cost
+    return Cost,Summary
 
 def _validate_step(Session,CostFun, Layers, Data):
     """Calculates the validation cost for this training step,
@@ -451,6 +451,8 @@ class AtomicNeuralNetInstance(object):
         self._ForceCost = None
         self._EnergyCost = None
         self._RegLoss = None
+        self.TFWriter = None
+        self.TFSummary = None
         # Dataset
         self._Reader = None
         self._AllGVectors = []
@@ -461,50 +463,50 @@ class AtomicNeuralNetInstance(object):
         self.TextOutput=True
 
     def get_optimizer(self, CostFun,LearningRateFun):
+        with _tf.name_scope("optimizer"):
+            # Set optimizer
+            Optimizer = _tf.train.GradientDescentOptimizer(LearningRateFun)
+            if self.OptimizerType == "GradientDescent":
+                Optimizer = _tf.train.GradientDescentOptimizer(
+                    LearningRateFun)
+            elif self.OptimizerType == "Adagrad":
+                self._Optimizer = _tf.train.AdagradOptimizer(LearningRateFun)
+            elif self.OptimizerType == "Adadelta":
+                Optimizer = _tf.train.AdadeltaOptimizer(LearningRateFun)
+            elif self.OptimizerType == "AdagradDA":
+                Optimizer = _tf.train.AdagradDAOptimizer(
+                    LearningRateFun, self.OptimizerProp)
+            elif self.OptimizerType == "Momentum":
+                Optimizer = _tf.train.MomentumOptimizer(
+                    LearningRateFun, self.OptimizerProp)
+            elif self.OptimizerType == "Adam":
+                Optimizer = _tf.train.AdamOptimizer(
+                    LearningRateFun, beta1=0.9, beta2=0.999, epsilon=1e-08,use_locking=False)
+            elif self.OptimizerType == "Ftrl":
+                Optimizer = _tf.train.FtrlOptimizer(LearningRateFun)
+            elif self.OptimizerType == "ProximalGradientDescent":
+                Optimizer = _tf.train.ProximalGradientDescentOptimizer(
+                    LearningRateFun)
+            elif self.OptimizerType == "ProximalAdagrad":
+                Optimizer = _tf.train.ProximalAdagradOptimizer(
+                    LearningRateFun)
+            elif self.OptimizerType == "RMSProp":
+                Optimizer = _tf.train.RMSPropOptimizer(LearningRateFun)
+            else:
+                Optimizer = _tf.train.GradientDescentOptimizer(
+                    LearningRateFun)
 
-        # Set optimizer
-        Optimizer = _tf.train.GradientDescentOptimizer(LearningRateFun)
-        if self.OptimizerType == "GradientDescent":
-            Optimizer = _tf.train.GradientDescentOptimizer(
-                LearningRateFun)
-        elif self.OptimizerType == "Adagrad":
-            self._Optimizer = _tf.train.AdagradOptimizer(LearningRateFun)
-        elif self.OptimizerType == "Adadelta":
-            Optimizer = _tf.train.AdadeltaOptimizer(LearningRateFun)
-        elif self.OptimizerType == "AdagradDA":
-            Optimizer = _tf.train.AdagradDAOptimizer(
-                LearningRateFun, self.OptimizerProp)
-        elif self.OptimizerType == "Momentum":
-            Optimizer = _tf.train.MomentumOptimizer(
-                LearningRateFun, self.OptimizerProp)
-        elif self.OptimizerType == "Adam":
-            Optimizer = _tf.train.AdamOptimizer(
-                LearningRateFun, beta1=0.9, beta2=0.999, epsilon=1e-08,use_locking=False)
-        elif self.OptimizerType == "Ftrl":
-            Optimizer = _tf.train.FtrlOptimizer(LearningRateFun)
-        elif self.OptimizerType == "ProximalGradientDescent":
-            Optimizer = _tf.train.ProximalGradientDescentOptimizer(
-                LearningRateFun)
-        elif self.OptimizerType == "ProximalAdagrad":
-            Optimizer = _tf.train.ProximalAdagradOptimizer(
-                LearningRateFun)
-        elif self.OptimizerType == "RMSProp":
-            Optimizer = _tf.train.RMSPropOptimizer(LearningRateFun)
-        else:
-            Optimizer = _tf.train.GradientDescentOptimizer(
-                LearningRateFun)
+            # clipped minimization
+            gvs = Optimizer.compute_gradients(CostFun)
 
-        # clipped minimization
-        gvs = Optimizer.compute_gradients(CostFun)
+            capped_gvs = [(_tf.clip_by_value(_tf.where(_tf.is_finite(grad), grad,
+                                                       _tf.zeros_like(grad)),
+                            -self.ClippingValue, self.ClippingValue), var)
+                            for grad, var in gvs]
+            Optimizer =  Optimizer.apply_gradients(
+                capped_gvs, global_step=self.GlobalStep)
 
-        capped_gvs = [(_tf.clip_by_value(_tf.where(_tf.is_finite(grad), grad,
-                                                   _tf.zeros_like(grad)),
-                        -self.ClippingValue, self.ClippingValue), var)
-                        for grad, var in gvs]
-        Optimizer =  Optimizer.apply_gradients(
-            capped_gvs, global_step=self.GlobalStep)
-
-        return Optimizer
+            return Optimizer
 
     def initialize_network(self):
         """Initializes the network for training by starting a session and
@@ -514,12 +516,15 @@ class AtomicNeuralNetInstance(object):
         try:
             # Make virtual output layer for feeding the data to the cost
             # function
-            self._OutputLayer = _tf.placeholder(_tf.float64, shape=[None, 1])
+            with _tf.name_scope("e_target"):
+                self._OutputLayer = _tf.placeholder(_tf.float64, shape=[None, 1])
             if self.UseForce:
-                self._OutputLayerForce = _tf.placeholder(_tf.float64, shape=[None,sum(self.NumberOfAtomsPerType) * 3])
+                with _tf.name_scope("f_target"):
+                    self._OutputLayerForce = _tf.placeholder(_tf.float64, shape=[None,sum(self.NumberOfAtomsPerType) * 3])
 
             # Cost function for whole net
             self.CostFun = self._atomic_cost_function()
+            _tf.summary.scalar("cost_function",self.CostFun)
             # if self.IsPartitioned==True:
             if self.Multiple == False:
                 decay_steps = len(self.TrainingBatches) * self.LearningDecayEpochs
@@ -536,7 +541,8 @@ class AtomicNeuralNetInstance(object):
             # Initialize session
         if self.Multiple==False:
             self._Session.run(_tf.global_variables_initializer())
-            writer = _tf.summary.FileWriter(_os.path.join(self.SavingDirectory, "tf_summary"), self._Session.graph)
+            self.TFWriter = _tf.summary.FileWriter(_os.path.join(self.SavingDirectory, "tf_summary"), self._Session.graph)
+            self.TFSummary = _tf.summary.merge_all()
 
     def load_model(self, ModelName="save/trained_variables",load_statistics=True):
         """Loads the model in the specified folder.
@@ -673,74 +679,14 @@ class AtomicNeuralNetInstance(object):
         TrainingCost = 0
         ValidationCost = 0
         # train batch
-        TrainingCost = _train_step(self._Session,self._Optimizer,self.CostFun,Layers, TrainingData)
+        TrainingCost,Summary = _train_step(self._Session,self._Optimizer,self.CostFun,Layers, TrainingData,self.TFSummary)
 
         # check validation dataset error
         if ValidationData is not None:
             ValidationCost = _validate_step(self._Session,self.CostFun,Layers, ValidationData)
 
-        return TrainingCost, ValidationCost
+        return TrainingCost, ValidationCost,Summary
 
-    def _train_atomic_networks(
-            self,
-            TrainingInputs,
-            TrainingOutputs,
-            ValidationInputs=None,
-            ValidationOutputs=None):
-        """Trains one step for an atomic network.
-        First it prepares the input data and the placeholder and then executes
-        a training step.
-        Returns:
-            the current session,the trained network and the cost for the
-        training step """
-
-        TrainCost = []
-        ValidationCost = []
-        ValidationCost = 0
-        TrainCost = 0
-        # Prepare data environment for training
-        Layers, TrainingData = self._Net.prepare_data_environment(
-            TrainingInputs, self._OutputLayer, TrainingOutputs)
-        # Make validation input vector
-        if len(ValidationInputs) > 0:
-            ValidationData = self._Net.make_data_for_atomicNNs(
-                ValidationInputs, ValidationOutputs)
-        else:
-            ValidationData = None
-
-        print("Started training...")
-        # Start training of the atomic network
-        for i in range(self.Epochs):
-            Cost = _train_step(self._Session,self._Optimizer,self.CostFun,Layers, TrainingData)
-            TrainCost.append(sum(Cost) / len(Cost))
-            # check validation dataset error
-            if ValidationData is not None:
-                temp_val = self._validate_step(Layers, ValidationData)
-                ValidationCost.append(sum(temp_val) / len(temp_val))
-
-            if i % max(int(self.Epochs / 100), 1) == 0:
-                if self.MakePlot:
-                    if i == 0:
-                        figure, ax, TrainPlot, ValPlot, RunningMeanPlot = \
-                        _initialize_cost_plot(
-                            TrainCost, ValidationCost)
-                    else:
-                        _update_cost_plot(
-                            figure,
-                            ax,
-                            TrainPlot,
-                            TrainCost,
-                            ValPlot,
-                            ValidationCost,
-                            RunningMeanPlot)
-
-                print(str(100 * i / self.Epochs) + " %")
-
-            if TrainCost[-1] < self.CostCriterion:
-                print(TrainCost[-1])
-                break
-
-        return TrainCost, ValidationCost
 
     def make_network(self,VariablesData=None):
         """Creates the specified network"""
@@ -1106,11 +1052,13 @@ class AtomicNeuralNetInstance(object):
                         return Layers,TrainingData,ValidationData
 
                     # Train one batch
-                    TrainingCosts, ValidationCosts = self._train_atomic_network_batch(
+                    TrainingCosts, ValidationCosts,summary = self._train_atomic_network_batch(
                         Layers, TrainingData, ValidationData)
 
                     tempTrainingCost.append(TrainingCosts)
                     tempValidationCost.append(ValidationCosts)
+                    #Update tensorflow summary
+                    self.TFWriter.add_summary(summary,global_step=self.GlobalStep.eval(session=self._Session))
 
                     self.OverallTrainingCosts.append(TrainingCosts / BatchSize)
                     self.OverallValidationCosts.append(
@@ -1854,43 +1802,44 @@ class AtomicNeuralNetInstance(object):
             A tensor which is the sum of all costs"""
 
         self._TotalEnergy, AllEnergies = self._Net.energy_of_all_atomic_networks()
+        with _tf.name_scope("cost_function"):
+            self._EnergyCost = _tf.divide(self.cost_for_network(
+                self._TotalEnergy, self._OutputLayer, self.CostFunType),sum(self.NumberOfAtomsPerType))
+            Cost = self._EnergyCost
 
-        self._EnergyCost = _tf.divide(self.cost_for_network(
-            self._TotalEnergy, self._OutputLayer, self.CostFunType),sum(self.NumberOfAtomsPerType))
-        Cost = self._EnergyCost
+            # add force cost
+            if self.UseForce:
+                self._OutputForce, AllForces = self._Net.force_of_all_atomic_networks(
+                    self)
+                self._ForceCost = self.ForceCostParam* _tf.divide(
+                    self.cost_for_network(
+                        self._OutputForce, self._OutputLayerForce, self.CostFunType),
+                    sum(self.NumberOfAtomsPerType))
+                Cost += self._ForceCost
 
-        # add force cost
-        if self.UseForce:
-            self._OutputForce, AllForces = self._Net.force_of_all_atomic_networks(
-                self)
-            self._ForceCost = self.ForceCostParam* _tf.divide(
-                self.cost_for_network(
-                    self._OutputForce, self._OutputLayerForce, self.CostFunType),
-                sum(self.NumberOfAtomsPerType))
-            Cost += self._ForceCost
+            trainableVars = _tf.trainable_variables()
+            regVars=[]
+            for var in trainableVars:
+                shape=var.get_shape()
+                if shape[-1]!=1:
+                    regVars.append(var)
+            if self.Regularization == "L1":
 
-        trainableVars = _tf.trainable_variables()
-        regVars=[]
-        for var in trainableVars:
-            shape=var.get_shape()
-            if shape[-1]!=1:
-                regVars.append(var)
-        if self.Regularization == "L1":
-
-            l1_regularizer = _tf.contrib.layers.l1_regularizer(
-                scale=self.RegularizationParam, scope=None)
-            self._RegLoss = _tf.contrib.layers.apply_regularization(
-                l1_regularizer, regVars)
-            Cost += self._RegLoss
-        elif self.Regularization == "L2":
-            l2_regularizer=_tf.contrib.layers.l2_regularizer(
+                l1_regularizer = _tf.contrib.layers.l1_regularizer(
                     scale=self.RegularizationParam, scope=None)
-            self._RegLoss = _tf.contrib.layers.apply_regularization(
-                l2_regularizer, regVars)
-            Cost += self._RegLoss
+                self._RegLoss = _tf.contrib.layers.apply_regularization(
+                    l1_regularizer, regVars)
+                Cost += self._RegLoss
+            elif self.Regularization == "L2":
+                l2_regularizer=_tf.contrib.layers.l2_regularizer(
+                        scale=self.RegularizationParam, scope=None)
+                self._RegLoss = _tf.contrib.layers.apply_regularization(
+                    l2_regularizer, regVars)
+                Cost += self._RegLoss
 
         # Create tensor for energy difference calculation
         self._dE_Fun = _tf.abs(self._TotalEnergy - self._OutputLayer)
+        _tf.summary.scalar("delta_e",_tf.reduce_mean(self._dE_Fun))
 
         return Cost
 
@@ -2022,6 +1971,8 @@ class MultipleInstanceTraining(object):
         self.Global_dE_Fun=None
         self._Optimizer=None
         self.TrainedVariables=[]
+        self.TFWriter=None
+        self.TFSummary=None
 
     def initialize_multiple_instances(self,MakeAllVariable=True):
         """Initializes all instances with the same parameters."""
@@ -2071,24 +2022,26 @@ class MultipleInstanceTraining(object):
         SampleInstance = self.TrainingInstances[0]
         with _tf.Graph().as_default():
             with _tf.Session() as sess:
-                writer = _tf.summary.FileWriter(_os.path.join(self.SavingDirectory,"tf_summary"), sess.graph)
+
                 # Build nets
                 dE=[]
                 for i, Instance in enumerate(self.TrainingInstances):
-                    Instance._Session = sess
-                    if i == 0:
-                        if self.ModelDirectory is not None:
-                            Instance.expand_existing_net(ModelName=self.ModelDirectory, load_statistics=False)
+                    with _tf.name_scope("instance_"+str(i+1)):
+                        Instance._Session = sess
+                        if i == 0:
+                            if self.ModelDirectory is not None:
+                                Instance.expand_existing_net(ModelName=self.ModelDirectory, load_statistics=False)
+                            else:
+                                Instance.make_and_initialize_network()
+                            VariablesData = Instance._Net.VariablesDictionary
                         else:
-                            Instance.make_and_initialize_network()
-                        VariablesData = Instance._Net.VariablesDictionary
-                    else:
-                        Instance.make_and_initialize_network(VariablesData=VariablesData)
+                            Instance.make_and_initialize_network(VariablesData=VariablesData)
+                        with _tf.name_scope("global_cost_fun"):
+                            self.GlobalCostFun += Instance.CostFun
+                        dE.append(Instance._dE_Fun)
 
-                    self.GlobalCostFun += Instance.CostFun
-                    dE.append(Instance._dE_Fun)
-
-                self.Global_dE_Fun=_tf.reduce_mean(dE)
+                with _tf.name_scope("global_delta_e"):
+                    self.Global_dE_Fun=_tf.reduce_mean(dE)
 
                 decay_steps = self.TrainingInstances[0].LearningDecayEpochs
                 self.GlobalStep, self.GlobalLearningRateFun = _get_learning_rate(
@@ -2096,7 +2049,11 @@ class MultipleInstanceTraining(object):
                     self.GlobalLearningRateBounds, self.GlobalLearningRateValues)
 
                 # Set optimizer
-                self._Optimizer = SampleInstance.get_optimizer(self.GlobalCostFun, self.GlobalLearningRateFun)
+                with _tf.name_scope("optimizer"):
+                    self._Optimizer = SampleInstance.get_optimizer(self.GlobalCostFun, self.GlobalLearningRateFun)
+
+                self.TFWriter = _tf.summary.FileWriter(_os.path.join(self.SavingDirectory,"tf_summary"), sess.graph)
+                self.TFSummary = _tf.summary.merge_all()
 
                 sess.run(_tf.global_variables_initializer())
 
@@ -2113,8 +2070,18 @@ class MultipleInstanceTraining(object):
                         GlobalValidationData+=ValidationData
 
                     #print(GlobalTrainingData)
-                    TrainingCost=_train_step(sess,self._Optimizer,self.GlobalCostFun,GlobalLayers,GlobalTrainingData)
-                    ValidationCost=_validate_step(sess,self.GlobalCostFun,GlobalLayers,GlobalValidationData)
+                    TrainingCost,summary=_train_step(sess,self._Optimizer,
+                                             self.GlobalCostFun,
+                                             GlobalLayers,
+                                             GlobalTrainingData,
+                                             self.TFSummary)
+                    ValidationCost=_validate_step(sess,
+                                                  self.GlobalCostFun,
+                                                  GlobalLayers,
+                                                  GlobalValidationData)
+                    #update tensorflow summary
+                    self.TFWriter.add_summary(summary,global_step=self.GlobalStep.eval(session=sess))
+                    #calculate delta e
                     DeltaE=eval_tensor(sess,self.Global_dE_Fun,GlobalLayers,GlobalTrainingData)
                     self.GlobalTrainingCosts += [TrainingCost]
                     self.GlobalValidationCosts += [ValidationCost]
@@ -2170,6 +2137,67 @@ class MultipleInstanceTraining(object):
 
 
 class Deprecated(object):
+
+    def _train_atomic_networks(
+            self,
+            TrainingInputs,
+            TrainingOutputs,
+            ValidationInputs=None,
+            ValidationOutputs=None):
+        """Trains one step for an atomic network.
+        First it prepares the input data and the placeholder and then executes
+        a training step.
+        Returns:
+            the current session,the trained network and the cost for the
+        training step """
+
+        TrainCost = []
+        ValidationCost = []
+        ValidationCost = 0
+        TrainCost = 0
+        # Prepare data environment for training
+        Layers, TrainingData = self._Net.prepare_data_environment(
+            TrainingInputs, self._OutputLayer, TrainingOutputs)
+        # Make validation input vector
+        if len(ValidationInputs) > 0:
+            ValidationData = self._Net.make_data_for_atomicNNs(
+                ValidationInputs, ValidationOutputs)
+        else:
+            ValidationData = None
+
+        print("Started training...")
+        # Start training of the atomic network
+        for i in range(self.Epochs):
+            Cost = _train_step(self._Session,self._Optimizer,self.CostFun,Layers, TrainingData)
+            TrainCost.append(sum(Cost) / len(Cost))
+            # check validation dataset error
+            if ValidationData is not None:
+                temp_val = self._validate_step(Layers, ValidationData)
+                ValidationCost.append(sum(temp_val) / len(temp_val))
+
+            if i % max(int(self.Epochs / 100), 1) == 0:
+                if self.MakePlot:
+                    if i == 0:
+                        figure, ax, TrainPlot, ValPlot, RunningMeanPlot = \
+                        _initialize_cost_plot(
+                            TrainCost, ValidationCost)
+                    else:
+                        _update_cost_plot(
+                            figure,
+                            ax,
+                            TrainPlot,
+                            TrainCost,
+                            ValPlot,
+                            ValidationCost,
+                            RunningMeanPlot)
+
+                print(str(100 * i / self.Epochs) + " %")
+
+            if TrainCost[-1] < self.CostCriterion:
+                print(TrainCost[-1])
+                break
+
+        return TrainCost, ValidationCost
 
     def start_training(self):
         """Start the training without the use of batch training.

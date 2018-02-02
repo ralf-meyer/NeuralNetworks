@@ -35,33 +35,33 @@ class _StandardAtomicNetwork(_AtomicNetwork):
 
         Returns:
             A tensor which represents the force output of the network"""
+        with _tf.name_scope("force"):
+            F = None
+            Fi = []
+            for i in range(0, len(self.AtomicNNs)):
+                AtomicNet = self.AtomicNNs[i]
+                Type = AtomicNet[0]
+                G_Input = AtomicNet[2]
+                dGij_dxk = AtomicNet[3]
+                norm = AtomicNet[4]
+                dGij_dxk_t = _tf.transpose(dGij_dxk, perm=[0, 2, 1])
+                Gradient = _tf.gradients(NetInstance._TotalEnergy, G_Input)
+                dEi_dGij_n = _tf.multiply(Gradient, norm)
+                dEi_dGij = _tf.reshape(
+                    dEi_dGij_n, [-1, NetInstance.SizeOfInputsPerType[Type], 1])
+                mul = _tf.matmul(dGij_dxk_t, dEi_dGij)
+                dim_red = _tf.reshape(mul,
+                                      [-1,sum(NetInstance.NumberOfAtomsPerType) * 3])
 
-        F = None
-        Fi = []
-        for i in range(0, len(self.AtomicNNs)):
-            AtomicNet = self.AtomicNNs[i]
-            Type = AtomicNet[0]
-            G_Input = AtomicNet[2]
-            dGij_dxk = AtomicNet[3]
-            norm = AtomicNet[4]
-            dGij_dxk_t = _tf.transpose(dGij_dxk, perm=[0, 2, 1])
-            Gradient = _tf.gradients(NetInstance._TotalEnergy, G_Input)
-            dEi_dGij_n = _tf.multiply(Gradient, norm)
-            dEi_dGij = _tf.reshape(
-                dEi_dGij_n, [-1, NetInstance.SizeOfInputsPerType[Type], 1])
-            mul = _tf.matmul(dGij_dxk_t, dEi_dGij)
-            dim_red = _tf.reshape(mul,
-                                  [-1,sum(NetInstance.NumberOfAtomsPerType) * 3])
+                if i == 0:
+                    F = dim_red
+                else:
+                    F += dim_red
+                Fi.append(dim_red)
 
-            if i == 0:
-                F = dim_red
-            else:
-                F += dim_red
-            Fi.append(dim_red)
-
-        F=_tf.scalar_mul(-1,F)
-        F=_tf.where(_tf.is_finite(F),F,_tf.zeros_like(F))
-        return F, Fi
+            F=_tf.scalar_mul(-1,F)
+            F=_tf.where(_tf.is_finite(F),F,_tf.zeros_like(F))
+            return F, Fi
 
     def energy_of_all_atomic_networks(self):
         """This function constructs the energy expression for
@@ -72,22 +72,22 @@ class _StandardAtomicNetwork(_AtomicNetwork):
                         the partitioned network.
             AllEnergies: A list of tensors which represent the single Network
                         energy contributions."""
+        with _tf.name_scope("e_predict"):
+            Prediction = 0
+            AllEnergies = []
 
-        Prediction = 0
-        AllEnergies = []
+            for i in range(0, len(self.AtomicNNs)):
+                # Get network data
+                AtomicNetwork = self.AtomicNNs[i]
+                Network = AtomicNetwork[1]
+                E_no_nan = _tf.where(_tf.is_nan(Network),
+                                     _tf.zeros_like(Network), Network)
+                # Get input data for network
+                AllEnergies.append(E_no_nan)
 
-        for i in range(0, len(self.AtomicNNs)):
-            # Get network data
-            AtomicNetwork = self.AtomicNNs[i]
-            Network = AtomicNetwork[1]
-            E_no_nan = _tf.where(_tf.is_nan(Network),
-                                 _tf.zeros_like(Network), Network)
-            # Get input data for network
-            AllEnergies.append(E_no_nan)
+            Prediction = _tf.add_n(AllEnergies)
 
-        Prediction = _tf.add_n(AllEnergies)
-
-        return Prediction, AllEnergies
+            return Prediction, AllEnergies
 
     def get_trained_variables(self, Session,atom_types=[]):
         """Prepares the data for saving.
@@ -252,73 +252,73 @@ class _StandardAtomicNetwork(_AtomicNetwork):
                     Dropout = NetInstance.Dropout[-1]
 
                 for k in range(0, NetInstance.NumberOfAtomsPerType[i]):
+                    with _tf.name_scope("network_type_"+str(i+1)+"_atom_"+str(k)):
+                        # Make hidden layers
+                        HiddenLayers = list()
+                        Structure = NetInstance.Structures[i]
 
-                    # Make hidden layers
-                    HiddenLayers = list()
-                    Structure = NetInstance.Structures[i]
+                        RawWeights = NetInstance._WeightData[i]
+                        RawBias = NetInstance._BiasData[i]
 
-                    RawWeights = NetInstance._WeightData[i]
-                    RawBias = NetInstance._BiasData[i]
+                        for j in range(1, len(Structure)):
+                            NrIn = Structure[j - 1]
+                            NrHidden = Structure[j]
+                            # fill old weights in new structure
+                            ThisWeightData = RawWeights[j - 1]
+                            ThisBiasData = RawBias[j - 1]
 
-                    for j in range(1, len(Structure)):
-                        NrIn = Structure[j - 1]
-                        NrHidden = Structure[j]
-                        # fill old weights in new structure
-                        ThisWeightData = RawWeights[j - 1]
-                        ThisBiasData = RawBias[j - 1]
+                            HiddenLayers.append(
+                                self._construct_hidden_layer(
+                                    NrIn,
+                                    NrHidden,
+                                    NetInstance.WeightType,
+                                    ThisWeightData,
+                                    NetInstance.BiasType,
+                                    ThisBiasData,
+                                    NetInstance.MakeAllVariable))
 
-                        HiddenLayers.append(
-                            self._construct_hidden_layer(
-                                NrIn,
-                                NrHidden,
-                                NetInstance.WeightType,
-                                ThisWeightData,
-                                NetInstance.BiasType,
-                                ThisBiasData,
-                                NetInstance.MakeAllVariable))
-
-                    # Make input layer
-                    if len(NetInstance._WeightData) != 0:
-                        NrInputs = NetInstance._WeightData[i][0].shape[0]
-                    else:
-                        NrInputs = Structure[0]
-
-                    InputLayer = self._construct_input_layer(NrInputs)
-                    # Connect input to first hidden layer
-                    FirstWeights = HiddenLayers[0][0]
-                    FirstBiases = HiddenLayers[0][1]
-                    Network = self._connect_layers(
-                        InputLayer,
-                        FirstWeights,
-                        FirstBiases,
-                        NetInstance.ActFun,
-                        NetInstance.ActFunParam,
-                        Dropout)
-
-                    for l in range(1, len(HiddenLayers)):
-                        # Connect ouput of in layer to second hidden layer
-
-                        if l == len(HiddenLayers) - 1:
-                            Weights = HiddenLayers[l][0]
-                            Biases = HiddenLayers[l][1]
-                            Network = self._connect_layers(
-                                Network, Weights, Biases, "none", NetInstance.ActFunParam, Dropout)
+                        # Make input layer
+                        if len(NetInstance._WeightData) != 0:
+                            NrInputs = NetInstance._WeightData[i][0].shape[0]
                         else:
-                            Weights = HiddenLayers[l][0]
-                            Biases = HiddenLayers[l][1]
-                            Network = self._connect_layers(
-                                Network, Weights, Biases, NetInstance.ActFun, NetInstance.ActFunParam, Dropout)
+                            NrInputs = Structure[0]
 
-                    if NetInstance.UseForce:
-                        InputForce = _tf.placeholder(
-                            _tf.float64, shape=[None, NrInputs, 3 * sum(NetInstance.NumberOfAtomsPerType)])
-                        Normalization = _tf.placeholder(
-                            _tf.float64, shape=[None, NrInputs])
-                        AtomicNNs.append(
-                            [i, Network, InputLayer, InputForce, Normalization])
-                    else:
-                        AtomicNNs.append(
-                            [i, Network, InputLayer])
+                        InputLayer = self._construct_input_layer(NrInputs)
+                        # Connect input to first hidden layer
+                        FirstWeights = HiddenLayers[0][0]
+                        FirstBiases = HiddenLayers[0][1]
+                        Network = self._connect_layers(
+                            InputLayer,
+                            FirstWeights,
+                            FirstBiases,
+                            NetInstance.ActFun,
+                            NetInstance.ActFunParam,
+                            Dropout)
+
+                        for l in range(1, len(HiddenLayers)):
+                            # Connect ouput of in layer to second hidden layer
+
+                            if l == len(HiddenLayers) - 1:
+                                Weights = HiddenLayers[l][0]
+                                Biases = HiddenLayers[l][1]
+                                Network = self._connect_layers(
+                                    Network, Weights, Biases, "none", NetInstance.ActFunParam, Dropout)
+                            else:
+                                Weights = HiddenLayers[l][0]
+                                Biases = HiddenLayers[l][1]
+                                Network = self._connect_layers(
+                                    Network, Weights, Biases, NetInstance.ActFun, NetInstance.ActFunParam, Dropout)
+
+                        if NetInstance.UseForce:
+                            InputForce = _tf.placeholder(
+                                _tf.float64, shape=[None, NrInputs, 3 * sum(NetInstance.NumberOfAtomsPerType)])
+                            Normalization = _tf.placeholder(
+                                _tf.float64, shape=[None, NrInputs])
+                            AtomicNNs.append(
+                                [i, Network, InputLayer, InputForce, Normalization])
+                        else:
+                            AtomicNNs.append(
+                                [i, Network, InputLayer])
         else:
             print("No network data found!")
 
@@ -339,10 +339,11 @@ class _StandardAtomicNetwork(_AtomicNetwork):
                 NetInstance.NumberOfAtomsPerType):
             raise ValueError(
                 "Length of Structures does not match length of NumberOfAtomsPerType")
-
+        ct=1
         # create layers for the different atom types
         for i in range(0, len(NetInstance.Structures)):
             Structure = NetInstance.Structures[i]
+
             if VariablesData == None:
                 # Make hidden layers
                 HiddenLayers = []
@@ -365,7 +366,7 @@ class _StandardAtomicNetwork(_AtomicNetwork):
                                 tempWeights, tempBias = self._construct_hidden_layer(NrIn, NrHidden, NetInstance.WeightType,
                                                                                 [], NetInstance.BiasType, [],
                                                                                 True, Mean=NetInstance.InitMean,
-                                                                                Stddev=NetInstance.InitStddev)
+                                                                                Stddev=NetInstance.InitStddev,i=i,j=j)
 
                                 tempWeights=self._construct_pass_through_weights(tempWeights,OldBiasNr)
 
@@ -407,7 +408,9 @@ class _StandardAtomicNetwork(_AtomicNetwork):
                                             ThisBiasData,
                                             NetInstance.MakeAllVariable,
                                             Stddev=NetInstance.InitStddev,
-                                            Mean=NetInstance.InitMean))
+                                            Mean=NetInstance.InitMean,
+                                            i=i,
+                                            j=j))
                                 else:#if the new net is deeper then the loaded one add a trainable layer
                                     HiddenLayers.append(
                                         self._construct_hidden_layer(
@@ -418,7 +421,10 @@ class _StandardAtomicNetwork(_AtomicNetwork):
                                             NetInstance.BiasType,
                                             MakeAllVariable=True,
                                             Stddev=NetInstance.InitStddev,
-                                            Mean=NetInstance.InitMean))
+                                            Mean=NetInstance.InitMean,
+                                            i = i,
+                                            j = j
+                                            ))
 
                 else:#if no net was loaded
                     for j in range(1, len(Structure)):
@@ -438,7 +444,9 @@ class _StandardAtomicNetwork(_AtomicNetwork):
                                     NetInstance.BiasType,
                                     MakeAllVariable=NetInstance.MakeAllVariable,
                                     Stddev=NetInstance.InitStddev,
-                                    Mean=NetInstance.InitMean
+                                    Mean=NetInstance.InitMean,
+                                    i=i,
+                                    j=j
                                 ))
 
                 AllHiddenLayers.append(HiddenLayers)
@@ -453,7 +461,8 @@ class _StandardAtomicNetwork(_AtomicNetwork):
                 else:
                     NrInputs = Structure[0]
                 Dropout=NetInstance.Dropout[0]
-                InputLayer = self._construct_input_layer(NrInputs)
+                with _tf.name_scope("t_"+str(i+1)+"_atom_"+str(k+1)):
+                    InputLayer = self._construct_input_layer(NrInputs)
                 # Connect input to first hidden layer
                 FirstWeights = HiddenLayers[0][0]
                 NetInstance._FirstWeights.append(FirstWeights)
@@ -464,7 +473,9 @@ class _StandardAtomicNetwork(_AtomicNetwork):
                     FirstBiases,
                     NetInstance.ActFun,
                     NetInstance.ActFunParam,
-                    Dropout)
+                    Dropout,
+                    i=ct,
+                    j=0)
 
                 for l in range(1, len(HiddenLayers)):
                     # Connect layers
@@ -477,16 +488,26 @@ class _StandardAtomicNetwork(_AtomicNetwork):
 
                     if l == len(HiddenLayers) - 1:
                         Network = self._connect_layers(
-                            Network, Weights, Biases, "none", NetInstance.ActFunParam, Dropout)
+                            Network, Weights, Biases, "none", NetInstance.ActFunParam, Dropout,i=ct)
+                        ct += 1
                     else:
                         Network = self._connect_layers(
-                            Network, Weights, Biases, NetInstance.ActFun, NetInstance.ActFunParam, Dropout)
+                            Network,
+                            Weights,
+                            Biases,
+                            NetInstance.ActFun,
+                            NetInstance.ActFunParam,
+                            Dropout,
+                            i=ct,
+                            j=l)
 
                 if NetInstance.UseForce:
-                    InputForce = _tf.placeholder(
-                        _tf.float64, shape=[None, NrInputs, 3 * sum(NetInstance.NumberOfAtomsPerType)])
-                    Normalization = _tf.placeholder(
-                        _tf.float64, shape=[None, NrInputs])
+                    with _tf.name_scope("dG"):
+                        InputForce = _tf.placeholder(
+                            _tf.float64, shape=[None, NrInputs, 3 * sum(NetInstance.NumberOfAtomsPerType)])
+                    with _tf.name_scope("norm"):
+                        Normalization = _tf.placeholder(
+                            _tf.float64, shape=[None, NrInputs])
                     AtomicNNs.append(
                         [i, Network, InputLayer, InputForce, Normalization])
                 else:

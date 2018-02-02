@@ -26,7 +26,9 @@ class _AtomicNetwork(object):
             BiasData=[],
             MakeAllVariable=False,
             Mean=0.0,
-            Stddev=1.0):
+            Stddev=1.0,
+            i=0,
+            j=0):
         """Constructs the weights and biases for this layer with the specified
         initialization.
 
@@ -50,142 +52,147 @@ class _AtomicNetwork(object):
             initialization.
             Stddev (float):Standard deviation for the normal distribution of the
             initialization.
+            i (int): Network number
+            j (int): layer number
 
         Returns:
             Weights (tensor): Weights tensor
             Biases (tensor):Biases tensor
         """
-        if len(WeightData) == 0:
-            if WeightType is not None:
-                if WeightType == "zeros":
-                    Weights = _tf.Variable(_tf.zeros(
-                        [PreviousLayerUnits, ThisHiddenUnits],
-                        dtype=_tf.float64), dtype=_tf.float64,
-                        name="variable")
-                elif WeightType == "ones":
-                    Weights = _tf.Variable(_tf.ones(
-                        [PreviousLayerUnits, ThisHiddenUnits],
-                        dtype=_tf.float64), dtype=_tf.float64,
-                        name="variable")
-                elif WeightType == "fill":
-                    Weights = _tf.Variable(_tf.fill(
-                        [PreviousLayerUnits, ThisHiddenUnits],
-                        dtype=_tf.float64),
-                        dtype=_tf.float64,
-                        name="variable")
-                elif WeightType == "random_normal":
-                    Weights = _tf.Variable(
-                        _tf.random_normal(
-                            [
-                                PreviousLayerUnits,
-                                ThisHiddenUnits],
-                            mean=Mean,
-                            stddev=Stddev,
+        with _tf.name_scope("t_"+str(i+1)+"_layer_"+str(j)):
+            if len(WeightData) == 0:
+                if WeightType is not None:
+                    if WeightType == "zeros":
+                        Weights = _tf.Variable(_tf.zeros(
+                            [PreviousLayerUnits, ThisHiddenUnits],
+                            dtype=_tf.float64), dtype=_tf.float64,
+                            name="variable")
+                    elif WeightType == "ones":
+                        Weights = _tf.Variable(_tf.ones(
+                            [PreviousLayerUnits, ThisHiddenUnits],
+                            dtype=_tf.float64), dtype=_tf.float64,
+                            name="variable")
+                    elif WeightType == "fill":
+                        Weights = _tf.Variable(_tf.fill(
+                            [PreviousLayerUnits, ThisHiddenUnits],
                             dtype=_tf.float64),
-                        dtype=_tf.float64,
-                        name="variable")
-                elif WeightType == "truncated_normal":
-                    Weights = _tf.Variable(
-                        _tf.truncated_normal(
-                            [
-                                PreviousLayerUnits,
-                                ThisHiddenUnits],
-                            mean=Mean,
-                            stddev=Stddev,
-                            dtype=_tf.float64),
-                        dtype=_tf.float64,
-                        name="variable")
-                elif WeightType == "random_uniform":
-                    Weights = _tf.Variable(_tf.random_uniform(
-                        [PreviousLayerUnits, ThisHiddenUnits]), dtype=_tf.float64,
-                        name="variable")
-                elif WeightType == "random_shuffle":
-                    Weights = _tf.Variable(_tf.random_shuffle(
-                        [PreviousLayerUnits, ThisHiddenUnits], dtype=_tf.float64), dtype=_tf.float64,
-                        name="variable")
-                elif WeightType == "random_crop":
-                    Weights = _tf.Variable(_tf.random_crop(
-                        [PreviousLayerUnits, ThisHiddenUnits], dtype=_tf.float64), dtype=_tf.float64,
-                        name="variable")
-                elif WeightType == "random_gamma":
-                    Weights = _tf.Variable(_tf.random_gamma(
-                        [PreviousLayerUnits, ThisHiddenUnits], dtype=_tf.float64), dtype=_tf.float64,
-                        name="variable")
+                            dtype=_tf.float64,
+                            name="variable")
+                    elif WeightType == "random_normal":
+                        Weights = _tf.Variable(
+                            _tf.random_normal(
+                                [
+                                    PreviousLayerUnits,
+                                    ThisHiddenUnits],
+                                mean=Mean,
+                                stddev=Stddev,
+                                dtype=_tf.float64),
+                            dtype=_tf.float64,
+                            name="variable")
+                    elif WeightType == "truncated_normal":
+                        Weights = _tf.Variable(
+                            _tf.truncated_normal(
+                                [
+                                    PreviousLayerUnits,
+                                    ThisHiddenUnits],
+                                mean=Mean,
+                                stddev=Stddev,
+                                dtype=_tf.float64),
+                            dtype=_tf.float64,
+                            name="variable")
+                    elif WeightType == "random_uniform":
+                        Weights = _tf.Variable(_tf.random_uniform(
+                            [PreviousLayerUnits, ThisHiddenUnits]), dtype=_tf.float64,
+                            name="variable")
+                    elif WeightType == "random_shuffle":
+                        Weights = _tf.Variable(_tf.random_shuffle(
+                            [PreviousLayerUnits, ThisHiddenUnits], dtype=_tf.float64), dtype=_tf.float64,
+                            name="variable")
+                    elif WeightType == "random_crop":
+                        Weights = _tf.Variable(_tf.random_crop(
+                            [PreviousLayerUnits, ThisHiddenUnits], dtype=_tf.float64), dtype=_tf.float64,
+                            name="variable")
+                    elif WeightType == "random_gamma":
+                        Weights = _tf.Variable(_tf.random_gamma(
+                            [PreviousLayerUnits, ThisHiddenUnits], dtype=_tf.float64), dtype=_tf.float64,
+                            name="variable")
+                    else:
+                        # Assume random weights if no WeightType is given
+                        Weights = _tf.Variable(_tf.random_uniform(
+                            [PreviousLayerUnits, ThisHiddenUnits], dtype=_tf.float64), dtype=_tf.float64,
+                            name="variable")
                 else:
                     # Assume random weights if no WeightType is given
                     Weights = _tf.Variable(_tf.random_uniform(
                         [PreviousLayerUnits, ThisHiddenUnits], dtype=_tf.float64), dtype=_tf.float64,
                         name="variable")
             else:
-                # Assume random weights if no WeightType is given
-                Weights = _tf.Variable(_tf.random_uniform(
-                    [PreviousLayerUnits, ThisHiddenUnits], dtype=_tf.float64), dtype=_tf.float64,
-                    name="variable")
-        else:
-            if not MakeAllVariable:
-                Weights = _tf.constant(
-                    WeightData, dtype=_tf.float64, name="constant")
+                if not MakeAllVariable:
+                    Weights = _tf.constant(
+                        WeightData, dtype=_tf.float64, name="constant")
+                else:
+                    Weights = _tf.Variable(
+                        WeightData, dtype=_tf.float64, name="variable")
+            # Construct the bias for this layer
+            if len(BiasData) != 0:
+
+                # if not MakeAllVariable:
+                #     Biases = _tf.constant(BiasData, dtype=_tf.float64, name="bias")
+                # else:
+                Biases = _tf.Variable(BiasData, dtype=_tf.float64, name="bias")
+
             else:
-                Weights = _tf.Variable(
-                    WeightData, dtype=_tf.float64, name="variable")
-        # Construct the bias for this layer
-        if len(BiasData) != 0:
+                if BiasType == "zeros":
+                    Biases = _tf.Variable(
+                        _tf.zeros([ThisHiddenUnits], dtype=_tf.float64), dtype=_tf.float64, name="bias")
+                elif BiasType == "ones":
+                    Biases = _tf.Variable(
+                        _tf.ones([ThisHiddenUnits], dtype=_tf.float64), dtype=_tf.float64, name="bias")
+                elif BiasType == "fill":
+                    Biases = _tf.Variable(
+                        _tf.fill(
+                            [ThisHiddenUnits],
+                            BiasData,
+                            dtype=_tf.float64),
+                        dtype=_tf.float64,
+                        name="bias")
+                elif BiasType == "random_normal":
+                    Biases = _tf.Variable(
+                        _tf.random_normal(
+                            [ThisHiddenUnits],
+                            mean=Mean,
+                            stddev=Stddev,
+                            dtype=_tf.float64),
+                        dtype=_tf.float64,
+                        name="bias")
+                elif BiasType == "truncated_normal":
+                    Biases = _tf.Variable(
+                        _tf.truncated_normal(
+                            [ThisHiddenUnits],
+                            mean=Mean,
+                            stddev=Stddev,
+                            dtype=_tf.float64),
+                        dtype=_tf.float64,
+                        name="bias")
+                elif BiasType == "random_uniform":
+                    Biases = _tf.Variable(_tf.random_uniform(
+                        [ThisHiddenUnits], dtype=_tf.float64), dtype=_tf.float64, name="bias")
+                elif BiasType == "random_shuffle":
+                    Biases = _tf.Variable(_tf.random_shuffle(
+                        [ThisHiddenUnits], dtype=_tf.float64), dtype=_tf.float64, name="bias")
+                elif BiasType == "random_crop":
+                    Biases = _tf.Variable(_tf.random_crop(
+                        [ThisHiddenUnits], BiasData, dtype=_tf.float64), dtype=_tf.float64, name="bias")
+                elif BiasType == "random_gamma":
+                    Biases = _tf.Variable(_tf.random_gamma(
+                        [ThisHiddenUnits], BiasData, dtype=_tf.float64), dtype=_tf.float64, name="bias")
+                else:
+                    Biases = _tf.Variable(_tf.random_uniform(
+                        [ThisHiddenUnits], dtype=_tf.float64), dtype=_tf.float64, name="bias")
 
-            # if not MakeAllVariable:
-            #     Biases = _tf.constant(BiasData, dtype=_tf.float64, name="bias")
-            # else:
-            Biases = _tf.Variable(BiasData, dtype=_tf.float64, name="bias")
-
-        else:
-            if BiasType == "zeros":
-                Biases = _tf.Variable(
-                    _tf.zeros([ThisHiddenUnits], dtype=_tf.float64), dtype=_tf.float64, name="bias")
-            elif BiasType == "ones":
-                Biases = _tf.Variable(
-                    _tf.ones([ThisHiddenUnits], dtype=_tf.float64), dtype=_tf.float64, name="bias")
-            elif BiasType == "fill":
-                Biases = _tf.Variable(
-                    _tf.fill(
-                        [ThisHiddenUnits],
-                        BiasData,
-                        dtype=_tf.float64),
-                    dtype=_tf.float64,
-                    name="bias")
-            elif BiasType == "random_normal":
-                Biases = _tf.Variable(
-                    _tf.random_normal(
-                        [ThisHiddenUnits],
-                        mean=Mean,
-                        stddev=Stddev,
-                        dtype=_tf.float64),
-                    dtype=_tf.float64,
-                    name="bias")
-            elif BiasType == "truncated_normal":
-                Biases = _tf.Variable(
-                    _tf.truncated_normal(
-                        [ThisHiddenUnits],
-                        mean=Mean,
-                        stddev=Stddev,
-                        dtype=_tf.float64),
-                    dtype=_tf.float64,
-                    name="bias")
-            elif BiasType == "random_uniform":
-                Biases = _tf.Variable(_tf.random_uniform(
-                    [ThisHiddenUnits], dtype=_tf.float64), dtype=_tf.float64, name="bias")
-            elif BiasType == "random_shuffle":
-                Biases = _tf.Variable(_tf.random_shuffle(
-                    [ThisHiddenUnits], dtype=_tf.float64), dtype=_tf.float64, name="bias")
-            elif BiasType == "random_crop":
-                Biases = _tf.Variable(_tf.random_crop(
-                    [ThisHiddenUnits], BiasData, dtype=_tf.float64), dtype=_tf.float64, name="bias")
-            elif BiasType == "random_gamma":
-                Biases = _tf.Variable(_tf.random_gamma(
-                    [ThisHiddenUnits], BiasData, dtype=_tf.float64), dtype=_tf.float64, name="bias")
-            else:
-                Biases = _tf.Variable(_tf.random_uniform(
-                    [ThisHiddenUnits], dtype=_tf.float64), dtype=_tf.float64, name="bias")
-
-        return Weights, Biases
+            _tf.summary.histogram("t_"+str(i+1)+"_layer_"+str(j)+"_weights",Weights)
+            _tf.summary.histogram("t_" + str(i + 1) + "_layer_" + str(j) + "_biases", Biases)
+            return Weights, Biases
 
     def _construct_output_layer(self,OutputUnits):
         """#Constructs the output layer for the NN.
@@ -245,7 +252,7 @@ class _AtomicNetwork(object):
         return weights
 
     def _connect_layers(self,InputsForLayer, ThisLayerWeights,
-                        ThisLayerBias, ActFun=None, FunParam=None, Dropout=0):
+                        ThisLayerBias, ActFun=None, FunParam=None, Dropout=0,i=0,j=0):
         """Connect the outputs of the layer before with the current layer using an
         activation function and matrix multiplication.
 
@@ -259,46 +266,59 @@ class _AtomicNetwork(object):
                     none
             FunParam(parameter): Parameter for the specified activation function
             Dropout (float):Dropout (0-1 =>0%-100%) applied after this layer.
+            i (int): Network number
+            j (int): layer number
 
         Returns:
             Out (tensor): The connected tensor."""
         if ActFun is not None:
             if ActFun == "sigmoid":
-                Out = _tf.nn.sigmoid(_tf.matmul(
-                    InputsForLayer, ThisLayerWeights) + ThisLayerBias)
+                with _tf.name_scope("net_"+str(i+1)+"_act_fun_"+str(j+1)):
+                    Out = _tf.nn.sigmoid(_tf.matmul(
+                        InputsForLayer, ThisLayerWeights) + ThisLayerBias)
             elif ActFun == "tanh":
-                Out = _tf.nn.tanh(_tf.matmul(
-                    InputsForLayer, ThisLayerWeights) + ThisLayerBias)
+                with _tf.name_scope("net_" + str(i + 1) + "_act_fun_" + str(j+1)):
+                    Out = _tf.nn.tanh(_tf.matmul(
+                        InputsForLayer, ThisLayerWeights) + ThisLayerBias)
             elif ActFun == "relu":
-                Out = _tf.nn.relu(_tf.matmul(
-                    InputsForLayer, ThisLayerWeights) + ThisLayerBias)
+                with _tf.name_scope("net_" + str(i + 1) + "_act_fun_" + str(j+1)):
+                    Out = _tf.nn.relu(_tf.matmul(
+                        InputsForLayer, ThisLayerWeights) + ThisLayerBias)
             elif ActFun == "relu6":
-                Out = _tf.nn.relu6(_tf.matmul(
-                    InputsForLayer, ThisLayerWeights) + ThisLayerBias)
+                with _tf.name_scope("net_" + str(i + 1) + "_act_fun_" + str(j+1)):
+                    Out = _tf.nn.relu6(_tf.matmul(
+                        InputsForLayer, ThisLayerWeights) + ThisLayerBias)
             elif ActFun == "crelu":
-                Out = _tf.nn.crelu(_tf.matmul(
-                    InputsForLayer, ThisLayerWeights) + ThisLayerBias)
+                with _tf.name_scope("net_" + str(i + 1) + "_act_fun_" + str(j+1)):
+                    Out = _tf.nn.crelu(_tf.matmul(
+                        InputsForLayer, ThisLayerWeights) + ThisLayerBias)
             elif ActFun == "elu":
-                Out = _tf.nn.elu(_tf.matmul(
-                    InputsForLayer, ThisLayerWeights) + ThisLayerBias)
+                with _tf.name_scope("net_" + str(i + 1) + "_act_fun_" + str(j+1)):
+                    Out = _tf.nn.elu(_tf.matmul(
+                        InputsForLayer, ThisLayerWeights) + ThisLayerBias)
             elif ActFun == "softplus":
-                Out = _tf.nn.softplus(_tf.matmul(
-                    InputsForLayer, ThisLayerWeights) + ThisLayerBias)
+                with _tf.name_scope("net_" + str(i + 1) + "_act_fun_" + str(j+1)):
+                    Out = _tf.nn.softplus(_tf.matmul(
+                        InputsForLayer, ThisLayerWeights) + ThisLayerBias)
             elif ActFun == "dropout":
-                Out = _tf.nn.dropout(_tf.matmul(
-                    InputsForLayer, ThisLayerWeights) + ThisLayerBias, FunParam)
+                with _tf.name_scope("net_" + str(i + 1) + "_act_fun_" + str(j+1)):
+                    Out = _tf.nn.dropout(_tf.matmul(
+                        InputsForLayer, ThisLayerWeights) + ThisLayerBias, FunParam)
             elif ActFun == "bias_add":
-                Out = _tf.nn.bias_add(_tf.matmul(
-                    InputsForLayer, ThisLayerWeights) + ThisLayerBias, FunParam)
+                with _tf.name_scope("net_" + str(i + 1) + "_act_fun_" + str(j+1)):
+                    Out = _tf.nn.bias_add(_tf.matmul(
+                        InputsForLayer, ThisLayerWeights) + ThisLayerBias, FunParam)
             elif ActFun == "none":
-                Out = _tf.matmul(InputsForLayer, ThisLayerWeights) + ThisLayerBias
+                with _tf.name_scope("E_"+str(i)):
+                    Out = _tf.matmul(InputsForLayer, ThisLayerWeights) + ThisLayerBias
         else:
-            Out = _tf.matmul(InputsForLayer, ThisLayerWeights) + ThisLayerBias
-
+            with _tf.name_scope("E_" + str(i)):
+                Out = _tf.matmul(InputsForLayer, ThisLayerWeights) + ThisLayerBias
         if Dropout != 0:
             # Apply dropout between layers
-            Out = _tf.nn.dropout(Out, Dropout)
-
+            with _tf.name_scope("net_" + str(i + 1) + "_act_fun_" + str(j+1)):
+                Out = _tf.nn.dropout(Out, Dropout)
+        _tf.summary.histogram("net_" + str(i + 1) + "_act_fun_" + str(j+1),Out)
         return Out
 
     def make_feed_forward_neuralnetwork(self,
