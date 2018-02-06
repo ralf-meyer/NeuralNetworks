@@ -343,7 +343,6 @@ class _StandardAtomicNetwork(_AtomicNetwork):
         # create layers for the different atom types
         for i in range(0, len(NetInstance.Structures)):
             Structure = NetInstance.Structures[i]
-
             if VariablesData == None:
                 # Make hidden layers
                 HiddenLayers = []

@@ -50,7 +50,7 @@ def _initialize_delta_e_plot(delta_e):
     ax.autoscale_view()
     ax.set_xlabel("batches")
     ax.set_ylabel("$\Delta$E")
-    ax.set_title("Averaged energy difference /eV")
+    ax.set_title("Averaged energy difference per atom /eV")
     fig.legend(handles=[de_plot],labels=["$\Delta$E"], loc=1)
     # We need to draw *and* flush
     fig.canvas.draw()

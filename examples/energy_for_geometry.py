@@ -15,13 +15,13 @@ energies=np.asarray(input_reader.energies)
 Training=NeuralNetworkUtilities.AtomicNeuralNetInstance()
 Training.TextOutput=False
 Training.CalcDatasetStatistics=False
-Training.prepare_evaluation("/home/afuchs/Documents/NiAu_Training/multi_more_radial_force2",nr_atoms_per_type=[1,146])
+Training.prepare_evaluation("/home/afuchs/Documents/NiAu_Training/multi_no_angular_force",nr_atoms_per_type=[1,146])
 #Training.create_eval_data(input_reader.geometries)
 #out=Training.eval_dataset_energy(Training.EvalData)
 out=[]
 for geometry in input_reader.geometries:
     out.append(Training.energy_for_geometry(geometry))
-offset=(-774.90234608*146+1*-185.29299722)*13.605698066
+offset=(-774.90203736*146+1*-185.29265964)*13.605698066
 ref=energies-offset
 res=out
 min_ref=energies-min(energies)

@@ -119,13 +119,13 @@ for i in range(0,len(Training.Atomtypes)):
 #Default trainings settings
 if pretraining:
     for i in range(len(Training.Atomtypes)):
-        Training.Structures.append([Training.SizeOfInputsPerType[i],80,60,1])
+        Training.Structures.append([Training.SizeOfInputsPerType[i],15,10,1])
     Training.Dropout = [0, 0.5, 0]
     Training.RegularizationParam = 0.1
     Training.MakeLastLayerConstant = True
 else:
     for i in range(len(Training.Atomtypes)):
-        Training.Structures.append([Training.SizeOfInputsPerType[i],80,60,40,20,1])
+        Training.Structures.append([Training.SizeOfInputsPerType[i],20,15,10,1])
     Training.RegularizationParam = 0.01
     Training.MakeLastLayerConstant = False
 
