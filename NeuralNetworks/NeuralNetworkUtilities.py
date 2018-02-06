@@ -340,6 +340,46 @@ def eval_tensor(Session,Tensor,Layers,Data):
                 i: d for i, d in zip(
                 Layers, Data)})
 
+def evaluate_all_data(TrainingInstances,ModelName):
+    """Evaluates all datapoints from all instances"""
+    ValidationPredictions=[]
+    ValidationTargets=[]
+    TrainingPredictions=[]
+    TrainingTargets=[]
+
+    for i,Instance in enumerate(TrainingInstances):
+        with _tf.name_scope("graph_instance_" + str(i)):
+            with _tf.Graph().as_default() as g_temp:
+                with _tf.Session(graph=g_temp) as sess:
+                    #Evaluate prediction for training batches
+                    Instance.expand_existing_net(ModelName=ModelName, load_statistics=False)
+                    Instance._TotalEnergy, _ = Instance._Net.energy_of_all_atomic_networks()
+                    sess.run(_tf.global_variables_initializer())
+                    NrAtoms=sum(Instance.NumberOfAtomsPerType)
+                    for j in range(0,Instance.NrOfTrainingBatches):
+                        if j == 0:
+                            Layers, TrainingData, _, _ = Instance._get_training_batch(j, j)
+                        else:
+                            TrainingData, rnd = Instance._get_training_batch(j, j)
+
+                        TrainingPredictions+=[energy[0]/NrAtoms for energy in eval_tensor(sess, Instance._TotalEnergy, Layers,TrainingData)]
+                        TrainingTargets+=[energy[0]/NrAtoms for energy in Instance._TrainingOutputs]
+
+                    #Evaluate predictions for validation batches
+                    for k in range(0,Instance.NrOfValidationBatches):
+                        ValidationData = Instance._get_validation_batch(k)
+                        ValidationPredictions += [energy[0]/NrAtoms for energy in eval_tensor(sess, Instance._TotalEnergy,Layers, ValidationData)]
+                        ValidationTargets += [energy[0]/NrAtoms for energy in Instance._ValidationOutputs]
+
+    _plt.figure()
+    _plt.scatter(TrainingPredictions,TrainingTargets)
+    _plt.scatter(ValidationPredictions,ValidationTargets)
+    _plt.legend(["Training data","Validation data"])
+    xy=_np.linspace(_np.min(TrainingPredictions)-0.1,_np.max(TrainingPredictions)+0.1,1000)
+    _plt.plot(xy,xy,'k')
+    _plt.xlabel("eV")
+    _plt.ylabel("eV")
+
 
 class AtomicNeuralNetInstance(object):
     """This class implements all the properties and methods for training and
@@ -2092,46 +2132,6 @@ class MultipleInstanceTraining(object):
 
         sess.run(_tf.global_variables_initializer())
 
-    def evaluate_all_data(self):
-        """Evaluates all datapoints from all instances"""
-        ValidationPredictions=[]
-        ValidationTargets=[]
-        TrainingPredictions=[]
-        TrainingTargets=[]
-
-        for i,Instance in enumerate(self.TrainingInstances):
-            with _tf.name_scope("graph_instance_" + str(i)):
-                with _tf.Graph().as_default() as g_temp:
-                    with _tf.Session(graph=g_temp) as sess:
-                        #Evaluate prediction for training batches
-                        Instance.expand_existing_net(ModelName=self.ModelDirectory, load_statistics=False)
-                        Instance._TotalEnergy, _ = Instance._Net.energy_of_all_atomic_networks()
-                        sess.run(_tf.global_variables_initializer())
-                        NrAtoms=sum(Instance.NumberOfAtomsPerType)
-                        for j in range(0,Instance.NrOfTrainingBatches):
-                            if j == 0:
-                                Layers, TrainingData, _, _ = Instance._get_training_batch(j, j)
-                            else:
-                                TrainingData, rnd = Instance._get_training_batch(j, j)
-
-                            TrainingPredictions+=[energy[0]/NrAtoms for energy in eval_tensor(sess, Instance._TotalEnergy, Layers,TrainingData)]
-                            TrainingTargets+=[energy[0]/NrAtoms for energy in Instance._TrainingOutputs]
-
-                        #Evaluate predictions for validation batches
-                        for k in range(0,Instance.NrOfValidationBatches):
-                            ValidationData = Instance._get_validation_batch(k)
-                            ValidationPredictions += [energy[0]/NrAtoms for energy in eval_tensor(sess, Instance._TotalEnergy,Layers, ValidationData)]
-                            ValidationTargets += [energy[0]/NrAtoms for energy in Instance._ValidationOutputs]
-
-        _plt.figure()
-        _plt.scatter(TrainingPredictions,TrainingTargets)
-        _plt.scatter(ValidationPredictions,ValidationTargets)
-        _plt.legend(["Training data","Validation data"])
-        xy=_np.linspace(_np.min(TrainingPredictions)-0.1,_np.max(TrainingPredictions)+0.1,1000)
-        _plt.plot(xy,xy,'k')
-        _plt.xlabel("eV")
-        _plt.ylabel("eV")
-
     def train_multiple_instances(self,ModelDirectory=None):
         """Trains each instance for EpochsPerCylce epochs then uses the resulting network
         as a basis for the next training instance.
@@ -2223,7 +2223,7 @@ class MultipleInstanceTraining(object):
                     DeltaE < self.Global_dE_Criterion or \
                                     i==self.GlobalEpochs-1:
                         print("Training finished!")
-                        self.evaluate_all_data()
+                        evaluate_all_data(self.TrainingInstances,ModelName=self.ModelDirectory)
 
 
 
