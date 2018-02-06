@@ -411,6 +411,8 @@ class AtomicNeuralNetInstance(object):
         self.Lambs = []
         self.Cutoff=7
         self.CutoffType="cos"
+        self.NrOfTrainingBatches=0
+        self.NrOfValidationBatches=0
         # Private variables
 
         # Class instances
@@ -424,6 +426,8 @@ class AtomicNeuralNetInstance(object):
         self._TrainingOutputs = []
         self._ValidationInputs = []
         self._ValidationOutputs = []
+        self.NormalizationTraining=[]
+        self.NormalizationValidation=[]
         self._ForceTrainingInput = []
         self._ForceValidationInput = []
         self._ForceTrainingOutput = []
@@ -909,6 +913,104 @@ class AtomicNeuralNetInstance(object):
 
         return Out
 
+    def _get_training_batch(self,i,j=-1):
+
+        if j==-1:
+            rnd = _rand.randint(0, self.NrOfTrainingBatches - 1)
+        else:
+            rnd=j
+        self._TrainingInputs = self.TrainingBatches[rnd][0]
+        self._TrainingOutputs = self.TrainingBatches[rnd][1]
+
+        if self.UseForce:
+            self._ForceTrainingInput = self.TrainingBatches[rnd][2]
+            self.NormalizationTraining = self.TrainingBatches[rnd][3]
+            self._ForceTrainingOutput = self.TrainingBatches[rnd][4]
+            if self.IsPartitioned:
+                self._ForceFieldTrainingInputs = self.TrainingBatches[rnd][5]
+                self._ForceFieldTrainingDerivatives = self.TrainingBatches[rnd][6]
+
+        # Prepare data and layers for feeding
+        if i == 0:
+            EnergyLayers = self._Net.make_layers_for_atomicNNs(
+                self._OutputLayer, [], False)
+            Layers, TrainingData = self._Net.prepare_data_environment(
+                self._TrainingInputs,
+                self._OutputLayer,
+                self._TrainingOutputs,
+                self._OutputLayerForce,
+                self._ForceTrainingInput,
+                self._ForceTrainingOutput,
+                self.NormalizationTraining,
+                self.UseForce,
+                self._ForceFieldTrainingInputs,
+                self._ForceFieldTrainingDerivatives)
+            return Layers, TrainingData, rnd, EnergyLayers
+        else:
+            TrainingData = self._Net.make_data_for_atomicNNs(
+                self._TrainingInputs,
+                self._TrainingOutputs,
+                self._ForceTrainingInput,
+                self._ForceTrainingOutput,
+                self.NormalizationTraining,
+                self.UseForce,
+                self._ForceFieldTrainingInputs,
+                self._ForceFieldTrainingDerivatives)
+            return TrainingData,rnd
+
+
+
+    def _get_validation_batch(self,k=-1):
+
+        if self.ValidationBatches:
+            if k==-1:
+                rnd = _rand.randint(0, self.NrOfValidationBatches - 1)
+            else:
+                rnd = k
+            self._ValidationInputs = self.ValidationBatches[rnd][0]
+            self._ValidationOutputs = self.ValidationBatches[rnd][1]
+            if self.UseForce:
+                self._ForceValidationInput = self.ValidationBatches[rnd][2]
+                self.NormalizationValidation = self.ValidationBatches[rnd][3]
+                self._ForceValidationOutput = self.ValidationBatches[rnd][4]
+                if self.IsPartitioned:
+                    self._ForceFieldValidationInputs = self.ValidationBatches[rnd][5]
+                    self._ForceFieldValidationDerivatives = self.ValidationBatches[rnd][6]
+
+        # Make validation input vector
+        if len(self._ValidationInputs) > 0:
+            ValidationData = self._Net.make_data_for_atomicNNs(
+                self._ValidationInputs,
+                self._ValidationOutputs,
+                self._ForceValidationInput,
+                self._ForceValidationOutput,
+                self.NormalizationValidation,
+                self.UseForce,
+                self._ForceFieldValidationInputs,
+                self._ForceFieldValidationDerivatives)
+        else:
+            ValidationData = None
+
+        return ValidationData
+
+    def _get_batch(self,i,j=-1,k=-1):
+        """Selects a random training batch if j=-1
+        otherwise it returns batch j
+        Selects a random validation batch if k=-1
+        otherwise it returns batch k"""
+
+
+        if i==0:
+            Layers, TrainingData, EnergyLayers, rnd = self._get_training_batch(i,j)
+            ValidationData = self._get_validation_batch(k)
+
+            return Layers, TrainingData, ValidationData,rnd,EnergyLayers
+        else:
+            TrainingData, rnd = self._get_training_batch(i,j)
+            ValidationData = self._get_validation_batch(k)
+
+            return TrainingData,ValidationData,rnd
+
     def start_batch_training(self, find_best_symmfuns=False):
         """Starts a batch training
         At each epoch a random batch is selected and trained.
@@ -950,8 +1052,6 @@ class AtomicNeuralNetInstance(object):
         # Clear cost array for multi instance training
         self.OverallTrainingCosts = []
         self.OverallValidationCosts = []
-        NormalizationTraining = []
-        NormalizationValidation = []
         self.DeltaE=[]
 
         start = _time.time()
@@ -966,13 +1066,13 @@ class AtomicNeuralNetInstance(object):
             Execute = False
 
         if Execute:
-            NrOfTrainingBatches = len(self.TrainingBatches)
+            self.NrOfTrainingBatches = len(self.TrainingBatches)
             if self.ValidationBatches:
-                NrOfValidationBatches = len(self.ValidationBatches)
+                self.NrOfValidationBatches = len(self.ValidationBatches)
 
             if not self.Multiple:
                 print("Started batch training...")
-                NrOfBatches=NrOfTrainingBatches
+                NrOfBatches=self.NrOfTrainingBatches
             else:
                 NrOfBatches=1
 
@@ -982,75 +1082,13 @@ class AtomicNeuralNetInstance(object):
 
                     tempTrainingCost = []
                     tempValidationCost = []
-                    rnd = _rand.randint(0, NrOfTrainingBatches - 1)
-                    self._TrainingInputs = self.TrainingBatches[rnd][0]
-                    self._TrainingOutputs = self.TrainingBatches[rnd][1]
+
+                    if i==0:
+                        Layers, TrainingData, ValidationData,EnergyLayers,rnd = self._get_batch(i)
+                    else:
+                        TrainingData, ValidationData,rnd=self._get_batch(i)
+
                     BatchSize = self._TrainingInputs[0].shape[0]
-                    if self.ValidationBatches:
-                        rnd = _rand.randint(0, NrOfValidationBatches - 1)
-                        self._ValidationInputs = self.ValidationBatches[rnd][0]
-                        self._ValidationOutputs = self.ValidationBatches[rnd][1]
-                    if self.UseForce:
-                        self._ForceTrainingInput = self.TrainingBatches[rnd][2]
-                        NormalizationTraining = self.TrainingBatches[rnd][3]
-                        self._ForceTrainingOutput = self.TrainingBatches[rnd][4]
-                        if self.IsPartitioned:
-                            self._ForceFieldTrainingInputs = self.TrainingBatches[rnd][5]
-                            self._ForceFieldTrainingDerivatives= self.TrainingBatches[rnd][6]
-                        if self.ValidationBatches:
-                            self._ForceValidationInput = self.ValidationBatches[rnd][2]
-                            NormalizationValidation = self.ValidationBatches[rnd][3]
-                            self._ForceValidationOutput = self.ValidationBatches[rnd][4]
-                            if self.IsPartitioned:
-                                self._ForceFieldValidationInputs = self.ValidationBatches[rnd][5]
-                                self._ForceFieldValidationDerivatives=self.ValidationBatches[rnd][6]
-                    else:
-                        if self.IsPartitioned:
-                            self._ForceFieldTrainingInputs = self.TrainingBatches[rnd][5]
-                            self._ForceFieldValidationInputs = self.ValidationBatches[rnd][5]
-
-                    # Prepare data and layers for feeding
-                    if i == 0:
-                        EnergyLayers = self._Net.make_layers_for_atomicNNs(
-                            self._OutputLayer, [], False)
-                        Layers, TrainingData = self._Net.prepare_data_environment(
-                            self._TrainingInputs,
-                            self._OutputLayer,
-                            self._TrainingOutputs,
-                            self._OutputLayerForce,
-                            self._ForceTrainingInput,
-                            self._ForceTrainingOutput,
-                            NormalizationTraining,
-                            self.UseForce,
-                            self._ForceFieldTrainingInputs,
-                            self._ForceFieldTrainingDerivatives)
-                    else:
-                        TrainingData = self._Net.make_data_for_atomicNNs(
-                            self._TrainingInputs,
-                            self._TrainingOutputs,
-                            self._ForceTrainingInput,
-                            self._ForceTrainingOutput,
-                            NormalizationTraining,
-                            self.UseForce,
-                            self._ForceFieldTrainingInputs,
-                            self._ForceFieldTrainingDerivatives)
-                    # Make validation input vector
-                    if len(self._ValidationInputs) > 0:
-                        ValidationData = self._Net.make_data_for_atomicNNs(
-                            self._ValidationInputs,
-                            self._ValidationOutputs,
-                            self._ForceValidationInput,
-                            self._ForceValidationOutput,
-                            NormalizationValidation,
-                            self.UseForce,
-                            self._ForceFieldValidationInputs,
-                            self._ForceFieldValidationDerivatives)
-                    else:
-                        ValidationData = None
-                    # for multi training just return prepared data without performing the training step
-                    if self.Multiple:
-                        return Layers,TrainingData,ValidationData
-
                     # Train one batch
                     TrainingCosts, ValidationCosts,summary = self._train_atomic_network_batch(
                         Layers, TrainingData, ValidationData)
@@ -1216,11 +1254,6 @@ class AtomicNeuralNetInstance(object):
                               "+-" +
                               str(_np.sqrt(val_stat[1])) +
                               " eV")
-
-            if self.Multiple:
-                self.TrainedVariables = self._Net.get_trained_variables(
-                    self._Session, self.Atomtypes)
-                return [self.TrainedVariables, self._MinOfOut]
 
     def create_symmetry_functions(self):
 
@@ -1838,7 +1871,7 @@ class AtomicNeuralNetInstance(object):
                 Cost += self._RegLoss
 
         # Create tensor for energy difference calculation
-        self._dE_Fun = _tf.abs(self._TotalEnergy - self._OutputLayer)
+        self._dE_Fun = _tf.divide(_tf.abs(self._TotalEnergy - self._OutputLayer),sum(self.NumberOfAtomsPerType))
         _tf.summary.scalar("delta_e",_tf.reduce_mean(self._dE_Fun))
 
         return Cost
@@ -1969,6 +2002,7 @@ class MultipleInstanceTraining(object):
         self.GlobalLearningRateFun=None
         self.GlobalCostFun=None
         self.Global_dE_Fun=None
+        self._GlobalEnergy=None
         self._Optimizer=None
         self.TrainedVariables=[]
         self.TFWriter=None
@@ -2001,6 +2035,8 @@ class MultipleInstanceTraining(object):
                 self.TrainingInstances[i].Regularization = self.GlobalRegularization
                 self.TrainingInstances[i].RegularizationParam = self.GlobalRegularizationParam
                 self.TrainingInstances[i].TextOutput=False
+                self.TrainingInstances[i].NrOfTrainingBatches = len(self.TrainingInstances[i].TrainingBatches)
+                self.TrainingInstances[i].NrOfValidationBatches = len(self.TrainingInstances[i].ValidationBatches)
                 # Clear unnecessary data
                 self.TrainingInstances[i]._DataSet.geometries = []
                 self.TrainingInstances[i]._DataSet.Energies = []
@@ -2008,6 +2044,93 @@ class MultipleInstanceTraining(object):
                 self.TrainingInstances[i].Batches = []
                 self.TrainingInstances[i].AllGeometries = []
 
+    def _connect_instances(self,sess):
+        """Connects all instances"""
+        # Build nets
+        dE = []
+        E_tot=[]
+        TempCost= 0
+        self.GlobalCostFun = 0
+        SampleInstance = self.TrainingInstances[0]
+        for i, Instance in enumerate(self.TrainingInstances):
+            with _tf.name_scope("instance_" + str(i + 1)):
+                Instance._Session = sess
+                if i == 0:
+                    if self.ModelDirectory is not None:
+                        Instance.expand_existing_net(ModelName=self.ModelDirectory, load_statistics=False)
+                    else:
+                        Instance.make_and_initialize_network()
+                    VariablesData = Instance._Net.VariablesDictionary
+                else:
+                    Instance.make_and_initialize_network(VariablesData=VariablesData)
+
+                TempCost += Instance.CostFun
+                dE.append(Instance._dE_Fun)
+                E_tot.append(Instance._TotalEnergy)
+
+        with _tf.name_scope("global_cost_fun"):
+            self.GlobalCostFun = TempCost
+            _tf.summary.scalar("global_cost", self.GlobalCostFun)
+        with _tf.name_scope("global_delta_e"):
+            self.Global_dE_Fun = _tf.reduce_mean(dE)
+            _tf.summary.scalar("global_delta_e", self.Global_dE_Fun)
+        with _tf.name_scope("e_tot"):
+            self._GlobalEnergy=_tf.add_n(E_tot)
+
+        decay_steps = self.TrainingInstances[0].LearningDecayEpochs
+        self.GlobalStep, self.GlobalLearningRateFun = _get_learning_rate(
+            self.GlobalLearningRate, self.GlobalLearningRateType, decay_steps,
+            self.GlobalLearningRateBounds, self.GlobalLearningRateValues)
+
+        # Set optimizer
+        with _tf.name_scope("optimizer"):
+            SampleInstance.GlobalStep = self.GlobalStep
+            self._Optimizer = SampleInstance.get_optimizer(self.GlobalCostFun, self.GlobalLearningRateFun)
+
+        self.TFWriter = _tf.summary.FileWriter(_os.path.join(self.SavingDirectory, "tf_summary"), sess.graph)
+        self.TFSummary = _tf.summary.merge_all()
+
+        sess.run(_tf.global_variables_initializer())
+
+    def evaluate_all_data(self):
+        """Evaluates all datapoints from all instances"""
+        ValidationPredictions=[]
+        ValidationTargets=[]
+        TrainingPredictions=[]
+        TrainingTargets=[]
+
+        for i,Instance in enumerate(self.TrainingInstances):
+            with _tf.name_scope("graph_instance_" + str(i)):
+                with _tf.Graph().as_default() as g_temp:
+                    with _tf.Session(graph=g_temp) as sess:
+                        #Evaluate prediction for training batches
+                        Instance.expand_existing_net(ModelName=self.ModelDirectory, load_statistics=False)
+                        Instance._TotalEnergy, _ = Instance._Net.energy_of_all_atomic_networks()
+                        sess.run(_tf.global_variables_initializer())
+                        NrAtoms=sum(Instance.NumberOfAtomsPerType)
+                        for j in range(0,Instance.NrOfTrainingBatches):
+                            if j == 0:
+                                Layers, TrainingData, _, _ = Instance._get_training_batch(j, j)
+                            else:
+                                TrainingData, rnd = Instance._get_training_batch(j, j)
+
+                            TrainingPredictions+=[energy[0]/NrAtoms for energy in eval_tensor(sess, Instance._TotalEnergy, Layers,TrainingData)]
+                            TrainingTargets+=[energy[0]/NrAtoms for energy in Instance._TrainingOutputs]
+
+                        #Evaluate predictions for validation batches
+                        for k in range(0,Instance.NrOfValidationBatches):
+                            ValidationData = Instance._get_validation_batch(k)
+                            ValidationPredictions += [energy[0]/NrAtoms for energy in eval_tensor(sess, Instance._TotalEnergy,Layers, ValidationData)]
+                            ValidationTargets += [energy[0]/NrAtoms for energy in Instance._ValidationOutputs]
+
+        _plt.figure()
+        _plt.scatter(TrainingPredictions,TrainingTargets)
+        _plt.scatter(ValidationPredictions,ValidationTargets)
+        _plt.legend(["Training data","Validation data"])
+        xy=_np.linspace(_np.min(TrainingPredictions)-0.1,_np.max(TrainingPredictions)+0.1,1000)
+        _plt.plot(xy,xy,'k')
+        _plt.xlabel("eV")
+        _plt.ylabel("eV")
 
     def train_multiple_instances(self,ModelDirectory=None):
         """Trains each instance for EpochsPerCylce epochs then uses the resulting network
@@ -2017,63 +2140,22 @@ class MultipleInstanceTraining(object):
 
         print("Startet multiple instance training!")
         ct = 0
-        self.GlobalCostFun = 0
-        TempCost= 0
-
         self.ModelDirectory=ModelDirectory
         SampleInstance = self.TrainingInstances[0]
         with _tf.Graph().as_default():
             with _tf.Session() as sess:
-
-                # Build nets
-                dE=[]
-                for i, Instance in enumerate(self.TrainingInstances):
-                    with _tf.name_scope("instance_"+str(i+1)):
-                        Instance._Session = sess
-                        if i == 0:
-                            if self.ModelDirectory is not None:
-                                Instance.expand_existing_net(ModelName=self.ModelDirectory, load_statistics=False)
-                            else:
-                                Instance.make_and_initialize_network()
-                            VariablesData = Instance._Net.VariablesDictionary
-                        else:
-                            Instance.make_and_initialize_network(VariablesData=VariablesData)
-
-                        TempCost += Instance.CostFun
-                        dE.append(Instance._dE_Fun)
-
-                with _tf.name_scope("global_cost_fun"):
-                    self.GlobalCostFun = TempCost
-                    _tf.summary.scalar("global_cost", self.GlobalCostFun)
-                with _tf.name_scope("global_delta_e"):
-                    self.Global_dE_Fun=_tf.reduce_mean(dE)
-                    _tf.summary.scalar("global_delta_e", self.Global_dE_Fun)
-
-
-                decay_steps = self.TrainingInstances[0].LearningDecayEpochs
-                self.GlobalStep, self.GlobalLearningRateFun = _get_learning_rate(
-                    self.GlobalLearningRate, self.GlobalLearningRateType, decay_steps,
-                    self.GlobalLearningRateBounds, self.GlobalLearningRateValues)
-
-                # Set optimizer
-                with _tf.name_scope("optimizer"):
-                    SampleInstance.GlobalStep=self.GlobalStep
-                    self._Optimizer = SampleInstance.get_optimizer(self.GlobalCostFun, self.GlobalLearningRateFun)
-
-                self.TFWriter = _tf.summary.FileWriter(_os.path.join(self.SavingDirectory,"tf_summary"), sess.graph)
-                self.TFSummary = _tf.summary.merge_all()
-
-                sess.run(_tf.global_variables_initializer())
-
-
-
+                self._connect_instances(sess)
+                GlobalLayers = []
                 for i in range(0, self.GlobalEpochs):
-                    GlobalLayers=[]
                     GlobalTrainingData=[]
                     GlobalValidationData=[]
                     for Instance in self.TrainingInstances:
-                        Layers,TrainingData,ValidationData = Instance.start_batch_training()
-                        GlobalLayers+=Layers
+                        if i == 0:
+                            Layers, TrainingData, ValidationData, EnergyLayers, rnd = Instance._get_batch(i)
+                            GlobalLayers += Layers
+                        else:
+                            TrainingData, ValidationData, rnd = Instance._get_batch(i)
+
                         GlobalTrainingData+=TrainingData
                         GlobalValidationData+=ValidationData
 
@@ -2141,6 +2223,7 @@ class MultipleInstanceTraining(object):
                     DeltaE < self.Global_dE_Criterion or \
                                     i==self.GlobalEpochs-1:
                         print("Training finished!")
+                        self.evaluate_all_data()
 
 
 

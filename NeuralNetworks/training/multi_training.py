@@ -11,14 +11,14 @@ def str2bool(v):
 #Get input
 plots=False
 learning_rate=0.0001
-epochs=20000
+epochs=5000
 data_file=""
-force=False
+force=True
 e_unit="Ry"
 dist_unit="A"
 load_model=True
-model="/home/afuchs/Documents/NiAu_Training/multi_more_radial_3_force/trained_variables.npy"
-model_dir="multi_more_radial_3_force"
+model="/home/afuchs/Documents/NiAu_Training/multi_no_angular_force/trained_variables.npy"
+model_dir="multi_no_angular_force"
 source="QE"
 percentage_of_data=100
 
@@ -71,38 +71,38 @@ if load_model:
 print("Save path : "+os.path.join(os.getcwd(),model_dir))
 
 #"/home/afuchs/Documents/Ni15Au15/",
-data_files=["/home/afuchs/Documents/Ni1Au2/",
-            "/home/afuchs/Documents/Ni2Au1",
-            "/home/afuchs/Documents/Ni2Au2",
-            "/home/afuchs/Documents/Ni5Au5",
-            "/home/afuchs/Documents/Ni5Au5_6000/",
-            "/home/afuchs/Documents/Ni15Au15/",
+data_files=[#"/home/afuchs/Documents/Ni1Au2/",
+            # "/home/afuchs/Documents/Ni2Au1",
+            # "/home/afuchs/Documents/Ni2Au2",
+            # "/home/afuchs/Documents/Ni5Au5",
+            # "/home/afuchs/Documents/Ni5Au5_6000/",
+            # "/home/afuchs/Documents/Ni15Au15/",
             "/home/afuchs/Documents/home/Ni1Au54",
-            "/home/afuchs/Documents/home/Ni2Au53",
+            #"/home/afuchs/Documents/home/Ni2Au53",
             "/home/afuchs/Documents/home/Ni3Au52",
-            "/home/afuchs/Documents/home/Ni6Au49",
-            "/home/afuchs/Documents/home/Ni8Au47",
+            #"/home/afuchs/Documents/home/Ni6Au49",
+            #"/home/afuchs/Documents/home/Ni8Au47",
             "/home/afuchs/Documents/home/Ni10Au45",
-            "/home/afuchs/Documents/home/Ni11Au44",
-            "/home/afuchs/Documents/home/Ni12Au43",
-            "/home/afuchs/Documents/home/Ni13Au42",
-            "/home/afuchs/Documents/home/Ni14Au41",
-            "/home/afuchs/Documents/home/Ni15Au40",
-            "/home/afuchs/Documents/home/Ni17Au38",
-            "/home/afuchs/Documents/home/Ni18Au37",
-            "/home/afuchs/Documents/home/Ni19Au36",
-            "/home/afuchs/Documents/home/Ni20Au35",
-            "/home/afuchs/Documents/home/Ni21Au34",
-            "/home/afuchs/Documents/home/Ni22Au33",
-            "/home/afuchs/Documents/home/Ni23Au32",
-            "/home/afuchs/Documents/home/Ni24Au31",
-            "/home/afuchs/Documents/home/Ni25Au30",
-            "/home/afuchs/Documents/home/Ni26Au29",
-            "/home/afuchs/Documents/home/Ni27Au28",
-            "/home/afuchs/Documents/home/Ni28Au27",
+            # "/home/afuchs/Documents/home/Ni11Au44",
+            # "/home/afuchs/Documents/home/Ni12Au43",
+            # "/home/afuchs/Documents/home/Ni13Au42",
+            # "/home/afuchs/Documents/home/Ni14Au41",
+            # "/home/afuchs/Documents/home/Ni15Au40",
+            # "/home/afuchs/Documents/home/Ni17Au38",
+            # "/home/afuchs/Documents/home/Ni18Au37",
+            # "/home/afuchs/Documents/home/Ni19Au36",
+            # "/home/afuchs/Documents/home/Ni20Au35",
+            # "/home/afuchs/Documents/home/Ni21Au34",
+            # "/home/afuchs/Documents/home/Ni22Au33",
+            # "/home/afuchs/Documents/home/Ni23Au32",
+            # "/home/afuchs/Documents/home/Ni24Au31",
+            # "/home/afuchs/Documents/home/Ni25Au30",
+            # "/home/afuchs/Documents/home/Ni26Au29",
+            # "/home/afuchs/Documents/home/Ni27Au28",
+            # "/home/afuchs/Documents/home/Ni28Au27",
             "/home/afuchs/Documents/home/Ni29Au26",
-            "/home/afuchs/Documents/home/Ni36Au19",
-            "/home/afuchs/Documents/home/Ni37Au18"
+            # "/home/afuchs/Documents/home/Ni36Au19",
+            # "/home/afuchs/Documents/home/Ni37Au18"
             ]
 # data_files=["/home/afuchs/Documents/Ni1Au2/",
 #             "/home/afuchs/Documents/Ni2Au1",
@@ -121,9 +121,9 @@ for i in range(len(data_files)):
     #Default symmetry function set
     #Training.NumberOfRadialFunctions=15
     bohr2ang = 0.529177249
-    Training.Lambs=[1.0,-1.0]
-    Training.Zetas=[0.2,0.5,1,3,10]#[0.025,0.045,0.075,0.1,0.15,0.2,0.3,0.5,0.7,1,1.5,2,3,5,10,18,36,100]
-    Training.Etas=[0.01]
+    #Training.Lambs=[1.0,-1.0]
+    #Training.Zetas=[0.2,0.5,1,3,10]#[0.025,0.045,0.075,0.1,0.15,0.2,0.3,0.5,0.7,1,1.5,2,3,5,10,18,36,100]
+    #Training.Etas=[0.01]
     Training.Rs = [0,0,0,0,0,0,0,0,1.16674542, 1.81456625,2.3, 2.89256287, 4.53134823, 6.56226301, 6.92845869]
     Training.R_Etas = [0.4/bohr2ang**2, 0.2/bohr2ang**2, 0.1/bohr2ang**2, 0.06/bohr2ang**2, 0.035/bohr2ang**2, 0.02/bohr2ang**2, 0.01/bohr2ang**2, 0.0009/bohr2ang**2, 2.13448882, 1.97223806,1.2, 0.81916839, 0.47314626, 0.95010978, 7.37062645]
     Training.Cutoff=7
@@ -135,14 +135,14 @@ for i in range(len(data_files)):
 
     # Default trainings settings
     for i in range(len(Training.Atomtypes)):
-        Training.Structures.append([Training.SizeOfInputsPerType[i],256,128,64,32,1])
+        Training.Structures.append([Training.SizeOfInputsPerType[i],40,20,10,1])
     if not("trained_variables" in model):
         model=os.path.join(model,"trained_variables.npy")
     Training.Dropout=[0,0,0]
     Training.Regularization = "L2"
     Training.MakeLastLayerConstant=False
     Training.InitStddev=0.1
-    Training.LearningDecayEpochs=1000
+    Training.LearningDecayEpochs=200
     Training.Epochs=epochs
     Training.ForceCostParam=0.001
     Training.MakePlots=plots

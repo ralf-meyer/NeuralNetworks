@@ -2,8 +2,10 @@ from NeuralNetworks import NeuralNetworkUtilities as NN
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import cm
+import matplotlib
 from mpl_toolkits.mplot3d import Axes3D
 import time
+import os
 plt.ion()
 
 
@@ -74,16 +76,20 @@ class PES(object):
         out=out-np.min(out)
         meshZ=out.reshape(len(self.theta),len(self.rhs))
         self.ZData.append(meshZ)
-        self.surf.remove()
+        #self.surf.remove()
         self.surf=self.ax.plot_surface(self.meshX,self.meshY,meshZ,cmap=cm.magma)
+        self.ax.set_xlabel(r'$r / \AA$')
+        self.ax.set_ylabel(r'$\phi / \degree$')
+        self.ax.set_zlabel("Neuron output")
         if show_plot:
-            plt.show()
+            plt.show(block=False)
+
 
 
 if __name__ == "__main__":
     plt.ioff()
     #file="/home/afuchs/Git/NeuralNetworks/NeuralNetworks/training/save_no_name"
-    file="/home/afuchs/Documents/NiAu_Training/multi_more_radial"
+    file="/home/afuchs/Documents/NiAu_Training/multi_no_angular_force"
     MyCheck1=PES(file)
     MyCheck1.pes_check(atom_types=["X","Y"],nr_atoms_per_type=[1,2],show_plot=False)
     MyCheck2 = PES(file)
