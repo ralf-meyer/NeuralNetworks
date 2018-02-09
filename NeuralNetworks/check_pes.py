@@ -18,8 +18,8 @@ class PES(object):
         #self.ax.set_zlim(bottom=-1,top=5)
         plt.title(model_name)
         self.resolution=resolution
-        self.theta=np.linspace(10*np.pi/180,350*np.pi/180,self.resolution)
-        self.rhs=np.linspace(1,8,self.resolution)
+        self.theta=np.linspace(60*np.pi/180,300*np.pi/180,self.resolution)
+        self.rhs=np.linspace(2,8,self.resolution)
         self.meshX,self.meshY=np.meshgrid(self.rhs,self.theta*180/np.pi)
         meshZ=np.zeros((len(self.theta),len(self.rhs)))
         self.surf=self.ax.plot_surface(self.meshX,self.meshY,meshZ,cmap=cm.magma,animated=True)
@@ -89,7 +89,7 @@ class PES(object):
 if __name__ == "__main__":
     plt.ioff()
     #file="/home/afuchs/Git/NeuralNetworks/NeuralNetworks/training/save_no_name"
-    file="/home/afuchs/Documents/NiAu_Training/multi_no_angular_force"
+    file="/home/afuchs/Documents/NiAu_Training/multi_morse_3"
     MyCheck1=PES(file)
     MyCheck1.pes_check(atom_types=["X","Y"],nr_atoms_per_type=[1,2],show_plot=False)
     MyCheck2 = PES(file)

@@ -1,5 +1,8 @@
 import tensorflow as _tf
+from tensorflow.python.framework import ops
 import numpy as _np
+
+
 
 class _AtomicNetwork(object):
 
@@ -255,9 +258,11 @@ class _AtomicNetwork(object):
 
         return weights
 
+
     def _connect_layers(self,InputsForLayer, ThisLayerWeights,
                         ThisLayerBias, ActFun=None, FunParam=None,
                         Dropout=0,i=0,j=0,include_histograms=False):
+
         """Connect the outputs of the layer before with the current layer using an
         activation function and matrix multiplication.
 
@@ -278,6 +283,11 @@ class _AtomicNetwork(object):
 
         Returns:
             Out (tensor): The connected tensor."""
+
+
+        def morse(x):
+            return (_tf.exp(-2*(x - 1))-2*_tf.exp(-(x-1)))
+
         if ActFun is not None:
             if ActFun == "sigmoid":
                 with _tf.name_scope("net_"+str(i+1)+"_act_fun_"+str(j+1)):
@@ -315,6 +325,10 @@ class _AtomicNetwork(object):
                 with _tf.name_scope("net_" + str(i + 1) + "_act_fun_" + str(j+1)):
                     Out = _tf.nn.bias_add(_tf.matmul(
                         InputsForLayer, ThisLayerWeights) + ThisLayerBias, FunParam)
+            elif ActFun == "morse":
+                with _tf.name_scope("net_" + str(i + 1) + "_act_fun_" + str(j + 1)):
+                    Out=morse(_tf.matmul(
+                        InputsForLayer, ThisLayerWeights) + ThisLayerBias)
             elif ActFun == "none":
                 with _tf.name_scope("E_"+str(i)):
                     Out = _tf.matmul(InputsForLayer, ThisLayerWeights) + ThisLayerBias

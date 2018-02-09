@@ -346,7 +346,8 @@ def evaluate_all_data(TrainingInstances,ModelName):
     ValidationTargets=[]
     TrainingPredictions=[]
     TrainingTargets=[]
-
+    if "trained_variables" not in ModelName:
+        ModelName=_os.path.join(ModelName,"trained_variables.npy")
     for i,Instance in enumerate(TrainingInstances):
         with _tf.name_scope("graph_instance_" + str(i)):
             with _tf.Graph().as_default() as g_temp:
@@ -379,7 +380,10 @@ def evaluate_all_data(TrainingInstances,ModelName):
     _plt.plot(xy,xy,'k')
     _plt.xlabel("eV")
     _plt.ylabel("eV")
-
+    RMSETraining=_np.mean(_np.sqrt((_np.asarray(TrainingPredictions)-_np.asarray(TrainingTargets))**2))
+    RMSEValidation =_np.mean(_np.sqrt((_np.asarray(ValidationPredictions) - _np.asarray(ValidationTargets)) ** 2))
+    print("RMSE training = "+str(RMSETraining)+" eV/atom")
+    print("RMSE validation = " + str(RMSEValidation) + " eV/atom")
 
 class AtomicNeuralNetInstance(object):
     """This class implements all the properties and methods for training and
@@ -2065,7 +2069,6 @@ class MultipleInstanceTraining(object):
                 self.TrainingInstances[i].Structures = self.GlobalStructures
                 #self.TrainingInstances[i]._Session = self.GlobalSession
                 self.TrainingInstances[i].MakePlots = False
-                self.TrainingInstances[i].ActFun = "elu"
                 self.TrainingInstances[i].CostCriterion = 0
                 self.TrainingInstances[i].dE_Criterion = 0
                 self.TrainingInstances[i].IsPartitioned = self.IsPartitioned
@@ -2223,7 +2226,7 @@ class MultipleInstanceTraining(object):
                     DeltaE < self.Global_dE_Criterion or \
                                     i==self.GlobalEpochs-1:
                         print("Training finished!")
-                        evaluate_all_data(self.TrainingInstances,ModelName=self.ModelDirectory)
+                        evaluate_all_data(self.TrainingInstances,ModelName=self.SavingDirectory)
 
 
 

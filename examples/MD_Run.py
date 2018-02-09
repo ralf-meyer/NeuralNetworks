@@ -30,7 +30,7 @@ start_geom=input_reader.geometries[0]
 Training=NeuralNetworkUtilities.AtomicNeuralNetInstance()
 Training.CalcDatasetStatistics=False
 Training.TextOutput=False
-Training.prepare_evaluation("/home/afuchs/Documents/NiAu_Training/multi_no_angular",nr_atoms_per_type=[1,54])
+Training.prepare_evaluation("/home/afuchs/Documents/NiAu_Training/multi_morse_3",nr_atoms_per_type=[1,54])
 
 opt=optimizer.Optimizer(Training,start_geom)
 #opt.check_gradient()
@@ -43,7 +43,7 @@ input_reader.read("/home/afuchs/Documents/Validation_geometries/ico_NiAu54.xyz",
 Training=NeuralNetworkUtilities.AtomicNeuralNetInstance()
 Training.TextOutput=False
 Training.CalcDatasetStatistics=False
-Training.prepare_evaluation("/home/afuchs/Documents/NiAu_Training/multi_no_angular",nr_atoms_per_type=[1,54])
+Training.prepare_evaluation("/home/afuchs/Documents/NiAu_Training/multi_morse_3",nr_atoms_per_type=[1,54])
 
 dt = 5e-15
 steps = 500000
@@ -52,7 +52,7 @@ steps = 500000
 pset = ps.ParticlesSet( len(start_geom) , 3 , label=True,mass=True)
 pset.thermostat_coupling_time=dt*200
 pset.thermostat_temperature=100
-pset.dT=float(1500)/steps
+pset.dT=float(800)/steps
 pset.unit = 1e10
 pset.mass_unit =1.660e+27
 geom=[]
@@ -87,9 +87,9 @@ solver.plot=True
 solver.plot_steps=10000
 solver.steps=steps
 solver.save_png=True
-solver.png_path="/home/afuchs/Documents/NiAu_Md/Ni1Au54_2/"
+solver.png_path="/home/afuchs/Documents/NiAu_Md/Ni1Au54_morse/"
 start=time.time()
 solver.start()
-np.save("/home/afuchs/Documents/MD_Runs/Ni1Au54_2.npy",np.asarray([solver.all_epot,solver.all_etot,solver.all_temp]))
+np.save("/home/afuchs/Documents/MD_Runs/Ni1Au54_morse.npy",np.asarray([solver.all_epot,solver.all_etot,solver.all_temp]))
 solver.plot_results()
 solver.animate_run()

@@ -15,7 +15,7 @@ energies=np.asarray(input_reader.energies)
 Training=NeuralNetworkUtilities.AtomicNeuralNetInstance()
 Training.TextOutput=False
 Training.CalcDatasetStatistics=False
-Training.prepare_evaluation("/home/afuchs/Documents/NiAu_Training/multi_no_angular_force",nr_atoms_per_type=[1,146])
+Training.prepare_evaluation("/home/afuchs/Documents/NiAu_Training/multi_morse_smallds",nr_atoms_per_type=[1,146])
 #Training.create_eval_data(input_reader.geometries)
 #out=Training.eval_dataset_energy(Training.EvalData)
 out=[]
@@ -26,7 +26,9 @@ ref=energies-offset
 res=out
 min_ref=energies-min(energies)
 min_res=res-min(res)
+rel_error=[]
 for i in range(len(res)):
     print([files[i],res[i][0][0],min_res[i][0][0],ref[i],min_ref[i],res[i][0][0]-ref[i],np.abs(min_res[i][0][0]-min_ref[i])])
-print(np.mean(np.abs(min_res[:][0][0]-min_ref[:])))
-print(np.sqrt(np.var(np.abs(min_res[:][0][0]-min_ref[:]))))
+    rel_error.append(np.abs(min_res[i][0][0]-min_ref[i]))
+print(np.mean(rel_error))
+print(np.sqrt(np.var(rel_error)))
