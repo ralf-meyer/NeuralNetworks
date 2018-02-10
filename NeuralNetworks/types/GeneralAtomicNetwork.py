@@ -16,7 +16,7 @@ class _AtomicNetwork(object):
             Inputs (tensor):The input placeholder
         """
 
-        Inputs = _tf.cast(_tf.placeholder(_tf.float64, shape=[None, InputUnits]), dtype=_tf.float64)
+        Inputs = _tf.cast(_tf.placeholder(_tf.float32, shape=[None, InputUnits]), dtype=_tf.float32)
 
         return Inputs
 
@@ -71,18 +71,18 @@ class _AtomicNetwork(object):
                     if WeightType == "zeros":
                         Weights = _tf.Variable(_tf.zeros(
                             [PreviousLayerUnits, ThisHiddenUnits],
-                            dtype=_tf.float64), dtype=_tf.float64,
+                            dtype=_tf.float32), dtype=_tf.float32,
                             name="variable")
                     elif WeightType == "ones":
                         Weights = _tf.Variable(_tf.ones(
                             [PreviousLayerUnits, ThisHiddenUnits],
-                            dtype=_tf.float64), dtype=_tf.float64,
+                            dtype=_tf.float32), dtype=_tf.float32,
                             name="variable")
                     elif WeightType == "fill":
                         Weights = _tf.Variable(_tf.fill(
                             [PreviousLayerUnits, ThisHiddenUnits],
-                            dtype=_tf.float64),
-                            dtype=_tf.float64,
+                            dtype=_tf.float32),
+                            dtype=_tf.float32,
                             name="variable")
                     elif WeightType == "random_normal":
                         Weights = _tf.Variable(
@@ -92,8 +92,8 @@ class _AtomicNetwork(object):
                                     ThisHiddenUnits],
                                 mean=Mean,
                                 stddev=Stddev,
-                                dtype=_tf.float64),
-                            dtype=_tf.float64,
+                                dtype=_tf.float32),
+                            dtype=_tf.float32,
                             name="variable")
                     elif WeightType == "truncated_normal":
                         Weights = _tf.Variable(
@@ -103,64 +103,64 @@ class _AtomicNetwork(object):
                                     ThisHiddenUnits],
                                 mean=Mean,
                                 stddev=Stddev,
-                                dtype=_tf.float64),
-                            dtype=_tf.float64,
+                                dtype=_tf.float32),
+                            dtype=_tf.float32,
                             name="variable")
                     elif WeightType == "random_uniform":
                         Weights = _tf.Variable(_tf.random_uniform(
-                            [PreviousLayerUnits, ThisHiddenUnits]), dtype=_tf.float64,
+                            [PreviousLayerUnits, ThisHiddenUnits]), dtype=_tf.float32,
                             name="variable")
                     elif WeightType == "random_shuffle":
                         Weights = _tf.Variable(_tf.random_shuffle(
-                            [PreviousLayerUnits, ThisHiddenUnits], dtype=_tf.float64), dtype=_tf.float64,
+                            [PreviousLayerUnits, ThisHiddenUnits], dtype=_tf.float32), dtype=_tf.float32,
                             name="variable")
                     elif WeightType == "random_crop":
                         Weights = _tf.Variable(_tf.random_crop(
-                            [PreviousLayerUnits, ThisHiddenUnits], dtype=_tf.float64), dtype=_tf.float64,
+                            [PreviousLayerUnits, ThisHiddenUnits], dtype=_tf.float32), dtype=_tf.float32,
                             name="variable")
                     elif WeightType == "random_gamma":
                         Weights = _tf.Variable(_tf.random_gamma(
-                            [PreviousLayerUnits, ThisHiddenUnits], dtype=_tf.float64), dtype=_tf.float64,
+                            [PreviousLayerUnits, ThisHiddenUnits], dtype=_tf.float32), dtype=_tf.float32,
                             name="variable")
                     else:
                         # Assume random weights if no WeightType is given
                         Weights = _tf.Variable(_tf.random_uniform(
-                            [PreviousLayerUnits, ThisHiddenUnits], dtype=_tf.float64), dtype=_tf.float64,
+                            [PreviousLayerUnits, ThisHiddenUnits], dtype=_tf.float32), dtype=_tf.float32,
                             name="variable")
                 else:
                     # Assume random weights if no WeightType is given
                     Weights = _tf.Variable(_tf.random_uniform(
-                        [PreviousLayerUnits, ThisHiddenUnits], dtype=_tf.float64), dtype=_tf.float64,
+                        [PreviousLayerUnits, ThisHiddenUnits], dtype=_tf.float32), dtype=_tf.float32,
                         name="variable")
             else:
                 if not MakeAllVariable:
                     Weights = _tf.constant(
-                        WeightData, dtype=_tf.float64, name="constant")
+                        WeightData, dtype=_tf.float32, name="constant")
                 else:
                     Weights = _tf.Variable(
-                        WeightData, dtype=_tf.float64, name="variable")
+                        WeightData, dtype=_tf.float32, name="variable")
             # Construct the bias for this layer
             if len(BiasData) != 0:
 
                 # if not MakeAllVariable:
-                #     Biases = _tf.constant(BiasData, dtype=_tf.float64, name="bias")
+                #     Biases = _tf.constant(BiasData, dtype=_tf.float32, name="bias")
                 # else:
-                Biases = _tf.Variable(BiasData, dtype=_tf.float64, name="bias")
+                Biases = _tf.Variable(BiasData, dtype=_tf.float32, name="bias")
 
             else:
                 if BiasType == "zeros":
                     Biases = _tf.Variable(
-                        _tf.zeros([ThisHiddenUnits], dtype=_tf.float64), dtype=_tf.float64, name="bias")
+                        _tf.zeros([ThisHiddenUnits], dtype=_tf.float32), dtype=_tf.float32, name="bias")
                 elif BiasType == "ones":
                     Biases = _tf.Variable(
-                        _tf.ones([ThisHiddenUnits], dtype=_tf.float64), dtype=_tf.float64, name="bias")
+                        _tf.ones([ThisHiddenUnits], dtype=_tf.float32), dtype=_tf.float32, name="bias")
                 elif BiasType == "fill":
                     Biases = _tf.Variable(
                         _tf.fill(
                             [ThisHiddenUnits],
                             BiasData,
-                            dtype=_tf.float64),
-                        dtype=_tf.float64,
+                            dtype=_tf.float32),
+                        dtype=_tf.float32,
                         name="bias")
                 elif BiasType == "random_normal":
                     Biases = _tf.Variable(
@@ -168,8 +168,8 @@ class _AtomicNetwork(object):
                             [ThisHiddenUnits],
                             mean=Mean,
                             stddev=Stddev,
-                            dtype=_tf.float64),
-                        dtype=_tf.float64,
+                            dtype=_tf.float32),
+                        dtype=_tf.float32,
                         name="bias")
                 elif BiasType == "truncated_normal":
                     Biases = _tf.Variable(
@@ -177,24 +177,24 @@ class _AtomicNetwork(object):
                             [ThisHiddenUnits],
                             mean=Mean,
                             stddev=Stddev,
-                            dtype=_tf.float64),
-                        dtype=_tf.float64,
+                            dtype=_tf.float32),
+                        dtype=_tf.float32,
                         name="bias")
                 elif BiasType == "random_uniform":
                     Biases = _tf.Variable(_tf.random_uniform(
-                        [ThisHiddenUnits], dtype=_tf.float64), dtype=_tf.float64, name="bias")
+                        [ThisHiddenUnits], dtype=_tf.float32), dtype=_tf.float32, name="bias")
                 elif BiasType == "random_shuffle":
                     Biases = _tf.Variable(_tf.random_shuffle(
-                        [ThisHiddenUnits], dtype=_tf.float64), dtype=_tf.float64, name="bias")
+                        [ThisHiddenUnits], dtype=_tf.float32), dtype=_tf.float32, name="bias")
                 elif BiasType == "random_crop":
                     Biases = _tf.Variable(_tf.random_crop(
-                        [ThisHiddenUnits], BiasData, dtype=_tf.float64), dtype=_tf.float64, name="bias")
+                        [ThisHiddenUnits], BiasData, dtype=_tf.float32), dtype=_tf.float32, name="bias")
                 elif BiasType == "random_gamma":
                     Biases = _tf.Variable(_tf.random_gamma(
-                        [ThisHiddenUnits], BiasData, dtype=_tf.float64), dtype=_tf.float64, name="bias")
+                        [ThisHiddenUnits], BiasData, dtype=_tf.float32), dtype=_tf.float32, name="bias")
                 else:
                     Biases = _tf.Variable(_tf.random_uniform(
-                        [ThisHiddenUnits], dtype=_tf.float64), dtype=_tf.float64, name="bias")
+                        [ThisHiddenUnits], dtype=_tf.float32), dtype=_tf.float32, name="bias")
 
             if include_histograms:
                 _tf.summary.histogram("t_"+str(i+1)+"_layer_"+str(j)+"_weights",Weights)
@@ -210,7 +210,7 @@ class _AtomicNetwork(object):
         Returns:
             Outputs (tensor): Output placeholder
         """
-        Outputs = _tf.placeholder(_tf.float64, shape=[None, OutputUnits])
+        Outputs = _tf.placeholder(_tf.float32, shape=[None, OutputUnits])
 
         return Outputs
 
@@ -228,9 +228,9 @@ class _AtomicNetwork(object):
             Biases (tensor): Biases tensor"""
 
         # , trainable=False)
-        Weights = _tf.constant(_np.ones([NrInputs, NrOutputs]), dtype=_tf.float64)
+        Weights = _tf.constant(_np.ones([NrInputs, NrOutputs]), dtype=_tf.float32)
         # ,trainable=False)
-        Biases = _tf.constant(_np.zeros([NrOutputs]), dtype=_tf.float64)
+        Biases = _tf.constant(_np.zeros([NrOutputs]), dtype=_tf.float32)
         if Min != 0:
             Biases = _tf.add(Biases, Min / NrOutputs)
 

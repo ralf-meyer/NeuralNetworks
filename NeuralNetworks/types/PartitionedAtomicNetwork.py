@@ -341,9 +341,9 @@ class _PartitionedAtomicNetwork(_AtomicNetwork):
 
                 if NetInstance.UseForce:
                     InputForce = _tf.placeholder(
-                        _tf.float64, shape=[None, NInputs, 3* sum(NetInstance.NumberOfAtomsPerType)])
+                        _tf.float32, shape=[None, NInputs, 3* sum(NetInstance.NumberOfAtomsPerType)])
                     Normalization = _tf.placeholder(
-                        _tf.float64, shape=[None, NInputs])
+                        _tf.float32, shape=[None, NInputs])
                     FFNets.append(
                         [i, Network, Input, InputForce, Normalization])
                 else:
@@ -404,7 +404,7 @@ class _PartitionedAtomicNetwork(_AtomicNetwork):
 
                     if NetInstance.UseForce:
                         InputForce = _tf.placeholder(
-                            _tf.float64, shape=[None, NInputs, 3* sum(NetInstance.NumberOfAtomsPerType)])
+                            _tf.float32, shape=[None, NInputs, 3* sum(NetInstance.NumberOfAtomsPerType)])
                         FFNets.append(
                             [i, Network, Input, InputForce])
                     else:

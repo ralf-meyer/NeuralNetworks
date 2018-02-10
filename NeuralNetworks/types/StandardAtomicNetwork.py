@@ -311,9 +311,9 @@ class _StandardAtomicNetwork(_AtomicNetwork):
 
                         if NetInstance.UseForce:
                             InputForce = _tf.placeholder(
-                                _tf.float64, shape=[None, NrInputs, 3 * sum(NetInstance.NumberOfAtomsPerType)])
+                                _tf.float32, shape=[None, NrInputs, 3 * sum(NetInstance.NumberOfAtomsPerType)])
                             Normalization = _tf.placeholder(
-                                _tf.float64, shape=[None, NrInputs])
+                                _tf.float32, shape=[None, NrInputs])
                             AtomicNNs.append(
                                 [i, Network, InputLayer, InputForce, Normalization])
                         else:
@@ -496,10 +496,10 @@ class _StandardAtomicNetwork(_AtomicNetwork):
                             Network, Weights, Biases, "none", NetInstance.ActFunParam, Dropout,
                             i=ct,include_histograms=not(NetInstance.Multiple))
                         ct += 1
-                    elif l == 1:
-                        Network = self._connect_layers(
-                            Network, Weights, Biases, "morse", NetInstance.ActFunParam, Dropout,
-                            i=ct, include_histograms=not (NetInstance.Multiple))
+                    # elif l == 1:
+                    #     Network = self._connect_layers(
+                    #         Network, Weights, Biases, "morse", NetInstance.ActFunParam, Dropout,
+                    #         i=ct, include_histograms=not (NetInstance.Multiple))
                     else:
                         Network = self._connect_layers(
                             Network,
@@ -515,10 +515,10 @@ class _StandardAtomicNetwork(_AtomicNetwork):
                 if NetInstance.UseForce:
                     with _tf.name_scope("dG"):
                         InputForce = _tf.placeholder(
-                            _tf.float64, shape=[None, NrInputs, 3 * sum(NetInstance.NumberOfAtomsPerType)])
+                            _tf.float32, shape=[None, NrInputs, 3 * sum(NetInstance.NumberOfAtomsPerType)])
                     with _tf.name_scope("norm"):
                         Normalization = _tf.placeholder(
-                            _tf.float64, shape=[None, NrInputs])
+                            _tf.float32, shape=[None, NrInputs])
                     AtomicNNs.append(
                         [i, Network, InputLayer, InputForce, Normalization])
                 else:

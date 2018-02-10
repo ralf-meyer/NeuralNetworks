@@ -565,10 +565,10 @@ class AtomicNeuralNetInstance(object):
             # Make virtual output layer for feeding the data to the cost
             # function
             with _tf.name_scope("e_target"):
-                self._OutputLayer = _tf.placeholder(_tf.float64, shape=[None, 1])
+                self._OutputLayer = _tf.placeholder(_tf.float32, shape=[None, 1])
             if self.UseForce:
                 with _tf.name_scope("f_target"):
-                    self._OutputLayerForce = _tf.placeholder(_tf.float64, shape=[None,sum(self.NumberOfAtomsPerType) * 3])
+                    self._OutputLayerForce = _tf.placeholder(_tf.float32, shape=[None,sum(self.NumberOfAtomsPerType) * 3])
 
             # Cost function for whole net
             self.CostFun = self._atomic_cost_function()
@@ -586,8 +586,9 @@ class AtomicNeuralNetInstance(object):
            if self.TextOutput:
                print("Evaluation only no training\
                  supported if all networks are constant!")
-            # Initialize session
+
         if self.Multiple==False:
+            # Initialize session
             self._Session.run(_tf.global_variables_initializer())
             self.TFWriter = _tf.summary.FileWriter(_os.path.join(self.SavingDirectory, "tf_summary"), self._Session.graph)
             self.TFSummary = _tf.summary.merge_all()
