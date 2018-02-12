@@ -51,7 +51,7 @@ def _initialize_delta_e_plot(delta_e):
     ax.set_xlabel("batches")
     ax.set_ylabel("$\Delta$E")
     ax.set_title("Averaged energy difference per atom /eV")
-    fig.legend(handles=[de_plot],labels=["$\Delta$E"], loc=1)
+    ax.legend(handles=[de_plot],labels=["$\Delta$E"])
     # We need to draw *and* flush
     fig.canvas.draw()
     fig.canvas.flush_events()
@@ -92,9 +92,9 @@ def _initialize_cost_plot(TrainingData, ValidationData=[]):
     ax.set_ylabel("log(cost)")
     ax.set_title("Normalized cost per batch")
     if len(ValidationData) != 0:
-        fig.legend(handles=[TrainingCostPlot,ValidationCostPlot,RunningMeanPlot],labels=["Training cost","Validation cost","Running avg"],loc=1)
+        ax.legend(handles=[TrainingCostPlot,ValidationCostPlot,RunningMeanPlot],labels=["Training cost","Validation cost","Running avg"])
     else:
-        fig.legend(handles=[TrainingCostPlot,RunningMeanPlot],labels=["Training cost","Running avg"],loc=1)
+        ax.legend(handles=[TrainingCostPlot,RunningMeanPlot],labels=["Training cost","Running avg"])
 
     # We need to draw *and* flush
     fig.canvas.draw()
@@ -373,13 +373,13 @@ def evaluate_all_data(TrainingInstances,ModelName):
                         ValidationTargets += [energy[0]/NrAtoms for energy in Instance._ValidationOutputs]
 
     _plt.figure()
-    _plt.scatter(TrainingPredictions,TrainingTargets)
-    _plt.scatter(ValidationPredictions,ValidationTargets)
+    _plt.scatter(TrainingTargets,TrainingPredictions)
+    _plt.scatter(ValidationTargets,ValidationPredictions)
     _plt.legend(["Training data","Validation data"])
     xy=_np.linspace(_np.min(TrainingPredictions)-0.1,_np.max(TrainingPredictions)+0.1,1000)
     _plt.plot(xy,xy,'k')
-    _plt.xlabel("eV")
-    _plt.ylabel("eV")
+    _plt.xlabel("DFT / eV per atom")
+    _plt.ylabel("Prediction / eV per atom")
     RMSETraining=_np.mean(_np.sqrt((_np.asarray(TrainingPredictions)-_np.asarray(TrainingTargets))**2))
     RMSEValidation =_np.mean(_np.sqrt((_np.asarray(ValidationPredictions) - _np.asarray(ValidationTargets)) ** 2))
     print("RMSE training = "+str(RMSETraining)+" eV/atom")
@@ -442,7 +442,7 @@ class AtomicNeuralNetInstance(object):
         self.OverallTrainingCosts = []
         self.OverallValidationCosts = []
         self.TrainedVariables = []
-        self.CostFunType = "squared-difference"
+        self.CostFunType = "quadratic"
         self.SavingDirectory = "save"
         self.CalcDatasetStatistics=True
         self._IsFromCheck=False
@@ -1847,12 +1847,12 @@ class AtomicNeuralNetInstance(object):
             ReferenceValue (tensor):Placeholder for the reference values
             Type (str): Type of cost function
                 Possible values:
-                    squared-difference,Adaptive_1,Adaptive_2
+                    quadratic,Adaptive_1,Adaptive_2
 
         Returns:
             Cost(tensor): The cost function as a tensor."""
 
-        if Type == "squared-difference":
+        if Type == "quadratic":
             Cost = _tf.losses.mean_squared_error(ReferenceValue,
                                                  Prediction)  # 0.5 * _tf.reduce_sum((Prediction - ReferenceValue)**2)
         elif Type == "Adaptive_1":
