@@ -391,8 +391,6 @@ class AtomicNeuralNetInstance(object):
 
     def __init__(self):
 
-        # Public variables
-
         # Net settings
         self.Structures = []
         self.Atomtypes = []
