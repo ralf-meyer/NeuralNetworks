@@ -84,6 +84,8 @@ class OdeSolver(object) :
         self.eplot=None
         self.save_png=False
         self.png_path=""
+        self.save_data=True
+        self.data_path=""
         self.counter=0
         self.plot_steps=100
 
@@ -149,14 +151,14 @@ class OdeSolver(object) :
         plt_etot = np.asarray(self.all_etot).flatten()
         plt_temp = np.asarray(self.all_temp).flatten()
 
-        self.epot_plot,=self.ax2.plot(t,plt_epot,c='b')
+        self.epot_plot,=self.ax2.plot(t,plt_epot,c='C0')
         self.ax1.set_xlabel("x")
         self.ax1.set_ylabel("y")
         self.ax1.set_zlabel("z")
-        self.etot_plot, = self.ax2.plot(t, plt_etot, c='r')
+        self.etot_plot, = self.ax2.plot(t, plt_etot, c='C1')
         self.ax2.set_xlabel("t / s")
         self.ax2.set_ylabel("E / eV")
-        self.temp_plot, = self.ax3.plot(t, plt_temp, c='g',label="Temperature /K")
+        self.temp_plot, = self.ax3.plot(t, plt_temp, c='C2',label="Temperature /K")
         self.ax3.set_xlabel("t / s")
         self.ax3.set_ylabel("T / K")
         self.fig.legend(handles=[self.scat,self.epot_plot,self.etot_plot], labels=["3D-view of system","Potential energy/atom eV", "Total energy/atom /ev"], loc=1)
@@ -165,26 +167,26 @@ class OdeSolver(object) :
 
     def update_plot(self,i):
         """Update the plots."""
-        self.scat._offsets3d = (_np.ma.ravel(self.pset.X[:, 0]),
-                                _np.ma.ravel(self.pset.X[:, 1]),
-                                _np.ma.ravel(self.pset.X[:, 2])
-                                )
+        x = _np.ma.ravel(self.pset.X[:, 0]) - np.mean(self.pset.X[:, 0])
+        y = _np.ma.ravel(self.pset.X[:, 1]) - np.mean(self.pset.X[:, 1])
+        z = _np.ma.ravel(self.pset.X[:, 2]) - np.mean(self.pset.X[:, 2])
+        self.scat._offsets3d = (x,y,z)
         t = np.arange(0, len(self.all_epot)) * self.__dt
         plt_epot = np.asarray(self.all_epot).flatten()
 
         plt_etot = np.asarray(self.all_etot).flatten()
         plt_temp = np.asarray(self.all_temp).flatten()
-        self.epot_plot,=self.ax2.plot(t,plt_epot,c='b')
-        self.etot_plot, = self.ax2.plot(t, plt_etot, c='r')
-        self.temp_plot, = self.ax3.plot(t, plt_temp, c='g', label="Temperature /K")
-        if self.save_png:
-            self.fig.savefig(_os.path.join(self.png_path, "pic_" + str(self.counter)))
+        self.epot_plot,=self.ax2.plot(t,plt_epot,c='C0')
+        self.etot_plot, = self.ax2.plot(t, plt_etot, c='C1')
+        self.temp_plot, = self.ax3.plot(t, plt_temp, c='C2', label="Temperature /K")
+
         self.counter+=1
         self.fig.canvas.draw()
         self.fig.canvas.flush_events()
 
 
     def start(self):
+
         if self.fig == None and self.plot:
             self.init_plot(self.pset.X[:])
 
@@ -194,6 +196,16 @@ class OdeSolver(object) :
             self.step(self.dt)
             print("Step "+str(i+1))
 
+        if self.save_data:
+            if self.data_path=="":
+                self.data_path = _os.path.join(_os.getcwd(),"data.npy")
+            if not _os.path.exists(self.data_path):
+                _os.makedirs(self.data_path)
+            nrfiles=len([name for name in _os.listdir(self.data_path) if _os.path.isfile(name)])
+            filename="Data_"+str(nrfiles+1)+".npy"
+            np.save(_os.path.join(self.data_path,filename),
+                    np.asarray([self.all_epot, self.all_etot, self.all_temp]))
+            print("Data saved to "+str(self.data_path))
 
     def get_dt( self ):
         return self.__dt
@@ -284,10 +296,12 @@ class OdeSolver(object) :
         self.ax1.relim()
         self.ax1.autoscale_view()
         geometry = self.all_geometries[num]
-        self.scat._offsets3d = (_np.ma.ravel(geometry[:, 0]),
-                         _np.ma.ravel(geometry[:, 1]),
-                         _np.ma.ravel(geometry[:, 2])
-                         )
+        x = _np.ma.ravel(geometry[:, 0]) - np.mean(geometry[:, 0])
+        y = _np.ma.ravel(geometry[:, 1]) - np.mean(geometry[:, 1])
+        z = _np.ma.ravel(geometry[:, 2]) - np.mean(geometry[:, 2])
+        self.scat._offsets3d = (x,y,z)
+        if self.save_png:
+            self.fig.savefig(_os.path.join(self.png_path, "pic_" + str(num)))
         return self.scat,
 
     def animate_run(self):
@@ -309,8 +323,8 @@ class OdeSolver(object) :
             else:
                 my_colors.append('k')
 
-        fig = plt.figure()
-        self.ax1 = fig.add_subplot(111, projection='3d')
+        self.fig = plt.figure()
+        self.ax1 = self.fig.add_subplot(111, projection='3d')
 
         initial_geometry = self.all_geometries[0]
 
@@ -318,8 +332,8 @@ class OdeSolver(object) :
                                       alpha=0.8,
                                       s=150,
                                       c=my_colors)
-        ani = animation.FuncAnimation(fig,self.update_animation,
-                                      frames=_np.arange(0,len(self.all_geometries)),
+        ani = animation.FuncAnimation(self.fig,self.update_animation,
+                                      frames=_np.arange(0,len(self.all_geometries),10),
                                       interval=1,blit=False)
         plt.show()
 
@@ -334,16 +348,19 @@ class OdeSolver(object) :
 
         plt_etot = np.asarray(self.all_etot).flatten()
         plt_temp = np.asarray(self.all_temp).flatten()
-        self.epot_plot,=self.ax2.plot(t,plt_epot,c='b')
-        self.etot_plot, = self.ax2.plot(t, plt_etot, c='r')
+        self.epot_plot,=self.ax2.plot(t,plt_epot,c='C0')
+        self.etot_plot, = self.ax2.plot(t, plt_etot, c='C1')
         self.ax2.set_xlabel("t / s")
         self.ax2.set_ylabel("E / eV")
-        self.temp_plot, = self.ax3.plot(t, plt_temp, c='g',label="Temperature /K")
+        self.temp_plot, = self.ax3.plot(t, plt_temp, c='C2',label="Temperature /K")
         self.ax3.set_xlabel("t / s")
         self.ax3.set_ylabel("T / K")
         self.fig.legend(handles=[self.epot_plot,self.etot_plot], labels=["Potential energy/atom eV", "Total energy/atom /ev"], loc=1)
         plt.legend(handles=[self.temp_plot], loc=1)
+        if self.save_png:
+            self.fig.savefig(_os.path.join(self.png_path, "../run"))
         plt.show()
+
 
 class Logger(object):
 
