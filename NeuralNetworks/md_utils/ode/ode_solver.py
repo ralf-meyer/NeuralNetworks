@@ -88,6 +88,7 @@ class OdeSolver(object) :
         self.data_path=""
         self.counter=0
         self.plot_steps=100
+        self.momentum_fix_step=100
 
         # Instatiate a logger (but deactivate logging by default)
         #TODO: log file paths should not be speciefied in ctor of solver
@@ -184,6 +185,97 @@ class OdeSolver(object) :
         self.fig.canvas.draw()
         self.fig.canvas.flush_events()
 
+    def get_ekin_system(self):
+
+        return np.sum(0.5*self.pset.M*(self.pset.V[:,0]**2 + self.pset.V[:,1]**2+self.pset.V[:,2]**2))
+
+    def get_center_of_mass(self):
+
+        m_all=np.ravel(self.pset.M)
+        m_tot=np.sum(np.ravel(self.pset.M))
+        cx = np.sum(np.multiply(self.pset.X[:,0],m_all)) / m_tot
+        cy = np.sum(np.multiply(self.pset.X[:,1],m_all)) / m_tot
+        cz = np.sum(np.multiply(self.pset.X[:, 2],m_all)) / m_tot
+
+        return [cx,cy,cz]
+
+    def get_cm_corrdinates(self,cm):
+
+        dx = self.pset.X[:,0] - cm[0]
+        dy = self.pset.X[:,1] - cm[1]
+        dz = self.pset.X[:,2] - cm[2]
+
+        return dx,dy,dz
+
+    def get_angular_momentum_and_cm_coordinates(self,cm):
+
+        dx,dy,dz = self.get_cm_corrdinates(cm)
+        vx = self.pset.V[:, 0]
+        vy = self.pset.V[:, 1]
+        vz = self.pset.V[:, 2]
+        m_all = np.ravel(self.pset.M)
+
+        px = np.sum(np.multiply(np.multiply(dy,vz),m_all)-np.multiply(np.multiply(dz,vy),m_all))
+        py = np.sum(np.multiply(np.multiply(dz, vx), m_all) - np.multiply(np.multiply(dx, vz), m_all))
+        pz = np.sum(np.multiply(np.multiply(dx, vy), m_all) - np.multiply(np.multiply(dy, vx), m_all))
+
+        return [px,py,pz],dx,dy,dz
+
+    def get_inertia(self,dx,dy,dz):
+
+        I=np.zeros((3,3))
+        m_all = np.ravel(self.pset.M)
+        I[0, 0] = np.sum(np.multiply(dy ** 2 + dz ** 2, m_all))
+        I[1, 1] = np.sum(np.multiply(dx ** 2 + dz ** 2, m_all))
+        I[2, 2] = np.sum(np.multiply(dx ** 2 + dy ** 2, m_all))
+        I[0, 1] = np.sum(np.multiply(np.multiply(dx,dy), m_all))
+        I[1, 2] = np.sum(np.multiply(np.multiply(dy,dz), m_all))
+        I[0, 2] = np.sum(np.multiply(np.multiply(dx,dz), m_all))
+        I[1, 0] = I[0, 1]
+        I[2, 1] = I[0, 1]
+        I[2, 0] = I[0, 2]
+
+        return I
+
+
+    def get_omega(self,I,p):
+
+        inv=np.linalg.inv(I)
+        wx = inv[0, 0] * p[0] + inv[0, 1] * p[1] + inv[0, 2] * p[2]
+        wy = inv[1, 0] * p[0] + inv[1, 1] * p[1] + inv[1, 2] * p[2]
+        wz = inv[2, 0] * p[0] + inv[2, 1] * p[1] + inv[2, 2] * p[2]
+
+        return [wx,wy,wz]
+
+    def remove_translation(self):
+
+        vx = np.mean(self.pset.V[:, 0])
+        vy = np.mean(self.pset.V[:, 1])
+        vz = np.mean(self.pset.V[:, 2])
+
+        self.pset.V[:, 0] = self.pset.V[:, 0] - vx
+        self.pset.V[:, 1] = self.pset.V[:, 1] - vy
+        self.pset.V[:, 2] = self.pset.V[:, 2] - vz
+
+
+    def remove_rotation(self):
+
+        cm = self.get_center_of_mass()
+        p,dx,dy,dz = self.get_angular_momentum_and_cm_coordinates(cm)
+        I = self.get_inertia(dx,dy,dz)
+        wx,wy,wz = self.get_omega(I,p)
+        self.pset.V[:,0] = self.pset.V[:,0] - (dz * wy - wz * dy)
+        self.pset.V[:, 1] = self.pset.V[:, 1] - (dx * wz - wx * dz)
+        self.pset.V[:, 2] = self.pset.V[:, 2] - (dy * wx - wy * dx)
+
+    def remove_translation_and_rotation(self):
+
+        e_start=self.get_ekin_system()
+        self.remove_translation()
+        self.remove_rotation()
+        e_end = self.get_ekin_system()
+        factor = np.sqrt(e_start/e_end)
+        self.pset.V[:,:] = self.pset.V[:,:] * factor
 
     def start(self):
 
@@ -194,6 +286,8 @@ class OdeSolver(object) :
             if self.plot and i%self.plot_steps==0:
                 self.update_plot(i)
             self.step(self.dt)
+            if i % self.momentum_fix_step==0:
+                self.remove_translation_and_rotation()
             print("Step "+str(i+1))
 
         if self.save_data:
