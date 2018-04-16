@@ -496,7 +496,7 @@ class _StandardAtomicNetwork(_AtomicNetwork):
                             Network, Weights, Biases, "none", NetInstance.ActFunParam, Dropout,
                             i=ct,include_histograms=not(NetInstance.Multiple))
                         ct += 1
-                    elif l == 1:
+                    elif l == 1 and NetInstance.IncludeMorse:
                         Network = self._connect_layers(
                             Network, Weights, Biases, "morse", NetInstance.ActFunParam, Dropout,
                             i=ct, include_histograms=not (NetInstance.Multiple))

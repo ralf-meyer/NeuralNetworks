@@ -19,7 +19,7 @@ import NeuralNetworks.descriptors.SymmetryFunctionSet as _SymmetryFunctionSet
 from NeuralNetworks import DataSet as _DataSet
 from NeuralNetworks.types.PartitionedAtomicNetwork import _PartitionedAtomicNetwork
 from NeuralNetworks.types.StandardAtomicNetwork import _StandardAtomicNetwork
-from data_generation import data_readers as _readers
+from NeuralNetworks.data_generation import data_readers as _readers
 
 _plt.ion()
 _tf.reset_default_graph()
@@ -397,13 +397,14 @@ class AtomicNeuralNetInstance(object):
         self.SizeOfInputsPerType = []
         self.SizeOfInputsPerAtom = []
         self.NumberOfAtomsPerType = []
-        self.WeightType = "truncated_normal"
-        self.BiasType = "truncated_normal"
-        self.ActFun = "elu"
+        self.WeightType = "random_normal"
+        self.BiasType = "zeros"
+        self.ActFun = "selu"
         self.ActFunParam = None
         self.MakeLastLayerConstant = False
         self.Dropout = [0]
         self.IsPartitioned = False
+        self.IncludeMorse = True
         self.ClippingValue = 1e10
         # Data
         self.EvalData = []
@@ -422,7 +423,7 @@ class AtomicNeuralNetInstance(object):
         self.CostFun = None
         self.MakePlots = False
         self.InitMean = 0.0
-        self.InitStddev = 1.0
+        self.InitStddev = 0 # 0 mean selu 1/sqrt(n) stdev
         self.MakeAllVariable = True
         self.Regularization = "none"
         self.RegularizationParam = 0.0
@@ -1636,7 +1637,7 @@ class AtomicNeuralNetInstance(object):
         #     ThisStruture=[self.SizeOfInputsPerType[i]]+MyStructure
         #     self.Structures.append(ThisStruture)
 
-        self.ActFun="elu"
+        #self.ActFun="elu"
         self.MakeLastLayerConstant=False
         self.expand_existing_net(ModelName=model_name,MakeAllVariable=self.MakeAllVariable)
 
