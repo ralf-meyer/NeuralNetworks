@@ -423,7 +423,7 @@ class AtomicNeuralNetInstance(object):
         self.CostFun = None
         self.MakePlots = False
         self.InitMean = 0.0
-        self.InitStddev = 0 # 0 mean selu 1/sqrt(n) stdev
+        self.InitStddev = 0 # 0 means selu 1/sqrt(n) stddev
         self.MakeAllVariable = True
         self.Regularization = "none"
         self.RegularizationParam = 0.0
@@ -624,6 +624,14 @@ class AtomicNeuralNetInstance(object):
             self.IsPartitioned=rare_model[11]
         except:
             self.IsPartitioned=False
+        try:
+            self.ActFun=rare_model[12]
+        except:
+            self.ActFun="elu"
+        try:
+            self.IncludeMorse=rare_model[13]
+        except:
+            self.IncludeMorse=True
 
         #self.Dropout=rare_model[12]
 
@@ -1241,8 +1249,7 @@ class AtomicNeuralNetInstance(object):
                                   self.Zetas,
                                   self.NumberOfRadialFunctions,
                                   self.Cutoff,
-                                  self.IsPartitioned,
-                                  self.Dropout])
+                                  self.IsPartitioned])
 
                     # Abort criteria
                     if self.TrainingCosts != 0 and self.TrainingCosts <= self.CostCriterion and self.ValidationCosts <= self.CostCriterion or self.DeltaE[-1] < self.dE_Criterion:
@@ -2218,7 +2225,10 @@ class MultipleInstanceTraining(object):
                                   SampleInstance.Lambs,
                                   SampleInstance.Zetas,
                                   SampleInstance.NumberOfRadialFunctions,
-                                  SampleInstance.Cutoff])
+                                  SampleInstance.Cutoff,
+                                  SampleInstance.IsPartitioned,
+                                  SampleInstance.ActFun,
+                                  SampleInstance.IncludeMorse])
                     ct = ct + 1
                     # Abort criteria
                     if TrainingCost <= self.GlobalCostCriterion and \
