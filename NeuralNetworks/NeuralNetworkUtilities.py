@@ -1623,6 +1623,7 @@ class AtomicNeuralNetInstance(object):
         #Default symmetry function set
         self.Structures=[]
         self.Atomtypes=[]
+        self.CalcDatasetStatistics=False
         self.NumberOfAtomsPerType=[]
         self._DataSet = _DataSet.DataSet()
         self.UseForce=use_force
