@@ -10,8 +10,8 @@ def str2bool(v):
   return v.lower() in ("yes", "true", "t", "1")
 #Get input
 plots=False
-learning_rate=0.001
-epochs=5000
+learning_rate=0.0001
+epochs=2000
 data_file=""
 force=False
 e_unit="Ry"
@@ -119,13 +119,13 @@ for i in range(0,len(Training.Atomtypes)):
 #Default trainings settings
 if pretraining:
     for i in range(len(Training.Atomtypes)):
-        Training.Structures.append([Training.SizeOfInputsPerType[i],15,10,1])
+        Training.Structures.append([Training.SizeOfInputsPerType[i],20,15,1])
     Training.Dropout = [0, 0.5, 0]
     Training.RegularizationParam = 0.1
     Training.MakeLastLayerConstant = True
 else:
     for i in range(len(Training.Atomtypes)):
-        Training.Structures.append([Training.SizeOfInputsPerType[i],20,15,10,1])
+        Training.Structures.append([Training.SizeOfInputsPerType[i],80,60,40,1])
     Training.RegularizationParam = 0.01
     Training.MakeLastLayerConstant = False
 
@@ -185,3 +185,5 @@ figures=[manager.canvas.figure
 
 for i, figure in enumerate(figures):
     figure.savefig(os.path.join(model_dir,'figure%d.png' % i))
+
+_NN.evaluate_all_data([Training],os.path.join(os.getcwd(),model_dir))

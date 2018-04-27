@@ -10,15 +10,15 @@ def str2bool(v):
   return v.lower() in ("yes", "true", "t", "1")
 #Get input
 plots=False
-learning_rate=0.0001
-epochs=2000
+learning_rate=0.001
+epochs=50000
 data_file=""
-force=True
+force=False
 e_unit="Ry"
 dist_unit="A"
-load_model=True
-model="/home/afuchs/Documents/NiAu_Training/multi_morse_2nd/trained_variables.npy"
-model_dir="multi_morse_2nd_force"
+load_model=False
+model="/home/afuchs/Documents/SELU/selu_morse_1"
+model_dir="morse_selu_morse_test1"
 source="QE"
 percentage_of_data=100
 
@@ -89,26 +89,26 @@ data_files=["/home/afuchs/Documents/13atomic/Ni1Au12",
             "/home/afuchs/Documents/home/Ni6Au49",
             "/home/afuchs/Documents/home/Ni8Au47",
             "/home/afuchs/Documents/home/Ni10Au45",
-            # "/home/afuchs/Documents/home/Ni11Au44",
-            # "/home/afuchs/Documents/home/Ni12Au43",
-            # "/home/afuchs/Documents/home/Ni13Au42",
-            # "/home/afuchs/Documents/home/Ni14Au41",
-            # "/home/afuchs/Documents/home/Ni15Au40",
-            # "/home/afuchs/Documents/home/Ni17Au38",
-            # "/home/afuchs/Documents/home/Ni18Au37",
-            # "/home/afuchs/Documents/home/Ni19Au36",
-            # "/home/afuchs/Documents/home/Ni20Au35",
-            # "/home/afuchs/Documents/home/Ni21Au34",
-            # "/home/afuchs/Documents/home/Ni22Au33",
-            # "/home/afuchs/Documents/home/Ni23Au32",
-            # "/home/afuchs/Documents/home/Ni24Au31",
-            # "/home/afuchs/Documents/home/Ni25Au30",
-            # "/home/afuchs/Documents/home/Ni26Au29",
-            # "/home/afuchs/Documents/home/Ni27Au28",
-            # "/home/afuchs/Documents/home/Ni28Au27",
-            # "/home/afuchs/Documents/home/Ni29Au26",
-            # "/home/afuchs/Documents/home/Ni36Au19",
-            # "/home/afuchs/Documents/home/Ni37Au18"
+            "/home/afuchs/Documents/home/Ni11Au44",
+            "/home/afuchs/Documents/home/Ni12Au43",
+            "/home/afuchs/Documents/home/Ni13Au42",
+            "/home/afuchs/Documents/home/Ni14Au41",
+            "/home/afuchs/Documents/home/Ni15Au40",
+            "/home/afuchs/Documents/home/Ni17Au38",
+            "/home/afuchs/Documents/home/Ni18Au37",
+            "/home/afuchs/Documents/home/Ni19Au36",
+            "/home/afuchs/Documents/home/Ni20Au35",
+            "/home/afuchs/Documents/home/Ni21Au34",
+            "/home/afuchs/Documents/home/Ni22Au33",
+            "/home/afuchs/Documents/home/Ni23Au32",
+            "/home/afuchs/Documents/home/Ni24Au31",
+            "/home/afuchs/Documents/home/Ni25Au30",
+            "/home/afuchs/Documents/home/Ni26Au29",
+            "/home/afuchs/Documents/home/Ni27Au28",
+            "/home/afuchs/Documents/home/Ni28Au27",
+            #"/home/afuchs/Documents/home/Ni29Au26",
+            #"/home/afuchs/Documents/home/Ni36Au19",
+            #"/home/afuchs/Documents/home/Ni37Au18"
             ]
 # data_files=["/home/afuchs/Documents/Ni1Au2/",
 #             "/home/afuchs/Documents/Ni2Au1",
@@ -122,6 +122,7 @@ for i in range(len(data_files)):
     #Load trainings instance
     Training=_NN.AtomicNeuralNetInstance()
     Training.IsPartitioned=False
+    Training.IncludeMorse=True
     Training.CalcDatasetStatistics=True
     Training.UseForce=force
     #Default symmetry function set
@@ -149,12 +150,12 @@ for i in range(len(data_files)):
     Training.Dropout=[0,0,0]
     Training.Regularization = "L2"
     Training.MakeLastLayerConstant=False
-    Training.InitStddev=0.1
-    Training.LearningDecayEpochs=1000
+    Training.InitStddev=0
+    Training.LearningDecayEpochs=500
     Training.Epochs=epochs
-    Training.ForceCostParam=0.01
+    Training.ForceCostParam=0.001
     Training.MakePlots=plots
-    Training.ActFun="elu"
+    Training.ActFun="selu"
     Training.CostFunType="Adaptive_2"
     Training.OptimizerType="Adam"
     Training.SavingDirectory=model_dir
@@ -212,3 +213,5 @@ figures=[manager.canvas.figure
 
 for i, figure in enumerate(figures):
     figure.savefig(os.path.join(model_dir,'figure%d.png' % i))
+
+print(model_dir)
