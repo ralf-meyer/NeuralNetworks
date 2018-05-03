@@ -631,7 +631,7 @@ class AtomicNeuralNetInstance(object):
         try:
             self.IncludeMorse=rare_model[13]
         except:
-            self.IncludeMorse=True
+            self.IncludeMorse=False
 
         #self.Dropout=rare_model[12]
 
