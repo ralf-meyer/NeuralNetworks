@@ -301,11 +301,12 @@ def read_geometry_scf(my_file,Geom_conv_factor,atom_types=[],read_types=True):
     a=float(my_file[a_idx_start:a_idx_end])*0.529177249
 
     #get postitions
-    geom_start_idx=my_file.index("\n",a_idx[-2])
+    geom_start_idx=my_file.index("positions (alat units)")
     geom_end_idx=my_file.index("number of k points")
     geom=my_file[geom_start_idx:geom_end_idx]
-
-    lines=geom.split('\n')
+   
+    # Cut away header line
+    lines=geom.split('\n')[1:]
     sites=[]
     types=[]
     x=[]
