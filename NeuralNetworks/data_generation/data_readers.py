@@ -125,7 +125,7 @@ def read_ekin_temp_etot_force(my_file,E_conv_factor,Geom_conv_factor):
     #find total energies in file
     ex_idx=[i.start() for i in _re.finditer('!', my_file)]
     kin_idx=[i.start() for i in _re.finditer('kinetic energy', my_file)]
-    const_idx=[i.start() for i in _re.finditer('(const)', my_file)]
+    const_idx=[i.start() for i in _re.finditer('\(const\)', my_file)]
     f1_idx=[j.start() for j in _re.finditer('Forces acting on atoms', my_file)]
     f2_idx=[j.start() for j in _re.finditer('Total SCF correction', my_file)]
     tot_start_idx=[]
