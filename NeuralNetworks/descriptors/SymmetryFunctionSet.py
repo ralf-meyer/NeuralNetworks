@@ -9,7 +9,7 @@ from scipy.misc import comb
 
 try:
 
-    # TODO: the solution with relative patch is really dirty.
+    # TODO: the solution with relative path is really dirty.
     #    Better find a way to retrieve the main package's root path
     #    and use relative path from there.
     module_path = dirname(abspath(getsourcefile(lambda:0)))
@@ -19,6 +19,7 @@ try:
             "libSymFunSet.so")
         )
     )
+    lib.destroy_SymmetryFunctionSet.argtypes = (_ct.c_void_p,)
     lib.SymmetryFunctionSet_add_TwoBodySymmetryFunction.argtypes = (
         _ct.c_void_p, _ct.c_int, _ct.c_int, _ct.c_int, _ct.c_int,
         _ct.POINTER(_ct.c_double), _ct.c_int, _ct.c_double)
@@ -61,6 +62,17 @@ class SymmetryFunctionSet(object):
             self.type_dict[t] = i
             self.type_dict[i] = i
         self.obj = lib.create_SymmetryFunctionSet(_ct.c_int(len(atomtypes)))
+        self._closed = False
+
+    def close(self):
+        lib.destroy_SymmetryFunctionSet(self.obj)
+        self._closed = True
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self ,type, value, traceback):
+        self.close()
 
     def add_TwoBodySymmetryFunction(self, type1, type2, funtype, prms,
             cuttype = "cos", cutoff = None):
