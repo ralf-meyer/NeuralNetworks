@@ -139,7 +139,7 @@ class SymmetryFunctionSet(object):
         lib.SymmetryFunctionSet_print_symFuns(self.obj)
 
     def available_symFuns(self):
-        return lib.SymmetryFunctionSet_available_symFuns(self.obj)
+        lib.SymmetryFunctionSet_available_symFuns(self.obj)
 
     def eval(self, types, xyzs):
         int_types = [self.type_dict[ti] for ti in types]
