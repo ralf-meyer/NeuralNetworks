@@ -125,7 +125,7 @@ def read_ekin_temp_etot_force(my_file,E_conv_factor,Geom_conv_factor):
     #find total energies in file
     ex_idx=[i.start() for i in _re.finditer('!', my_file)]
     kin_idx=[i.start() for i in _re.finditer('kinetic energy', my_file)]
-    const_idx=[i.start() for i in _re.finditer('(const)', my_file)]
+    const_idx=[i.start() for i in _re.finditer('\(const\)', my_file)]
     f1_idx=[j.start() for j in _re.finditer('Forces acting on atoms', my_file)]
     f2_idx=[j.start() for j in _re.finditer('Total SCF correction', my_file)]
     tot_start_idx=[]
@@ -301,11 +301,12 @@ def read_geometry_scf(my_file,Geom_conv_factor,atom_types=[],read_types=True):
     a=float(my_file[a_idx_start:a_idx_end])*0.529177249
 
     #get postitions
-    geom_start_idx=my_file.index("\n",a_idx[-2])
+    geom_start_idx=my_file.index("positions (alat units)")
     geom_end_idx=my_file.index("number of k points")
     geom=my_file[geom_start_idx:geom_end_idx]
-
-    lines=geom.split('\n')
+   
+    # Cut away header line
+    lines=geom.split('\n')[1:]
     sites=[]
     types=[]
     x=[]

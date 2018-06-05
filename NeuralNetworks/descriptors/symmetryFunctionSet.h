@@ -45,6 +45,10 @@ extern "C" {
   {
     return new SymmetryFunctionSet(num_atomtypes);
   }
+  void destroy_SymmetryFunctionSet(SymmetryFunctionSet* symFunSet)
+  {
+    symFunSet->~SymmetryFunctionSet();
+  }
   void SymmetryFunctionSet_add_TwoBodySymmetryFunction(
     SymmetryFunctionSet* symFunSet,  int type1, int type2, int funtype,
     int num_prms, double* prms, int cutoff_type, double cutoff)
