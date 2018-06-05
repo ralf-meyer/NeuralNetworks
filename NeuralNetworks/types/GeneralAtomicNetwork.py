@@ -336,7 +336,13 @@ class _AtomicNetwork(object):
 
 
         def morse(x):
-            return (0.651331+_tf.exp(-2*0.483791*(x))-2*_tf.exp(-0.483791*(x)))
+            return 0.28707*(_tf.exp(-2* 0.601533*(x-0.25))-2*_tf.exp(- 0.601533*(x-0.25)))
+
+        def morse_all_1(x):
+            return 1*(_tf.exp(-2* 1*(x-1))-2*_tf.exp(- 1*(x-1)))
+
+        def shift_morse(x):
+            return  0.793876+2*(_tf.exp(-2* 1 *(x))-2*_tf.exp(- 1*(x)))
 
         if ActFun is not None:
             if ActFun == "sigmoid":
@@ -382,6 +388,14 @@ class _AtomicNetwork(object):
             elif ActFun == "morse":
                 with _tf.name_scope("net_" + str(i + 1) + "_act_fun_" + str(j + 1)):
                     Out=morse(_tf.matmul(
+                        InputsForLayer, ThisLayerWeights) + ThisLayerBias)
+            elif ActFun == "shift_morse":
+                with _tf.name_scope("net_" + str(i + 1) + "_act_fun_" + str(j + 1)):
+                    Out=shift_morse(_tf.matmul(
+                        InputsForLayer, ThisLayerWeights) + ThisLayerBias)
+            elif ActFun == "morse_all_1":
+                with _tf.name_scope("net_" + str(i + 1) + "_act_fun_" + str(j + 1)):
+                    Out=morse_all_1(_tf.matmul(
                         InputsForLayer, ThisLayerWeights) + ThisLayerBias)
             elif ActFun == "none":
                 with _tf.name_scope("E_"+str(i)):

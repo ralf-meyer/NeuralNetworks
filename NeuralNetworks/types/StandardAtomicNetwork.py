@@ -291,7 +291,7 @@ class _StandardAtomicNetwork(_AtomicNetwork):
                             InputLayer,
                             FirstWeights,
                             FirstBiases,
-                            NetInstance.ActFun,
+                            NetInstance.ActFun[0],
                             NetInstance.ActFunParam,
                             Dropout)
 
@@ -307,7 +307,11 @@ class _StandardAtomicNetwork(_AtomicNetwork):
                                 Weights = HiddenLayers[l][0]
                                 Biases = HiddenLayers[l][1]
                                 Network = self._connect_layers(
-                                    Network, Weights, Biases, NetInstance.ActFun, NetInstance.ActFunParam, Dropout)
+                                    Network,
+                                    Weights,
+                                    Biases,
+                                    NetInstance.ActFun[min(l,len(NetInstance.ActFun)-1)],
+                                    NetInstance.ActFunParam, Dropout)
 
                         if NetInstance.UseForce:
                             InputForce = _tf.placeholder(
@@ -475,7 +479,7 @@ class _StandardAtomicNetwork(_AtomicNetwork):
                     InputLayer,
                     FirstWeights,
                     FirstBiases,
-                    NetInstance.ActFun,
+                    NetInstance.ActFun[0],
                     NetInstance.ActFunParam,
                     Dropout,
                     i=ct,
@@ -496,16 +500,12 @@ class _StandardAtomicNetwork(_AtomicNetwork):
                             Network, Weights, Biases, "none", NetInstance.ActFunParam, Dropout,
                             i=ct,include_histograms=not(NetInstance.Multiple))
                         ct += 1
-                    elif l == 1 and NetInstance.IncludeMorse:
-                        Network = self._connect_layers(
-                            Network, Weights, Biases, "morse", NetInstance.ActFunParam, Dropout,
-                            i=ct, include_histograms=not (NetInstance.Multiple))
                     else:
                         Network = self._connect_layers(
                             Network,
                             Weights,
                             Biases,
-                            NetInstance.ActFun,
+                            NetInstance.ActFun[min(l,len(NetInstance.ActFun)-1)],
                             NetInstance.ActFunParam,
                             Dropout,
                             i=ct,
