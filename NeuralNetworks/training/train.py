@@ -89,11 +89,16 @@ Training.CalcDatasetStatistics=True
 Training.UseForce=force
 #Default symmetry function set
 #Training.NumberOfRadialFunctions=15
-Training.Lambs=[1.0,-1.0]
-Training.Zetas=[0.2,0.5,1,3,10]#[0.025,0.045,0.075,0.1,0.15,0.2,0.3,0.5,0.7,1,1.5,2,3,5,10,18,36,100]
-Training.Etas=[0.01]
-Training.Rs = [1,1.2,1.4,1.6,1.8, 2, 2.2, 2.4, 2.6, 2.8, 3.0, 3.2, 3.4, 3.6, 3.8, 4, 4.2, 4.4,4.6,4.8,5,6,7]
-Training.R_Etas = [0.2,0.5,0.5,0.5,0.5,0.8,0.8,0.8, 1, 1, 1, 1, 1, 1, 0.8, 0.8, 0.5, 0.5,0.5,0.5,0.2]
+#Training.Lambs=[1.0,-1.0]
+#Training.Zetas=[0.2,0.5,1,3,10]#[0.025,0.045,0.075,0.1,0.15,0.2,0.3,0.5,0.7,1,1.5,2,3,5,10,18,36,100]
+#Training.Etas=[0.01]
+#Training.Rs = [1,1.2,1.4,1.6,1.8, 2, 2.2, 2.4, 2.6, 2.8, 3.0, 3.2, 3.4, 3.6, 3.8, 4, 4.2, 4.4,4.6,4.8,5,6,7]
+#Training.R_Etas = [0.2,0.5,0.5,0.5,0.5,0.8,0.8,0.8, 1, 1, 1, 1, 1, 1, 0.8, 0.8, 0.5, 0.5,0.5,0.5,0.2]
+Training.Rs = [0, 0, 0, 0, 0, 0, 0, 0]  # ,1.16674542, 1.81456625,2.3, 2.89256287, 4.53134823, 6.56226301, 6.92845869]
+bohr2ang = 0.529177249
+Training.R_Etas = [0.4 / bohr2ang ** 2, 0.2 / bohr2ang ** 2, 0.1 / bohr2ang ** 2, 0.06 / bohr2ang ** 2,
+                   0.035 / bohr2ang ** 2, 0.02 / bohr2ang ** 2, 0.01 / bohr2ang ** 2,
+                   0.0009 / bohr2ang ** 2]
 Training.Cutoff=7
 #Training.R_Etas=[0.1,0.3,0.8,0.8,0.8,3,3,3,3,3,2,0.8,0.8,0.8,0.8,0.3,0.1]
 # if load_model:
@@ -102,7 +107,7 @@ Training.Cutoff=7
 #     is_reference=True
 is_reference=True
 #Read file
-calibration=["/home/afuchs/Documents/Calibration/Ni","/home/afuchs/Documents/Calibration/Au"]
+calibration=["/home/afuchs/Documents/Conference_Lausanne/Au_Calibration/Au1_sp.out"]
 if source == "QE":
     Training.read_qe_md_files(data_file,e_unit,dist_unit,DataPointsPercentage=percentage_of_data,TakeAsReference=is_reference,Calibration=calibration)
 else:
@@ -125,7 +130,7 @@ if pretraining:
     Training.MakeLastLayerConstant = True
 else:
     for i in range(len(Training.Atomtypes)):
-        Training.Structures.append([Training.SizeOfInputsPerType[i],80,60,40,1])
+        Training.Structures.append([Training.SizeOfInputsPerType[i],20,60,40,1])
     Training.RegularizationParam = 0.01
     Training.MakeLastLayerConstant = False
 
@@ -142,7 +147,7 @@ Training.BiasType="truncated_normal"
 Training.Epochs=epochs
 Training.ForceCostParam=0.001
 Training.MakePlots=plots
-Training.ActFun="elu"
+Training.ActFun=["selu","morse","selu","none"]
 Training.CostFunType=cost_fun
 Training.OptimizerType="Adam"
 Training.SavingDirectory=model_dir

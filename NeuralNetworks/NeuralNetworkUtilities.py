@@ -399,12 +399,11 @@ class AtomicNeuralNetInstance(object):
         self.NumberOfAtomsPerType = []
         self.WeightType = "random_normal"
         self.BiasType = "zeros"
-        self.ActFun = "selu"
+        self.ActFun = ["selu"]
         self.ActFunParam = None
         self.MakeLastLayerConstant = False
         self.Dropout = [0]
         self.IsPartitioned = False
-        self.IncludeMorse = True
         self.ClippingValue = 1e10
         # Data
         self.EvalData = []
@@ -627,14 +626,9 @@ class AtomicNeuralNetInstance(object):
         try:
             self.ActFun=rare_model[12]
         except:
-            self.ActFun="elu"
-        try:
-            self.IncludeMorse=rare_model[13]
-        except:
-            self.IncludeMorse=False
+            self.ActFun=["selu","selu","selu","none"]
 
         #self.Dropout=rare_model[12]
-
         if self.IsPartitioned:
             if len(self.Atomtypes) == 0:
                 ANN = self.TrainedVariables[0]
@@ -1249,7 +1243,8 @@ class AtomicNeuralNetInstance(object):
                                   self.Zetas,
                                   self.NumberOfRadialFunctions,
                                   self.Cutoff,
-                                  self.IsPartitioned])
+                                  self.IsPartitioned,
+                                  self.ActFun])
 
                     # Abort criteria
                     if self.TrainingCosts != 0 and self.TrainingCosts <= self.CostCriterion and self.ValidationCosts <= self.CostCriterion or self.DeltaE[-1] < self.dE_Criterion:
@@ -1305,6 +1300,10 @@ class AtomicNeuralNetInstance(object):
                               "+-" +
                               str(_np.sqrt(val_stat[1])) +
                               " eV")
+
+                        _np.save(self.SavingDirectory + "/TrainingCost",self.OverallTrainingCosts)
+                        _np.save(self.SavingDirectory + "/ValidationCost", self.OverallValidationCosts)
+                        _np.save(self.SavingDirectory + "/dE",self.DeltaE)
 
     def create_symmetry_functions(self):
 
@@ -1379,6 +1378,7 @@ class AtomicNeuralNetInstance(object):
             self._calculate_statistics_for_dataset(AllTemp)
         GInputs, GDerivativesInput,Normalization,FFInputs,FFDerivatives=self._sort_and_normalize_data(1,Gs,dGs,FFIn,dFFIn)
 
+        self._SymmFunSet.close()
         if self.UseForce:
             if self.IsPartitioned:
                 return [[GInputs,[], GDerivativesInput,Normalization,[],FFInputs,FFDerivatives]]
@@ -1443,6 +1443,7 @@ class AtomicNeuralNetInstance(object):
 
         if TakeAsReference:
             self._calculate_statistics_for_dataset(AllTemp)
+        self._SymmFunSet.close()
 
     def _calculate_statistics_for_dataset(self, AllTemp):
         """To be documented..."""
@@ -1858,7 +1859,6 @@ class AtomicNeuralNetInstance(object):
 
         Returns:
             Cost(tensor): The cost function as a tensor."""
-
         if Type == "quadratic":
             Cost = _tf.losses.mean_squared_error(ReferenceValue,
                                                  Prediction)  # 0.5 * _tf.reduce_sum((Prediction - ReferenceValue)**2)
@@ -2080,7 +2080,7 @@ class MultipleInstanceTraining(object):
                 self.TrainingInstances[i].CostCriterion = 0
                 self.TrainingInstances[i].dE_Criterion = 0
                 self.TrainingInstances[i].IsPartitioned = self.IsPartitioned
-                self.TrainingInstances[i].WeightType = "truncated_normal"
+                self.TrainingInstances[i].WeightType = "random_normal"
                 self.TrainingInstances[i].LearningRate = self.GlobalLearningRate
                 self.TrainingInstances[i].OptimizerType = self.GlobalOptimizer
                 self.TrainingInstances[i].Regularization = self.GlobalRegularization
@@ -2228,8 +2228,7 @@ class MultipleInstanceTraining(object):
                                   SampleInstance.NumberOfRadialFunctions,
                                   SampleInstance.Cutoff,
                                   SampleInstance.IsPartitioned,
-                                  SampleInstance.ActFun,
-                                  SampleInstance.IncludeMorse])
+                                  SampleInstance.ActFun])
                     ct = ct + 1
                     # Abort criteria
                     if TrainingCost <= self.GlobalCostCriterion and \

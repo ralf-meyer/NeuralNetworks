@@ -18,7 +18,7 @@ e_unit="Ry"
 dist_unit="A"
 load_model=False
 model="/home/afuchs/Documents/SELU/selu_morse_1"
-model_dir="morse_selu_morse_test1"
+model_dir="morse_ab_50"
 source="QE"
 percentage_of_data=100
 
@@ -71,49 +71,59 @@ if load_model:
 print("Save path : "+os.path.join(os.getcwd(),model_dir))
 
 #"/home/afuchs/Documents/Ni15Au15/",
-data_files=["/home/afuchs/Documents/13atomic/Ni1Au12",
-            "/home/afuchs/Documents/13atomic/Ni2Au11",
-            "/home/afuchs/Documents/13atomic/Ni3Au10",
-            "/home/afuchs/Documents/13atomic/Ni4Au9",
-            "/home/afuchs/Documents/13atomic/Ni5Au8",
-            "/home/afuchs/Documents/13atomic/Ni6Au7",
-            "/home/afuchs/Documents/13atomic/Ni7Au6",
-            "/home/afuchs/Documents/13atomic/Ni8Au5",
-            "/home/afuchs/Documents/13atomic/Ni9Au4",
-            "/home/afuchs/Documents/13atomic/Ni10Au3",
-            "/home/afuchs/Documents/13atomic/Ni11Au2",
-            "/home/afuchs/Documents/13atomic/Ni12Au1",
-            "/home/afuchs/Documents/home/Ni1Au54",
-            "/home/afuchs/Documents/home/Ni2Au53",
-            "/home/afuchs/Documents/home/Ni3Au52",
-            "/home/afuchs/Documents/home/Ni6Au49",
-            "/home/afuchs/Documents/home/Ni8Au47",
-            "/home/afuchs/Documents/home/Ni10Au45",
-            "/home/afuchs/Documents/home/Ni11Au44",
-            "/home/afuchs/Documents/home/Ni12Au43",
-            "/home/afuchs/Documents/home/Ni13Au42",
-            "/home/afuchs/Documents/home/Ni14Au41",
-            "/home/afuchs/Documents/home/Ni15Au40",
-            "/home/afuchs/Documents/home/Ni17Au38",
-            "/home/afuchs/Documents/home/Ni18Au37",
-            "/home/afuchs/Documents/home/Ni19Au36",
-            "/home/afuchs/Documents/home/Ni20Au35",
-            "/home/afuchs/Documents/home/Ni21Au34",
-            "/home/afuchs/Documents/home/Ni22Au33",
-            "/home/afuchs/Documents/home/Ni23Au32",
-            "/home/afuchs/Documents/home/Ni24Au31",
-            "/home/afuchs/Documents/home/Ni25Au30",
-            "/home/afuchs/Documents/home/Ni26Au29",
-            "/home/afuchs/Documents/home/Ni27Au28",
-            "/home/afuchs/Documents/home/Ni28Au27",
-            #"/home/afuchs/Documents/home/Ni29Au26",
-            #"/home/afuchs/Documents/home/Ni36Au19",
-            #"/home/afuchs/Documents/home/Ni37Au18"
-            ]
+# data_files=["/home/afuchs/Documents/13atomic/Ni1Au12",
+#             "/home/afuchs/Documents/13atomic/Ni2Au11",
+#             "/home/afuchs/Documents/13atomic/Ni3Au10",
+#             "/home/afuchs/Documents/13atomic/Ni4Au9",
+#             "/home/afuchs/Documents/13atomic/Ni5Au8",
+#             "/home/afuchs/Documents/13atomic/Ni6Au7",
+#             "/home/afuchs/Documents/13atomic/Ni7Au6",
+#             "/home/afuchs/Documents/13atomic/Ni8Au5",
+#             "/home/afuchs/Documents/13atomic/Ni9Au4",
+#             "/home/afuchs/Documents/13atomic/Ni10Au3",
+#             "/home/afuchs/Documents/13atomic/Ni11Au2",
+#             "/home/afuchs/Documents/13atomic/Ni12Au1",
+#             "/home/afuchs/Documents/home/Ni1Au54",
+#             "/home/afuchs/Documents/home/Ni2Au53",
+#             "/home/afuchs/Documents/home/Ni3Au52",
+#             "/home/afuchs/Documents/home/Ni6Au49",
+#             "/home/afuchs/Documents/home/Ni8Au47",
+#             "/home/afuchs/Documents/home/Ni10Au45",
+#             "/home/afuchs/Documents/home/Ni11Au44",
+#             "/home/afuchs/Documents/home/Ni12Au43",
+#             "/home/afuchs/Documents/home/Ni13Au42",
+#             "/home/afuchs/Documents/home/Ni14Au41",
+#             "/home/afuchs/Documents/home/Ni15Au40",
+#             "/home/afuchs/Documents/home/Ni17Au38",
+#             "/home/afuchs/Documents/home/Ni18Au37",
+#             "/home/afuchs/Documents/home/Ni19Au36",
+#             "/home/afuchs/Documents/home/Ni20Au35",
+#             "/home/afuchs/Documents/home/Ni21Au34",
+#             "/home/afuchs/Documents/home/Ni22Au33",
+#             "/home/afuchs/Documents/home/Ni23Au32",
+#             "/home/afuchs/Documents/home/Ni24Au31",
+#             "/home/afuchs/Documents/home/Ni25Au30",
+#             "/home/afuchs/Documents/home/Ni26Au29",
+#             "/home/afuchs/Documents/home/Ni27Au28",
+#             "/home/afuchs/Documents/home/Ni28Au27",
+#             #"/home/afuchs/Documents/home/Ni29Au26",
+#             #"/home/afuchs/Documents/home/Ni36Au19",
+#             #"/home/afuchs/Documents/home/Ni37Au18"
+#             ]
 # data_files=["/home/afuchs/Documents/Ni1Au2/",
 #             "/home/afuchs/Documents/Ni2Au1",
 #             "/home/afuchs/Documents/Ni2Au2",
 #             "/home/afuchs/Documents/Ni5Au5_6000/"]
+data_path="/home/afuchs/Documents/Au_dataset_big_only/"
+data_files=[os.path.join(data_path,f) for f in os.listdir(data_path)]
+for this in data_files:
+    folder_files = [os.path.join(this, f) for f in os.listdir(this)]
+    for myfile in folder_files:
+        temp=open(myfile,"r").read()
+        if "error" in temp:
+            print("Error in :"+str(myfile))
+print(data_files)
+
 Multi=_NN.MultipleInstanceTraining()
 Multi.GlobalLearningRate=learning_rate
 for i in range(len(data_files)):
@@ -138,7 +148,7 @@ for i in range(len(data_files)):
     Training.Cutoff=7
     #Read file
     if source == "QE":
-        Training.read_qe_md_files(data_file,e_unit,dist_unit,DataPointsPercentage=percentage_of_data,Calibration=["/home/afuchs/Documents/Calibration/Ni","/home/afuchs/Documents/Calibration/Au"])
+        Training.read_qe_md_files(data_file,e_unit,dist_unit,DataPointsPercentage=percentage_of_data,Calibration=["/home/afuchs/Documents/Conference_Lausanne/Au_Calibration/Au1_sp.out"])
     else:
         Training.read_lammps_files(data_file,energy_unit=e_unit,dist_unit=dist_unit,DataPointsPercentage=percentage_of_data,calibrate=False)
 
@@ -151,11 +161,11 @@ for i in range(len(data_files)):
     Training.Regularization = "L2"
     Training.MakeLastLayerConstant=False
     Training.InitStddev=0
-    Training.LearningDecayEpochs=500
+    Training.LearningDecayEpochs=1000
     Training.Epochs=epochs
     Training.ForceCostParam=0.001
     Training.MakePlots=plots
-    Training.ActFun="selu"
+    Training.ActFun=["selu","morse","selu","none"]
     Training.CostFunType="Adaptive_2"
     Training.OptimizerType="Adam"
     Training.SavingDirectory=model_dir
@@ -180,14 +190,17 @@ for j in range(1,len(means)):
     max_vars=_np.maximum(max_means,vars[j])
 
 
-
+ct=0
 for i,Training in enumerate(Multi.TrainingInstances):
     Multi.TrainingInstances[i]._MeansOfDs = max_means
     Multi.TrainingInstances[i]._VarianceOfDs = max_vars
     #Create batches
+    ct+=len(Multi.TrainingInstances[i]._DataSet.energies)
     batch_size=10#len(Training._DataSet.energies)*(percentage_of_data/100)/50
+    print(data_files[i])
     Multi.TrainingInstances[i].make_training_and_validation_data(batch_size,90,10)
 
+print(ct)
 
 
 Multi.MakePlots=True
