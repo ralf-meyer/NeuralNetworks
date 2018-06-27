@@ -6,8 +6,7 @@ from NeuralNetworks import check_pes
 import numpy as _np
 import matplotlib
 
-def str2bool(v):
-  return v.lower() in ("yes", "true", "t", "1")
+
 #Get input
 plots=False
 learning_rate=0.001
@@ -22,41 +21,6 @@ model_dir="morse_ab_50"
 source="QE"
 percentage_of_data=100
 
-for i,arg in enumerate(sys.argv):
-    if "-input" in arg:
-        data_file=sys.argv[i+1]
-    if "-output" in arg:
-        model_dir=sys.argv[i+1]
-    if "-epochs" in arg:
-        epochs=int(sys.argv[i+1])
-    if "-force" in arg:
-        force=str2bool(sys.argv[i+1])
-    if "-load_model" in arg:
-        load_model=str2bool(sys.argv[i+1])
-    if "-v" in arg:
-        plots=True
-    if "-lr" in arg:
-        learning_rate = float(sys.argv[i+1])
-    if "-e_unit" in arg:
-        e_unit=sys.argv[i+1]
-    if "-dist_unit" in arg:
-        dist_unit=sys.argv[i+1]
-    if "-model" in arg:
-        model=sys.argv[i+1]
-    if "-source" in arg:
-        source = sys.argv[i + 1]
-    if "-data_percentage" in arg:
-        percentage_of_data = float(sys.argv[i + 1])
-
-# if data_file=="":
-#     print("Please specify a MD file")
-#     print("Option: -input x")
-#     exit
-#
-# if source == "":
-#     print("Please specify your source (QE = Quantum Espresso, LAMMPS=Lammps")
-#     print("Option: -source x")
-#     exit
 
 print("Learning rate = "+str(learning_rate))
 print("Epochs = "+str(epochs))
@@ -70,51 +34,8 @@ if load_model:
     print("Loaded model = "+model)
 print("Save path : "+os.path.join(os.getcwd(),model_dir))
 
-#"/home/afuchs/Documents/Ni15Au15/",
-# data_files=["/home/afuchs/Documents/13atomic/Ni1Au12",
-#             "/home/afuchs/Documents/13atomic/Ni2Au11",
-#             "/home/afuchs/Documents/13atomic/Ni3Au10",
-#             "/home/afuchs/Documents/13atomic/Ni4Au9",
-#             "/home/afuchs/Documents/13atomic/Ni5Au8",
-#             "/home/afuchs/Documents/13atomic/Ni6Au7",
-#             "/home/afuchs/Documents/13atomic/Ni7Au6",
-#             "/home/afuchs/Documents/13atomic/Ni8Au5",
-#             "/home/afuchs/Documents/13atomic/Ni9Au4",
-#             "/home/afuchs/Documents/13atomic/Ni10Au3",
-#             "/home/afuchs/Documents/13atomic/Ni11Au2",
-#             "/home/afuchs/Documents/13atomic/Ni12Au1",
-#             "/home/afuchs/Documents/home/Ni1Au54",
-#             "/home/afuchs/Documents/home/Ni2Au53",
-#             "/home/afuchs/Documents/home/Ni3Au52",
-#             "/home/afuchs/Documents/home/Ni6Au49",
-#             "/home/afuchs/Documents/home/Ni8Au47",
-#             "/home/afuchs/Documents/home/Ni10Au45",
-#             "/home/afuchs/Documents/home/Ni11Au44",
-#             "/home/afuchs/Documents/home/Ni12Au43",
-#             "/home/afuchs/Documents/home/Ni13Au42",
-#             "/home/afuchs/Documents/home/Ni14Au41",
-#             "/home/afuchs/Documents/home/Ni15Au40",
-#             "/home/afuchs/Documents/home/Ni17Au38",
-#             "/home/afuchs/Documents/home/Ni18Au37",
-#             "/home/afuchs/Documents/home/Ni19Au36",
-#             "/home/afuchs/Documents/home/Ni20Au35",
-#             "/home/afuchs/Documents/home/Ni21Au34",
-#             "/home/afuchs/Documents/home/Ni22Au33",
-#             "/home/afuchs/Documents/home/Ni23Au32",
-#             "/home/afuchs/Documents/home/Ni24Au31",
-#             "/home/afuchs/Documents/home/Ni25Au30",
-#             "/home/afuchs/Documents/home/Ni26Au29",
-#             "/home/afuchs/Documents/home/Ni27Au28",
-#             "/home/afuchs/Documents/home/Ni28Au27",
-#             #"/home/afuchs/Documents/home/Ni29Au26",
-#             #"/home/afuchs/Documents/home/Ni36Au19",
-#             #"/home/afuchs/Documents/home/Ni37Au18"
-#             ]
-# data_files=["/home/afuchs/Documents/Ni1Au2/",
-#             "/home/afuchs/Documents/Ni2Au1",
-#             "/home/afuchs/Documents/Ni2Au2",
-#             "/home/afuchs/Documents/Ni5Au5_6000/"]
-data_path="/home/afuchs/Documents/Au_dataset_big_only/"
+
+data_path="/home/afuchs/Documents/Au_Dataset2-80/"
 data_files=[os.path.join(data_path,f) for f in os.listdir(data_path)]
 for this in data_files:
     folder_files = [os.path.join(this, f) for f in os.listdir(this)]
@@ -138,9 +59,9 @@ for i in range(len(data_files)):
     #Default symmetry function set
     #Training.NumberOfRadialFunctions=15
     bohr2ang = 0.529177249
-    #Training.Lambs=[1.0,-1.0]
-    #Training.Zetas=[0.2,0.5,1,3,10]#[0.025,0.045,0.075,0.1,0.15,0.2,0.3,0.5,0.7,1,1.5,2,3,5,10,18,36,100]
-    #Training.Etas=[0.01]
+    Training.Lambs=[1.0,-1.0]
+    Training.Zetas=[0.2,0.5,1,3,10]#[0.025,0.045,0.075,0.1,0.15,0.2,0.3,0.5,0.7,1,1.5,2,3,5,10,18,36,100]
+    Training.Etas=[0.01]
     Training.Rs = [0,0,0,0,0,0,0,0]#,1.16674542, 1.81456625,2.3, 2.89256287, 4.53134823, 6.56226301, 6.92845869]
     Training.R_Etas = [0.4/bohr2ang**2, 0.2/bohr2ang**2, 0.1/bohr2ang**2, 0.06/bohr2ang**2, 0.035/bohr2ang**2, 0.02/bohr2ang**2, 0.01/bohr2ang**2, 0.0009/bohr2ang**2]#, 2.13448882, 1.97223806,1.2, 0.81916839, 0.47314626, 0.95010978, 7.37062645]
     #Training.Rs = [0, 0, 0, 0]  # ,1.16674542, 1.81456625,2.3, 2.89256287, 4.53134823, 6.56226301, 6.92845869]
