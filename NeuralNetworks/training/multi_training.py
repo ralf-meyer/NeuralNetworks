@@ -84,7 +84,7 @@ for i in range(len(data_files)):
     Training.InitStddev=0
     Training.LearningDecayEpochs=1000
     Training.Epochs=epochs
-    Training.ForceCostParam=0.001
+    Training.ForceCostParam=0.001#might be too high if training yields bad results reduce to 10⁻4
     Training.MakePlots=plots
     Training.ActFun=["selu","morse","selu","none"]
     Training.CostFunType="Adaptive_2"
