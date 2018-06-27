@@ -2,7 +2,10 @@
 #include "symmetryFunctionSet.h"
 
 /* Compile using "g++ -g -std=c++11 test_for_leaks.cpp -I/path/to/NeuralNetworks/symmetryFunctions
--L/path/to/NeuralNetworks/symmetryFunctions -lSymFunSet -o test_for_leaks"*/
+-L/path/to/NeuralNetworks/symmetryFunctions -lSymFunSet -o test_for_leaks"
+
+export LD_LIBRARY_PATH=$LD_LIBRARYPATH:/home/rmeyer/PythonModules/NeuralNetworks/NeuralNetworks/descriptors*/
+
 
 int main()
 {
@@ -41,6 +44,7 @@ int main()
   delete[] prms3;
   delete[] types;
   delete[] G_vector;
+  delete[] dG_tensor;
   delete[] xyzs;
   delete sfs;
   return 0;
