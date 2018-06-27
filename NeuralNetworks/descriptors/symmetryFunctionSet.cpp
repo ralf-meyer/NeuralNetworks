@@ -13,13 +13,12 @@ threeBodySymFuns(num_atomtypes_i*num_atomtypes_i*num_atomtypes_i)
   num_symFuns = new int[2*num_atomtypes]();
   pos_twoBody = new int[num_atomtypes_sq]();
   pos_threeBody = new int[num_atomtypes_sq*num_atomtypes]();
-  max_cutoff = new int[num_atomtypes_sq];
+  max_cutoff = new double[num_atomtypes_sq]{1000.0};
   printf("Constructor called with %d atom types\n",num_atomtypes);
 }
 
 SymmetryFunctionSet::~SymmetryFunctionSet()
 {
-  printf("Destructor called\n");
   for (int i = 0; i < num_atomtypes; i++)
   {
     for (int j = 0; j < num_atomtypes; j++)
@@ -30,6 +29,7 @@ SymmetryFunctionSet::~SymmetryFunctionSet()
   delete[] pos_twoBody;
   delete[] pos_threeBody;
   delete[] num_symFuns;
+  delete[] max_cutoff;
   printf("Destructor finished\n");
 }
 

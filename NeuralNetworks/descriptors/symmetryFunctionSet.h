@@ -36,7 +36,7 @@ class SymmetryFunctionSet
     std::vector <std::vector<std::shared_ptr<ThreeBodySymmetryFunction> > >
       threeBodySymFuns;
     int* pos_threeBody;
-    int* max_cutoff;
+    double* max_cutoff;
 };
 
 // Wrap the C++ classes for C usage in python ctypes:
@@ -47,7 +47,7 @@ extern "C" {
   }
   void destroy_SymmetryFunctionSet(SymmetryFunctionSet* symFunSet)
   {
-    symFunSet->~SymmetryFunctionSet();
+    delete symFunSet;
   }
   void SymmetryFunctionSet_add_TwoBodySymmetryFunction(
     SymmetryFunctionSet* symFunSet,  int type1, int type2, int funtype,
