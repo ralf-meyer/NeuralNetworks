@@ -11,9 +11,10 @@ anything between these tags.
 #include <limits>
 #include <string.h>
 
-SymmetryFunction::SymmetryFunction(int num_prms, double* prms_i,
+SymmetryFunction::SymmetryFunction(int num_prms_i, double* prms_i,
   std::shared_ptr<CutoffFunction> cutfun_i):cutfun(cutfun_i)
 {
+  num_prms = num_prms_i;
   prms = new double[num_prms];
   for (int i = 0; i < num_prms; i++)
   {
@@ -24,6 +25,28 @@ SymmetryFunction::SymmetryFunction(int num_prms, double* prms_i,
 SymmetryFunction::~SymmetryFunction()
 {
   delete[] prms;
+};
+
+SymmetryFunction::SymmetryFunction(const SymmetryFunction& other) //Copy constructor
+{
+  num_prms = other.num_prms;
+  prms = new double[other.num_prms];
+  for (int i = 0; i < num_prms; i++)
+  {
+    prms[i] = other.prms[i];
+  }
+};
+
+SymmetryFunction& SymmetryFunction::operator=(const SymmetryFunction& other) //Copy assignment
+{
+  double* tmp_prms = new double[other.num_prms];
+  for (int i = 0; i < other.num_prms; i++)
+  {
+    tmp_prms[i] = other.prms[i];
+  }
+  delete[] prms;
+  prms = tmp_prms;
+  return *this;
 };
 
 // AUTOMATIC Start of custom TwoBodySymFuns

@@ -14,7 +14,10 @@ class SymmetryFunction
         SymmetryFunction(int num_prms, double* pmrs_i,
           std::shared_ptr<CutoffFunction> cutfun_i);
         ~SymmetryFunction();
+        SymmetryFunction(const SymmetryFunction& other);
+        SymmetryFunction& operator=(const SymmetryFunction& other);
     protected:
+        int num_prms;
         double* prms;
         std::shared_ptr<CutoffFunction> cutfun;
 };
