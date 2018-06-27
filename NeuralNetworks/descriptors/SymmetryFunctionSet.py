@@ -19,6 +19,8 @@ try:
             "libSymFunSet.so")
         )
     )
+    lib.create_SymmetryFunctionSet.restype = _ct.c_void_p
+    lib.create_SymmetryFunctionSet.argtypes = (_ct.c_int,)
     lib.destroy_SymmetryFunctionSet.argtypes = (_ct.c_void_p,)
     lib.SymmetryFunctionSet_add_TwoBodySymmetryFunction.argtypes = (
         _ct.c_void_p, _ct.c_int, _ct.c_int, _ct.c_int, _ct.c_int,
@@ -61,7 +63,7 @@ class SymmetryFunctionSet(object):
         for i, t in enumerate(atomtypes):
             self.type_dict[t] = i
             self.type_dict[i] = i
-        self.obj = lib.create_SymmetryFunctionSet(_ct.c_int(len(atomtypes)))
+        self.obj = lib.create_SymmetryFunctionSet(len(atomtypes))
         self._closed = False
 
     def close(self):
