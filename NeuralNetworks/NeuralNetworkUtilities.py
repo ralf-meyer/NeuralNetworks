@@ -384,6 +384,7 @@ def evaluate_all_data(TrainingInstances,ModelName):
     RMSEValidation =_np.mean(_np.sqrt((_np.asarray(ValidationPredictions) - _np.asarray(ValidationTargets)) ** 2))
     print("RMSE training = "+str(RMSETraining)+" eV/atom")
     print("RMSE validation = " + str(RMSEValidation) + " eV/atom")
+    _np.save(_os.path.join(TrainingInstances[0].SavingDirectory,"train_val_error.npy"),[RMSETraining,RMSEValidation])
 
 class AtomicNeuralNetInstance(object):
     """This class implements all the properties and methods for training and
@@ -429,6 +430,7 @@ class AtomicNeuralNetInstance(object):
         self.ForceCostParam = 0.00001
         self.InputDerivatives = False
         self.Multiple = False
+        self.Histograms = False
         self.UseForce = False
         self.CostCriterion = 0
         self.dE_Criterion = 0

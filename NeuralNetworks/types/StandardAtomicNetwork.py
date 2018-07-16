@@ -371,7 +371,7 @@ class _StandardAtomicNetwork(_AtomicNetwork):
                                                                                 True, Mean=NetInstance.InitMean,
                                                                                 Stddev=NetInstance.InitStddev,
                                                                                 i=i,j=j,
-                                                                                include_histograms=not(NetInstance.Multiple))
+                                                                                include_histograms=NetInstance.Histograms)
 
                                 tempWeights=self._construct_pass_through_weights(tempWeights,OldBiasNr)
 
@@ -416,7 +416,7 @@ class _StandardAtomicNetwork(_AtomicNetwork):
                                             Mean=NetInstance.InitMean,
                                             i=i,
                                             j=j,
-                                            include_histograms=not (NetInstance.Multiple)))
+                                            include_histograms=NetInstance.Histograms))
                                 else:#if the new net is deeper then the loaded one add a trainable layer
                                     HiddenLayers.append(
                                         self._construct_hidden_layer(
@@ -430,7 +430,7 @@ class _StandardAtomicNetwork(_AtomicNetwork):
                                             Mean=NetInstance.InitMean,
                                             i = i,
                                             j = j,
-                                            include_histograms=not (NetInstance.Multiple)
+                                            include_histograms=NetInstance.Histograms
                                             ))
 
                 else:#if no net was loaded
@@ -454,7 +454,7 @@ class _StandardAtomicNetwork(_AtomicNetwork):
                                     Mean=NetInstance.InitMean,
                                     i=i,
                                     j=j,
-                                    include_histograms=not (NetInstance.Multiple)
+                                    include_histograms=NetInstance.Histograms
                                 ))
 
                 AllHiddenLayers.append(HiddenLayers)
@@ -484,7 +484,7 @@ class _StandardAtomicNetwork(_AtomicNetwork):
                     Dropout,
                     i=ct,
                     j=0,
-                    include_histograms=not (NetInstance.Multiple))
+                    include_histograms=NetInstance.Histograms)
 
                 for l in range(1, len(HiddenLayers)):
                     # Connect layers
@@ -498,7 +498,7 @@ class _StandardAtomicNetwork(_AtomicNetwork):
                     if l == len(HiddenLayers) - 1:
                         Network = self._connect_layers(
                             Network, Weights, Biases, "none", NetInstance.ActFunParam, Dropout,
-                            i=ct,include_histograms=not(NetInstance.Multiple))
+                            i=ct,include_histograms=NetInstance.Histograms)
                         ct += 1
                     else:
                         Network = self._connect_layers(
@@ -510,7 +510,7 @@ class _StandardAtomicNetwork(_AtomicNetwork):
                             Dropout,
                             i=ct,
                             j=l,
-                            include_histograms=not (NetInstance.Multiple))
+                            include_histograms=NetInstance.Histograms)
 
                 if NetInstance.UseForce:
                     with _tf.name_scope("dG"):
