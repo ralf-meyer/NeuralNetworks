@@ -1,5 +1,4 @@
 import sympy as _sp
-from sympy.parsing.sympy_parser import parse_expr
 
 rij, rik, costheta = _sp.symbols("rij rik costheta")
 
@@ -146,7 +145,7 @@ with open("symmetryFunctions.cpp", "w") as fout:
         fout.write(line)
         if line.startswith("// AUTOMATIC Start of custom TwoBodySymFuns"):
             for symfun in twoBodySymFuns:
-                parsed_symfun = parse_expr(symfun[2])
+                parsed_symfun = _sp.sympify(symfun[2])
                 fout.write(method_twoBody.format(symfun[0],"eval",
                     format_prms(symfun[1],_sp.ccode(symfun[2],
                     user_functions = user_funs))))
@@ -181,13 +180,15 @@ with open("symmetryFunctions.cpp", "w") as fout:
                     ";\n  ".join(method_body)))
         elif line.startswith("// AUTOMATIC Start of custom ThreeBodySymFuns"):
             for symfun in threeBodySymFuns:
-                parsed_symfun = parse_expr(symfun[2])
+                parsed_symfun = _sp.sympify(symfun[2])
+                print(symfun[2])
                 fout.write(method_threeBody.format(symfun[0],"eval",
                     format_prms(symfun[1],_sp.ccode(symfun[2],
                     user_functions = user_funs))))
                 # Derivative with respect to rij
                 deriv = str(_sp.simplify(
                     _sp.Derivative(parsed_symfun, rij).doit()))
+                print(deriv)
                 deriv = deriv.replace("Derivative(fcut(rij), rij)", "dfcut(rij)")
                 deriv = deriv.replace("Derivative(fcut(rik), rik)", "dfcut(rik)")
                 fout.write(method_threeBody.format(symfun[0],"drij",
