@@ -127,6 +127,22 @@ class BehlerG4: public ThreeBodySymmetryFunction
       double &G, double &dGdrij, double &dGdrik, double &dGdcostheta);
 };
 
+class BehlerG3: public ThreeBodySymmetryFunction
+{
+  public:
+    BehlerG3(int num_prms, double* prms,
+      std::shared_ptr<CutoffFunction> cutfun_i):
+      ThreeBodySymmetryFunction(num_prms, prms, cutfun_i){};
+    double eval(double rij, double rik, double costheta);
+    double drij(double rij, double rik, double costheta);
+    double drik(double rij, double rik, double costheta);
+    double dcostheta(double rij, double rik, double costheta);
+    void derivatives(double rij, double rik, double costheta,
+      double &dGdrij, double &dGdrik, double &dGdcostheta);
+    void eval_with_derivatives(double rij, double rik, double costheta,
+      double &G, double &dGdrij, double &dGdrik, double &dGdcostheta);
+};
+
 class MeyerG1: public ThreeBodySymmetryFunction
 {
   public:
