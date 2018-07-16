@@ -6,6 +6,11 @@ from NeuralNetworks import check_pes
 import numpy as _np
 import matplotlib
 
+def trace(frame, event, arg):
+    with open("trace_file.txt", "w") as fout:
+        fout.write("%s, %s:%d\n" % (event, frame.f_code.co_filename, frame.f_lineno))
+    return trace
+
 def str2bool(v):
   return v.lower() in ("yes", "true", "t", "1")
 #Get input
@@ -13,11 +18,11 @@ plots=False
 learning_rate=0.001
 epochs=50000
 data_file=""
-force=False
+force=True
 e_unit="Ry"
 dist_unit="A"
 load_model=False
-model="/home/afuchs/Documents/SELU/selu_morse_1"
+model="/home/rmeyer/Development/find_seg_fault/model/test_1"
 model_dir="morse_ab_50"
 source="QE"
 percentage_of_data=100
@@ -114,7 +119,7 @@ print("Save path : "+os.path.join(os.getcwd(),model_dir))
 #             "/home/afuchs/Documents/Ni2Au1",
 #             "/home/afuchs/Documents/Ni2Au2",
 #             "/home/afuchs/Documents/Ni5Au5_6000/"]
-data_path="/home/afuchs/Documents/Au_dataset_big_only/"
+data_path="/home/rmeyer/Development/find_seg_fault/Au_Dataset2-80/"
 data_files=[os.path.join(data_path,f) for f in os.listdir(data_path)]
 for this in data_files:
     folder_files = [os.path.join(this, f) for f in os.listdir(this)]
@@ -129,6 +134,7 @@ Multi.GlobalLearningRate=learning_rate
 for i in range(len(data_files)):
     data_file=data_files[i]
     print(data_file)
+
     #Load trainings instance
     Training=_NN.AtomicNeuralNetInstance()
     Training.IsPartitioned=False
@@ -151,7 +157,9 @@ for i in range(len(data_files)):
         Training.read_qe_md_files(data_file,e_unit,dist_unit,DataPointsPercentage=percentage_of_data,Calibration=["/home/afuchs/Documents/Conference_Lausanne/Au_Calibration/Au1_sp.out"])
     else:
         Training.read_lammps_files(data_file,energy_unit=e_unit,dist_unit=dist_unit,DataPointsPercentage=percentage_of_data,calibrate=False)
-
+    print("Done reading")
+    #if data_file == "/home/rmeyer/Development/find_seg_fault/Au_Dataset2-80/Au_42":
+    #    sys.settrace(trace)
     # Default trainings settings
     for i in range(len(Training.Atomtypes)):
         Training.Structures.append([Training.SizeOfInputsPerType[i],80,60,40,1])
