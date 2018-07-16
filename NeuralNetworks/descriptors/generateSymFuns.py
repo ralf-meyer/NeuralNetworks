@@ -1,4 +1,5 @@
 import sympy as _sp
+import re
 
 rij, rik, costheta = _sp.symbols("rij rik costheta")
 
@@ -181,30 +182,33 @@ with open("symmetryFunctions.cpp", "w") as fout:
         elif line.startswith("// AUTOMATIC Start of custom ThreeBodySymFuns"):
             for symfun in threeBodySymFuns:
                 parsed_symfun = _sp.sympify(symfun[2])
-                print(symfun[2])
                 fout.write(method_threeBody.format(symfun[0],"eval",
                     format_prms(symfun[1],_sp.ccode(symfun[2],
                     user_functions = user_funs))))
                 # Derivative with respect to rij
-                deriv = str(_sp.simplify(
-                    _sp.Derivative(parsed_symfun, rij).doit()))
-                print(deriv)
-                deriv = deriv.replace("Derivative(fcut(rij), rij)", "dfcut(rij)")
-                deriv = deriv.replace("Derivative(fcut(rik), rik)", "dfcut(rik)")
+                deriv = _sp.simplify(
+                    _sp.Derivative(parsed_symfun, rij).doit())
+                deriv = _sp.sympify(re.sub(
+                    "Derivative\(fcut\((?P<arg>.*?)\), (?P=arg)\)",
+                    "dfcut(\g<arg>)", str(deriv))).doit()
                 fout.write(method_threeBody.format(symfun[0],"drij",
                     format_prms(symfun[1],_sp.ccode(deriv,
                     user_functions = user_funs))))
                 # Derivative with respect to rik
-                deriv = str(_sp.simplify(
-                    _sp.Derivative(parsed_symfun, rik).doit()))
-                deriv = deriv.replace("Derivative(fcut(rij), rij)", "dfcut(rij)")
-                deriv = deriv.replace("Derivative(fcut(rik), rik)", "dfcut(rik)")
+                deriv = _sp.simplify(
+                    _sp.Derivative(parsed_symfun, rik).doit())
+                deriv = _sp.sympify(re.sub(
+                    "Derivative\(fcut\((?P<arg>.*?)\), (?P=arg)\)",
+                    "dfcut(\g<arg>)", str(deriv))).doit()
                 fout.write(method_threeBody.format(symfun[0],"drik",
                     format_prms(symfun[1],_sp.ccode(deriv,
                     user_functions = user_funs))))
                 # Derivative with respect to costheta
-                deriv = str(_sp.simplify(
-                    _sp.Derivative(parsed_symfun, costheta).doit()))
+                deriv = _sp.simplify(
+                    _sp.Derivative(parsed_symfun, costheta).doit())
+                deriv = _sp.sympify(re.sub(
+                    "Derivative\(fcut\((?P<arg>.*?)\), (?P=arg)\)",
+                    "dfcut(\g<arg>)", str(deriv))).doit()
                 fout.write(method_threeBody.format(symfun[0],"dcostheta",
                     format_prms(symfun[1],_sp.ccode(deriv,
                     user_functions = user_funs))))
@@ -214,10 +218,11 @@ with open("symmetryFunctions.cpp", "w") as fout:
                     _sp.simplify(_sp.Derivative(parsed_symfun, rij).doit()),
                     _sp.simplify(_sp.Derivative(parsed_symfun, rik).doit()),
                     _sp.simplify(_sp.Derivative(parsed_symfun, costheta).doit())]
-                results = [result.replace(
-                    "Derivative(fcut(rij), rij)", "dfcut(rij)").replace(
-                    "Derivative(fcut(rik), rik)", "dfcut(rik)") for result
-                    in results]
+                # Ugly work around to allow working with regex. Should maybe be
+                # redone.
+                results = [_sp.sympify(re.sub(
+                    "Derivative\(fcut\((?P<arg>.*?)\), (?P=arg)\)",
+                    "dfcut(\g<arg>)", str(result))).doit() for result in results]
                 sub_exprs, simplified_results = _sp.cse(results)
                 method_body = []
                 for sub_expr in sub_exprs:
