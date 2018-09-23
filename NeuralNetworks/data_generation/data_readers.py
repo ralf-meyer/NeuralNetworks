@@ -304,7 +304,7 @@ def read_geometry_scf(my_file,Geom_conv_factor,atom_types=[],read_types=True):
     geom_start_idx=my_file.index("positions (alat units)")
     geom_end_idx=my_file.index("number of k points")
     geom=my_file[geom_start_idx:geom_end_idx]
-   
+
     # Cut away header line
     lines=geom.split('\n')[1:]
     sites=[]
@@ -722,8 +722,9 @@ class QE_MD_Reader(object):
         self.e_pot = self.e_tot
         self.e_tot=_np.add(self.e_tot,self.e_kin)
         #else:
-
-        self.nr_atoms_per_type=get_nr_atoms_per_type(self.atom_types,self.geometries[0])
+        if len(self.geometries) > 0:
+            self.nr_atoms_per_type=get_nr_atoms_per_type(
+                self.atom_types, self.geometries[0])
 
     def calibrate_energy(self):
         reader=QE_SCF_Reader()
